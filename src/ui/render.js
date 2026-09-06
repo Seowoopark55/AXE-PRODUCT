@@ -121,6 +121,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
             `).join('')}
           </select>
           <button class="btn btn-soft btn-full" data-action="open-create-company">+ 새 회사</button>
+          <button class="btn btn-ghost btn-full sidebar-secondary" data-action="open-join-company">초대코드로 참가</button>
         </div>
 
         <nav class="nav">
@@ -154,6 +155,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
         </div>
 
         ${state.showCreateCompany ? renderCreateCompanyModal() : ''}
+        ${state.showJoinCompany ? renderJoinCompanyModal() : ''}
 
         ${state.view === 'overview' ? renderOverview(state, company, myMembership) : ''}
         ${state.view === 'members' ? renderMembers(state, myMembership, canAdmin, canOwn) : ''}
@@ -177,23 +179,34 @@ function navItem(key, label, active, disabled = false) {
 function renderOnboarding(state) {
   return `
     <section class="onboarding">
-      <div class="panel onboarding-panel">
-        <div class="eyebrow">FIRST TENANT</div>
-        <h2>첫 회사를 생성한다.</h2>
-        <p>
-          생성자는 자동으로 OWNER가 되고, 다른 회사 데이터와 RLS로 완전히 분리된다.
-        </p>
-        <form data-form="create-company" class="form-grid">
-          <label>
-            <span class="field-label">회사 이름</span>
-            <input class="input" name="name" maxlength="80" placeholder="예: AXE" required />
-          </label>
-          <label>
-            <span class="field-label">Slug <em>선택</em></span>
-            <input class="input" name="slug" maxlength="63" placeholder="비우면 자동 생성" />
-          </label>
-          <button class="btn btn-primary" type="submit" ${state.loading ? 'disabled' : ''}>회사 생성</button>
-        </form>
+      <div class="onboarding-grid">
+        <div class="panel onboarding-panel">
+          <div class="eyebrow">CREATE TENANT</div>
+          <h2>첫 회사를 생성한다.</h2>
+          <p>
+            생성자는 자동으로 OWNER가 되고, 다른 회사 데이터와 RLS로 완전히 분리된다.
+          </p>
+          <form data-form="create-company" class="form-grid">
+            <label>
+              <span class="field-label">회사 이름</span>
+              <input class="input" name="name" maxlength="80" placeholder="예: AXE" required />
+            </label>
+            <label>
+              <span class="field-label">Slug <em>선택</em></span>
+              <input class="input" name="slug" maxlength="63" placeholder="비우면 자동 생성" />
+            </label>
+            <button class="btn btn-primary" type="submit" ${state.loading ? 'disabled' : ''}>회사 생성</button>
+          </form>
+        </div>
+
+        <div class="panel onboarding-panel">
+          <div class="eyebrow">JOIN TENANT</div>
+          <h2>초대코드로 참가한다.</h2>
+          <p>
+            회사 OWNER 또는 ADMIN에게 받은 유효한 초대코드가 있어야 MEMBER로 가입할 수 있다.
+          </p>
+          ${renderRedeemInviteForm(state)}
+        </div>
       </div>
     </section>
   `;
@@ -223,6 +236,45 @@ function renderCreateCompanyModal() {
         </form>
       </div>
     </div>
+  `;
+}
+
+
+function renderJoinCompanyModal() {
+  return `
+    <div class="modal-backdrop" data-action="close-join-company">
+      <div class="modal" data-modal-stop>
+        <div class="modal-head">
+          <div>
+            <div class="eyebrow">JOIN TENANT</div>
+            <h3>초대코드로 회사 참가</h3>
+          </div>
+          <button class="icon-btn" data-action="close-join-company" aria-label="닫기">×</button>
+        </div>
+        ${renderRedeemInviteForm({ loading: false })}
+      </div>
+    </div>
+  `;
+}
+
+function renderRedeemInviteForm(state) {
+  return `
+    <form data-form="redeem-invite" class="form-grid invite-redeem-form">
+      <label>
+        <span class="field-label">초대코드</span>
+        <input
+          class="input invite-code-input"
+          name="invite_code"
+          maxlength="40"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="AXE-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+          required
+        />
+      </label>
+      <button class="btn btn-primary" type="submit" ${state.loading ? 'disabled' : ''}>회사 참가</button>
+      <p class="help-text">코드가 만료·폐기·사용완료 상태면 가입이 차단된다.</p>
+    </form>
   `;
 }
 
@@ -303,12 +355,11 @@ function renderMembers(state, myMembership, canAdmin, canOwn) {
           <div class="eyebrow">ACCESS</div>
           <h3>멤버 · 권한</h3>
         </div>
-        <span class="muted-chip">초대 기능: STAGE 3</span>
+        ${canAdmin ? '<span class="pass-chip">INVITE GATE ACTIVE</span>' : '<span class="muted-chip">MEMBER</span>'}
       </div>
 
       <div class="info-banner">
-        현재 단계에서는 기존 회사 멤버의 역할 변경을 검증한다.
-        신규 멤버 초대/가입 흐름은 Discord 연결과 함께 다음 단계에서 붙인다.
+        신규 사용자는 로그인만으로 회사에 들어올 수 없다. OWNER / ADMIN이 발급한 유효한 초대코드를 사용해야 MEMBER로 가입된다.
       </div>
 
       <div class="table-wrap">
@@ -328,6 +379,87 @@ function renderMembers(state, myMembership, canAdmin, canOwn) {
       <p class="help-text">
         마지막 OWNER를 없애는 변경은 DB에서 자동 차단된다.
       </p>
+    </div>
+
+    ${canAdmin ? renderInviteManagement(state) : ''}
+  `;
+}
+
+function renderInviteManagement(state) {
+  const fresh = state.freshInviteCode;
+  const rows = (state.invites || []).map((invite) => {
+    const canRevoke = ['active'].includes(invite.status);
+    return `
+      <tr>
+        <td><code>••••-${esc(invite.code_hint)}</code></td>
+        <td><span class="invite-status invite-status--${esc(invite.status)}">${esc(invite.status.toUpperCase())}</span></td>
+        <td>${esc(invite.use_count)} / ${esc(invite.max_uses)}</td>
+        <td>${esc(fmtDate(invite.expires_at))}</td>
+        <td>${esc(fmtDate(invite.created_at))}</td>
+        <td>
+          ${canRevoke ? `<button class="btn btn-danger btn-compact" data-action="revoke-invite" data-invite-id="${esc(invite.invite_id)}">폐기</button>` : '-'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">SECURE INVITATION</div>
+          <h3>초대코드 발급 · 관리</h3>
+        </div>
+        <span class="pass-chip">OWNER / ADMIN</span>
+      </div>
+
+      <div class="info-banner">
+        초대코드 원문은 생성 직후 이 화면에서 한 번만 보여준다. DB에는 SHA-256 해시만 저장된다.
+      </div>
+
+      <form data-form="create-invite" class="invite-create-grid">
+        <label>
+          <span class="field-label">사용 가능 횟수</span>
+          <input class="input" name="max_uses" type="number" min="1" max="500" value="1" required />
+        </label>
+        <label>
+          <span class="field-label">유효시간</span>
+          <select class="select" name="expires_in_hours">
+            <option value="24">24시간</option>
+            <option value="72">3일</option>
+            <option value="168" selected>7일</option>
+            <option value="336">14일</option>
+            <option value="720">30일</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit">초대코드 생성</button>
+      </form>
+
+      ${fresh ? `
+        <div class="fresh-invite">
+          <div>
+            <span>방금 생성한 초대코드 · 이 화면에서 복사해 둬야 한다.</span>
+            <code>${esc(fresh.invite_code)}</code>
+          </div>
+          <button class="btn btn-soft" data-action="copy-invite-code">코드 복사</button>
+        </div>
+      ` : ''}
+
+      <div class="table-wrap invite-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>코드 힌트</th>
+              <th>상태</th>
+              <th>사용</th>
+              <th>만료</th>
+              <th>생성</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="6">발급된 초대코드 없음</td></tr>'}</tbody>
+        </table>
+      </div>
     </div>
   `;
 }

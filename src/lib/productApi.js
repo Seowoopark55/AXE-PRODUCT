@@ -158,3 +158,41 @@ export async function getAuditEvents(companyId, limit = 50) {
     .limit(limit);
   return unwrap(result, '감사 로그를 불러오지 못했습니다.') || [];
 }
+
+export async function createCompanyInvite(companyId, maxUses = 1, expiresInHours = 168) {
+  assertClient();
+  const result = await supabase.rpc('create_company_invite', {
+    p_company_id: companyId,
+    p_max_uses: maxUses,
+    p_expires_in_hours: expiresInHours,
+  });
+  const data = unwrap(result, '초대코드를 생성하지 못했습니다.') || [];
+  return Array.isArray(data) ? (data[0] || null) : data;
+}
+
+export async function listCompanyInvites(companyId) {
+  assertClient();
+  const result = await supabase.rpc('list_company_invites', {
+    p_company_id: companyId,
+  });
+  return unwrap(result, '초대코드 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function revokeCompanyInvite(companyId, inviteId) {
+  assertClient();
+  const result = await supabase.rpc('revoke_company_invite', {
+    p_company_id: companyId,
+    p_invite_id: inviteId,
+  });
+  return unwrap(result, '초대코드를 폐기하지 못했습니다.');
+}
+
+export async function redeemCompanyInvite(inviteCode) {
+  assertClient();
+  const result = await supabase.rpc('redeem_company_invite', {
+    p_invite_code: inviteCode,
+  });
+  const data = unwrap(result, '초대코드로 회사에 참가하지 못했습니다.') || [];
+  return Array.isArray(data) ? (data[0] || null) : data;
+}
+

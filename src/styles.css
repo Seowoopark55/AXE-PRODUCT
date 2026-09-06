@@ -762,3 +762,117 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
   .onboarding-panel { padding: 24px; }
   .hero-card h1 { letter-spacing: -1px; }
 }
+
+/* STAGE 3A · secure invitation gate */
+.sidebar-secondary {
+  margin-top: 8px;
+}
+
+.onboarding-grid {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.invite-redeem-form {
+  margin-top: 24px;
+}
+
+.invite-code-input {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  letter-spacing: .4px;
+}
+
+.invite-create-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, .55fr) minmax(180px, .75fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.invite-create-grid .btn {
+  min-height: 42px;
+}
+
+.fresh-invite {
+  border: 1px solid rgba(240,180,60,.34);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(240,180,60,.09), rgba(240,180,60,.025));
+  padding: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fresh-invite span {
+  display: block;
+  color: #b6a27c;
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+.fresh-invite code {
+  color: #ffd36f;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .4px;
+}
+
+.invite-table-wrap table {
+  min-width: 860px;
+}
+
+.invite-status {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  padding: 0 8px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .45px;
+  color: #9aa5b5;
+}
+
+.invite-status--active {
+  color: var(--good);
+  border-color: rgba(114,210,155,.25);
+  background: rgba(114,210,155,.07);
+}
+
+.invite-status--revoked,
+.invite-status--expired,
+.invite-status--exhausted {
+  color: #a3acb9;
+  background: rgba(255,255,255,.025);
+}
+
+.btn-danger {
+  border-color: rgba(255,125,131,.24);
+  background: rgba(255,125,131,.07);
+  color: #ffafb3;
+}
+
+.btn-compact {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+@media (max-width: 800px) {
+  .onboarding-grid,
+  .invite-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fresh-invite {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+

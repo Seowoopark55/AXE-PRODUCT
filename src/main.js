@@ -16,6 +16,10 @@ import {
   updateCompanySettings,
   getDiscordConnection,
   getAuditEvents,
+  createCompanyInvite,
+  listCompanyInvites,
+  revokeCompanyInvite,
+  redeemCompanyInvite,
 } from './lib/productApi.js';
 import { renderShell } from './ui/render.js';
 
@@ -31,6 +35,8 @@ const state = {
   companySettings: null,
   discordConnection: null,
   auditEvents: [],
+  invites: [],
+  freshInviteCode: null,
   view: (() => {
     const saved = sessionStorage.getItem('axe_product_view');
     return ['overview', 'members', 'modules', 'settings', 'audit'].includes(saved)
@@ -38,6 +44,7 @@ const state = {
       : 'overview';
   })(),
   showCreateCompany: false,
+  showJoinCompany: false,
   loading: false,
   ready: false,
   error: '',
@@ -100,6 +107,8 @@ function clearCompanyState() {
   state.companySettings = null;
   state.discordConnection = null;
   state.auditEvents = [];
+  state.invites = [];
+  state.freshInviteCode = null;
 }
 
 async function loadCompanyData() {
@@ -122,9 +131,17 @@ async function loadCompanyData() {
   state.companySettings = settings;
   state.discordConnection = discord;
 
-  state.auditEvents = canAdmin()
-    ? await getAuditEvents(state.companyId, 50)
-    : [];
+  if (canAdmin()) {
+    const [auditEvents, invites] = await Promise.all([
+      getAuditEvents(state.companyId, 50),
+      listCompanyInvites(state.companyId),
+    ]);
+    state.auditEvents = auditEvents;
+    state.invites = invites;
+  } else {
+    state.auditEvents = [];
+    state.invites = [];
+  }
 }
 
 async function refreshAll() {
@@ -278,6 +295,40 @@ root.addEventListener('click', async (event) => {
       render();
       return;
     }
+
+    if (action === 'open-join-company') {
+      state.showJoinCompany = true;
+      render();
+      return;
+    }
+
+    if (action === 'close-join-company') {
+      if (event.target.closest('[data-modal-stop]') && !event.target.closest('.icon-btn')) return;
+      state.showJoinCompany = false;
+      render();
+      return;
+    }
+
+    if (action === 'copy-invite-code') {
+      const code = state.freshInviteCode?.invite_code;
+      if (!code) throw new Error('복사할 초대코드가 없습니다.');
+      await navigator.clipboard.writeText(code);
+      setNotice('초대코드를 복사했다.');
+      return;
+    }
+
+    if (action === 'revoke-invite') {
+      if (!canAdmin()) throw new Error('초대코드를 폐기할 권한이 없습니다.');
+      const inviteId = actionEl.dataset.inviteId;
+      if (!inviteId) throw new Error('초대코드 ID를 찾지 못했습니다.');
+
+      actionEl.disabled = true;
+      await revokeCompanyInvite(state.companyId, inviteId);
+      state.invites = await listCompanyInvites(state.companyId);
+      if (state.freshInviteCode?.invite_id === inviteId) state.freshInviteCode = null;
+      setNotice('초대코드를 폐기했다.');
+      return;
+    }
   } catch (error) {
     setError(error);
   }
@@ -287,6 +338,7 @@ root.addEventListener('change', async (event) => {
   try {
     if (event.target.matches('[data-action="switch-company"]')) {
       state.companyId = event.target.value;
+      state.freshInviteCode = null;
       localStorage.setItem('axe_product_company_id', state.companyId);
       state.loading = true;
       state.error = '';
@@ -358,6 +410,56 @@ root.addEventListener('submit', async (event) => {
       state.view = 'overview';
       sessionStorage.setItem('axe_product_view', state.view);
       setNotice('새 회사가 생성됐다.');
+      return;
+    }
+
+    if (form.dataset.form === 'create-invite') {
+      if (!canAdmin()) throw new Error('초대코드를 생성할 권한이 없습니다.');
+
+      const data = new FormData(form);
+      const maxUses = Number(data.get('max_uses') || 1);
+      const expiresHours = Number(data.get('expires_in_hours') || 168);
+
+      if (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 500) {
+        throw new Error('사용 가능 횟수는 1~500 사이여야 합니다.');
+      }
+      if (!Number.isInteger(expiresHours) || expiresHours < 1 || expiresHours > 2160) {
+        throw new Error('유효시간은 1~2160시간 사이여야 합니다.');
+      }
+
+      const created = await createCompanyInvite(state.companyId, maxUses, expiresHours);
+      if (!created?.invite_code) throw new Error('생성된 초대코드를 받지 못했습니다.');
+
+      state.freshInviteCode = created;
+      state.invites = await listCompanyInvites(state.companyId);
+      setNotice('새 초대코드를 생성했다. 지금 화면에서 코드를 복사해 둬야 한다.');
+      return;
+    }
+
+    if (form.dataset.form === 'redeem-invite') {
+      const data = new FormData(form);
+      const inviteCode = String(data.get('invite_code') || '').trim();
+      if (!inviteCode) throw new Error('초대코드를 입력해 주세요.');
+
+      state.loading = true;
+      render();
+
+      const joined = await redeemCompanyInvite(inviteCode);
+      if (!joined?.company_id) throw new Error('가입된 회사 정보를 받지 못했습니다.');
+
+      state.companyId = joined.company_id;
+      localStorage.setItem('axe_product_company_id', state.companyId);
+      state.showJoinCompany = false;
+      state.freshInviteCode = null;
+
+      await loadCompanies();
+      await loadCompanyData();
+
+      state.loading = false;
+      state.ready = true;
+      state.view = 'overview';
+      sessionStorage.setItem('axe_product_view', state.view);
+      setNotice(joined.result === 'already_member' ? '이미 가입된 회사로 이동했다.' : `${joined.company_name || '회사'}에 MEMBER로 가입했다.`);
       return;
     }
 
