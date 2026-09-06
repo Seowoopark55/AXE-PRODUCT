@@ -1,0 +1,160 @@
+import { supabase } from './supabase.js';
+
+function assertClient() {
+  if (!supabase) throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+}
+
+function unwrap(result, fallbackMessage) {
+  if (result.error) {
+    const message = result.error.message || fallbackMessage;
+    throw new Error(message);
+  }
+  return result.data;
+}
+
+export async function getSession() {
+  assertClient();
+  const result = await supabase.auth.getSession();
+  if (result.error) throw result.error;
+  return result.data.session;
+}
+
+export async function signInWithDiscord() {
+  assertClient();
+  const result = await supabase.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      redirectTo: `${window.location.origin}/`,
+    },
+  });
+  if (result.error) throw result.error;
+}
+
+export async function signOut() {
+  assertClient();
+  const result = await supabase.auth.signOut();
+  if (result.error) throw result.error;
+}
+
+export function onAuthStateChange(callback) {
+  assertClient();
+  return supabase.auth.onAuthStateChange(callback);
+}
+
+export async function listCompanies() {
+  assertClient();
+  const result = await supabase
+    .from('companies')
+    .select('id,name,slug,status,created_at,updated_at')
+    .order('created_at', { ascending: true });
+  return unwrap(result, '회사 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function createCompany(name, slug = '') {
+  assertClient();
+  const result = await supabase.rpc('create_company', {
+    p_name: name,
+    p_slug: slug || null,
+  });
+  return unwrap(result, '회사를 생성하지 못했습니다.');
+}
+
+export async function getMemberships(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('company_memberships')
+    .select('id,company_id,user_id,role,status,display_name,discord_user_id,joined_at,created_at,updated_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: true });
+  return unwrap(result, '멤버 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function updateMembershipRole(membershipId, role) {
+  assertClient();
+  const result = await supabase
+    .from('company_memberships')
+    .update({ role })
+    .eq('id', membershipId)
+    .select('id,role')
+    .single();
+  return unwrap(result, '멤버 역할을 변경하지 못했습니다.');
+}
+
+export async function getModuleCatalog() {
+  assertClient();
+  const result = await supabase
+    .from('module_catalog')
+    .select('module_key,display_name,description,sort_order,active')
+    .eq('active', true)
+    .order('sort_order', { ascending: true });
+  return unwrap(result, '모듈 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getCompanyModules(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('company_modules')
+    .select('company_id,module_key,enabled,settings,updated_at')
+    .eq('company_id', companyId);
+  return unwrap(result, '회사 모듈 설정을 불러오지 못했습니다.') || [];
+}
+
+export async function setCompanyModule(companyId, moduleKey, enabled, userId) {
+  assertClient();
+  const result = await supabase
+    .from('company_modules')
+    .update({
+      enabled,
+      updated_by: userId,
+    })
+    .eq('company_id', companyId)
+    .eq('module_key', moduleKey)
+    .select('company_id,module_key,enabled,updated_at')
+    .single();
+  return unwrap(result, '모듈 설정을 변경하지 못했습니다.');
+}
+
+export async function getCompanySettings(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('company_settings')
+    .select('company_id,brand_name,locale,timezone,settings,updated_at')
+    .eq('company_id', companyId)
+    .single();
+  return unwrap(result, '회사 설정을 불러오지 못했습니다.');
+}
+
+export async function updateCompanySettings(companyId, patch, userId) {
+  assertClient();
+  const result = await supabase
+    .from('company_settings')
+    .update({
+      ...patch,
+      updated_by: userId,
+    })
+    .eq('company_id', companyId)
+    .select('company_id,brand_name,locale,timezone,settings,updated_at')
+    .single();
+  return unwrap(result, '회사 설정을 저장하지 못했습니다.');
+}
+
+export async function getDiscordConnection(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_connections')
+    .select('id,company_id,guild_id,guild_name,status,connected_at,updated_at')
+    .eq('company_id', companyId)
+    .maybeSingle();
+  return unwrap(result, 'Discord 연결 상태를 불러오지 못했습니다.');
+}
+
+export async function getAuditEvents(companyId, limit = 50) {
+  assertClient();
+  const result = await supabase
+    .from('audit_events')
+    .select('id,company_id,actor_user_id,action,entity_type,entity_id,created_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return unwrap(result, '감사 로그를 불러오지 못했습니다.') || [];
+}
