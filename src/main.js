@@ -39,6 +39,8 @@ const state = {
   notice: '',
 };
 
+const moduleMutationLocks = new Set();
+
 let noticeTimer = null;
 
 function render() {
@@ -181,6 +183,57 @@ root.addEventListener('click', async (event) => {
     return;
   }
 
+  const moduleInput = event.target.closest('input[data-module-key]');
+  if (moduleInput) {
+    event.preventDefault();
+
+    const moduleKey = moduleInput.dataset.moduleKey;
+    if (!moduleKey || moduleMutationLocks.has(moduleKey)) return;
+
+    const currentModule = state.modules.find((m) => m.module_key === moduleKey);
+    if (!currentModule) {
+      setError(new Error('모듈 정보를 찾지 못했습니다.'));
+      return;
+    }
+
+    const next = !Boolean(currentModule.enabled);
+    moduleMutationLocks.add(moduleKey);
+    moduleInput.disabled = true;
+
+    try {
+      const saved = await setCompanyModule(
+        state.companyId,
+        moduleKey,
+        next,
+        state.session.user.id
+      );
+
+      if (Boolean(saved?.enabled) !== next) {
+        throw new Error('모듈 저장 결과가 요청값과 일치하지 않습니다.');
+      }
+
+      await loadCompanyData();
+
+      const confirmed = state.modules.find((m) => m.module_key === moduleKey);
+      if (!confirmed || Boolean(confirmed.enabled) !== next) {
+        throw new Error('모듈 저장 확인에 실패했습니다.');
+      }
+
+      setNotice(`${moduleKey} 모듈을 ${next ? '켰다' : '껐다'}.`);
+    } catch (error) {
+      try {
+        await loadCompanyData();
+      } catch {
+        // Preserve the original mutation error.
+      }
+      setError(error);
+    } finally {
+      moduleMutationLocks.delete(moduleKey);
+      render();
+    }
+    return;
+  }
+
   const actionEl = event.target.closest('[data-action]');
   if (!actionEl) return;
 
@@ -261,27 +314,6 @@ root.addEventListener('change', async (event) => {
       return;
     }
 
-    if (event.target.matches('[data-module-key]')) {
-      const input = event.target;
-      const next = input.checked;
-      input.disabled = true;
-
-      try {
-        await setCompanyModule(
-          state.companyId,
-          input.dataset.moduleKey,
-          next,
-          state.session.user.id
-        );
-        await loadCompanyData();
-        setNotice(`${input.dataset.moduleKey} 모듈을 ${next ? '켰다' : '껐다'}.`);
-      } catch (error) {
-        input.checked = !next;
-        throw error;
-      } finally {
-        input.disabled = !canAdmin();
-      }
-    }
   } catch (error) {
     setError(error);
   }

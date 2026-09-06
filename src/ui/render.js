@@ -348,6 +348,7 @@ function renderModules(state, canAdmin) {
           <label class="switch">
             <input
               type="checkbox"
+              autocomplete="off"
               data-module-key="${esc(m.module_key)}"
               ${m.enabled ? 'checked' : ''}
               ${canAdmin ? '' : 'disabled'}
