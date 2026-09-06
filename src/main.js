@@ -31,7 +31,12 @@ const state = {
   companySettings: null,
   discordConnection: null,
   auditEvents: [],
-  view: 'overview',
+  view: (() => {
+    const saved = sessionStorage.getItem('axe_product_view');
+    return ['overview', 'members', 'modules', 'settings', 'audit'].includes(saved)
+      ? saved
+      : 'overview';
+  })(),
   showCreateCompany: false,
   loading: false,
   ready: false,
@@ -179,6 +184,7 @@ root.addEventListener('click', async (event) => {
   const viewButton = event.target.closest('[data-view]');
   if (viewButton && !viewButton.disabled) {
     state.view = viewButton.dataset.view;
+    sessionStorage.setItem('axe_product_view', state.view);
     render();
     return;
   }
@@ -253,6 +259,8 @@ root.addEventListener('click', async (event) => {
       state.companies = [];
       state.companyId = null;
       clearCompanyState();
+      state.view = 'overview';
+      sessionStorage.setItem('axe_product_view', state.view);
       state.ready = true;
       render();
       return;
@@ -348,6 +356,7 @@ root.addEventListener('submit', async (event) => {
       state.loading = false;
       state.ready = true;
       state.view = 'overview';
+      sessionStorage.setItem('axe_product_view', state.view);
       setNotice('새 회사가 생성됐다.');
       return;
     }
