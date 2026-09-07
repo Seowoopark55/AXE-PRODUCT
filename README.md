@@ -35,3 +35,9 @@ This WEB directory is the full AXE-PRODUCT source for STAGE 4D. It is based on t
 3. Push AXE-PRODUCT and verify the Vercel deployment.
 
 Do not copy these files into NEW AXE NET, AXE HUB, or either Discord bot directory.
+
+
+## STAGE 4D FIX (0.8.1)
+- Fixes browser native validation blocking non-split fund submissions.
+- Hidden split amount inputs remain disabled unless payment mode is 분할납부.
+- No DB/Storage/RPC changes.

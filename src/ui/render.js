@@ -473,11 +473,11 @@ function renderFundSubmission(rows) {
           <div class="fund-split-fields" data-fund-split-fields hidden>
             <label>
               <span class="field-label">공용계좌 금액</span>
-              <input class="input" name="public_amount" type="number" min="1" step="1" value="0" />
+              <input class="input" name="public_amount" type="number" min="1" step="1" value="0" disabled />
             </label>
             <label>
               <span class="field-label">회사잔고 금액</span>
-              <input class="input" name="company_amount" type="number" min="1" step="1" value="0" />
+              <input class="input" name="company_amount" type="number" min="1" step="1" value="0" disabled />
             </label>
           </div>
 

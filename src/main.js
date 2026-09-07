@@ -672,7 +672,14 @@ root.addEventListener('change', async (event) => {
     if (event.target.matches('[data-fund-payment-mode]')) {
       const form = event.target.closest('form[data-form="fund-submit"]');
       const splitFields = form?.querySelector('[data-fund-split-fields]');
-      if (splitFields) splitFields.hidden = event.target.value !== '분할납부';
+      const splitEnabled = event.target.value === '분할납부';
+      if (splitFields) {
+        splitFields.hidden = !splitEnabled;
+        splitFields.querySelectorAll('input').forEach((input) => {
+          input.disabled = !splitEnabled;
+          if (!splitEnabled) input.value = '0';
+        });
+      }
       return;
     }
     if (event.target.matches('[data-action="switch-company"]')) {
@@ -880,7 +887,13 @@ root.addEventListener('submit', async (event) => {
 
       form.reset();
       const splitFields = form.querySelector('[data-fund-split-fields]');
-      if (splitFields) splitFields.hidden = true;
+      if (splitFields) {
+        splitFields.hidden = true;
+        splitFields.querySelectorAll('input').forEach((input) => {
+          input.disabled = true;
+          input.value = '0';
+        });
+      }
       await loadFundData({ preserveSelection: true });
       setNotice(`${year}년 ${month}월 ${week}주차 공금 납부 신청을 등록했다.`);
       return;

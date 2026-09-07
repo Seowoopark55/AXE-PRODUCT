@@ -36,6 +36,9 @@ requireText('src/main.js', "action === 'fund-open-evidence'", 'admin evidence op
 requireText('src/ui/render.js', '공금 납부 신청', 'member submission UI missing');
 requireText('src/ui/render.js', 'JPG · PNG · WEBP / 최대 10MB', 'evidence constraints notice missing');
 requireText('src/ui/render.js', 'PRIVATE EVIDENCE', 'private evidence UI badge missing');
+requireText('src/ui/render.js', 'name="public_amount" type="number" min="1" step="1" value="0" disabled', 'hidden public split input must start disabled');
+requireText('src/ui/render.js', 'name="company_amount" type="number" min="1" step="1" value="0" disabled', 'hidden company split input must start disabled');
+requireText('src/main.js', 'input.disabled = !splitEnabled', 'split input enable/disable handler missing');
 
 const api = read('src/lib/productApi.js');
 if (/getPublicUrl\s*\(/.test(api)) failures.push('public Storage URL usage is forbidden');
