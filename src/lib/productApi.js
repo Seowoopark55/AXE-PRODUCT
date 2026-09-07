@@ -346,6 +346,88 @@ export async function setFundFeeRule(companyId, year, month, week, weeklyFee, no
 }
 
 
+// ============================================================
+// STAGE 4D — FUND EVIDENCE STORAGE + MEMBER SUBMISSION
+// ============================================================
+const FUND_EVIDENCE_BUCKET = 'axe-fund-evidence';
+const FUND_EVIDENCE_MAX_BYTES = 10 * 1024 * 1024;
+const FUND_EVIDENCE_MIME_TO_EXT = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export async function uploadFundEvidence(companyId, userId, file) {
+  assertClient();
+
+  if (!(file instanceof File)) throw new Error('공금 증빙 이미지를 선택해 주세요.');
+  if (!companyId || !userId) throw new Error('증빙 업로드 사용자 정보를 확인하지 못했습니다.');
+  if (!FUND_EVIDENCE_MIME_TO_EXT[file.type]) {
+    throw new Error('증빙은 JPG, PNG, WEBP 이미지만 업로드할 수 있습니다.');
+  }
+  if (!file.size || file.size > FUND_EVIDENCE_MAX_BYTES) {
+    throw new Error('증빙 이미지는 10MB 이하만 업로드할 수 있습니다.');
+  }
+
+  const ext = FUND_EVIDENCE_MIME_TO_EXT[file.type];
+  const objectName = `${companyId}/${userId}/${crypto.randomUUID()}.${ext}`;
+  const result = await supabase.storage
+    .from(FUND_EVIDENCE_BUCKET)
+    .upload(objectName, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    });
+
+  unwrap(result, '공금 증빙 이미지를 업로드하지 못했습니다.');
+  return objectName;
+}
+
+export async function removeUnclaimedFundEvidence(objectName) {
+  assertClient();
+  if (!objectName) return;
+
+  const result = await supabase.storage
+    .from(FUND_EVIDENCE_BUCKET)
+    .remove([objectName]);
+
+  if (result.error) throw result.error;
+}
+
+export async function getFundEvidenceSignedUrl(objectName, expiresInSeconds = 300) {
+  assertClient();
+  if (!objectName) throw new Error('증빙 파일 경로가 없습니다.');
+
+  const safeExpires = Math.max(60, Math.min(Number(expiresInSeconds) || 300, 900));
+  const result = await supabase.storage
+    .from(FUND_EVIDENCE_BUCKET)
+    .createSignedUrl(objectName, safeExpires);
+
+  const data = unwrap(result, '공금 증빙 이미지를 열지 못했습니다.');
+  if (!data?.signedUrl) throw new Error('증빙 이미지 임시 주소를 만들지 못했습니다.');
+  return data.signedUrl;
+}
+
+export async function submitFundRequest(companyId, payload) {
+  assertClient();
+
+  const result = await supabase.rpc('fund_submit_request', {
+    p_company_id: companyId,
+    p_year: Number(payload.year),
+    p_month: Number(payload.month),
+    p_week: Number(payload.week),
+    p_payment_mode: payload.paymentMode,
+    p_public_amount: payload.publicAmount == null ? null : Number(payload.publicAmount),
+    p_company_amount: payload.companyAmount == null ? null : Number(payload.companyAmount),
+    p_evidence_path: payload.evidencePath,
+    p_memo: payload.memo || null,
+    p_client_request_id: payload.clientRequestId || null,
+  });
+
+  return unwrap(result, '공금 납부 신청을 등록하지 못했습니다.');
+}
+
+
 async function authenticatedProductApi(path, init = {}) {
   const session = await getSession();
   const accessToken = session?.access_token;

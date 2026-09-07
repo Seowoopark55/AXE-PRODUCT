@@ -358,7 +358,7 @@ function safeEvidence(value) {
   if (/^https?:\/\//i.test(raw)) {
     return `<a class="fund-evidence-link" href="${esc(raw)}" target="_blank" rel="noopener noreferrer">증빙 열기</a>`;
   }
-  return `<code title="${esc(raw)}">${esc(raw.length > 34 ? `${raw.slice(0, 31)}…` : raw)}</code>`;
+  return `<button class="btn btn-compact btn-ghost fund-evidence-open" type="button" data-action="fund-open-evidence" data-evidence-path="${esc(raw)}">증빙 보기</button>`;
 }
 
 function renderFund(state, canAdmin, fundEnabled) {
@@ -394,13 +394,8 @@ function renderFund(state, canAdmin, fundEnabled) {
     ${state.fundLoading ? `<div class="fund-loading"><div class="spinner"></div><span>공금 정보를 불러오는 중…</span></div>` : ''}
 
     ${renderMyFundPeriods(myPeriods)}
-    ${canAdmin ? renderFundAdmin(state) : `
-      <div class="panel">
-        <div class="info-banner info-banner--muted">
-          STAGE 4C에서는 멤버의 웹 납부 신청은 아직 열지 않는다. 증빙 저장소를 연결한 다음 단계에서 안전하게 추가한다.
-        </div>
-      </div>
-    `}
+    ${renderFundSubmission(myPeriods)}
+    ${canAdmin ? renderFundAdmin(state) : ''}
   `;
 }
 
@@ -430,6 +425,70 @@ function renderMyFundPeriods(rows) {
           <tbody>${body || '<tr><td colspan="5">조회할 공금 주차가 없다.</td></tr>'}</tbody>
         </table>
       </div>
+    </div>
+  `;
+}
+
+function renderFundSubmission(rows) {
+  const eligible = (rows || []).filter((row) => row.status === '미납' && Number(row.weekly_fee) > 0);
+  const options = eligible.map((row) => `
+    <option value="${esc(row.year)}-${esc(row.month)}-${esc(row.week)}">
+      ${esc(row.year)}년 ${esc(row.month)}월 ${esc(row.week)}주차 · ${fmtWon(row.weekly_fee)}
+    </option>
+  `).join('');
+
+  return `
+    <div class="panel fund-submit-panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">PAYMENT REQUEST</div>
+          <h3>공금 납부 신청</h3>
+        </div>
+        <span class="pass-chip">PRIVATE EVIDENCE</span>
+      </div>
+
+      ${eligible.length ? `
+        <form data-form="fund-submit" class="fund-submit-form">
+          <label class="fund-submit-period">
+            <span class="field-label">납부 주차</span>
+            <select class="select" name="period" required>${options}</select>
+          </label>
+          <label>
+            <span class="field-label">납부 방식</span>
+            <select class="select" name="payment_mode" data-fund-payment-mode required>
+              <option value="공용계좌" selected>공용계좌</option>
+              <option value="회사잔고">회사잔고</option>
+              <option value="분할납부">분할납부</option>
+            </select>
+          </label>
+          <label class="fund-submit-evidence">
+            <span class="field-label">납부 증빙</span>
+            <input class="input fund-file-input" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" required />
+          </label>
+          <label class="fund-submit-memo">
+            <span class="field-label">메모</span>
+            <input class="input" name="memo" maxlength="1000" placeholder="선택 입력" />
+          </label>
+
+          <div class="fund-split-fields" data-fund-split-fields hidden>
+            <label>
+              <span class="field-label">공용계좌 금액</span>
+              <input class="input" name="public_amount" type="number" min="1" step="1" value="0" />
+            </label>
+            <label>
+              <span class="field-label">회사잔고 금액</span>
+              <input class="input" name="company_amount" type="number" min="1" step="1" value="0" />
+            </label>
+          </div>
+
+          <div class="fund-submit-actions">
+            <p class="help-text">JPG · PNG · WEBP / 최대 10MB. 증빙은 비공개 Storage에 저장되고 같은 회사의 OWNER·ADMIN만 검수할 수 있다.</p>
+            <button class="btn btn-primary" type="submit">납부 신청</button>
+          </div>
+        </form>
+      ` : `
+        <div class="info-banner info-banner--muted">현재 웹에서 납부 신청할 수 있는 미납 주차가 없다.</div>
+      `}
     </div>
   `;
 }

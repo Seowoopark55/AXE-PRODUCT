@@ -31,6 +31,10 @@ import {
   getFundAdminPeriodStatus,
   reviewFundRequest,
   setFundFeeRule,
+  uploadFundEvidence,
+  removeUnclaimedFundEvidence,
+  getFundEvidenceSignedUrl,
+  submitFundRequest,
   startDiscordConnection,
   completeDiscordConnection,
 } from './lib/productApi.js';
@@ -551,6 +555,31 @@ root.addEventListener('click', async (event) => {
       return;
     }
 
+    if (action === 'fund-open-evidence') {
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+
+      const evidencePath = String(actionEl.dataset.evidencePath || '').trim();
+      if (!evidencePath) throw new Error('증빙 파일 경로를 찾지 못했습니다.');
+
+      const popup = window.open('about:blank', '_blank');
+      if (popup) popup.opener = null;
+      actionEl.disabled = true;
+      try {
+        const signedUrl = await getFundEvidenceSignedUrl(evidencePath, 300);
+        if (popup) {
+          popup.location.replace(signedUrl);
+        } else {
+          window.open(signedUrl, '_blank', 'noopener,noreferrer');
+        }
+      } catch (error) {
+        if (popup) popup.close();
+        throw error;
+      } finally {
+        actionEl.disabled = false;
+      }
+      return;
+    }
+
     if (action === 'fund-review') {
       if (!canAdmin()) throw new Error('공금 신청을 검수할 권한이 없습니다.');
       if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
@@ -640,6 +669,12 @@ root.addEventListener('click', async (event) => {
 
 root.addEventListener('change', async (event) => {
   try {
+    if (event.target.matches('[data-fund-payment-mode]')) {
+      const form = event.target.closest('form[data-form="fund-submit"]');
+      const splitFields = form?.querySelector('[data-fund-split-fields]');
+      if (splitFields) splitFields.hidden = event.target.value !== '분할납부';
+      return;
+    }
     if (event.target.matches('[data-action="switch-company"]')) {
       state.companyId = event.target.value;
       state.freshInviteCode = null;
@@ -765,6 +800,89 @@ root.addEventListener('submit', async (event) => {
       state.view = 'overview';
       sessionStorage.setItem('axe_product_view', state.view);
       setNotice(joined.result === 'already_member' ? '이미 가입된 회사로 이동했다.' : `${joined.company_name || '회사'}에 MEMBER로 가입했다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'fund-submit') {
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+      if (!state.companyId || !state.session?.user?.id) throw new Error('회사 또는 로그인 정보를 확인하지 못했습니다.');
+
+      const data = new FormData(form);
+      const periodKey = String(data.get('period') || '').trim();
+      const [yearRaw, monthRaw, weekRaw] = periodKey.split('-');
+      const year = Number(yearRaw);
+      const month = Number(monthRaw);
+      const week = Number(weekRaw);
+      const paymentMode = String(data.get('payment_mode') || '').trim();
+      const publicAmount = Number(data.get('public_amount') || 0);
+      const companyAmount = Number(data.get('company_amount') || 0);
+      const memo = String(data.get('memo') || '').trim();
+      const evidenceFile = data.get('evidence');
+
+      const period = (state.fundMyPeriods || []).find((row) =>
+        Number(row.year) === year && Number(row.month) === month && Number(row.week) === week
+      );
+
+      if (!period || period.status !== '미납') {
+        throw new Error('현재 납부 신청할 수 있는 공금 주차를 선택해 주세요.');
+      }
+      if (!Number(period.weekly_fee) || Number(period.weekly_fee) <= 0) {
+        throw new Error('선택한 주차의 공금 기준액이 설정되지 않았습니다.');
+      }
+      if (!['공용계좌', '회사잔고', '분할납부'].includes(paymentMode)) {
+        throw new Error('납부 방식을 확인해 주세요.');
+      }
+      if (paymentMode === '분할납부') {
+        if (!Number.isSafeInteger(publicAmount) || !Number.isSafeInteger(companyAmount)
+            || publicAmount <= 0 || companyAmount <= 0
+            || publicAmount + companyAmount !== Number(period.weekly_fee)) {
+          throw new Error('분할납부 금액 합계가 공금 기준액과 정확히 일치해야 합니다.');
+        }
+      }
+      if (!(evidenceFile instanceof File) || !evidenceFile.size) {
+        throw new Error('납부 증빙 이미지를 선택해 주세요.');
+      }
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
+
+      let evidencePath = '';
+      try {
+        evidencePath = await uploadFundEvidence(
+          state.companyId,
+          state.session.user.id,
+          evidenceFile
+        );
+
+        await submitFundRequest(state.companyId, {
+          year,
+          month,
+          week,
+          paymentMode,
+          publicAmount: paymentMode === '분할납부' ? publicAmount : null,
+          companyAmount: paymentMode === '분할납부' ? companyAmount : null,
+          evidencePath,
+          memo,
+          clientRequestId: crypto.randomUUID(),
+        });
+      } catch (error) {
+        if (evidencePath) {
+          try {
+            await removeUnclaimedFundEvidence(evidencePath);
+          } catch {
+            // Best-effort cleanup only. Claimed evidence is intentionally undeletable.
+          }
+        }
+        throw error;
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+
+      form.reset();
+      const splitFields = form.querySelector('[data-fund-split-fields]');
+      if (splitFields) splitFields.hidden = true;
+      await loadFundData({ preserveSelection: true });
+      setNotice(`${year}년 ${month}월 ${week}주차 공금 납부 신청을 등록했다.`);
       return;
     }
 

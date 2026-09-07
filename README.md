@@ -1,41 +1,37 @@
-# AXE PRODUCT — STAGE 4C
+# AXE PRODUCT — STAGE 4D
 
 Track: **[상품화] only**
 
-This is the full AXE-PRODUCT web source package for STAGE 4C.
-It is based on the uploaded latest AXE-PRODUCT source and requires the already-applied STAGE 4A + 4B database/RPC layer.
+This WEB directory is the full AXE-PRODUCT source for STAGE 4D. It is based on the verified STAGE 4C source and requires the STAGE 4D DB migration in the parent package to be applied first.
 
-## Added in STAGE 4C
-- Dedicated `공금` navigation item.
-- The menu is available only when the company `fund` module is ON.
-- MEMBER: read-only recent personal fund periods and status.
-- OWNER / ADMIN: company period status by year/month/week.
-- OWNER / ADMIN: weekly fee rule starting from a selected period.
-- OWNER / ADMIN: payment request queue and approve / hold / reject actions.
-- Evidence values are read-only; HTTP(S) evidence can be opened safely in a new tab.
+## Added in STAGE 4D
+- Private Supabase Storage evidence upload for fund payment requests.
+- MEMBER web payment request form.
+- Payment modes: 공용계좌 / 회사잔고 / 분할납부.
+- Evidence types: JPG / PNG / WEBP, max 10MB.
+- Evidence object path: `<company_uuid>/<auth_user_uuid>/<random_uuid>.<ext>`.
+- Failed request submission performs best-effort cleanup of an unclaimed uploaded file.
+- OWNER / ADMIN review queue opens evidence through a short-lived signed URL.
+- Evidence bucket is never public and the web never uses `getPublicUrl()`.
 
-## Deliberately NOT included yet
-- Member web payment submission.
-- Evidence file upload / Supabase Storage bucket.
+## Security boundary
+- The fund data tables are still not read/written directly by the web.
+- Request creation uses the verified `fund_submit_request` RPC.
+- Storage RLS restricts upload to the logged-in member's own company/user folder.
+- Members can read only their own evidence; OWNER/ADMIN can read evidence for their own company.
+- Evidence has no UPDATE policy, so browser users cannot overwrite a file.
+- A browser user may delete only an unclaimed own evidence object. Once a fund request references it, delete is denied.
+- A DB trigger verifies every `submitted_via='web'` request claims an actually existing object under the same company and submitting user.
+
+## Not included yet
 - Discord fund panel / buttons / commands.
+- Automatic Discord notifications for fund workflow.
 - Changes to `axe-product-staging-bot`.
 - Changes to live `axe-bot`, NEW AXE NET, or AXE HUB.
 
-Member web submission stays closed because `fund_submit_request` requires an evidence path. We do not bypass that requirement with a fake path or arbitrary URL input. Evidence storage will be implemented first in the next stage.
+## Deployment order
+1. Apply and validate the parent package `DB/` SQL in Supabase SQL Editor.
+2. Only after DB validation, copy the contents of this `WEB/` directory over the AXE-PRODUCT GitHub working tree.
+3. Push AXE-PRODUCT and verify the Vercel deployment.
 
-## Security boundary
-The web does not access `fund_*` tables directly. STAGE 4C uses only the authenticated STAGE 4B RPCs:
-- `fund_get_my_periods`
-- `fund_admin_list_requests`
-- `fund_admin_get_period_status`
-- `fund_admin_review_request`
-- `fund_admin_set_fee_rule`
-
-Tenant isolation and OWNER/ADMIN authorization remain enforced by the database RPC layer.
-
-## Deployment target
-- GitHub repository: AXE-PRODUCT only.
-- Vercel project: axe-product only.
-- No SSH bot deployment in STAGE 4C.
-
-Do not copy this package into NEW AXE NET, AXE HUB, or either Discord bot directory.
+Do not copy these files into NEW AXE NET, AXE HUB, or either Discord bot directory.

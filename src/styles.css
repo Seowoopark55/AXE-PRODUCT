@@ -1238,3 +1238,93 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
   .fund-period-form .btn,
   .fund-fee-form .btn { width: 100%; }
 }
+
+/* ============================================================
+   STAGE 4D — FUND EVIDENCE + MEMBER SUBMISSION
+   ============================================================ */
+.fund-submit-panel {
+  overflow: visible;
+}
+
+.fund-submit-form {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1.5fr 1.5fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.fund-submit-form label {
+  min-width: 0;
+}
+
+.fund-file-input {
+  padding: 9px 10px;
+}
+
+.fund-file-input::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 10px;
+  border: 1px solid #2a313e;
+  border-radius: 8px;
+  background: #151b24;
+  color: #dfe6ef;
+  cursor: pointer;
+}
+
+.fund-split-fields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #252d38;
+  border-radius: 12px;
+  background: #0b0f15;
+}
+
+.fund-split-fields[hidden] {
+  display: none;
+}
+
+.fund-submit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fund-submit-actions .help-text {
+  margin: 0;
+}
+
+.fund-submit-actions .btn {
+  flex: 0 0 auto;
+  min-width: 120px;
+}
+
+.fund-evidence-open {
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .fund-submit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .fund-submit-form,
+  .fund-split-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .fund-submit-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fund-submit-actions .btn {
+    width: 100%;
+  }
+}
