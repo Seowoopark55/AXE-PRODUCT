@@ -505,10 +505,52 @@ function renderModules(state, canAdmin) {
   `;
 }
 
+function renderDiscordSelect(name, selectedValue, items, idKey, labelKey, emptyLabel, disabled) {
+  return `
+    <select class="select" name="${esc(name)}" ${disabled ? 'disabled' : ''}>
+      <option value="">${esc(emptyLabel)}</option>
+      ${(items || []).map((item) => `
+        <option
+          value="${esc(item[idKey])}"
+          ${String(selectedValue || '') === String(item[idKey]) ? 'selected' : ''}
+        >
+          ${esc(item[labelKey])}
+        </option>
+      `).join('')}
+    </select>
+  `;
+}
+
 function renderSettings(state, canAdmin) {
   const s = state.companySettings || {};
   const discord = state.discordConnection;
   const connected = discord?.status === 'connected';
+  const config = state.discordCompanyConfig || {};
+
+  const textChannels = (state.discordChannels || [])
+    .filter((channel) => channel.is_text_based);
+
+  const assignableRoles = (state.discordRoles || [])
+    .filter((role) => !role.managed && role.role_name !== '@everyone');
+
+  const lastChannelSync = (state.discordChannels || [])
+    .map((channel) => channel.synced_at)
+    .filter(Boolean)
+    .sort()
+    .at(-1) || null;
+
+  const lastRoleSync = (state.discordRoles || [])
+    .map((role) => role.synced_at)
+    .filter(Boolean)
+    .sort()
+    .at(-1) || null;
+
+  const lastCatalogSync = [lastChannelSync, lastRoleSync]
+    .filter(Boolean)
+    .sort()
+    .at(-1) || null;
+
+  const catalogReady = connected && (textChannels.length > 0 || assignableRoles.length > 0);
 
   return `
     <div class="panel">
@@ -549,7 +591,7 @@ function renderSettings(state, canAdmin) {
       </div>
 
       <div class="info-banner">
-        Guild ID나 SQL을 직접 입력하지 않는다. OWNER / ADMIN이 Discord 인증 화면에서 서버를 선택하면 연결 정보가 회사에 자동 등록된다.
+        OWNER / ADMIN이 Discord 인증 화면에서 서버를 선택하면 연결 정보가 회사에 자동 등록된다.
       </div>
 
       <div class="discord-link-card">
@@ -567,10 +609,112 @@ function renderSettings(state, canAdmin) {
           </button>
         ` : ''}
       </div>
+    </div>
 
-      <p class="help-text">
-        같은 Discord 서버를 두 회사에 중복 연결하는 것은 DB UNIQUE 제약으로 차단된다.
-      </p>
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">DISCORD CATALOG</div>
+          <h3>채널 · 역할 설정</h3>
+        </div>
+        ${catalogReady
+          ? '<span class="pass-chip">SYNCED</span>'
+          : '<span class="muted-chip">WAITING</span>'}
+      </div>
+
+      ${connected ? `
+        <div class="discord-catalog-summary">
+          <div>
+            <span>텍스트 채널</span>
+            <strong>${esc(textChannels.length)}</strong>
+          </div>
+          <div>
+            <span>설정 가능 역할</span>
+            <strong>${esc(assignableRoles.length)}</strong>
+          </div>
+          <div>
+            <span>최근 동기화</span>
+            <strong>${esc(lastCatalogSync ? fmtDate(lastCatalogSync) : '-')}</strong>
+          </div>
+          <button class="btn btn-secondary" data-action="refresh-discord-catalog">
+            목록 새로고침
+          </button>
+        </div>
+
+        ${catalogReady ? `
+          <form data-form="discord-config" class="discord-config-grid">
+            <label>
+              <span class="field-label">알림 채널</span>
+              ${renderDiscordSelect(
+                'notification_channel_id',
+                config.notification_channel_id,
+                textChannels,
+                'channel_id',
+                'channel_name',
+                '선택 안 함',
+                !canAdmin
+              )}
+              <small>공금·신청·처리 결과 같은 자동 알림을 보낼 기본 채널.</small>
+            </label>
+
+            <label>
+              <span class="field-label">명령 채널</span>
+              ${renderDiscordSelect(
+                'command_channel_id',
+                config.command_channel_id,
+                textChannels,
+                'channel_id',
+                'channel_name',
+                '선택 안 함',
+                !canAdmin
+              )}
+              <small>향후 AXE PRODUCT 명령어 사용을 기본 허용할 채널.</small>
+            </label>
+
+            <label>
+              <span class="field-label">관리자 역할</span>
+              ${renderDiscordSelect(
+                'admin_role_id',
+                config.admin_role_id,
+                assignableRoles,
+                'role_id',
+                'role_name',
+                '선택 안 함',
+                !canAdmin
+              )}
+              <small>회사 관리자와 연결할 Discord 역할.</small>
+            </label>
+
+            <label>
+              <span class="field-label">멤버 역할</span>
+              ${renderDiscordSelect(
+                'member_role_id',
+                config.member_role_id,
+                assignableRoles,
+                'role_id',
+                'role_name',
+                '선택 안 함',
+                !canAdmin
+              )}
+              <small>일반 회사 멤버와 연결할 Discord 역할.</small>
+            </label>
+
+            ${canAdmin ? `
+              <div class="discord-config-actions">
+                <button class="btn btn-primary" type="submit">Discord 설정 저장</button>
+              </div>
+            ` : ''}
+          </form>
+        ` : `
+          <div class="info-banner info-banner--muted">
+            봇이 Discord 서버의 채널·역할을 동기화 중이다. 잠시 후 ‘목록 새로고침’을 누르면 자동으로 표시된다.
+          </div>
+        `}
+      ` : `
+        <div class="info-banner info-banner--muted">
+          Discord 서버를 먼저 연결하면 채널과 역할을 자동으로 불러온다.
+        </div>
+      `}
     </div>
   `;
 }

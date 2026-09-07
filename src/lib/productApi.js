@@ -148,6 +148,60 @@ export async function getDiscordConnection(companyId) {
   return unwrap(result, 'Discord 연결 상태를 불러오지 못했습니다.');
 }
 
+
+export async function getDiscordChannels(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_guild_channels')
+    .select('company_id,guild_id,channel_id,channel_name,channel_type,position,parent_id,is_text_based,is_voice_based,synced_at,updated_at')
+    .eq('company_id', companyId)
+    .order('position', { ascending: true })
+    .order('channel_name', { ascending: true });
+  return unwrap(result, 'Discord 채널 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getDiscordRoles(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_guild_roles')
+    .select('company_id,guild_id,role_id,role_name,position,color,managed,mentionable,hoist,permissions,synced_at,updated_at')
+    .eq('company_id', companyId)
+    .order('position', { ascending: false })
+    .order('role_name', { ascending: true });
+  return unwrap(result, 'Discord 역할 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getDiscordCompanyConfig(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_company_config')
+    .select('company_id,notification_channel_id,command_channel_id,admin_role_id,member_role_id,created_at,updated_at')
+    .eq('company_id', companyId)
+    .maybeSingle();
+  return unwrap(result, 'Discord 회사 설정을 불러오지 못했습니다.');
+}
+
+export async function saveDiscordCompanyConfig(companyId, patch, userId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_company_config')
+    .upsert(
+      {
+        company_id: companyId,
+        notification_channel_id: patch.notification_channel_id || null,
+        command_channel_id: patch.command_channel_id || null,
+        admin_role_id: patch.admin_role_id || null,
+        member_role_id: patch.member_role_id || null,
+        updated_by: userId,
+      },
+      { onConflict: 'company_id' }
+    )
+    .select('company_id,notification_channel_id,command_channel_id,admin_role_id,member_role_id,created_at,updated_at')
+    .single();
+
+  return unwrap(result, 'Discord 회사 설정을 저장하지 못했습니다.');
+}
+
 export async function getAuditEvents(companyId, limit = 50) {
   assertClient();
   const result = await supabase

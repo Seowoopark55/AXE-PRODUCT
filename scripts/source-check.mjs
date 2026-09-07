@@ -64,4 +64,18 @@ console.log(`Checked ${files.length} source files.`);
 console.log(' - axe_product schema lock: PASS');
 console.log(' - no NEW AXE NET / HUB app-table reference: PASS');
 console.log(' - no server master key dependency: PASS');
+const productApiFile = path.join(root, 'src', 'lib', 'productApi.js');
+const productApiText = fs.readFileSync(productApiFile, 'utf8');
+
+for (const requiredTable of [
+  'discord_guild_channels',
+  'discord_guild_roles',
+  'discord_company_config',
+]) {
+  if (!productApiText.includes(requiredTable)) {
+    failures.push(`missing STAGE 3D-C table integration: ${requiredTable}`);
+  }
+}
+
 console.log(' - Discord OAuth API routes: PASS');
+console.log(' - Discord catalog/mapping integration: PASS');

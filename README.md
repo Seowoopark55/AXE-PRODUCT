@@ -55,3 +55,18 @@ Vercel should redeploy automatically.
 
 No SSH bot files are changed by this package.
 The PM2 process `axe-product-staging-bot` remains separate from the live `axe-bot`.
+
+
+## STAGE 3D-C — Discord channel/role mapping UI
+
+Added:
+- company-scoped read of `discord_guild_channels`
+- company-scoped read of `discord_guild_roles`
+- company-scoped `discord_company_config`
+- OWNER / ADMIN channel and role mapping form
+- catalog refresh control
+- members remain read-only
+
+The browser does not write catalog rows.
+The browser can only save company mapping through existing tenant RLS.
+No service-role key was introduced.

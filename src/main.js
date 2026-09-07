@@ -15,6 +15,10 @@ import {
   getCompanySettings,
   updateCompanySettings,
   getDiscordConnection,
+  getDiscordChannels,
+  getDiscordRoles,
+  getDiscordCompanyConfig,
+  saveDiscordCompanyConfig,
   getAuditEvents,
   createCompanyInvite,
   listCompanyInvites,
@@ -36,6 +40,9 @@ const state = {
   modules: [],
   companySettings: null,
   discordConnection: null,
+  discordChannels: [],
+  discordRoles: [],
+  discordCompanyConfig: null,
   auditEvents: [],
   invites: [],
   freshInviteCode: null,
@@ -168,6 +175,9 @@ function clearCompanyState() {
   state.modules = [];
   state.companySettings = null;
   state.discordConnection = null;
+  state.discordChannels = [];
+  state.discordRoles = [];
+  state.discordCompanyConfig = null;
   state.auditEvents = [];
   state.invites = [];
   state.freshInviteCode = null;
@@ -179,12 +189,24 @@ async function loadCompanyData() {
     return;
   }
 
-  const [memberships, moduleCatalog, modules, settings, discord] = await Promise.all([
+  const [
+    memberships,
+    moduleCatalog,
+    modules,
+    settings,
+    discord,
+    discordChannels,
+    discordRoles,
+    discordCompanyConfig,
+  ] = await Promise.all([
     getMemberships(state.companyId),
     getModuleCatalog(),
     getCompanyModules(state.companyId),
     getCompanySettings(state.companyId),
     getDiscordConnection(state.companyId),
+    getDiscordChannels(state.companyId),
+    getDiscordRoles(state.companyId),
+    getDiscordCompanyConfig(state.companyId),
   ]);
 
   state.memberships = memberships;
@@ -192,6 +214,9 @@ async function loadCompanyData() {
   state.modules = modules;
   state.companySettings = settings;
   state.discordConnection = discord;
+  state.discordChannels = discordChannels;
+  state.discordRoles = discordRoles;
+  state.discordCompanyConfig = discordCompanyConfig;
 
   if (canAdmin()) {
     const [auditEvents, invites] = await Promise.all([
@@ -348,6 +373,17 @@ root.addEventListener('click', async (event) => {
 
       const started = await startDiscordConnection(state.companyId);
       window.location.assign(started.authorize_url);
+      return;
+    }
+
+    if (action === 'refresh-discord-catalog') {
+      if (!state.companyId) throw new Error('회사를 찾지 못했습니다.');
+
+      actionEl.disabled = true;
+      await loadCompanyData();
+      setNotice(
+        `Discord 목록을 새로 불러왔다. 채널 ${state.discordChannels.length}개 · 역할 ${state.discordRoles.length}개`
+      );
       return;
     }
 
@@ -561,6 +597,65 @@ root.addEventListener('submit', async (event) => {
 
       await loadCompanyData();
       setNotice('회사 설정을 저장했다.');
+    }
+
+
+    if (form.dataset.form === 'discord-config') {
+      if (!canAdmin()) throw new Error('Discord 설정을 변경할 권한이 없습니다.');
+      if (state.discordConnection?.status !== 'connected') {
+        throw new Error('Discord 서버를 먼저 연결해 주세요.');
+      }
+
+      const data = new FormData(form);
+      const notificationChannelId = String(data.get('notification_channel_id') || '').trim();
+      const commandChannelId = String(data.get('command_channel_id') || '').trim();
+      const adminRoleId = String(data.get('admin_role_id') || '').trim();
+      const memberRoleId = String(data.get('member_role_id') || '').trim();
+
+      const textChannelIds = new Set(
+        (state.discordChannels || [])
+          .filter((channel) => channel.is_text_based)
+          .map((channel) => channel.channel_id)
+      );
+
+      const assignableRoleIds = new Set(
+        (state.discordRoles || [])
+          .filter((role) => !role.managed && role.role_name !== '@everyone')
+          .map((role) => role.role_id)
+      );
+
+      for (const [label, value] of [
+        ['알림 채널', notificationChannelId],
+        ['명령 채널', commandChannelId],
+      ]) {
+        if (value && !textChannelIds.has(value)) {
+          throw new Error(`${label}이 현재 Discord 채널 목록에 없습니다.`);
+        }
+      }
+
+      for (const [label, value] of [
+        ['관리자 역할', adminRoleId],
+        ['멤버 역할', memberRoleId],
+      ]) {
+        if (value && !assignableRoleIds.has(value)) {
+          throw new Error(`${label}이 현재 Discord 역할 목록에 없습니다.`);
+        }
+      }
+
+      await saveDiscordCompanyConfig(
+        state.companyId,
+        {
+          notification_channel_id: notificationChannelId || null,
+          command_channel_id: commandChannelId || null,
+          admin_role_id: adminRoleId || null,
+          member_role_id: memberRoleId || null,
+        },
+        state.session.user.id
+      );
+
+      await loadCompanyData();
+      setNotice('Discord 채널 · 역할 설정을 저장했다.');
+      return;
     }
   } catch (error) {
     state.loading = false;
