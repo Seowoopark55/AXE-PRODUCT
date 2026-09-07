@@ -81,8 +81,83 @@ const state = {
 };
 
 const moduleMutationLocks = new Set();
+const fundEvidenceFiles = new WeakMap();
+
+const FUND_EVIDENCE_ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const FUND_EVIDENCE_MAX_BYTES = 10 * 1024 * 1024;
 
 let noticeTimer = null;
+
+function validateFundEvidenceFile(file) {
+  if (!(file instanceof File) || !file.size) {
+    throw new Error('납부 증빙 이미지를 선택하거나 붙여넣어 주세요.');
+  }
+  if (!FUND_EVIDENCE_ALLOWED_TYPES.has(file.type)) {
+    throw new Error('증빙은 JPG, PNG, WEBP 이미지만 사용할 수 있습니다.');
+  }
+  if (file.size > FUND_EVIDENCE_MAX_BYTES) {
+    throw new Error('증빙 이미지는 10MB 이하만 사용할 수 있습니다.');
+  }
+}
+
+function fundEvidenceDisplayName(file, source) {
+  if (source === 'clipboard') return `붙여넣은 이미지 · ${(file.size / 1024).toFixed(0)}KB`;
+  return `${file.name || '선택한 이미지'} · ${(file.size / 1024).toFixed(0)}KB`;
+}
+
+function setFundEvidencePreview(form, file, source = 'file') {
+  validateFundEvidenceFile(file);
+  fundEvidenceFiles.set(form, file);
+
+  const preview = form.querySelector('[data-fund-evidence-preview]');
+  const image = form.querySelector('[data-fund-evidence-image]');
+  const name = form.querySelector('[data-fund-evidence-name]');
+  const sourceLabel = form.querySelector('[data-fund-evidence-source]');
+  if (!preview || !image || !name || !sourceLabel) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    image.src = String(reader.result || '');
+    preview.hidden = false;
+  };
+  reader.readAsDataURL(file);
+
+  name.textContent = fundEvidenceDisplayName(file, source);
+  sourceLabel.textContent = source === 'clipboard' ? '클립보드에서 붙여넣음' : '파일에서 선택함';
+}
+
+function clearFundEvidence(form) {
+  fundEvidenceFiles.delete(form);
+  const input = form.querySelector('[data-fund-evidence-input]');
+  const preview = form.querySelector('[data-fund-evidence-preview]');
+  const image = form.querySelector('[data-fund-evidence-image]');
+  const name = form.querySelector('[data-fund-evidence-name]');
+  const sourceLabel = form.querySelector('[data-fund-evidence-source]');
+
+  if (input) input.value = '';
+  if (preview) preview.hidden = true;
+  if (image) image.removeAttribute('src');
+  if (name) name.textContent = '';
+  if (sourceLabel) sourceLabel.textContent = '';
+}
+
+function clipboardImageFile(event) {
+  const items = Array.from(event.clipboardData?.items || []);
+  const imageItem = items.find((item) => item.kind === 'file' && item.type.startsWith('image/'));
+  const pasted = imageItem?.getAsFile();
+  if (!pasted) return null;
+
+  const extByType = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+  const ext = extByType[pasted.type] || 'img';
+  return new File([pasted], `clipboard-${Date.now()}.${ext}`, {
+    type: pasted.type,
+    lastModified: Date.now(),
+  });
+}
 
 function render() {
   renderShell(root, state);
@@ -555,6 +630,12 @@ root.addEventListener('click', async (event) => {
       return;
     }
 
+    if (action === 'fund-clear-evidence') {
+      const form = actionEl.closest('form[data-form="fund-submit"]');
+      if (form) clearFundEvidence(form);
+      return;
+    }
+
     if (action === 'fund-open-evidence') {
       if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
 
@@ -669,6 +750,18 @@ root.addEventListener('click', async (event) => {
 
 root.addEventListener('change', async (event) => {
   try {
+    if (event.target.matches('[data-fund-evidence-input]')) {
+      const form = event.target.closest('form[data-form="fund-submit"]');
+      if (!form) return;
+      const file = event.target.files?.[0];
+      if (!file) {
+        clearFundEvidence(form);
+        return;
+      }
+      setFundEvidencePreview(form, file, 'file');
+      return;
+    }
+
     if (event.target.matches('[data-fund-payment-mode]')) {
       const form = event.target.closest('form[data-form="fund-submit"]');
       const splitFields = form?.querySelector('[data-fund-split-fields]');
@@ -721,6 +814,33 @@ root.addEventListener('change', async (event) => {
       return;
     }
 
+  } catch (error) {
+    setError(error);
+  }
+});
+
+root.addEventListener('paste', (event) => {
+  try {
+    const form = root.querySelector('form[data-form="fund-submit"]');
+    if (!form) return;
+
+    const active = document.activeElement;
+    const textEntryFocused = active?.matches?.('input:not([type="file"]):not([type="button"]):not([type="submit"]), textarea, [contenteditable="true"]');
+    if (textEntryFocused) return;
+
+    const zoneFocused = event.target.closest?.('[data-fund-evidence-zone]')
+      || active?.closest?.('[data-fund-evidence-zone]');
+    const formFocused = active && form.contains(active);
+    if (!zoneFocused && !formFocused) return;
+
+    const file = clipboardImageFile(event);
+    if (!file) return;
+
+    event.preventDefault();
+    const input = form.querySelector('[data-fund-evidence-input]');
+    if (input) input.value = '';
+    setFundEvidencePreview(form, file, 'clipboard');
+    setNotice('클립보드 이미지를 공금 증빙으로 붙여넣었다.');
   } catch (error) {
     setError(error);
   }
@@ -824,7 +944,7 @@ root.addEventListener('submit', async (event) => {
       const publicAmount = Number(data.get('public_amount') || 0);
       const companyAmount = Number(data.get('company_amount') || 0);
       const memo = String(data.get('memo') || '').trim();
-      const evidenceFile = data.get('evidence');
+      const evidenceFile = fundEvidenceFiles.get(form) || data.get('evidence');
 
       const period = (state.fundMyPeriods || []).find((row) =>
         Number(row.year) === year && Number(row.month) === month && Number(row.week) === week
@@ -846,9 +966,7 @@ root.addEventListener('submit', async (event) => {
           throw new Error('분할납부 금액 합계가 공금 기준액과 정확히 일치해야 합니다.');
         }
       }
-      if (!(evidenceFile instanceof File) || !evidenceFile.size) {
-        throw new Error('납부 증빙 이미지를 선택해 주세요.');
-      }
+      validateFundEvidenceFile(evidenceFile);
 
       const submitButton = form.querySelector('button[type="submit"]');
       if (submitButton) submitButton.disabled = true;
@@ -886,6 +1004,7 @@ root.addEventListener('submit', async (event) => {
       }
 
       form.reset();
+      clearFundEvidence(form);
       const splitFields = form.querySelector('[data-fund-split-fields]');
       if (splitFields) {
         splitFields.hidden = true;

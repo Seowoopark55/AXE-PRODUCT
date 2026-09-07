@@ -461,10 +461,24 @@ function renderFundSubmission(rows) {
               <option value="분할납부">분할납부</option>
             </select>
           </label>
-          <label class="fund-submit-evidence">
+          <div class="fund-submit-evidence">
             <span class="field-label">납부 증빙</span>
-            <input class="input fund-file-input" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" required />
-          </label>
+            <div class="fund-evidence-zone" data-fund-evidence-zone tabindex="0" role="group" aria-label="납부 증빙 이미지 선택 또는 붙여넣기">
+              <div class="fund-evidence-paste-hint">
+                <strong>캡처 이미지 Ctrl+V 붙여넣기</strong>
+                <small>이 영역을 클릭한 뒤 붙여넣거나 파일을 선택해도 된다.</small>
+              </div>
+              <input class="input fund-file-input" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" data-fund-evidence-input />
+              <div class="fund-evidence-preview" data-fund-evidence-preview hidden>
+                <img data-fund-evidence-image alt="선택한 공금 증빙 미리보기" />
+                <div class="fund-evidence-preview-meta">
+                  <strong data-fund-evidence-name></strong>
+                  <small data-fund-evidence-source></small>
+                </div>
+                <button class="btn btn-secondary btn-compact" type="button" data-action="fund-clear-evidence">제거</button>
+              </div>
+            </div>
+          </div>
           <label class="fund-submit-memo">
             <span class="field-label">메모</span>
             <input class="input" name="memo" maxlength="1000" placeholder="선택 입력" />
@@ -482,7 +496,7 @@ function renderFundSubmission(rows) {
           </div>
 
           <div class="fund-submit-actions">
-            <p class="help-text">JPG · PNG · WEBP / 최대 10MB. 증빙은 비공개 Storage에 저장되고 같은 회사의 OWNER·ADMIN만 검수할 수 있다.</p>
+            <p class="help-text">JPG · PNG · WEBP / 최대 10MB. 파일 선택 또는 캡처 후 Ctrl+V 붙여넣기 가능. 증빙은 비공개 Storage에 저장되고 같은 회사의 OWNER·ADMIN만 검수할 수 있다.</p>
             <button class="btn btn-primary" type="submit">납부 신청</button>
           </div>
         </form>

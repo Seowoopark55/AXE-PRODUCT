@@ -1,43 +1,24 @@
-# AXE PRODUCT — STAGE 4D
+# AXE PRODUCT STAGE 4D.1
 
-Track: **[상품화] only**
+상품화 AXE PRODUCT의 공금 증빙 입력 UX 보강본이다.
 
-This WEB directory is the full AXE-PRODUCT source for STAGE 4D. It is based on the verified STAGE 4C source and requires the STAGE 4D DB migration in the parent package to be applied first.
+## 변경 범위
+- 기존 파일 선택 방식 유지
+- 공금 증빙 영역에서 캡처 이미지 Ctrl+V 붙여넣기 지원
+- 선택/붙여넣기 이미지 미리보기
+- 선택된 증빙 제거 버튼
+- JPG/PNG/WEBP 및 10MB 제한 유지
+- 기존 비공개 `axe-fund-evidence` Storage / RPC / 검수 흐름 그대로 사용
 
-## Added in STAGE 4D
-- Private Supabase Storage evidence upload for fund payment requests.
-- MEMBER web payment request form.
-- Payment modes: 공용계좌 / 회사잔고 / 분할납부.
-- Evidence types: JPG / PNG / WEBP, max 10MB.
-- Evidence object path: `<company_uuid>/<auth_user_uuid>/<random_uuid>.<ext>`.
-- Failed request submission performs best-effort cleanup of an unclaimed uploaded file.
-- OWNER / ADMIN review queue opens evidence through a short-lived signed URL.
-- Evidence bucket is never public and the web never uses `getPublicUrl()`.
+## 변경하지 않는 것
+- Supabase DB migration 없음
+- Storage bucket/policy 변경 없음
+- Discord staging bot 변경 없음
+- 실운영 AXE BOT / NEW AXE NET / AXE HUB 변경 없음
+- Secret 값 포함 없음
 
-## Security boundary
-- The fund data tables are still not read/written directly by the web.
-- Request creation uses the verified `fund_submit_request` RPC.
-- Storage RLS restricts upload to the logged-in member's own company/user folder.
-- Members can read only their own evidence; OWNER/ADMIN can read evidence for their own company.
-- Evidence has no UPDATE policy, so browser users cannot overwrite a file.
-- A browser user may delete only an unclaimed own evidence object. Once a fund request references it, delete is denied.
-- A DB trigger verifies every `submitted_via='web'` request claims an actually existing object under the same company and submitting user.
+## 적용
+이 ZIP의 내용 전체를 로컬 AXE-PRODUCT 루트에 덮어쓴 뒤 기존 방식대로 GitHub PUSH한다.
+Vercel이 Ready가 되면 공금 > 납부 증빙 영역을 클릭하고 캡처 이미지를 Ctrl+V로 붙여넣어 미리보기와 신청을 확인한다.
 
-## Not included yet
-- Discord fund panel / buttons / commands.
-- Automatic Discord notifications for fund workflow.
-- Changes to `axe-product-staging-bot`.
-- Changes to live `axe-bot`, NEW AXE NET, or AXE HUB.
-
-## Deployment order
-1. Apply and validate the parent package `DB/` SQL in Supabase SQL Editor.
-2. Only after DB validation, copy the contents of this `WEB/` directory over the AXE-PRODUCT GitHub working tree.
-3. Push AXE-PRODUCT and verify the Vercel deployment.
-
-Do not copy these files into NEW AXE NET, AXE HUB, or either Discord bot directory.
-
-
-## STAGE 4D FIX (0.8.1)
-- Fixes browser native validation blocking non-split fund submissions.
-- Hidden split amount inputs remain disabled unless payment mode is 분할납부.
-- No DB/Storage/RPC changes.
+버전: 0.8.2
