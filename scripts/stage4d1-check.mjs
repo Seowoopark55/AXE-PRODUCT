@@ -19,6 +19,15 @@ requireText('src/main.js', "action === 'fund-clear-evidence'", 'clear action han
 requireText('src/main.js', 'validateFundEvidenceFile(evidenceFile)', 'client evidence validation missing');
 requireText('src/styles.css', '.fund-evidence-preview', 'preview style missing');
 
+
+const main = read('src/main.js');
+const pasteStart = main.indexOf("root.addEventListener('paste'");
+const pasteEnd = main.indexOf("root.addEventListener('submit'", pasteStart);
+const pasteBlock = pasteStart >= 0 && pasteEnd > pasteStart ? main.slice(pasteStart, pasteEnd) : '';
+if (pasteBlock.includes("setNotice(")) {
+  failures.push('clipboard paste must not trigger full render via setNotice');
+}
+
 const render = read('src/ui/render.js');
 if (/name="evidence"[^>]*required/.test(render)) {
   failures.push('native required on file input would block clipboard-only submission');
@@ -34,5 +43,6 @@ console.log('AXE PRODUCT STAGE 4D.1 CHECK: ALL PASS');
 console.log(' - file picker remains available: PASS');
 console.log(' - clipboard image paste: PASS');
 console.log(' - clipboard-only submit path: PASS');
+console.log(' - preview persists after clipboard paste: PASS');
 console.log(' - preview and remove UX: PASS');
 console.log(' - JPG/PNG/WEBP 10MB validation retained: PASS');

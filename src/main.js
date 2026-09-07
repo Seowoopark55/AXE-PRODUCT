@@ -840,7 +840,8 @@ root.addEventListener('paste', (event) => {
     const input = form.querySelector('[data-fund-evidence-input]');
     if (input) input.value = '';
     setFundEvidencePreview(form, file, 'clipboard');
-    setNotice('클립보드 이미지를 공금 증빙으로 붙여넣었다.');
+    const status = form.querySelector('[data-fund-evidence-source]');
+    if (status) status.textContent = '클립보드에서 붙여넣음 · 신청 전까지 이 미리보기가 유지된다.';
   } catch (error) {
     setError(error);
   }

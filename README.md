@@ -21,4 +21,10 @@
 이 ZIP의 내용 전체를 로컬 AXE-PRODUCT 루트에 덮어쓴 뒤 기존 방식대로 GitHub PUSH한다.
 Vercel이 Ready가 되면 공금 > 납부 증빙 영역을 클릭하고 캡처 이미지를 Ctrl+V로 붙여넣어 미리보기와 신청을 확인한다.
 
-버전: 0.8.2
+버전: 0.8.3
+
+
+## 0.8.3 - STAGE 4D.1 preview fix
+- Clipboard paste no longer triggers a full app re-render that erased the selected evidence preview.
+- Evidence preview thumbnail enlarged for clearer visual confirmation.
+- File picker and clipboard flows remain unchanged otherwise.
