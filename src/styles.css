@@ -876,3 +876,46 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
   }
 }
 
+
+
+.discord-link-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.discord-link-card > div {
+  min-width: 0;
+}
+
+.discord-link-card strong {
+  display: block;
+  color: #f1f3f7;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discord-link-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .discord-link-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .discord-link-card .btn {
+    width: 100%;
+  }
+}

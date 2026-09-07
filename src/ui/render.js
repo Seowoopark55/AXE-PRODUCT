@@ -288,7 +288,7 @@ function renderOverview(state, company, myMembership) {
       ${metricCard('ACTIVE MEMBERS', memberCount, '현재 회사의 활성 멤버')}
       ${metricCard('ENABLED MODULES', enabledCount, `${state.modules?.length || 0}개 중 사용 중`)}
       ${metricCard('MY ROLE', ROLE_LABEL[myMembership?.role] || '-', '회사 기준 권한')}
-      ${metricCard('DISCORD', discord?.status?.toUpperCase() || 'NOT LINKED', discord?.guild_name || 'STAGE 3에서 연결')}
+      ${metricCard('DISCORD', discord?.status?.toUpperCase() || 'NOT LINKED', discord?.guild_name || '회사 설정에서 연결')}
     </div>
 
     <div class="panel">
@@ -507,6 +507,9 @@ function renderModules(state, canAdmin) {
 
 function renderSettings(state, canAdmin) {
   const s = state.companySettings || {};
+  const discord = state.discordConnection;
+  const connected = discord?.status === 'connected';
+
   return `
     <div class="panel">
       <div class="panel-title">
@@ -532,6 +535,42 @@ function renderSettings(state, canAdmin) {
         </label>
         ${canAdmin ? '<button class="btn btn-primary" type="submit">설정 저장</button>' : ''}
       </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">DISCORD INTEGRATION</div>
+          <h3>Discord 서버 연결</h3>
+        </div>
+        ${connected
+          ? '<span class="pass-chip">CONNECTED</span>'
+          : '<span class="muted-chip">NOT LINKED</span>'}
+      </div>
+
+      <div class="info-banner">
+        Guild ID나 SQL을 직접 입력하지 않는다. OWNER / ADMIN이 Discord 인증 화면에서 서버를 선택하면 연결 정보가 회사에 자동 등록된다.
+      </div>
+
+      <div class="discord-link-card">
+        <div>
+          <span class="field-label">현재 연결</span>
+          <strong>${esc(discord?.guild_name || '연결된 Discord 서버 없음')}</strong>
+          <p>${connected
+            ? `상태 ${esc(discord.status)} · 연결 ${esc(fmtDate(discord.connected_at))}`
+            : '회사별로 하나의 Discord 서버를 연결할 수 있다.'}</p>
+        </div>
+
+        ${canAdmin ? `
+          <button class="btn btn-primary" data-action="connect-discord">
+            ${connected ? 'Discord 다시 연결' : 'Discord 서버 연결'}
+          </button>
+        ` : ''}
+      </div>
+
+      <p class="help-text">
+        같은 Discord 서버를 두 회사에 중복 연결하는 것은 DB UNIQUE 제약으로 차단된다.
+      </p>
     </div>
   `;
 }

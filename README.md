@@ -1,23 +1,57 @@
-# AXE PRODUCT STAGING — STAGE 3A
+# AXE PRODUCT STAGING — STAGE 3B AUTO DISCORD CONNECT
 
-Independent multi-tenant product frontend. This package consolidates STAGE 2 + HOTFIX 1 + HOTFIX 2 and adds the STAGE 3A secure invitation UI.
+This is the consolidated frontend/serverless package after STAGE 3A.
 
-## Included STAGE 3A flows
-- OWNER / ADMIN creates invitation codes.
-- Raw code is shown only immediately after creation.
-- Invitation list exposes hint/status/use count/expiry, never the stored SHA-256 hash.
-- OWNER / ADMIN can revoke an active invitation.
-- Logged-in users can join a company by invite code.
-- Users with no company see Create Company and Join by Invite side-by-side.
-- Existing users can join another company from the sidebar.
-- Successful join refreshes tenant list and opens the joined company.
+## What is added
+- Company Settings -> Discord Server Connect button.
+- OWNER / ADMIN only.
+- Discord Authorization Code Grant with signed `state`.
+- Guild installation context only.
+- Bot permission request = 0.
+- Discord returns the selected guild after OAuth code exchange.
+- Browser never receives the Discord client secret.
+- Guild ID / SQL manual entry is no longer required for normal use.
+- Completion is bound back to the same Supabase user and company.
+- Existing `axe_product.discord_connections` RLS performs the final DB authorization.
+- Existing UNIQUE(company_id) and UNIQUE(guild_id) remain the duplicate guard.
 
-## Security boundary
-- Supabase client remains locked to `axe_product`.
-- No service-role key in browser source.
-- No query to AXE HUB `public.profiles` / `public.builds`.
-- No `new_axe_net` reference.
-- Invitation table direct access remains blocked; frontend uses STAGE 3A RPCs only.
+## Security design
+No Supabase server master key is introduced.
+
+The Vercel API verifies the current Supabase user with the browser's short-lived access token, verifies OWNER/ADMIN membership through `axe_product` RLS, and performs the final connection upsert using that same user token.
+
+OAuth flow:
+1. Browser POST /api/discord/start with current Supabase bearer token.
+2. Vercel verifies user + company OWNER/ADMIN.
+3. Vercel creates HMAC-signed 10-minute OAuth state.
+4. Discord guild install / authorization.
+5. /api/discord/callback validates state and exchanges the code server-side.
+6. Discord's guild object is converted to a short-lived signed completion token.
+7. Completion token returns in URL fragment, not query string.
+8. Browser POST /api/discord/complete with Supabase bearer token.
+9. Vercel re-checks same user + OWNER/ADMIN and upserts `discord_connections` under RLS.
+
+## Required Vercel environment variables
+Already configured during STAGE 3B:
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_PUBLISHABLE_KEY
+- DISCORD_CLIENT_ID
+- DISCORD_CLIENT_SECRET
+- DISCORD_OAUTH_STATE_SECRET
+
+Optional overrides (not required for current production STAGING URL):
+- DISCORD_REDIRECT_URI
+- AXE_PRODUCT_APP_URL
+
+Default callback:
+https://axe-product.vercel.app/api/discord/callback
+
+## Required Discord Developer Portal setting
+AXE Staging -> Bot -> Require OAuth2 Code Grant = ON
 
 ## Deployment
-Replace the AXE-PRODUCT repository contents with this integrated package (or upload the changed files), then commit. Vercel redeploys automatically. Existing Vercel environment variables stay unchanged.
+Replace the AXE-PRODUCT GitHub repository contents with this package and commit.
+Vercel should redeploy automatically.
+
+No SSH bot files are changed by this package.
+The PM2 process `axe-product-staging-bot` remains separate from the live `axe-bot`.

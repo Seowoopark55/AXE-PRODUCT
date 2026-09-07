@@ -1,0 +1,19 @@
+PASS  node --check src/main.js
+PASS  node --check src/lib/supabase.js
+PASS  node --check src/lib/productApi.js
+PASS  node --check src/ui/render.js
+PASS  node --check api/discord/complete.js
+PASS  node --check api/discord/callback.js
+PASS  node --check api/discord/start.js
+PASS  node --check server/discordSecurity.js
+PASS  node --check server/supabaseUser.js
+PASS  node --check scripts/source-check.mjs
+PASS  source boundary check
+  AXE PRODUCT SOURCE CHECK: PASS
+Checked 10 source files.
+ - axe_product schema lock: PASS
+ - no NEW AXE NET / HUB app-table reference: PASS
+ - no server master key dependency: PASS
+ - Discord OAuth API routes: PASS
+PASS  no Discord token embedded
+PASS  no client secret value embedded

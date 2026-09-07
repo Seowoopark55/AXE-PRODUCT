@@ -20,6 +20,8 @@ import {
   listCompanyInvites,
   revokeCompanyInvite,
   redeemCompanyInvite,
+  startDiscordConnection,
+  completeDiscordConnection,
 } from './lib/productApi.js';
 import { renderShell } from './ui/render.js';
 
@@ -83,6 +85,66 @@ function currentMembership() {
 
 function canAdmin() {
   return ['owner', 'admin'].includes(currentMembership()?.role);
+}
+
+function discordOAuthErrorMessage(code) {
+  const messages = {
+    access_denied: 'Discord 서버 연결이 취소됐습니다.',
+    invalid_request: 'Discord 인증 요청이 올바르지 않습니다.',
+    temporarily_unavailable: 'Discord 인증 서비스를 잠시 사용할 수 없습니다.',
+    token_exchange_failed: 'Discord 인증 코드 교환에 실패했습니다.',
+    guild_not_returned: '선택한 Discord 서버 정보를 확인하지 못했습니다.',
+    oauth_validation_failed: 'Discord 인증 보안 검증에 실패했습니다.',
+    missing_oauth_response: 'Discord 인증 결과가 비어 있습니다.',
+    method_not_allowed: 'Discord 인증 콜백 방식이 올바르지 않습니다.',
+    oauth_failed: 'Discord 서버 연결에 실패했습니다.',
+  };
+  return messages[code] || 'Discord 서버 연결에 실패했습니다.';
+}
+
+async function handleDiscordOAuthReturn() {
+  const rawHash = String(window.location.hash || '').replace(/^#/, '');
+  if (!rawHash) return;
+
+  const params = new URLSearchParams(rawHash);
+  const linkToken = params.get('discord_link');
+  const errorCode = params.get('discord_error');
+
+  if (!linkToken && !errorCode) return;
+
+  history.replaceState(
+    null,
+    '',
+    `${window.location.pathname}${window.location.search}`
+  );
+
+  if (errorCode) {
+    throw new Error(discordOAuthErrorMessage(errorCode));
+  }
+
+  if (!state.session?.user) {
+    throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
+  }
+
+  state.loading = true;
+  render();
+
+  try {
+    const connection = await completeDiscordConnection(linkToken);
+
+    state.companyId = connection.company_id;
+    localStorage.setItem('axe_product_company_id', state.companyId);
+
+    await loadCompanies();
+    await loadCompanyData();
+
+    state.view = 'settings';
+    sessionStorage.setItem('axe_product_view', state.view);
+    setNotice(`Discord 서버 ${connection.guild_name || ''} 연결이 완료됐다.`);
+  } finally {
+    state.loading = false;
+    render();
+  }
 }
 
 async function loadCompanies() {
@@ -184,6 +246,13 @@ async function boot() {
   render();
   await refreshAll();
 
+  try {
+    await handleDiscordOAuthReturn();
+  } catch (error) {
+    state.loading = false;
+    setError(error);
+  }
+
   onAuthStateChange(async (_event, session) => {
     const before = state.session?.user?.id || null;
     const after = session?.user?.id || null;
@@ -270,6 +339,18 @@ root.addEventListener('click', async (event) => {
       return;
     }
 
+    if (action === 'connect-discord') {
+      if (!canAdmin()) throw new Error('Discord 서버를 연결할 권한이 없습니다.');
+      if (!state.companyId) throw new Error('연결할 회사를 찾지 못했습니다.');
+
+      state.loading = true;
+      render();
+
+      const started = await startDiscordConnection(state.companyId);
+      window.location.assign(started.authorize_url);
+      return;
+    }
+
     if (action === 'logout') {
       await signOut();
       state.session = null;
@@ -330,6 +411,7 @@ root.addEventListener('click', async (event) => {
       return;
     }
   } catch (error) {
+    state.loading = false;
     setError(error);
   }
 });

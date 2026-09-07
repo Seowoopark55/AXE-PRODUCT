@@ -196,3 +196,58 @@ export async function redeemCompanyInvite(inviteCode) {
   return Array.isArray(data) ? (data[0] || null) : data;
 }
 
+
+
+async function authenticatedProductApi(path, init = {}) {
+  const session = await getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) throw new Error('로그인이 필요합니다.');
+
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      ...(init.headers || {}),
+    },
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || '서버 요청에 실패했습니다.');
+  }
+
+  return data;
+}
+
+export async function startDiscordConnection(companyId) {
+  const data = await authenticatedProductApi('/api/discord/start', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId }),
+  });
+
+  if (!data?.authorize_url) {
+    throw new Error('Discord 인증 주소를 받지 못했습니다.');
+  }
+
+  return data;
+}
+
+export async function completeDiscordConnection(linkToken) {
+  const data = await authenticatedProductApi('/api/discord/complete', {
+    method: 'POST',
+    body: JSON.stringify({ link_token: linkToken }),
+  });
+
+  if (!data?.connection?.company_id) {
+    throw new Error('Discord 연결 결과를 받지 못했습니다.');
+  }
+
+  return data.connection;
+}
