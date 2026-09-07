@@ -44,6 +44,7 @@ export function renderShell(root, state) {
   const myMembership = (state.memberships || []).find((m) => m.user_id === user?.id);
   const canAdmin = ['owner', 'admin'].includes(myMembership?.role);
   const canOwn = myMembership?.role === 'owner';
+  const fundEnabled = (state.modules || []).some((m) => m.module_key === 'fund' && Boolean(m.enabled));
 
   root.innerHTML = `
     <div class="app-shell">
@@ -71,7 +72,7 @@ export function renderShell(root, state) {
       ${state.notice ? `<div class="global-alert">${esc(state.notice)}</div>` : ''}
 
       <main class="page">
-        ${!user ? renderLogin(state) : renderAuthed(state, company, myMembership, canAdmin, canOwn)}
+        ${!user ? renderLogin(state) : renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled)}
       </main>
     </div>
   `;
@@ -99,7 +100,7 @@ function renderLogin(state) {
   `;
 }
 
-function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
+function renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled) {
   if (state.loading && !state.ready) {
     return `<div class="center-state"><div class="spinner"></div><p>상품화 STAGING을 불러오는 중…</p></div>`;
   }
@@ -126,6 +127,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
 
         <nav class="nav">
           ${navItem('overview', '대시보드', state.view)}
+          ${navItem('fund', '공금', state.view, !fundEnabled, 'OFF')}
           ${navItem('members', '멤버 · 권한', state.view)}
           ${navItem('modules', '모듈 관리', state.view)}
           ${navItem('settings', '회사 설정', state.view)}
@@ -158,6 +160,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
         ${state.showJoinCompany ? renderJoinCompanyModal() : ''}
 
         ${state.view === 'overview' ? renderOverview(state, company, myMembership) : ''}
+        ${state.view === 'fund' ? renderFund(state, canAdmin, fundEnabled) : ''}
         ${state.view === 'members' ? renderMembers(state, myMembership, canAdmin, canOwn) : ''}
         ${state.view === 'modules' ? renderModules(state, canAdmin) : ''}
         ${state.view === 'settings' ? renderSettings(state, canAdmin) : ''}
@@ -167,11 +170,11 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn) {
   `;
 }
 
-function navItem(key, label, active, disabled = false) {
+function navItem(key, label, active, disabled = false, disabledHint = 'ADMIN') {
   return `
     <button class="nav-item ${active === key ? 'is-active' : ''}" data-view="${key}" ${disabled ? 'disabled' : ''}>
       <span>${esc(label)}</span>
-      ${disabled ? '<small>ADMIN</small>' : ''}
+      ${disabled ? `<small>${esc(disabledHint)}</small>` : ''}
     </button>
   `;
 }
@@ -315,6 +318,238 @@ function metricCard(label, value, hint) {
       <div class="metric-value">${esc(value)}</div>
       <div class="metric-hint">${esc(hint)}</div>
     </article>
+  `;
+}
+
+function fmtWon(value) {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return `${esc(value)}원`;
+  return `${new Intl.NumberFormat('ko-KR').format(n)}원`;
+}
+
+function fundStatusClass(status) {
+  const map = {
+    '완료': 'is-good',
+    '면제': 'is-exempt',
+    '검수대기': 'is-pending',
+    '보류': 'is-hold',
+    '미납': 'is-bad',
+    '예정': 'is-muted',
+    '공금제외': 'is-muted',
+    '가입 전': 'is-muted',
+  };
+  return map[status] || 'is-muted';
+}
+
+function requestStatusLabel(status) {
+  const map = {
+    pending: '검수대기',
+    hold: '보류',
+    approved: '승인',
+    rejected: '반려',
+    deleted: '삭제',
+  };
+  return map[status] || status || '-';
+}
+
+function safeEvidence(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '<span class="muted-text">없음</span>';
+  if (/^https?:\/\//i.test(raw)) {
+    return `<a class="fund-evidence-link" href="${esc(raw)}" target="_blank" rel="noopener noreferrer">증빙 열기</a>`;
+  }
+  return `<code title="${esc(raw)}">${esc(raw.length > 34 ? `${raw.slice(0, 31)}…` : raw)}</code>`;
+}
+
+function renderFund(state, canAdmin, fundEnabled) {
+  if (!fundEnabled) {
+    return `
+      <div class="panel">
+        <div class="panel-title">
+          <div>
+            <div class="eyebrow">FUND</div>
+            <h3>공금 모듈</h3>
+          </div>
+          <span class="muted-chip">OFF</span>
+        </div>
+        <div class="info-banner info-banner--muted">모듈 관리에서 공금 기능을 먼저 켜야 한다.</div>
+      </div>
+    `;
+  }
+
+  const myPeriods = state.fundMyPeriods || [];
+  const myCompleted = myPeriods.filter((row) => row.status === '완료').length;
+  const myUnpaid = myPeriods.filter((row) => row.status === '미납').length;
+  const myPending = myPeriods.filter((row) => ['검수대기', '보류'].includes(row.status)).length;
+
+  return `
+    <div class="grid-cards fund-metrics">
+      ${metricCard('MY PERIODS', myPeriods.length, '최근 공금 주차')}
+      ${metricCard('PAID', myCompleted, '납부 완료')}
+      ${metricCard('UNPAID', myUnpaid, '현재 미납')}
+      ${metricCard('IN REVIEW', myPending, '검수대기 · 보류')}
+    </div>
+
+    ${state.fundError ? `<div class="global-alert global-alert--error fund-inline-alert">${esc(state.fundError)}</div>` : ''}
+    ${state.fundLoading ? `<div class="fund-loading"><div class="spinner"></div><span>공금 정보를 불러오는 중…</span></div>` : ''}
+
+    ${renderMyFundPeriods(myPeriods)}
+    ${canAdmin ? renderFundAdmin(state) : `
+      <div class="panel">
+        <div class="info-banner info-banner--muted">
+          STAGE 4C에서는 멤버의 웹 납부 신청은 아직 열지 않는다. 증빙 저장소를 연결한 다음 단계에서 안전하게 추가한다.
+        </div>
+      </div>
+    `}
+  `;
+}
+
+function renderMyFundPeriods(rows) {
+  const body = rows.map((row) => `
+    <tr>
+      <td><strong>${esc(row.year)}년 ${esc(row.month)}월 ${esc(row.week)}주차</strong><small class="table-sub">${esc(row.period_start)} ~ ${esc(row.period_end)}</small></td>
+      <td>${fmtWon(row.weekly_fee)}</td>
+      <td><span class="fund-status ${fundStatusClass(row.status)}">${esc(row.status)}</span></td>
+      <td>${fmtWon(row.paid_amount)}</td>
+      <td>${row.exemption_reason ? esc(row.exemption_reason) : '-'}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">MY FUND</div>
+          <h3>내 공금 현황</h3>
+        </div>
+        <span class="pass-chip">MEMBER SAFE</span>
+      </div>
+      <div class="table-wrap fund-table-wrap">
+        <table>
+          <thead><tr><th>주차</th><th>기준액</th><th>상태</th><th>납부액</th><th>면제 사유</th></tr></thead>
+          <tbody>${body || '<tr><td colspan="5">조회할 공금 주차가 없다.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderFundAdmin(state) {
+  const year = Number(state.fundSelectedYear || new Date().getFullYear());
+  const month = Number(state.fundSelectedMonth || new Date().getMonth() + 1);
+  const week = Number(state.fundSelectedWeek || 1);
+  const statuses = state.fundPeriodStatus || [];
+  const requests = state.fundRequests || [];
+
+  const completeCount = statuses.filter((row) => row.status === '완료').length;
+  const unpaidCount = statuses.filter((row) => row.status === '미납').length;
+  const exemptCount = statuses.filter((row) => row.status === '면제').length;
+  const reviewCount = requests.filter((row) => ['pending', 'hold'].includes(row.status)).length;
+  const expectedFee = statuses.find((row) => Number(row.expected_amount) >= 0)?.expected_amount ?? 0;
+
+  const statusRows = statuses.map((row) => `
+    <tr>
+      <td><strong>${esc(row.display_name)}</strong><small class="table-sub">${esc((row.member_role || '').toUpperCase())}</small></td>
+      <td>${fmtWon(row.expected_amount)}</td>
+      <td><span class="fund-status ${fundStatusClass(row.status)}">${esc(row.status)}</span></td>
+      <td>${fmtWon(row.paid_amount)}</td>
+      <td>${row.exemption_reason ? esc(row.exemption_reason) : '-'}</td>
+    </tr>
+  `).join('');
+
+  const requestRows = requests.map((row) => {
+    const open = ['pending', 'hold'].includes(row.status);
+    return `
+      <tr>
+        <td><strong>${esc(row.member_display_name)}</strong><small class="table-sub">${esc(row.year)}.${esc(row.month)} / ${esc(row.week)}주차</small></td>
+        <td>${fmtWon(row.amount)}<small class="table-sub">${esc(row.payment_mode)}</small></td>
+        <td><span class="fund-status ${row.status === 'approved' ? 'is-good' : row.status === 'rejected' ? 'is-bad' : row.status === 'hold' ? 'is-hold' : 'is-pending'}">${esc(requestStatusLabel(row.status))}</span></td>
+        <td>${safeEvidence(row.evidence_path)}</td>
+        <td>${row.memo ? esc(row.memo) : '-'}</td>
+        <td>${esc(fmtDate(row.created_at))}</td>
+        <td>
+          ${open ? `
+            <div class="fund-review-box">
+              <input class="input fund-review-note" data-fund-review-note="${esc(row.request_id)}" maxlength="1000" placeholder="검수 메모 (선택)" />
+              <div class="fund-review-actions">
+                <button class="btn btn-compact fund-btn-approve" type="button" data-action="fund-review" data-request-id="${esc(row.request_id)}" data-review-action="approve">승인</button>
+                <button class="btn btn-compact btn-ghost" type="button" data-action="fund-review" data-request-id="${esc(row.request_id)}" data-review-action="hold">보류</button>
+                <button class="btn btn-compact btn-danger" type="button" data-action="fund-review" data-request-id="${esc(row.request_id)}" data-review-action="reject">반려</button>
+              </div>
+            </div>
+          ` : `<small class="table-sub">${row.review_note ? esc(row.review_note) : '처리 완료'}</small>`}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="panel fund-admin-panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">FUND ADMIN</div>
+          <h3>주차별 공금 현황</h3>
+        </div>
+        <span class="pass-chip">OWNER / ADMIN</span>
+      </div>
+
+      <form data-form="fund-period" class="fund-period-form">
+        <label><span class="field-label">연도</span><input class="input" name="year" type="number" min="2020" max="2200" value="${esc(year)}" required /></label>
+        <label><span class="field-label">월</span><input class="input" name="month" type="number" min="1" max="12" value="${esc(month)}" required /></label>
+        <label><span class="field-label">주차</span><select class="select" name="week">${[1,2,3,4,5].map((n) => `<option value="${n}" ${n === week ? 'selected' : ''}>${n}주차</option>`).join('')}</select></label>
+        <button class="btn btn-primary" type="submit">현황 조회</button>
+      </form>
+
+      <div class="fund-summary-strip">
+        <div><span>기준액</span><strong>${fmtWon(expectedFee)}</strong></div>
+        <div><span>완료</span><strong>${completeCount}</strong></div>
+        <div><span>미납</span><strong>${unpaidCount}</strong></div>
+        <div><span>면제</span><strong>${exemptCount}</strong></div>
+        <div><span>검수 필요</span><strong>${reviewCount}</strong></div>
+      </div>
+
+      <div class="table-wrap fund-table-wrap">
+        <table>
+          <thead><tr><th>멤버</th><th>기준액</th><th>상태</th><th>납부액</th><th>면제 사유</th></tr></thead>
+          <tbody>${statusRows || '<tr><td colspan="5">해당 주차의 멤버 현황이 없다.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">FEE RULE</div>
+          <h3>주간 공금액 설정</h3>
+        </div>
+        <span class="muted-chip">해당 주차부터 적용</span>
+      </div>
+      <form data-form="fund-fee-rule" class="fund-fee-form">
+        <label><span class="field-label">시작 연도</span><input class="input" name="year" type="number" min="2020" max="2200" value="${esc(year)}" required /></label>
+        <label><span class="field-label">시작 월</span><input class="input" name="month" type="number" min="1" max="12" value="${esc(month)}" required /></label>
+        <label><span class="field-label">시작 주차</span><select class="select" name="week">${[1,2,3,4,5].map((n) => `<option value="${n}" ${n === week ? 'selected' : ''}>${n}주차</option>`).join('')}</select></label>
+        <label><span class="field-label">주간 공금액</span><input class="input" name="weekly_fee" type="number" min="0" step="1" value="${esc(Number(expectedFee || 0))}" required /></label>
+        <label class="fund-fee-note"><span class="field-label">메모</span><input class="input" name="note" maxlength="1000" placeholder="예: 9월부터 주 20,000원" /></label>
+        <button class="btn btn-primary" type="submit">기준액 저장</button>
+      </form>
+      <p class="help-text">과거 원장을 덮어쓰지 않고, 선택한 시작 주차부터 적용되는 기준 규칙을 저장한다.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">REVIEW QUEUE</div>
+          <h3>납부 신청 검수</h3>
+        </div>
+        <span class="${reviewCount ? 'pass-chip' : 'muted-chip'}">${reviewCount} OPEN</span>
+      </div>
+      <div class="table-wrap fund-request-table">
+        <table>
+          <thead><tr><th>멤버 / 주차</th><th>금액</th><th>상태</th><th>증빙</th><th>메모</th><th>신청일</th><th>검수</th></tr></thead>
+          <tbody>${requestRows || '<tr><td colspan="7">납부 신청 기록이 없다.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
   `;
 }
 

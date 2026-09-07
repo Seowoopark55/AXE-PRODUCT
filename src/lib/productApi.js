@@ -285,6 +285,67 @@ export async function redeemCompanyInvite(inviteCode) {
 
 
 
+// ============================================================
+// STAGE 4C — FUND WEB RPC CLIENT
+// ============================================================
+export async function getFundMyPeriods(companyId, limit = 24) {
+  assertClient();
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 24, 60));
+  const result = await supabase.rpc('fund_get_my_periods', {
+    p_company_id: companyId,
+    p_limit: safeLimit,
+  });
+  return unwrap(result, '내 공금 현황을 불러오지 못했습니다.') || [];
+}
+
+export async function getFundAdminRequests(companyId, status = null, limit = 100) {
+  assertClient();
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 500));
+  const result = await supabase.rpc('fund_admin_list_requests', {
+    p_company_id: companyId,
+    p_status: status || null,
+    p_limit: safeLimit,
+  });
+  return unwrap(result, '공금 납부 신청 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getFundAdminPeriodStatus(companyId, year, month, week) {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_get_period_status', {
+    p_company_id: companyId,
+    p_year: Number(year),
+    p_month: Number(month),
+    p_week: Number(week),
+  });
+  return unwrap(result, '공금 주차별 현황을 불러오지 못했습니다.') || [];
+}
+
+export async function reviewFundRequest(companyId, requestId, action, reviewNote = '') {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_review_request', {
+    p_company_id: companyId,
+    p_request_id: requestId,
+    p_action: action,
+    p_review_note: reviewNote || null,
+  });
+  const rows = unwrap(result, '공금 납부 신청을 처리하지 못했습니다.') || [];
+  return Array.isArray(rows) ? (rows[0] || null) : rows;
+}
+
+export async function setFundFeeRule(companyId, year, month, week, weeklyFee, note = '') {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_set_fee_rule', {
+    p_company_id: companyId,
+    p_start_year: Number(year),
+    p_start_month: Number(month),
+    p_start_week: Number(week),
+    p_weekly_fee: Number(weeklyFee),
+    p_note: note || null,
+  });
+  return unwrap(result, '공금 기준액을 저장하지 못했습니다.');
+}
+
+
 async function authenticatedProductApi(path, init = {}) {
   const session = await getSession();
   const accessToken = session?.access_token;

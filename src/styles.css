@@ -1051,3 +1051,190 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
   .discord-config-actions--split { flex-direction: column; }
   .discord-delivery-row { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   STAGE 4C — FUND WEB
+   ============================================================ */
+.fund-inline-alert {
+  position: static;
+  margin: 0 0 18px;
+}
+
+.fund-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px 0 18px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.fund-loading .spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.table-sub {
+  display: block;
+  margin-top: 5px;
+  color: #6f7b8c;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.muted-text { color: var(--muted); }
+
+.fund-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.fund-status.is-good {
+  color: var(--good);
+  border-color: rgba(114,210,155,.25);
+  background: rgba(114,210,155,.07);
+}
+
+.fund-status.is-bad {
+  color: #ff9ca1;
+  border-color: rgba(255,125,131,.25);
+  background: rgba(255,125,131,.07);
+}
+
+.fund-status.is-pending {
+  color: #f4cd7b;
+  border-color: rgba(240,180,60,.25);
+  background: rgba(240,180,60,.07);
+}
+
+.fund-status.is-hold {
+  color: #c9b3ff;
+  border-color: rgba(183,154,255,.24);
+  background: rgba(183,154,255,.07);
+}
+
+.fund-status.is-exempt {
+  color: #8fd8dc;
+  border-color: rgba(108,207,214,.24);
+  background: rgba(108,207,214,.07);
+}
+
+.fund-status.is-muted {
+  color: #9aa5b5;
+  background: rgba(255,255,255,.025);
+}
+
+.fund-table-wrap table { min-width: 760px; }
+
+.fund-period-form,
+.fund-fee-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.fund-period-form .btn,
+.fund-fee-form .btn { min-height: 42px; }
+
+.fund-fee-form {
+  grid-template-columns: .8fr .7fr .7fr 1fr 2fr auto;
+}
+
+.fund-fee-note { min-width: 0; }
+
+.fund-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fund-summary-strip > div {
+  padding: 12px;
+  border: 1px solid #222a35;
+  border-radius: 11px;
+  background: #0b0f15;
+}
+
+.fund-summary-strip span {
+  display: block;
+  margin-bottom: 6px;
+  color: #6f7b8c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .55px;
+}
+
+.fund-summary-strip strong {
+  color: #edf1f6;
+  font-size: 14px;
+}
+
+.fund-request-table table { min-width: 1260px; }
+
+.fund-review-box {
+  min-width: 280px;
+  display: grid;
+  gap: 8px;
+}
+
+.fund-review-note {
+  min-height: 34px;
+  font-size: 11px;
+}
+
+.fund-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fund-btn-approve {
+  color: #dff7e8;
+  border-color: rgba(114,210,155,.28);
+  background: rgba(114,210,155,.10);
+}
+
+.fund-evidence-link {
+  color: #f4cd7b;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.fund-evidence-link:hover { text-decoration: underline; }
+
+@media (max-width: 1100px) {
+  .fund-fee-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fund-fee-form .fund-fee-note {
+    grid-column: span 2;
+  }
+
+  .fund-summary-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .fund-period-form,
+  .fund-fee-form,
+  .fund-summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .fund-fee-form .fund-fee-note { grid-column: auto; }
+  .fund-period-form .btn,
+  .fund-fee-form .btn { width: 100%; }
+}

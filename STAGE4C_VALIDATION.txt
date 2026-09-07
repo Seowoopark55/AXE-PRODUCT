@@ -1,0 +1,24 @@
+AXE PRODUCT STAGE 4C VALIDATION
+Track: [상품화]
+
+Source baseline: uploaded latest AXE-PRODUCT package
+Package version: 0.7.0
+
+PASS - JavaScript syntax: src/main.js
+PASS - JavaScript syntax: src/lib/productApi.js
+PASS - JavaScript syntax: src/ui/render.js
+PASS - existing AXE PRODUCT source-check
+PASS - fund module menu is gated by company fund module ON/OFF
+PASS - member own fund-period render
+PASS - OWNER/ADMIN admin fund render
+PASS - fund period status UI
+PASS - weekly fee rule UI
+PASS - request approve/hold/reject UI
+PASS - no direct browser access to fund_* tables
+PASS - no fund_submit_request web call before evidence storage stage
+PASS - admin/member render smoke test
+PASS - fund OFF nav smoke test
+
+No DB migration in STAGE 4C.
+No Discord bot deployment in STAGE 4C.
+No live AXE BOT / NEW AXE NET / AXE HUB changes.

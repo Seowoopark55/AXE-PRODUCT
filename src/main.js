@@ -26,6 +26,11 @@ import {
   listCompanyInvites,
   revokeCompanyInvite,
   redeemCompanyInvite,
+  getFundMyPeriods,
+  getFundAdminRequests,
+  getFundAdminPeriodStatus,
+  reviewFundRequest,
+  setFundFeeRule,
   startDiscordConnection,
   completeDiscordConnection,
 } from './lib/productApi.js';
@@ -49,9 +54,17 @@ const state = {
   auditEvents: [],
   invites: [],
   freshInviteCode: null,
+  fundMyPeriods: [],
+  fundRequests: [],
+  fundPeriodStatus: [],
+  fundSelectedYear: null,
+  fundSelectedMonth: null,
+  fundSelectedWeek: null,
+  fundLoading: false,
+  fundError: '',
   view: (() => {
     const saved = sessionStorage.getItem('axe_product_view');
-    return ['overview', 'members', 'modules', 'settings', 'audit'].includes(saved)
+    return ['overview', 'fund', 'members', 'modules', 'settings', 'audit'].includes(saved)
       ? saved
       : 'overview';
   })(),
@@ -95,6 +108,101 @@ function currentMembership() {
 
 function canAdmin() {
   return ['owner', 'admin'].includes(currentMembership()?.role);
+}
+
+function fundEnabled() {
+  return state.modules.some((m) => m.module_key === 'fund' && Boolean(m.enabled));
+}
+
+function clearFundState({ keepSelection = false } = {}) {
+  state.fundMyPeriods = [];
+  state.fundRequests = [];
+  state.fundPeriodStatus = [];
+  state.fundLoading = false;
+  state.fundError = '';
+  if (!keepSelection) {
+    state.fundSelectedYear = null;
+    state.fundSelectedMonth = null;
+    state.fundSelectedWeek = null;
+  }
+}
+
+function pickFundPeriod() {
+  const rows = state.fundMyPeriods || [];
+  const preferred = rows.find((row) => row.status !== '예정') || rows[0];
+  if (preferred) {
+    return {
+      year: Number(preferred.year),
+      month: Number(preferred.month),
+      week: Number(preferred.week),
+    };
+  }
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  let saturdays = 0;
+  for (let d = 1; d <= day; d += 1) {
+    if (new Date(year, month - 1, d).getDay() === 6) saturdays += 1;
+  }
+  return { year, month, week: Math.max(1, Math.min(saturdays || 1, 5)) };
+}
+
+async function loadFundData({ preserveSelection = true } = {}) {
+  if (!state.companyId || !fundEnabled()) {
+    clearFundState({ keepSelection: false });
+    return;
+  }
+
+  state.fundLoading = true;
+  state.fundError = '';
+
+  let memberError = '';
+  try {
+    state.fundMyPeriods = await getFundMyPeriods(state.companyId, 24);
+  } catch (error) {
+    state.fundMyPeriods = [];
+    memberError = String(error.message || error);
+  }
+
+  if (
+    !preserveSelection
+    || !state.fundSelectedYear
+    || !state.fundSelectedMonth
+    || !state.fundSelectedWeek
+  ) {
+    const selected = pickFundPeriod();
+    state.fundSelectedYear = selected.year;
+    state.fundSelectedMonth = selected.month;
+    state.fundSelectedWeek = selected.week;
+  }
+
+  if (canAdmin()) {
+    try {
+      const [requests, periodStatus] = await Promise.all([
+        getFundAdminRequests(state.companyId, null, 100),
+        getFundAdminPeriodStatus(
+          state.companyId,
+          state.fundSelectedYear,
+          state.fundSelectedMonth,
+          state.fundSelectedWeek
+        ),
+      ]);
+      state.fundRequests = requests;
+      state.fundPeriodStatus = periodStatus;
+    } catch (error) {
+      state.fundRequests = [];
+      state.fundPeriodStatus = [];
+      state.fundError = String(error.message || error);
+    }
+  } else {
+    state.fundRequests = [];
+    state.fundPeriodStatus = [];
+  }
+
+  if (memberError && !state.fundError) state.fundError = memberError;
+  state.fundLoading = false;
 }
 
 function discordOAuthErrorMessage(code) {
@@ -185,6 +293,7 @@ function clearCompanyState() {
   state.auditEvents = [];
   state.invites = [];
   state.freshInviteCode = null;
+  clearFundState({ keepSelection: false });
 }
 
 async function loadCompanyData() {
@@ -235,6 +344,16 @@ async function loadCompanyData() {
   } else {
     state.auditEvents = [];
     state.invites = [];
+  }
+
+  if (fundEnabled()) {
+    await loadFundData({ preserveSelection: true });
+  } else {
+    clearFundState({ keepSelection: false });
+    if (state.view === 'fund') {
+      state.view = 'overview';
+      sessionStorage.setItem('axe_product_view', state.view);
+    }
   }
 }
 
@@ -303,6 +422,18 @@ root.addEventListener('click', async (event) => {
   if (viewButton && !viewButton.disabled) {
     state.view = viewButton.dataset.view;
     sessionStorage.setItem('axe_product_view', state.view);
+
+    if (state.view === 'fund' && fundEnabled()) {
+      state.fundLoading = true;
+      render();
+      try {
+        await loadFundData({ preserveSelection: true });
+      } catch (error) {
+        state.fundError = String(error.message || error);
+        state.fundLoading = false;
+      }
+    }
+
     render();
     return;
   }
@@ -420,6 +551,28 @@ root.addEventListener('click', async (event) => {
       return;
     }
 
+    if (action === 'fund-review') {
+      if (!canAdmin()) throw new Error('공금 신청을 검수할 권한이 없습니다.');
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+
+      const requestId = actionEl.dataset.requestId;
+      const reviewAction = actionEl.dataset.reviewAction;
+      if (!requestId || !['approve', 'hold', 'reject'].includes(reviewAction)) {
+        throw new Error('공금 검수 요청 정보가 올바르지 않습니다.');
+      }
+
+      const noteInput = root.querySelector(`[data-fund-review-note="${requestId}"]`);
+      const reviewNote = String(noteInput?.value || '').trim();
+
+      actionEl.disabled = true;
+      await reviewFundRequest(state.companyId, requestId, reviewAction, reviewNote);
+      await loadFundData({ preserveSelection: true });
+
+      const label = { approve: '승인', hold: '보류', reject: '반려' }[reviewAction];
+      setNotice(`공금 납부 신청을 ${label} 처리했다.`);
+      return;
+    }
+
     if (action === 'logout') {
       await signOut();
       state.session = null;
@@ -490,6 +643,7 @@ root.addEventListener('change', async (event) => {
     if (event.target.matches('[data-action="switch-company"]')) {
       state.companyId = event.target.value;
       state.freshInviteCode = null;
+      clearFundState({ keepSelection: false });
       localStorage.setItem('axe_product_company_id', state.companyId);
       state.loading = true;
       state.error = '';
@@ -611,6 +765,75 @@ root.addEventListener('submit', async (event) => {
       state.view = 'overview';
       sessionStorage.setItem('axe_product_view', state.view);
       setNotice(joined.result === 'already_member' ? '이미 가입된 회사로 이동했다.' : `${joined.company_name || '회사'}에 MEMBER로 가입했다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'fund-period') {
+      if (!canAdmin()) throw new Error('공금 주차 현황을 조회할 권한이 없습니다.');
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+
+      const data = new FormData(form);
+      const year = Number(data.get('year'));
+      const month = Number(data.get('month'));
+      const week = Number(data.get('week'));
+
+      if (!Number.isInteger(year) || year < 2020 || year > 2200) {
+        throw new Error('연도를 확인해 주세요.');
+      }
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        throw new Error('월을 확인해 주세요.');
+      }
+      if (!Number.isInteger(week) || week < 1 || week > 5) {
+        throw new Error('주차를 확인해 주세요.');
+      }
+
+      state.fundSelectedYear = year;
+      state.fundSelectedMonth = month;
+      state.fundSelectedWeek = week;
+      state.fundLoading = true;
+      render();
+
+      state.fundPeriodStatus = await getFundAdminPeriodStatus(
+        state.companyId,
+        year,
+        month,
+        week
+      );
+      state.fundLoading = false;
+      setNotice(`${year}년 ${month}월 ${week}주차 공금 현황을 불러왔다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'fund-fee-rule') {
+      if (!canAdmin()) throw new Error('공금 기준액을 변경할 권한이 없습니다.');
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+
+      const data = new FormData(form);
+      const year = Number(data.get('year'));
+      const month = Number(data.get('month'));
+      const week = Number(data.get('week'));
+      const weeklyFee = Number(data.get('weekly_fee'));
+      const note = String(data.get('note') || '').trim();
+
+      if (!Number.isInteger(year) || year < 2020 || year > 2200) {
+        throw new Error('적용 시작 연도를 확인해 주세요.');
+      }
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        throw new Error('적용 시작 월을 확인해 주세요.');
+      }
+      if (!Number.isInteger(week) || week < 1 || week > 5) {
+        throw new Error('적용 시작 주차를 확인해 주세요.');
+      }
+      if (!Number.isSafeInteger(weeklyFee) || weeklyFee < 0) {
+        throw new Error('주간 공금액을 0원 이상의 숫자로 입력해 주세요.');
+      }
+
+      await setFundFeeRule(state.companyId, year, month, week, weeklyFee, note);
+      state.fundSelectedYear = year;
+      state.fundSelectedMonth = month;
+      state.fundSelectedWeek = week;
+      await loadFundData({ preserveSelection: true });
+      setNotice(`${year}년 ${month}월 ${week}주차부터 주간 공금액을 저장했다.`);
       return;
     }
 

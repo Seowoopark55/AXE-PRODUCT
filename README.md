@@ -1,80 +1,41 @@
-# AXE PRODUCT STAGING — STAGE 3B AUTO DISCORD CONNECT
+# AXE PRODUCT — STAGE 4C
 
-This is the consolidated frontend/serverless package after STAGE 3A.
+Track: **[상품화] only**
 
-## What is added
-- Company Settings -> Discord Server Connect button.
-- OWNER / ADMIN only.
-- Discord Authorization Code Grant with signed `state`.
-- Guild installation context only.
-- Bot permission request = 0.
-- Discord returns the selected guild after OAuth code exchange.
-- Browser never receives the Discord client secret.
-- Guild ID / SQL manual entry is no longer required for normal use.
-- Completion is bound back to the same Supabase user and company.
-- Existing `axe_product.discord_connections` RLS performs the final DB authorization.
-- Existing UNIQUE(company_id) and UNIQUE(guild_id) remain the duplicate guard.
+This is the full AXE-PRODUCT web source package for STAGE 4C.
+It is based on the uploaded latest AXE-PRODUCT source and requires the already-applied STAGE 4A + 4B database/RPC layer.
 
-## Security design
-No Supabase server master key is introduced.
+## Added in STAGE 4C
+- Dedicated `공금` navigation item.
+- The menu is available only when the company `fund` module is ON.
+- MEMBER: read-only recent personal fund periods and status.
+- OWNER / ADMIN: company period status by year/month/week.
+- OWNER / ADMIN: weekly fee rule starting from a selected period.
+- OWNER / ADMIN: payment request queue and approve / hold / reject actions.
+- Evidence values are read-only; HTTP(S) evidence can be opened safely in a new tab.
 
-The Vercel API verifies the current Supabase user with the browser's short-lived access token, verifies OWNER/ADMIN membership through `axe_product` RLS, and performs the final connection upsert using that same user token.
+## Deliberately NOT included yet
+- Member web payment submission.
+- Evidence file upload / Supabase Storage bucket.
+- Discord fund panel / buttons / commands.
+- Changes to `axe-product-staging-bot`.
+- Changes to live `axe-bot`, NEW AXE NET, or AXE HUB.
 
-OAuth flow:
-1. Browser POST /api/discord/start with current Supabase bearer token.
-2. Vercel verifies user + company OWNER/ADMIN.
-3. Vercel creates HMAC-signed 10-minute OAuth state.
-4. Discord guild install / authorization.
-5. /api/discord/callback validates state and exchanges the code server-side.
-6. Discord's guild object is converted to a short-lived signed completion token.
-7. Completion token returns in URL fragment, not query string.
-8. Browser POST /api/discord/complete with Supabase bearer token.
-9. Vercel re-checks same user + OWNER/ADMIN and upserts `discord_connections` under RLS.
+Member web submission stays closed because `fund_submit_request` requires an evidence path. We do not bypass that requirement with a fake path or arbitrary URL input. Evidence storage will be implemented first in the next stage.
 
-## Required Vercel environment variables
-Already configured during STAGE 3B:
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_PUBLISHABLE_KEY
-- DISCORD_CLIENT_ID
-- DISCORD_CLIENT_SECRET
-- DISCORD_OAUTH_STATE_SECRET
+## Security boundary
+The web does not access `fund_*` tables directly. STAGE 4C uses only the authenticated STAGE 4B RPCs:
+- `fund_get_my_periods`
+- `fund_admin_list_requests`
+- `fund_admin_get_period_status`
+- `fund_admin_review_request`
+- `fund_admin_set_fee_rule`
 
-Optional overrides (not required for current production STAGING URL):
-- DISCORD_REDIRECT_URI
-- AXE_PRODUCT_APP_URL
+Tenant isolation and OWNER/ADMIN authorization remain enforced by the database RPC layer.
 
-Default callback:
-https://axe-product.vercel.app/api/discord/callback
+## Deployment target
+- GitHub repository: AXE-PRODUCT only.
+- Vercel project: axe-product only.
+- No SSH bot deployment in STAGE 4C.
 
-## Required Discord Developer Portal setting
-AXE Staging -> Bot -> Require OAuth2 Code Grant = ON
-
-## Deployment
-Replace the AXE-PRODUCT GitHub repository contents with this package and commit.
-Vercel should redeploy automatically.
-
-No SSH bot files are changed by this package.
-The PM2 process `axe-product-staging-bot` remains separate from the live `axe-bot`.
-
-
-## STAGE 3D-C — Discord channel/role mapping UI
-
-Added:
-- company-scoped read of `discord_guild_channels`
-- company-scoped read of `discord_guild_roles`
-- company-scoped `discord_company_config`
-- OWNER / ADMIN channel and role mapping form
-- catalog refresh control
-- members remain read-only
-
-The browser does not write catalog rows.
-The browser can only save company mapping through existing tenant RLS.
-No service-role key was introduced.
-
-
-## STAGE 3E-C
-- OWNER/ADMIN test notification button
-- enqueue_discord_test_notification RPC only
-- recent delivery status read-only
-- no arbitrary guild/channel/message input
-- no service-role key
+Do not copy this package into NEW AXE NET, AXE HUB, or either Discord bot directory.
