@@ -521,6 +521,16 @@ function renderDiscordSelect(name, selectedValue, items, idKey, labelKey, emptyL
   `;
 }
 
+function discordDeliveryStatusLabel(status) {
+  const labels = {
+    pending: '대기',
+    processing: '처리 중',
+    sent: '전송 완료',
+    failed: '실패',
+  };
+  return labels[status] || status || '-';
+}
+
 function renderSettings(state, canAdmin) {
   const s = state.companySettings || {};
   const discord = state.discordConnection;
@@ -700,11 +710,33 @@ function renderSettings(state, canAdmin) {
             </label>
 
             ${canAdmin ? `
-              <div class="discord-config-actions">
+              <div class="discord-config-actions discord-config-actions--split">
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  data-action="send-discord-test-notification"
+                  ${config.notification_channel_id ? '' : 'disabled'}
+                  title="${config.notification_channel_id ? '저장된 알림 채널로 테스트 메시지를 보낸다.' : '알림 채널을 먼저 저장해 주세요.'}"
+                >
+                  테스트 알림 보내기
+                </button>
                 <button class="btn btn-primary" type="submit">Discord 설정 저장</button>
               </div>
             ` : ''}
           </form>
+
+          ${(state.discordDeliveryJobs || []).length ? `
+            <div class="discord-delivery-history">
+              <div class="field-label">최근 테스트 알림</div>
+              ${(state.discordDeliveryJobs || []).slice(0, 3).map((job) => `
+                <div class="discord-delivery-row">
+                  <span>${esc(discordDeliveryStatusLabel(job.status))}</span>
+                  <strong>${esc(fmtDate(job.created_at))}</strong>
+                  ${job.last_error ? `<small>${esc(job.last_error)}</small>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
         ` : `
           <div class="info-banner info-banner--muted">
             봇이 Discord 서버의 채널·역할을 동기화 중이다. 잠시 후 ‘목록 새로고침’을 누르면 자동으로 표시된다.

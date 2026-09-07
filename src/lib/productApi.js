@@ -202,6 +202,39 @@ export async function saveDiscordCompanyConfig(companyId, patch, userId) {
   return unwrap(result, 'Discord 회사 설정을 저장하지 못했습니다.');
 }
 
+
+export async function enqueueDiscordTestNotification(companyId) {
+  assertClient();
+
+  const result = await supabase.rpc('enqueue_discord_test_notification', {
+    p_company_id: companyId,
+  });
+
+  const rows = unwrap(result, 'Discord 테스트 알림 요청을 만들지 못했습니다.') || [];
+  const row = Array.isArray(rows) ? rows[0] : rows;
+
+  if (!row?.job_id) {
+    throw new Error('Discord 테스트 알림 요청 결과를 확인하지 못했습니다.');
+  }
+
+  return row;
+}
+
+export async function getRecentDiscordDeliveryJobs(companyId, limit = 5) {
+  assertClient();
+
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 5, 10));
+
+  const result = await supabase
+    .from('discord_delivery_jobs')
+    .select('id,company_id,guild_id,channel_id,job_type,status,attempt_count,last_error,created_at,claimed_at,completed_at,updated_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .limit(safeLimit);
+
+  return unwrap(result, 'Discord 전송 기록을 불러오지 못했습니다.') || [];
+}
+
 export async function getAuditEvents(companyId, limit = 50) {
   assertClient();
   const result = await supabase

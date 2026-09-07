@@ -1017,3 +1017,37 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
     width: 100%;
   }
 }
+
+
+.discord-config-actions--split {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.discord-delivery-history {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.discord-delivery-row {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 90px 180px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.014);
+  font-size: 11px;
+}
+
+.discord-delivery-row span { color: #dce4ef; }
+.discord-delivery-row strong { color: var(--muted); font-weight: 500; }
+.discord-delivery-row small { color: #ff9b9b; overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .discord-config-actions--split { flex-direction: column; }
+  .discord-delivery-row { grid-template-columns: 1fr; }
+}

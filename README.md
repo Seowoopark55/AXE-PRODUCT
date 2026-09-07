@@ -70,3 +70,11 @@ Added:
 The browser does not write catalog rows.
 The browser can only save company mapping through existing tenant RLS.
 No service-role key was introduced.
+
+
+## STAGE 3E-C
+- OWNER/ADMIN test notification button
+- enqueue_discord_test_notification RPC only
+- recent delivery status read-only
+- no arbitrary guild/channel/message input
+- no service-role key

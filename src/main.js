@@ -19,6 +19,8 @@ import {
   getDiscordRoles,
   getDiscordCompanyConfig,
   saveDiscordCompanyConfig,
+  enqueueDiscordTestNotification,
+  getRecentDiscordDeliveryJobs,
   getAuditEvents,
   createCompanyInvite,
   listCompanyInvites,
@@ -43,6 +45,7 @@ const state = {
   discordChannels: [],
   discordRoles: [],
   discordCompanyConfig: null,
+  discordDeliveryJobs: [],
   auditEvents: [],
   invites: [],
   freshInviteCode: null,
@@ -178,6 +181,7 @@ function clearCompanyState() {
   state.discordChannels = [];
   state.discordRoles = [];
   state.discordCompanyConfig = null;
+  state.discordDeliveryJobs = [];
   state.auditEvents = [];
   state.invites = [];
   state.freshInviteCode = null;
@@ -198,6 +202,7 @@ async function loadCompanyData() {
     discordChannels,
     discordRoles,
     discordCompanyConfig,
+    discordDeliveryJobs,
   ] = await Promise.all([
     getMemberships(state.companyId),
     getModuleCatalog(),
@@ -207,6 +212,7 @@ async function loadCompanyData() {
     getDiscordChannels(state.companyId),
     getDiscordRoles(state.companyId),
     getDiscordCompanyConfig(state.companyId),
+    getRecentDiscordDeliveryJobs(state.companyId, 5),
   ]);
 
   state.memberships = memberships;
@@ -217,6 +223,7 @@ async function loadCompanyData() {
   state.discordChannels = discordChannels;
   state.discordRoles = discordRoles;
   state.discordCompanyConfig = discordCompanyConfig;
+  state.discordDeliveryJobs = discordDeliveryJobs;
 
   if (canAdmin()) {
     const [auditEvents, invites] = await Promise.all([
@@ -384,6 +391,32 @@ root.addEventListener('click', async (event) => {
       setNotice(
         `Discord 목록을 새로 불러왔다. 채널 ${state.discordChannels.length}개 · 역할 ${state.discordRoles.length}개`
       );
+      return;
+    }
+
+
+    if (action === 'send-discord-test-notification') {
+      if (!canAdmin()) throw new Error('Discord 테스트 알림을 보낼 권한이 없습니다.');
+      if (!state.companyId) throw new Error('회사를 찾지 못했습니다.');
+
+      if (!state.discordCompanyConfig?.notification_channel_id) {
+        throw new Error('알림 채널을 먼저 선택하고 저장해 주세요.');
+      }
+
+      actionEl.disabled = true;
+      const job = await enqueueDiscordTestNotification(state.companyId);
+
+      setNotice(
+        `Discord 테스트 알림 전송 요청을 넣었다. 상태: ${job.status || 'pending'}`
+      );
+
+      setTimeout(async () => {
+        try {
+          state.discordDeliveryJobs = await getRecentDiscordDeliveryJobs(state.companyId, 5);
+          render();
+        } catch {}
+      }, 1800);
+
       return;
     }
 
