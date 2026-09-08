@@ -657,123 +657,104 @@ function renderAmmo(state, canAdmin, ammoEnabled) {
 
   const settings = state.ammoSettings || {};
   const rounds = state.ammoRounds || [];
-  const selected = rounds.find((r) => r.round_id === state.ammoSelectedRoundId) || null;
-  const orders = state.ammoOrders || [];
-  const makers = state.ammoMakers || [];
-  const openRounds = rounds.filter((r) => r.round_status === 'open');
-  const activeOrders = orders.filter((o) => o.order_status === 'active');
-  const completedOrders = orders.filter((o) => o.order_status === 'completed');
-  const myOrder = selected?.my_order_id ? {
-    order_id: selected.my_order_id,
-    requested_sets: Number(selected.my_requested_sets || 0),
-    status: selected.my_order_status,
-  } : null;
   const lineSets = Number(settings.line_sets || 8);
-  const halfSets = Number(settings.half_sets || 4);
+  const halfSets = Number(settings.half_sets || Math.floor(lineSets / 2));
   const maxSets = Number(settings.max_order_sets || 800);
+  const keepMinutes = Number(settings.keep_minutes || 60);
+  const weekdays = Array.isArray(settings.event_weekdays) ? settings.event_weekdays.map(Number) : [];
+  const weekdayLabels = ['일','월','화','수','목','금','토'];
+  const catalog = Array.isArray(settings.ammo_catalog) ? settings.ammo_catalog : [];
+  const enabledTypes = catalog.filter((x) => Boolean(x.enabled));
+  const defaultType = enabledTypes.find((x) => Boolean(x.is_default)) || enabledTypes[0] || null;
+  const upcoming = ['afternoon','night'].map((sessionType) => {
+    const item = rounds.find((r) => r.session_type === sessionType && r.round_status === 'open') || null;
+    return { sessionType, item };
+  });
 
-  const roundButtons = rounds.slice(0, 20).map((r) => `
-    <button type="button" class="ammo-round-card ${r.round_id === state.ammoSelectedRoundId ? 'is-active' : ''}" data-ammo-action="select-round" data-round-id="${esc(r.round_id)}">
-      <strong>${esc(ammoRoundLabel(r))}</strong>
-      <span>${esc(ammoStatusLabel(r.round_status))} · 신청 ${Number(r.total_requested_sets || 0).toLocaleString('ko-KR')}세트 · 제작 ${Number(r.active_maker_count || 0)}명</span>
-    </button>
+  const upcomingCards = upcoming.map(({ sessionType, item }) => `
+    <div class="ammo-round-card is-static">
+      <strong>${sessionType === 'afternoon' ? '☀️ 3시' : '🌙 10시'}</strong>
+      <span>${item ? esc(ammoRoundLabel(item)) : 'Discord 게시판 연결 후 자동 준비'}</span>
+      <span>${item ? `신청 ${Number(item.total_requested_sets || 0).toLocaleString('ko-KR')}세트 · 제작 ${Number(item.active_maker_count || 0)}명` : '관리자가 날짜/시간을 직접 입력할 필요 없음'}</span>
+    </div>
   `).join('');
 
-  const orderRows = orders.map((o) => `
-    <tr>
-      <td><strong>${esc(o.member_display_name || '멤버')}</strong></td>
-      <td>${Number(o.requested_sets || 0).toLocaleString('ko-KR')}세트</td>
-      <td><span class="fund-status ${o.order_status === 'completed' ? 'is-good' : 'is-pending'}">${esc(ammoStatusLabel(o.order_status))}</span></td>
-      <td>${esc(o.completed_by_name || '-')}</td>
-      <td>
-        ${selected?.i_am_maker && o.order_status === 'active' ? `<button class="btn btn-compact btn-primary" type="button" data-ammo-action="complete-order" data-order-id="${esc(o.order_id)}">배분 완료</button>` : ''}
-        ${selected?.i_am_maker && o.order_status === 'completed' ? `<button class="btn btn-compact btn-secondary" type="button" data-ammo-action="undo-order" data-order-id="${esc(o.order_id)}">완료 취소</button>` : ''}
-      </td>
-    </tr>
-  `).join('');
-
-  const makerNames = makers.length ? makers.map((m) => esc(m.member_display_name || '멤버')).join(' · ') : '현재 제작 참여자 없음';
+  const ammoTypeCards = catalog.map((type) => {
+    const key = String(type.ammo_key || '');
+    const customAliases = Array.isArray(type.custom_aliases) ? type.custom_aliases.join(', ') : '';
+    const systemAliases = Array.isArray(type.system_aliases) ? type.system_aliases.join(' · ') : '';
+    return `
+      <div class="ammo-type-card ${type.enabled ? 'is-enabled' : ''}">
+        <label class="check-line ammo-type-enable">
+          <input type="checkbox" name="ammo_enabled" value="${esc(key)}" ${type.enabled ? 'checked' : ''} />
+          <strong>${esc(type.display_name || key)}</strong>
+        </label>
+        <div class="ammo-type-meta">기본 인식: ${esc(systemAliases || '-')}</div>
+        <label>
+          <span class="field-label">회사 별칭</span>
+          <input class="input" name="ammo_alias_${esc(key)}" value="${esc(customAliases)}" placeholder="예: 5탄, 오탄" />
+        </label>
+      </div>
+    `;
+  }).join('');
 
   return `
     <div class="grid-cards fund-metrics">
-      ${metricCard('OPEN ROUNDS', openRounds.length, '현재 열린 회차')}
-      ${metricCard('REQUESTED', selected ? Number(selected.total_requested_sets || 0).toLocaleString('ko-KR') : 0, '선택 회차 총 신청 세트')}
-      ${metricCard('ACTIVE', activeOrders.length, '배분 대기')}
-      ${metricCard('DONE', completedOrders.length, '배분 완료')}
+      ${metricCard('3PM / 10PM', 'AUTO', '고정 무법지대 회차 자동 전환')}
+      ${metricCard('LINE', `${lineSets} SET`, `반줄 ${halfSets}세트`)}
+      ${metricCard('DEFAULT AMMO', defaultType ? esc(defaultType.short_name || defaultType.display_name) : '-', '채팅에 탄종을 생략하면 자동 적용')}
+      ${metricCard('AMMO TYPES', enabledTypes.length, '현재 제작 탄약')}
     </div>
 
     ${state.ammoError ? `<div class="global-alert global-alert--error fund-inline-alert">${esc(state.ammoError)}</div>` : ''}
     ${state.ammoLoading ? `<div class="fund-loading"><div class="spinner"></div><span>총알 정보를 불러오는 중…</span></div>` : ''}
 
-    <div class="panel ammo-rounds-panel">
-      <div class="panel-head"><div><div class="eyebrow">ROUNDS</div><h3>총알 회차</h3></div><span class="head-badge">1줄 ${lineSets} · 반 ${halfSets}</span></div>
-      <div class="ammo-round-grid">${roundButtons || '<div class="info-banner info-banner--muted">아직 생성된 총알 회차가 없다.</div>'}</div>
+    <div class="panel">
+      <div class="panel-head">
+        <div><div class="eyebrow">AXE NET FLOW</div><h3>총알 운영</h3></div>
+        <span class="head-badge">Discord 중심</span>
+      </div>
+      <div class="info-banner">
+        3시/10시 게시판에서 멤버가 <strong>1줄 · 한줄반 · 1줄2세트 · 3세트</strong>처럼 채팅으로 신청한다.
+        제작자는 현황판에서 제작 참여 후 신청자 버튼을 눌러 배분 완료/해제한다.
+      </div>
+      <div class="ammo-round-grid">${upcomingCards}</div>
     </div>
-
-    ${selected ? `
-      <div class="panel">
-        <div class="panel-head">
-          <div><div class="eyebrow">MY ORDER</div><h3>${esc(ammoRoundLabel(selected))}</h3></div>
-          <span class="head-badge">${esc(ammoStatusLabel(selected.round_status))}</span>
-        </div>
-        <div class="ammo-action-grid">
-          <div class="ammo-action-box">
-            <h4>내 신청</h4>
-            ${selected.round_status !== 'open' ? '<p>닫힌 회차는 신청을 변경할 수 없다.</p>' : myOrder?.status === 'completed' ? `<p><strong>${myOrder.requested_sets}세트</strong> · 배분 완료</p>` : myOrder ? `
-              <form data-form="ammo-order-edit" class="inline-form">
-                <input type="hidden" name="order_id" value="${esc(myOrder.order_id)}" />
-                <input class="input" type="number" name="requested_sets" min="1" max="${maxSets}" value="${myOrder.requested_sets}" required />
-                <button class="btn btn-primary" type="submit">수정</button>
-                <button class="btn btn-danger" type="button" data-ammo-action="cancel-order" data-order-id="${esc(myOrder.order_id)}">신청 취소</button>
-              </form>` : `
-              <form data-form="ammo-order" class="inline-form">
-                <input type="hidden" name="round_id" value="${esc(selected.round_id)}" />
-                <input class="input" type="number" name="requested_sets" min="1" max="${maxSets}" value="${lineSets}" required />
-                <button class="btn btn-primary" type="submit">신청</button>
-                <small>반줄 ${halfSets} · 1줄 ${lineSets}세트</small>
-              </form>`}
-          </div>
-          <div class="ammo-action-box">
-            <h4>제작 참여</h4>
-            <p>${makerNames}</p>
-            ${selected.round_status === 'open' ? `<button class="btn ${selected.i_am_maker ? 'btn-secondary' : 'btn-primary'}" type="button" data-ammo-action="${selected.i_am_maker ? 'maker-leave' : 'maker-join'}" data-round-id="${esc(selected.round_id)}">${selected.i_am_maker ? '제작 참여 해제' : '제작 참여'}</button>` : ''}
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><div><div class="eyebrow">DISTRIBUTION</div><h3>신청 · 배분 현황</h3></div><span class="head-badge">제작자 ${makers.length}명</span></div>
-        <div class="table-wrap"><table><thead><tr><th>멤버</th><th>신청</th><th>상태</th><th>완료자</th><th>처리</th></tr></thead><tbody>${orderRows || '<tr><td colspan="5">현재 신청이 없다.</td></tr>'}</tbody></table></div>
-      </div>
-    ` : ''}
 
     ${canAdmin ? `
       <div class="panel">
-        <div class="panel-head"><div><div class="eyebrow">AMMO ADMIN</div><h3>회차 관리</h3></div><span class="head-badge">OWNER / ADMIN</span></div>
-        <form data-form="ammo-round-open" class="ammo-admin-form">
-          <label><span class="field-label">날짜</span><input class="input" name="event_date" type="date" required /></label>
-          <label><span class="field-label">회차</span><select class="select" name="session_type"><option value="afternoon">3시</option><option value="night">10시</option></select></label>
-          <button class="btn btn-primary" type="submit">회차 열기</button>
-          ${selected?.round_status === 'open' ? `<button class="btn btn-secondary" type="button" data-ammo-action="reset-round" data-round-id="${esc(selected.round_id)}">회차 초기화</button><button class="btn btn-ghost" type="button" data-ammo-action="close-round" data-round-id="${esc(selected.round_id)}">회차 닫기</button><button class="btn btn-danger" type="button" data-ammo-action="cancel-round" data-round-id="${esc(selected.round_id)}">회차 취소</button>` : ''}
-        </form>
-      </div>
+        <div class="panel-head">
+          <div><div class="eyebrow">AMMO SETTINGS</div><h3>총알 운영 설정</h3></div>
+          <span class="head-badge">OWNER / ADMIN</span>
+        </div>
+        <form data-form="ammo-settings" class="ammo-settings-form ammo-settings-form--product">
+          <div class="ammo-settings-section">
+            <h4>고정 무법지대</h4>
+            <p class="muted-copy">3시/10시는 고정이다. 운영 요일만 선택하면 회차는 시간이 지나면서 자동으로 다음 일정으로 넘어간다.</p>
+            <div class="weekday-picker">
+              ${weekdayLabels.map((label, idx) => `<label class="weekday-chip"><input type="checkbox" name="event_weekday" value="${idx}" ${weekdays.includes(idx) ? 'checked' : ''}/><span>${label}</span></label>`).join('')}
+            </div>
+          </div>
 
-      <div class="panel">
-        <div class="panel-head"><div><div class="eyebrow">SETTINGS</div><h3>총알 운영 설정</h3></div></div>
-        <form data-form="ammo-settings" class="ammo-settings-form">
-          <label><span class="field-label">Timezone</span><input class="input" name="timezone" value="${esc(settings.timezone || 'Asia/Seoul')}" required /></label>
-          <label><span class="field-label">운영 요일 (0=일)</span><input class="input" name="event_weekdays" value="${esc((settings.event_weekdays || [0,3,5,6]).join(','))}" /></label>
-          <label><span class="field-label">1줄 세트</span><input class="input" name="line_sets" type="number" value="${lineSets}" min="2" /></label>
-          <label><span class="field-label">반줄 세트</span><input class="input" name="half_sets" type="number" value="${halfSets}" min="1" /></label>
-          <label><span class="field-label">최대 신청</span><input class="input" name="max_order_sets" type="number" value="${maxSets}" min="${lineSets}" /></label>
-          <label><span class="field-label">유지 시간(분)</span><input class="input" name="keep_minutes" type="number" value="${Number(settings.keep_minutes || 60)}" min="0" max="360" /></label>
-          <input type="hidden" name="afternoon_hour" value="${Number(settings.afternoon_hour || 15)}" /><input type="hidden" name="afternoon_minute" value="${Number(settings.afternoon_minute || 0)}" />
-          <input type="hidden" name="night_hour" value="${Number(settings.night_hour || 22)}" /><input type="hidden" name="night_minute" value="${Number(settings.night_minute || 0)}" />
-          <label class="check-line"><input type="checkbox" name="afternoon_enabled" ${settings.afternoon_enabled !== false ? 'checked' : ''} /> 3시 회차 사용</label>
-          <label class="check-line"><input type="checkbox" name="night_enabled" ${settings.night_enabled !== false ? 'checked' : ''} /> 10시 회차 사용</label>
-          <label class="check-line"><input type="checkbox" name="allow_member_edit" ${settings.allow_member_edit !== false ? 'checked' : ''} /> 멤버 신청 수정 허용</label>
-          <label class="check-line"><input type="checkbox" name="allow_member_cancel" ${settings.allow_member_cancel !== false ? 'checked' : ''} /> 멤버 신청 취소 허용</label>
-          <button class="btn btn-primary" type="submit">총알 설정 저장</button>
+          <div class="ammo-settings-section ammo-setting-numbers">
+            <label><span class="field-label">1줄</span><input class="input" name="line_sets" type="number" value="${lineSets}" min="2" max="100" required /><small>세트</small></label>
+            <label><span class="field-label">반줄</span><input class="input" name="half_sets" type="number" value="${halfSets}" min="1" max="50" required /><small>세트</small></label>
+            <label><span class="field-label">최대 신청</span><input class="input" name="max_order_sets" type="number" value="${maxSets}" min="${lineSets}" max="100000" required /><small>세트</small></label>
+            <label><span class="field-label">회차 유지</span><input class="input" name="keep_minutes" type="number" value="${keepMinutes}" min="0" max="360" required /><small>분</small></label>
+          </div>
+
+          <div class="ammo-settings-section">
+            <div class="panel-head compact-head"><div><h4>제작 탄약</h4><p class="muted-copy">보통은 .44만 켜두면 탄종 선택 과정 없이 기존 AXE처럼 바로 신청된다.</p></div></div>
+            <div class="ammo-type-grid">${ammoTypeCards || '<div class="info-banner info-banner--muted">탄약 카탈로그를 불러오지 못했다.</div>'}</div>
+            <label class="ammo-default-select"><span class="field-label">기본 탄약</span>
+              <select class="select" name="default_ammo_key" required>
+                ${catalog.map((type) => `<option value="${esc(type.ammo_key)}" ${type.is_default ? 'selected' : ''}>${esc(type.display_name || type.ammo_key)}</option>`).join('')}
+              </select>
+              <small>채팅에 탄종을 쓰지 않았을 때 자동 적용된다.</small>
+            </label>
+          </div>
+
+          <div class="ammo-settings-actions"><button class="btn btn-primary" type="submit">총알 설정 저장</button></div>
         </form>
       </div>
     ` : ''}

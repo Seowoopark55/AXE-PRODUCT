@@ -10,7 +10,7 @@ const main = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const checks = [
-  [pkg.version === '0.9.0', 'web version is 0.9.0'],
+  [(Number(pkg.version.split('.')[0]) > 0 || Number(pkg.version.split('.')[1]) >= 9), 'web version keeps 4I or newer baseline'],
   [api.includes("fund_admin_cancel_approval"), 'web cancel approval RPC client exists'],
   [render.includes("data-action=\"fund-cancel-approval\""), 'approved row exposes cancel button'],
   [render.includes("cancelled: '승인취소'"), 'cancelled status label exists'],

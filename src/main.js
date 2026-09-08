@@ -1151,25 +1151,32 @@ root.addEventListener('submit', async (event) => {
     if (form.dataset.form === 'ammo-settings') {
       if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
       const data = new FormData(form);
-      const weekdays = String(data.get('event_weekdays') || '0,3,5,6').split(',').map((v) => Number(v.trim())).filter(Number.isInteger);
+      const weekdays = data.getAll('event_weekday').map((v) => Number(v)).filter((v) => Number.isInteger(v) && v >= 0 && v <= 6);
+      const enabledAmmoKeys = data.getAll('ammo_enabled').map((v) => String(v || '').trim()).filter(Boolean);
+      const defaultAmmoKey = String(data.get('default_ammo_key') || '').trim();
+      if (!weekdays.length) throw new Error('운영 요일을 하나 이상 선택해주세요.');
+      if (!enabledAmmoKeys.length) throw new Error('제작 탄약을 하나 이상 선택해주세요.');
+      if (!enabledAmmoKeys.includes(defaultAmmoKey)) throw new Error('기본 탄약은 사용 중인 제작 탄약 중에서 선택해주세요.');
+      const aliases = {};
+      for (const type of (state.ammoSettings?.ammo_catalog || [])) {
+        const key = String(type.ammo_key || '');
+        aliases[key] = String(data.get(`ammo_alias_${key}`) || '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean);
+      }
       await setAmmoSettings(state.companyId, {
-        timezone: String(data.get('timezone') || 'Asia/Seoul'),
         eventWeekdays: weekdays,
-        afternoonEnabled: data.get('afternoon_enabled') === 'on',
-        afternoonHour: Number(data.get('afternoon_hour') || 15),
-        afternoonMinute: Number(data.get('afternoon_minute') || 0),
-        nightEnabled: data.get('night_enabled') === 'on',
-        nightHour: Number(data.get('night_hour') || 22),
-        nightMinute: Number(data.get('night_minute') || 0),
         lineSets: Number(data.get('line_sets') || 8),
         halfSets: Number(data.get('half_sets') || 4),
         maxOrderSets: Number(data.get('max_order_sets') || 800),
         keepMinutes: Number(data.get('keep_minutes') || 60),
-        allowMemberEdit: data.get('allow_member_edit') === 'on',
-        allowMemberCancel: data.get('allow_member_cancel') === 'on',
+        enabledAmmoKeys,
+        defaultAmmoKey,
+        aliases,
       });
-      await loadAmmoData({ preserveSelection: true });
-      setNotice('총알 설정을 저장했다.');
+      await loadAmmoData({ preserveSelection: false });
+      setNotice('총알 운영 설정을 저장했다.');
       return;
     }
 

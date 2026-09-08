@@ -1440,3 +1440,27 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
 .ammo-admin-form .btn,.ammo-settings-form .btn { min-height:42px; }
 .check-line { display:flex; align-items:center; gap:8px; min-height:42px; }
 @media (max-width:900px){ .ammo-action-grid{grid-template-columns:1fr;} }
+
+/* STAGE 5D · AXE NET-style ammo product settings */
+.ammo-round-card.is-static { cursor:default; }
+.ammo-settings-form--product { display:flex; flex-direction:column; gap:18px; }
+.ammo-settings-section { border:1px solid var(--line); border-radius:14px; padding:16px; background:rgba(255,255,255,.015); }
+.ammo-settings-section h4 { margin:0 0 6px; }
+.muted-copy { margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.6; }
+.weekday-picker { display:flex; gap:8px; flex-wrap:wrap; }
+.weekday-chip { position:relative; cursor:pointer; }
+.weekday-chip input { position:absolute; opacity:0; pointer-events:none; }
+.weekday-chip span { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border:1px solid var(--line); border-radius:10px; background:var(--panel-2,#0d131b); font-weight:700; }
+.weekday-chip input:checked + span { border-color:#d5a22f; box-shadow:0 0 0 1px rgba(213,162,47,.22) inset; color:#f0c45b; }
+.ammo-setting-numbers { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.ammo-setting-numbers label { display:flex; flex-direction:column; gap:7px; }
+.ammo-setting-numbers small,.ammo-default-select small { color:var(--muted); }
+.ammo-type-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; }
+.ammo-type-card { border:1px solid var(--line); border-radius:12px; padding:13px; display:flex; flex-direction:column; gap:9px; background:rgba(255,255,255,.01); }
+.ammo-type-card.is-enabled { border-color:rgba(213,162,47,.5); }
+.ammo-type-enable { margin:0; }
+.ammo-type-meta { color:var(--muted); font-size:12px; line-height:1.5; }
+.ammo-default-select { margin-top:14px; display:flex; flex-direction:column; gap:7px; max-width:420px; }
+.ammo-settings-actions { display:flex; justify-content:flex-end; }
+.compact-head { margin-bottom:8px; }
+@media (max-width:720px){ .ammo-settings-actions .btn{width:100%;} }

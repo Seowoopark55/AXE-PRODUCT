@@ -499,7 +499,7 @@ export async function completeDiscordConnection(linkToken) {
 // ============================================================
 export async function getAmmoSettings(companyId) {
   assertClient();
-  const result = await supabase.rpc('ammo_get_settings', { p_company_id: companyId });
+  const result = await supabase.rpc('ammo_get_product_config', { p_company_id: companyId });
   return unwrap(result, '총알 설정을 불러오지 못했습니다.') || {};
 }
 
@@ -593,22 +593,16 @@ export async function undoAmmoCompletion(companyId, orderId) {
 
 export async function setAmmoSettings(companyId, payload) {
   assertClient();
-  const result = await supabase.rpc('ammo_admin_set_settings', {
+  const result = await supabase.rpc('ammo_admin_save_product_config', {
     p_company_id: companyId,
-    p_timezone: payload.timezone,
     p_event_weekdays: payload.eventWeekdays,
-    p_afternoon_enabled: Boolean(payload.afternoonEnabled),
-    p_afternoon_hour: Number(payload.afternoonHour),
-    p_afternoon_minute: Number(payload.afternoonMinute),
-    p_night_enabled: Boolean(payload.nightEnabled),
-    p_night_hour: Number(payload.nightHour),
-    p_night_minute: Number(payload.nightMinute),
     p_line_sets: Number(payload.lineSets),
     p_half_sets: Number(payload.halfSets),
     p_max_order_sets: Number(payload.maxOrderSets),
     p_keep_minutes: Number(payload.keepMinutes),
-    p_allow_member_edit: Boolean(payload.allowMemberEdit),
-    p_allow_member_cancel: Boolean(payload.allowMemberCancel),
+    p_enabled_ammo_keys: payload.enabledAmmoKeys,
+    p_default_ammo_key: payload.defaultAmmoKey,
+    p_aliases: payload.aliases || {},
   });
   return unwrap(result, '총알 설정 저장에 실패했습니다.');
 }
