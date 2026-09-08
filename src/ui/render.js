@@ -45,6 +45,7 @@ export function renderShell(root, state) {
   const canAdmin = ['owner', 'admin'].includes(myMembership?.role);
   const canOwn = myMembership?.role === 'owner';
   const fundEnabled = (state.modules || []).some((m) => m.module_key === 'fund' && Boolean(m.enabled));
+  const ammoEnabled = (state.modules || []).some((m) => m.module_key === 'ammo' && Boolean(m.enabled));
 
   root.innerHTML = `
     <div class="app-shell">
@@ -72,7 +73,7 @@ export function renderShell(root, state) {
       ${state.notice ? `<div class="global-alert">${esc(state.notice)}</div>` : ''}
 
       <main class="page">
-        ${!user ? renderLogin(state) : renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled)}
+        ${!user ? renderLogin(state) : renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled, ammoEnabled)}
       </main>
     </div>
   `;
@@ -100,7 +101,7 @@ function renderLogin(state) {
   `;
 }
 
-function renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled) {
+function renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnabled, ammoEnabled) {
   if (state.loading && !state.ready) {
     return `<div class="center-state"><div class="spinner"></div><p>상품화 STAGING을 불러오는 중…</p></div>`;
   }
@@ -128,6 +129,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnable
         <nav class="nav">
           ${navItem('overview', '대시보드', state.view)}
           ${navItem('fund', '공금', state.view, !fundEnabled, 'OFF')}
+          ${navItem('ammo', '총알', state.view, !ammoEnabled, 'OFF')}
           ${navItem('members', '멤버 · 권한', state.view)}
           ${navItem('modules', '모듈 관리', state.view)}
           ${navItem('settings', '회사 설정', state.view)}
@@ -161,6 +163,7 @@ function renderAuthed(state, company, myMembership, canAdmin, canOwn, fundEnable
 
         ${state.view === 'overview' ? renderOverview(state, company, myMembership) : ''}
         ${state.view === 'fund' ? renderFund(state, canAdmin, fundEnabled) : ''}
+        ${state.view === 'ammo' ? renderAmmo(state, canAdmin, ammoEnabled) : ''}
         ${state.view === 'members' ? renderMembers(state, myMembership, canAdmin, canOwn) : ''}
         ${state.view === 'modules' ? renderModules(state, canAdmin) : ''}
         ${state.view === 'settings' ? renderSettings(state, canAdmin) : ''}
@@ -629,6 +632,151 @@ function renderFundAdmin(state) {
         </table>
       </div>
     </div>
+  `;
+}
+
+
+function ammoRoundLabel(round) {
+  if (!round) return '-';
+  const session = round.session_type === 'afternoon' ? '3시' : round.session_type === 'night' ? '10시' : round.session_type;
+  return `${round.event_date || ''} ${session}${Number(round.revision || 1) > 1 ? ` · R${round.revision}` : ''}`;
+}
+
+function ammoStatusLabel(status) {
+  return ({ open: 'OPEN', closed: 'CLOSED', cancelled: 'CANCELLED', active: '신청', completed: '배분완료' })[status] || status || '-';
+}
+
+function renderAmmo(state, canAdmin, ammoEnabled) {
+  if (!ammoEnabled) {
+    return `
+      <div class="panel">
+        <div class="panel-head"><div><div class="eyebrow">AMMO</div><h3>총알 모듈</h3></div></div>
+        <div class="info-banner info-banner--muted">모듈 관리에서 총알 기능을 먼저 켜야 한다.</div>
+      </div>`;
+  }
+
+  const settings = state.ammoSettings || {};
+  const rounds = state.ammoRounds || [];
+  const selected = rounds.find((r) => r.round_id === state.ammoSelectedRoundId) || null;
+  const orders = state.ammoOrders || [];
+  const makers = state.ammoMakers || [];
+  const openRounds = rounds.filter((r) => r.round_status === 'open');
+  const activeOrders = orders.filter((o) => o.order_status === 'active');
+  const completedOrders = orders.filter((o) => o.order_status === 'completed');
+  const myOrder = selected?.my_order_id ? {
+    order_id: selected.my_order_id,
+    requested_sets: Number(selected.my_requested_sets || 0),
+    status: selected.my_order_status,
+  } : null;
+  const lineSets = Number(settings.line_sets || 8);
+  const halfSets = Number(settings.half_sets || 4);
+  const maxSets = Number(settings.max_order_sets || 800);
+
+  const roundButtons = rounds.slice(0, 20).map((r) => `
+    <button type="button" class="ammo-round-card ${r.round_id === state.ammoSelectedRoundId ? 'is-active' : ''}" data-ammo-action="select-round" data-round-id="${esc(r.round_id)}">
+      <strong>${esc(ammoRoundLabel(r))}</strong>
+      <span>${esc(ammoStatusLabel(r.round_status))} · 신청 ${Number(r.total_requested_sets || 0).toLocaleString('ko-KR')}세트 · 제작 ${Number(r.active_maker_count || 0)}명</span>
+    </button>
+  `).join('');
+
+  const orderRows = orders.map((o) => `
+    <tr>
+      <td><strong>${esc(o.member_display_name || '멤버')}</strong></td>
+      <td>${Number(o.requested_sets || 0).toLocaleString('ko-KR')}세트</td>
+      <td><span class="fund-status ${o.order_status === 'completed' ? 'is-good' : 'is-pending'}">${esc(ammoStatusLabel(o.order_status))}</span></td>
+      <td>${esc(o.completed_by_name || '-')}</td>
+      <td>
+        ${selected?.i_am_maker && o.order_status === 'active' ? `<button class="btn btn-compact btn-primary" type="button" data-ammo-action="complete-order" data-order-id="${esc(o.order_id)}">배분 완료</button>` : ''}
+        ${selected?.i_am_maker && o.order_status === 'completed' ? `<button class="btn btn-compact btn-secondary" type="button" data-ammo-action="undo-order" data-order-id="${esc(o.order_id)}">완료 취소</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  const makerNames = makers.length ? makers.map((m) => esc(m.member_display_name || '멤버')).join(' · ') : '현재 제작 참여자 없음';
+
+  return `
+    <div class="grid-cards fund-metrics">
+      ${metricCard('OPEN ROUNDS', openRounds.length, '현재 열린 회차')}
+      ${metricCard('REQUESTED', selected ? Number(selected.total_requested_sets || 0).toLocaleString('ko-KR') : 0, '선택 회차 총 신청 세트')}
+      ${metricCard('ACTIVE', activeOrders.length, '배분 대기')}
+      ${metricCard('DONE', completedOrders.length, '배분 완료')}
+    </div>
+
+    ${state.ammoError ? `<div class="global-alert global-alert--error fund-inline-alert">${esc(state.ammoError)}</div>` : ''}
+    ${state.ammoLoading ? `<div class="fund-loading"><div class="spinner"></div><span>총알 정보를 불러오는 중…</span></div>` : ''}
+
+    <div class="panel ammo-rounds-panel">
+      <div class="panel-head"><div><div class="eyebrow">ROUNDS</div><h3>총알 회차</h3></div><span class="head-badge">1줄 ${lineSets} · 반 ${halfSets}</span></div>
+      <div class="ammo-round-grid">${roundButtons || '<div class="info-banner info-banner--muted">아직 생성된 총알 회차가 없다.</div>'}</div>
+    </div>
+
+    ${selected ? `
+      <div class="panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">MY ORDER</div><h3>${esc(ammoRoundLabel(selected))}</h3></div>
+          <span class="head-badge">${esc(ammoStatusLabel(selected.round_status))}</span>
+        </div>
+        <div class="ammo-action-grid">
+          <div class="ammo-action-box">
+            <h4>내 신청</h4>
+            ${selected.round_status !== 'open' ? '<p>닫힌 회차는 신청을 변경할 수 없다.</p>' : myOrder?.status === 'completed' ? `<p><strong>${myOrder.requested_sets}세트</strong> · 배분 완료</p>` : myOrder ? `
+              <form data-form="ammo-order-edit" class="inline-form">
+                <input type="hidden" name="order_id" value="${esc(myOrder.order_id)}" />
+                <input class="input" type="number" name="requested_sets" min="1" max="${maxSets}" value="${myOrder.requested_sets}" required />
+                <button class="btn btn-primary" type="submit">수정</button>
+                <button class="btn btn-danger" type="button" data-ammo-action="cancel-order" data-order-id="${esc(myOrder.order_id)}">신청 취소</button>
+              </form>` : `
+              <form data-form="ammo-order" class="inline-form">
+                <input type="hidden" name="round_id" value="${esc(selected.round_id)}" />
+                <input class="input" type="number" name="requested_sets" min="1" max="${maxSets}" value="${lineSets}" required />
+                <button class="btn btn-primary" type="submit">신청</button>
+                <small>반줄 ${halfSets} · 1줄 ${lineSets}세트</small>
+              </form>`}
+          </div>
+          <div class="ammo-action-box">
+            <h4>제작 참여</h4>
+            <p>${makerNames}</p>
+            ${selected.round_status === 'open' ? `<button class="btn ${selected.i_am_maker ? 'btn-secondary' : 'btn-primary'}" type="button" data-ammo-action="${selected.i_am_maker ? 'maker-leave' : 'maker-join'}" data-round-id="${esc(selected.round_id)}">${selected.i_am_maker ? '제작 참여 해제' : '제작 참여'}</button>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div><div class="eyebrow">DISTRIBUTION</div><h3>신청 · 배분 현황</h3></div><span class="head-badge">제작자 ${makers.length}명</span></div>
+        <div class="table-wrap"><table><thead><tr><th>멤버</th><th>신청</th><th>상태</th><th>완료자</th><th>처리</th></tr></thead><tbody>${orderRows || '<tr><td colspan="5">현재 신청이 없다.</td></tr>'}</tbody></table></div>
+      </div>
+    ` : ''}
+
+    ${canAdmin ? `
+      <div class="panel">
+        <div class="panel-head"><div><div class="eyebrow">AMMO ADMIN</div><h3>회차 관리</h3></div><span class="head-badge">OWNER / ADMIN</span></div>
+        <form data-form="ammo-round-open" class="ammo-admin-form">
+          <label><span class="field-label">날짜</span><input class="input" name="event_date" type="date" required /></label>
+          <label><span class="field-label">회차</span><select class="select" name="session_type"><option value="afternoon">3시</option><option value="night">10시</option></select></label>
+          <button class="btn btn-primary" type="submit">회차 열기</button>
+          ${selected?.round_status === 'open' ? `<button class="btn btn-secondary" type="button" data-ammo-action="reset-round" data-round-id="${esc(selected.round_id)}">회차 초기화</button><button class="btn btn-ghost" type="button" data-ammo-action="close-round" data-round-id="${esc(selected.round_id)}">회차 닫기</button><button class="btn btn-danger" type="button" data-ammo-action="cancel-round" data-round-id="${esc(selected.round_id)}">회차 취소</button>` : ''}
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div><div class="eyebrow">SETTINGS</div><h3>총알 운영 설정</h3></div></div>
+        <form data-form="ammo-settings" class="ammo-settings-form">
+          <label><span class="field-label">Timezone</span><input class="input" name="timezone" value="${esc(settings.timezone || 'Asia/Seoul')}" required /></label>
+          <label><span class="field-label">운영 요일 (0=일)</span><input class="input" name="event_weekdays" value="${esc((settings.event_weekdays || [0,3,5,6]).join(','))}" /></label>
+          <label><span class="field-label">1줄 세트</span><input class="input" name="line_sets" type="number" value="${lineSets}" min="2" /></label>
+          <label><span class="field-label">반줄 세트</span><input class="input" name="half_sets" type="number" value="${halfSets}" min="1" /></label>
+          <label><span class="field-label">최대 신청</span><input class="input" name="max_order_sets" type="number" value="${maxSets}" min="${lineSets}" /></label>
+          <label><span class="field-label">유지 시간(분)</span><input class="input" name="keep_minutes" type="number" value="${Number(settings.keep_minutes || 60)}" min="0" max="360" /></label>
+          <input type="hidden" name="afternoon_hour" value="${Number(settings.afternoon_hour || 15)}" /><input type="hidden" name="afternoon_minute" value="${Number(settings.afternoon_minute || 0)}" />
+          <input type="hidden" name="night_hour" value="${Number(settings.night_hour || 22)}" /><input type="hidden" name="night_minute" value="${Number(settings.night_minute || 0)}" />
+          <label class="check-line"><input type="checkbox" name="afternoon_enabled" ${settings.afternoon_enabled !== false ? 'checked' : ''} /> 3시 회차 사용</label>
+          <label class="check-line"><input type="checkbox" name="night_enabled" ${settings.night_enabled !== false ? 'checked' : ''} /> 10시 회차 사용</label>
+          <label class="check-line"><input type="checkbox" name="allow_member_edit" ${settings.allow_member_edit !== false ? 'checked' : ''} /> 멤버 신청 수정 허용</label>
+          <label class="check-line"><input type="checkbox" name="allow_member_cancel" ${settings.allow_member_cancel !== false ? 'checked' : ''} /> 멤버 신청 취소 허용</label>
+          <button class="btn btn-primary" type="submit">총알 설정 저장</button>
+        </form>
+      </div>
+    ` : ''}
   `;
 }
 

@@ -493,3 +493,161 @@ export async function completeDiscordConnection(linkToken) {
 
   return data.connection;
 }
+
+// ============================================================
+// STAGE 5C / AMMO
+// ============================================================
+export async function getAmmoSettings(companyId) {
+  assertClient();
+  const result = await supabase.rpc('ammo_get_settings', { p_company_id: companyId });
+  return unwrap(result, '총알 설정을 불러오지 못했습니다.') || {};
+}
+
+export async function getAmmoRounds(companyId, limit = 30) {
+  assertClient();
+  const result = await supabase.rpc('ammo_get_rounds', {
+    p_company_id: companyId,
+    p_limit: Number(limit),
+  });
+  return unwrap(result, '총알 회차를 불러오지 못했습니다.') || [];
+}
+
+export async function getAmmoRoundOrders(companyId, roundId, includeHistory = false) {
+  assertClient();
+  const result = await supabase.rpc('ammo_get_round_orders', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_include_history: Boolean(includeHistory),
+  });
+  return unwrap(result, '총알 신청 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getAmmoRoundMakers(companyId, roundId, includeHistory = false) {
+  assertClient();
+  const result = await supabase.rpc('ammo_get_round_makers', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_include_history: Boolean(includeHistory),
+  });
+  return unwrap(result, '총알 제작 참여자를 불러오지 못했습니다.') || [];
+}
+
+export async function submitAmmoOrder(companyId, roundId, requestedSets) {
+  assertClient();
+  const result = await supabase.rpc('ammo_submit_order', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_requested_sets: Number(requestedSets),
+    p_client_request_id: crypto.randomUUID(),
+  });
+  return unwrap(result, '총알 신청을 등록하지 못했습니다.');
+}
+
+export async function updateMyAmmoOrder(companyId, orderId, requestedSets) {
+  assertClient();
+  const result = await supabase.rpc('ammo_update_my_order', {
+    p_company_id: companyId,
+    p_order_id: orderId,
+    p_requested_sets: Number(requestedSets),
+  });
+  return unwrap(result, '총알 신청을 수정하지 못했습니다.');
+}
+
+export async function cancelMyAmmoOrder(companyId, orderId, reason = '') {
+  assertClient();
+  const result = await supabase.rpc('ammo_cancel_my_order', {
+    p_company_id: companyId,
+    p_order_id: orderId,
+    p_reason: reason || null,
+  });
+  return unwrap(result, '총알 신청을 취소하지 못했습니다.');
+}
+
+export async function setMyAmmoMaker(companyId, roundId, join) {
+  assertClient();
+  const result = await supabase.rpc('ammo_set_my_maker', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_join: Boolean(join),
+  });
+  return unwrap(result, '총알 제작 참여 상태를 변경하지 못했습니다.');
+}
+
+export async function completeAmmoOrder(companyId, orderId) {
+  assertClient();
+  const result = await supabase.rpc('ammo_complete_order', {
+    p_company_id: companyId,
+    p_order_id: orderId,
+  });
+  return unwrap(result, '총알 배분 완료 처리에 실패했습니다.');
+}
+
+export async function undoAmmoCompletion(companyId, orderId) {
+  assertClient();
+  const result = await supabase.rpc('ammo_undo_completion', {
+    p_company_id: companyId,
+    p_order_id: orderId,
+  });
+  return unwrap(result, '총알 배분 완료 취소에 실패했습니다.');
+}
+
+export async function setAmmoSettings(companyId, payload) {
+  assertClient();
+  const result = await supabase.rpc('ammo_admin_set_settings', {
+    p_company_id: companyId,
+    p_timezone: payload.timezone,
+    p_event_weekdays: payload.eventWeekdays,
+    p_afternoon_enabled: Boolean(payload.afternoonEnabled),
+    p_afternoon_hour: Number(payload.afternoonHour),
+    p_afternoon_minute: Number(payload.afternoonMinute),
+    p_night_enabled: Boolean(payload.nightEnabled),
+    p_night_hour: Number(payload.nightHour),
+    p_night_minute: Number(payload.nightMinute),
+    p_line_sets: Number(payload.lineSets),
+    p_half_sets: Number(payload.halfSets),
+    p_max_order_sets: Number(payload.maxOrderSets),
+    p_keep_minutes: Number(payload.keepMinutes),
+    p_allow_member_edit: Boolean(payload.allowMemberEdit),
+    p_allow_member_cancel: Boolean(payload.allowMemberCancel),
+  });
+  return unwrap(result, '총알 설정 저장에 실패했습니다.');
+}
+
+export async function openAmmoRound(companyId, eventDate, sessionType) {
+  assertClient();
+  const result = await supabase.rpc('ammo_admin_open_round', {
+    p_company_id: companyId,
+    p_event_date: eventDate,
+    p_session_type: sessionType,
+  });
+  return unwrap(result, '총알 회차를 열지 못했습니다.');
+}
+
+export async function closeAmmoRound(companyId, roundId) {
+  assertClient();
+  const result = await supabase.rpc('ammo_admin_close_round', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+  });
+  return unwrap(result, '총알 회차를 닫지 못했습니다.');
+}
+
+export async function cancelAmmoRound(companyId, roundId, reason) {
+  assertClient();
+  const result = await supabase.rpc('ammo_admin_cancel_round', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_reason: reason,
+  });
+  return unwrap(result, '총알 회차를 취소하지 못했습니다.');
+}
+
+export async function resetAmmoRound(companyId, roundId, reason = '') {
+  assertClient();
+  const result = await supabase.rpc('ammo_admin_reset_round', {
+    p_company_id: companyId,
+    p_round_id: roundId,
+    p_reason: reason || null,
+  });
+  return unwrap(result, '총알 회차를 초기화하지 못했습니다.');
+}

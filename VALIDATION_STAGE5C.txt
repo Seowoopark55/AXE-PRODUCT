@@ -1,0 +1,9 @@
+PASS ammo nav
+PASS ammo module guard
+PASS ammo read RPCs
+PASS ammo submit edit cancel
+PASS maker complete undo
+PASS admin reset without SQL
+PASS web UI has order and maker actions
+PASS no raw ammo table access
+ALL PASS

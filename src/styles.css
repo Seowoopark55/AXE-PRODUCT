@@ -1424,3 +1424,19 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
     width: 100%;
   }
 }
+
+/* STAGE 5C / AMMO */
+.ammo-round-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+.ammo-round-card { text-align:left; border:1px solid var(--line); background:var(--panel-2,#0d131b); color:inherit; border-radius:12px; padding:14px; cursor:pointer; display:flex; flex-direction:column; gap:6px; }
+.ammo-round-card:hover,.ammo-round-card.is-active { border-color:#d5a22f; box-shadow:0 0 0 1px rgba(213,162,47,.18) inset; }
+.ammo-round-card span { font-size:12px; opacity:.72; }
+.ammo-action-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.ammo-action-box { border:1px solid var(--line); border-radius:12px; padding:14px; background:rgba(255,255,255,.015); }
+.ammo-action-box h4 { margin:0 0 8px; }
+.ammo-action-box p { margin:0 0 12px; color:var(--muted); }
+.inline-form { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.inline-form .input { width:150px; }
+.ammo-admin-form,.ammo-settings-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end; }
+.ammo-admin-form .btn,.ammo-settings-form .btn { min-height:42px; }
+.check-line { display:flex; align-items:center; gap:8px; min-height:42px; }
+@media (max-width:900px){ .ammo-action-grid{grid-template-columns:1fr;} }

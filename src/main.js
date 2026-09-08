@@ -36,6 +36,21 @@ import {
   removeUnclaimedFundEvidence,
   getFundEvidenceSignedUrl,
   submitFundRequest,
+  getAmmoSettings,
+  getAmmoRounds,
+  getAmmoRoundOrders,
+  getAmmoRoundMakers,
+  submitAmmoOrder,
+  updateMyAmmoOrder,
+  cancelMyAmmoOrder,
+  setMyAmmoMaker,
+  completeAmmoOrder,
+  undoAmmoCompletion,
+  setAmmoSettings,
+  openAmmoRound,
+  closeAmmoRound,
+  cancelAmmoRound,
+  resetAmmoRound,
   startDiscordConnection,
   completeDiscordConnection,
 } from './lib/productApi.js';
@@ -67,9 +82,16 @@ const state = {
   fundSelectedWeek: null,
   fundLoading: false,
   fundError: '',
+  ammoSettings: null,
+  ammoRounds: [],
+  ammoOrders: [],
+  ammoMakers: [],
+  ammoSelectedRoundId: null,
+  ammoLoading: false,
+  ammoError: '',
   view: (() => {
     const saved = sessionStorage.getItem('axe_product_view');
-    return ['overview', 'fund', 'members', 'modules', 'settings', 'audit'].includes(saved)
+    return ['overview', 'fund', 'ammo', 'members', 'modules', 'settings', 'audit'].includes(saved)
       ? saved
       : 'overview';
   })(),
@@ -192,6 +214,61 @@ function canAdmin() {
 
 function fundEnabled() {
   return state.modules.some((m) => m.module_key === 'fund' && Boolean(m.enabled));
+}
+
+
+function ammoEnabled() {
+  return state.modules.some((m) => m.module_key === 'ammo' && Boolean(m.enabled));
+}
+
+function clearAmmoState({ keepSelection = false } = {}) {
+  state.ammoSettings = null;
+  state.ammoRounds = [];
+  state.ammoOrders = [];
+  state.ammoMakers = [];
+  state.ammoLoading = false;
+  state.ammoError = '';
+  if (!keepSelection) state.ammoSelectedRoundId = null;
+}
+
+async function loadAmmoData({ preserveSelection = true } = {}) {
+  if (!state.companyId || !ammoEnabled()) {
+    clearAmmoState({ keepSelection: false });
+    return;
+  }
+  state.ammoLoading = true;
+  state.ammoError = '';
+  try {
+    const [settings, rounds] = await Promise.all([
+      getAmmoSettings(state.companyId),
+      getAmmoRounds(state.companyId, 30),
+    ]);
+    state.ammoSettings = settings || {};
+    state.ammoRounds = rounds || [];
+    const stillExists = preserveSelection && state.ammoRounds.some((r) => r.round_id === state.ammoSelectedRoundId);
+    if (!stillExists) {
+      state.ammoSelectedRoundId = state.ammoRounds.find((r) => r.round_status === 'open')?.round_id
+        || state.ammoRounds[0]?.round_id
+        || null;
+    }
+    if (state.ammoSelectedRoundId) {
+      const [orders, makers] = await Promise.all([
+        getAmmoRoundOrders(state.companyId, state.ammoSelectedRoundId, false),
+        getAmmoRoundMakers(state.companyId, state.ammoSelectedRoundId, false),
+      ]);
+      state.ammoOrders = orders || [];
+      state.ammoMakers = makers || [];
+    } else {
+      state.ammoOrders = [];
+      state.ammoMakers = [];
+    }
+  } catch (error) {
+    state.ammoError = String(error.message || error);
+    state.ammoOrders = [];
+    state.ammoMakers = [];
+  } finally {
+    state.ammoLoading = false;
+  }
 }
 
 function clearFundState({ keepSelection = false } = {}) {
@@ -374,6 +451,7 @@ function clearCompanyState() {
   state.invites = [];
   state.freshInviteCode = null;
   clearFundState({ keepSelection: false });
+  clearAmmoState({ keepSelection: false });
 }
 
 async function loadCompanyData() {
@@ -431,6 +509,16 @@ async function loadCompanyData() {
   } else {
     clearFundState({ keepSelection: false });
     if (state.view === 'fund') {
+      state.view = 'overview';
+      sessionStorage.setItem('axe_product_view', state.view);
+    }
+  }
+
+  if (ammoEnabled()) {
+    await loadAmmoData({ preserveSelection: true });
+  } else {
+    clearAmmoState({ keepSelection: false });
+    if (state.view === 'ammo') {
       state.view = 'overview';
       sessionStorage.setItem('axe_product_view', state.view);
     }
@@ -513,8 +601,84 @@ root.addEventListener('click', async (event) => {
         state.fundLoading = false;
       }
     }
+    if (state.view === 'ammo' && ammoEnabled()) {
+      state.ammoLoading = true;
+      render();
+      try {
+        await loadAmmoData({ preserveSelection: true });
+      } catch (error) {
+        state.ammoError = String(error.message || error);
+        state.ammoLoading = false;
+      }
+    }
 
     render();
+    return;
+  }
+
+  const ammoAction = event.target.closest('[data-ammo-action]');
+  if (ammoAction) {
+    event.preventDefault();
+    try {
+      if (!ammoEnabled()) throw new Error('총알 모듈이 비활성화되어 있습니다.');
+      const action = ammoAction.dataset.ammoAction;
+      const roundId = ammoAction.dataset.roundId || state.ammoSelectedRoundId;
+      const orderId = ammoAction.dataset.orderId || null;
+      if (action === 'select-round') {
+        state.ammoSelectedRoundId = roundId;
+        await loadAmmoData({ preserveSelection: true });
+        render();
+        return;
+      }
+      if (action === 'cancel-order') {
+        const reason = window.prompt('총알 신청 취소 사유 (선택)', '신청 취소') ?? '';
+        await cancelMyAmmoOrder(state.companyId, orderId, reason);
+        await loadAmmoData({ preserveSelection: true });
+        setNotice('총알 신청을 취소했다.');
+        return;
+      }
+      if (action === 'maker-join' || action === 'maker-leave') {
+        await setMyAmmoMaker(state.companyId, roundId, action === 'maker-join');
+        await loadAmmoData({ preserveSelection: true });
+        setNotice(action === 'maker-join' ? '총알 제작에 참여했다.' : '총알 제작 참여를 해제했다.');
+        return;
+      }
+      if (action === 'complete-order' || action === 'undo-order') {
+        if (action === 'complete-order') await completeAmmoOrder(state.companyId, orderId);
+        else await undoAmmoCompletion(state.companyId, orderId);
+        await loadAmmoData({ preserveSelection: true });
+        setNotice(action === 'complete-order' ? '배분 완료 처리했다.' : '배분 완료를 되돌렸다.');
+        return;
+      }
+      if (action === 'close-round') {
+        if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
+        if (!window.confirm('이 총알 회차를 닫을까요?')) return;
+        await closeAmmoRound(state.companyId, roundId);
+        await loadAmmoData({ preserveSelection: false });
+        setNotice('총알 회차를 닫았다.');
+        return;
+      }
+      if (action === 'reset-round') {
+        if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
+        const reason = window.prompt('회차 초기화 사유', '테스트/운영 초기화');
+        if (reason === null) return;
+        await resetAmmoRound(state.companyId, roundId, reason);
+        await loadAmmoData({ preserveSelection: true });
+        setNotice('회차 신청/제작 상태를 초기화했다.');
+        return;
+      }
+      if (action === 'cancel-round') {
+        if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
+        const reason = window.prompt('회차 취소 사유');
+        if (!reason) return;
+        await cancelAmmoRound(state.companyId, roundId, reason);
+        await loadAmmoData({ preserveSelection: false });
+        setNotice('총알 회차를 취소했다.');
+        return;
+      }
+    } catch (error) {
+      setError(error);
+    }
     return;
   }
 
@@ -946,6 +1110,66 @@ root.addEventListener('submit', async (event) => {
       state.view = 'overview';
       sessionStorage.setItem('axe_product_view', state.view);
       setNotice(joined.result === 'already_member' ? '이미 가입된 회사로 이동했다.' : `${joined.company_name || '회사'}에 MEMBER로 가입했다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'ammo-order') {
+      if (!ammoEnabled()) throw new Error('총알 모듈이 비활성화되어 있습니다.');
+      const data = new FormData(form);
+      const roundId = String(data.get('round_id') || '');
+      const sets = Number(data.get('requested_sets'));
+      if (!Number.isSafeInteger(sets) || sets < 1) throw new Error('신청 세트 수를 확인해주세요.');
+      await submitAmmoOrder(state.companyId, roundId, sets);
+      state.ammoSelectedRoundId = roundId;
+      await loadAmmoData({ preserveSelection: true });
+      setNotice(`총알 ${sets}세트를 신청했다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'ammo-order-edit') {
+      if (!ammoEnabled()) throw new Error('총알 모듈이 비활성화되어 있습니다.');
+      const data = new FormData(form);
+      const orderId = String(data.get('order_id') || '');
+      const sets = Number(data.get('requested_sets'));
+      await updateMyAmmoOrder(state.companyId, orderId, sets);
+      await loadAmmoData({ preserveSelection: true });
+      setNotice(`총알 신청을 ${sets}세트로 수정했다.`);
+      return;
+    }
+
+    if (form.dataset.form === 'ammo-round-open') {
+      if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
+      const data = new FormData(form);
+      const eventDate = String(data.get('event_date') || '');
+      const sessionType = String(data.get('session_type') || '');
+      await openAmmoRound(state.companyId, eventDate, sessionType);
+      await loadAmmoData({ preserveSelection: false });
+      setNotice('총알 회차를 열었다.');
+      return;
+    }
+
+    if (form.dataset.form === 'ammo-settings') {
+      if (!canAdmin()) throw new Error('관리자 권한이 필요합니다.');
+      const data = new FormData(form);
+      const weekdays = String(data.get('event_weekdays') || '0,3,5,6').split(',').map((v) => Number(v.trim())).filter(Number.isInteger);
+      await setAmmoSettings(state.companyId, {
+        timezone: String(data.get('timezone') || 'Asia/Seoul'),
+        eventWeekdays: weekdays,
+        afternoonEnabled: data.get('afternoon_enabled') === 'on',
+        afternoonHour: Number(data.get('afternoon_hour') || 15),
+        afternoonMinute: Number(data.get('afternoon_minute') || 0),
+        nightEnabled: data.get('night_enabled') === 'on',
+        nightHour: Number(data.get('night_hour') || 22),
+        nightMinute: Number(data.get('night_minute') || 0),
+        lineSets: Number(data.get('line_sets') || 8),
+        halfSets: Number(data.get('half_sets') || 4),
+        maxOrderSets: Number(data.get('max_order_sets') || 800),
+        keepMinutes: Number(data.get('keep_minutes') || 60),
+        allowMemberEdit: data.get('allow_member_edit') === 'on',
+        allowMemberCancel: data.get('allow_member_cancel') === 'on',
+      });
+      await loadAmmoData({ preserveSelection: true });
+      setNotice('총알 설정을 저장했다.');
       return;
     }
 
