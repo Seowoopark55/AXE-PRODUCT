@@ -347,6 +347,7 @@ function requestStatusLabel(status) {
     hold: '보류',
     approved: '승인',
     rejected: '반려',
+    cancelled: '승인취소',
     deleted: '삭제',
   };
   return map[status] || status || '-';
@@ -536,7 +537,7 @@ function renderFundAdmin(state) {
       <tr>
         <td><strong>${esc(row.member_display_name)}</strong><small class="table-sub">${esc(row.year)}.${esc(row.month)} / ${esc(row.week)}주차</small></td>
         <td>${fmtWon(row.amount)}<small class="table-sub">${esc(row.payment_mode)}</small></td>
-        <td><span class="fund-status ${row.status === 'approved' ? 'is-good' : row.status === 'rejected' ? 'is-bad' : row.status === 'hold' ? 'is-hold' : 'is-pending'}">${esc(requestStatusLabel(row.status))}</span></td>
+        <td><span class="fund-status ${row.status === 'approved' ? 'is-good' : row.status === 'rejected' ? 'is-bad' : row.status === 'cancelled' ? 'is-muted' : row.status === 'hold' ? 'is-hold' : 'is-pending'}">${esc(requestStatusLabel(row.status))}</span></td>
         <td>${safeEvidence(row.evidence_path)}</td>
         <td>${row.memo ? esc(row.memo) : '-'}</td>
         <td>${esc(fmtDate(row.created_at))}</td>
@@ -550,7 +551,12 @@ function renderFundAdmin(state) {
                 <button class="btn btn-compact btn-danger" type="button" data-action="fund-review" data-request-id="${esc(row.request_id)}" data-review-action="reject">반려</button>
               </div>
             </div>
-          ` : `<small class="table-sub">${row.review_note ? esc(row.review_note) : '처리 완료'}</small>`}
+          ` : row.status === 'approved' ? `
+            <div class="fund-review-box">
+              <input class="input fund-review-note" data-fund-cancel-reason="${esc(row.request_id)}" maxlength="1000" placeholder="승인 취소 사유" />
+              <button class="btn btn-compact btn-danger" type="button" data-action="fund-cancel-approval" data-request-id="${esc(row.request_id)}">승인 취소</button>
+            </div>
+          ` : `<small class="table-sub">${row.status === 'cancelled' ? '원장과 신청 이력을 보존한 채 승인 취소됨' : (row.review_note ? esc(row.review_note) : '처리 완료')}</small>`}
         </td>
       </tr>
     `;

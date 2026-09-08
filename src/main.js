@@ -30,6 +30,7 @@ import {
   getFundAdminRequests,
   getFundAdminPeriodStatus,
   reviewFundRequest,
+  cancelFundApproval,
   setFundFeeRule,
   uploadFundEvidence,
   removeUnclaimedFundEvidence,
@@ -680,6 +681,23 @@ root.addEventListener('click', async (event) => {
 
       const label = { approve: '승인', hold: '보류', reject: '반려' }[reviewAction];
       setNotice(`공금 납부 신청을 ${label} 처리했다.`);
+      return;
+    }
+
+    if (action === 'fund-cancel-approval') {
+      if (!canAdmin()) throw new Error('공금 승인을 취소할 권한이 없습니다.');
+      if (!fundEnabled()) throw new Error('공금 모듈이 비활성화되어 있습니다.');
+
+      const requestId = actionEl.dataset.requestId;
+      if (!requestId) throw new Error('승인 취소할 신청 정보를 찾지 못했습니다.');
+      const reasonInput = root.querySelector(`[data-fund-cancel-reason="${requestId}"]`);
+      const reason = String(reasonInput?.value || '').trim();
+      if (!reason) throw new Error('승인 취소 사유를 입력해 주세요.');
+
+      actionEl.disabled = true;
+      await cancelFundApproval(state.companyId, requestId, reason);
+      await loadFundData({ preserveSelection: true });
+      setNotice('공금 승인을 취소했다. 원장/신청 이력은 보존되고 해당 주차는 다시 미납으로 반영된다.');
       return;
     }
 

@@ -1,30 +1,11 @@
-# AXE PRODUCT STAGE 4D.1
+# AXE PRODUCT STAGE 4I WEB
 
-상품화 AXE PRODUCT의 공금 증빙 입력 UX 보강본이다.
+버전 0.9.0
 
-## 변경 범위
-- 기존 파일 선택 방식 유지
-- 공금 증빙 영역에서 캡처 이미지 Ctrl+V 붙여넣기 지원
-- 선택/붙여넣기 이미지 미리보기
-- 선택된 증빙 제거 버튼
-- JPG/PNG/WEBP 및 10MB 제한 유지
-- 기존 비공개 `axe-fund-evidence` Storage / RPC / 검수 흐름 그대로 사용
+- 기존 공금 신청/증빙/검수 UI 유지
+- 승인 완료 납부에 `승인 취소` 버튼 추가
+- 승인 취소는 삭제가 아니라 DB의 cancelled 상태와 원장 취소 이력을 사용
+- 취소 후 해당 주차는 다시 미납/재신청 가능
+- raw fund table 직접 접근 없이 RPC만 사용
 
-## 변경하지 않는 것
-- Supabase DB migration 없음
-- Storage bucket/policy 변경 없음
-- Discord staging bot 변경 없음
-- 실운영 AXE BOT / NEW AXE NET / AXE HUB 변경 없음
-- Secret 값 포함 없음
-
-## 적용
-이 ZIP의 내용 전체를 로컬 AXE-PRODUCT 루트에 덮어쓴 뒤 기존 방식대로 GitHub PUSH한다.
-Vercel이 Ready가 되면 공금 > 납부 증빙 영역을 클릭하고 캡처 이미지를 Ctrl+V로 붙여넣어 미리보기와 신청을 확인한다.
-
-버전: 0.8.3
-
-
-## 0.8.3 - STAGE 4D.1 preview fix
-- Clipboard paste no longer triggers a full app re-render that erased the selected evidence preview.
-- Evidence preview thumbnail enlarged for clearer visual confirmation.
-- File picker and clipboard flows remain unchanged otherwise.
+적용: WEB 폴더 안의 내용 전체를 AXE-PRODUCT GitHub 루트에 덮어쓴 뒤 PUSH.

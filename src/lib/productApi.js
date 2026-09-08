@@ -332,6 +332,18 @@ export async function reviewFundRequest(companyId, requestId, action, reviewNote
   return Array.isArray(rows) ? (rows[0] || null) : rows;
 }
 
+export async function cancelFundApproval(companyId, requestId, reason) {
+  assertClient();
+  const safeReason = String(reason || '').trim();
+  if (!safeReason) throw new Error('승인 취소 사유를 입력해 주세요.');
+  const result = await supabase.rpc('fund_admin_cancel_approval', {
+    p_company_id: companyId,
+    p_request_id: requestId,
+    p_reason: safeReason,
+  });
+  return unwrap(result, '공금 승인을 취소하지 못했습니다.');
+}
+
 export async function setFundFeeRule(companyId, year, month, week, weeklyFee, note = '') {
   assertClient();
   const result = await supabase.rpc('fund_admin_set_fee_rule', {
