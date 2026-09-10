@@ -1,0 +1,9 @@
+AXE PRODUCT WEB STAGING SAFETY
+
+- WEB-only source package.
+- No SQL migration.
+- No raw database credential or service-role key added.
+- Existing axe_product Supabase schema lock preserved.
+- No BOT runtime RPC introduced into browser code.
+- No STAGING BOT files included.
+- No LIVE AXE BOT files or commands included.

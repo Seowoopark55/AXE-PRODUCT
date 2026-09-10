@@ -1,5 +1,0 @@
-AXE PRODUCT WEB STAGING 3.15.3
-WEB STAGING ONLY.
-Apply by replacing the WEB STAGING project contents, then commit/push and confirm Vercel Ready.
-Do NOT use apply-axe-product.sh for this package.
-No database or bot deployment is included.

@@ -1,0 +1,21 @@
+Removed as non-runtime / stale packaging clutter from the uploaded repository snapshot:
+- BUILD_RESULTS_3_14_7.txt
+- CHECK_RESULTS.txt
+- CHECK_RESULTS_3_14_5.txt
+- CHECK_RESULTS_3_14_6.txt
+- CHECK_RESULTS_3_14_7.txt
+- MANIFEST_SHA256.txt
+- NODE_CHECK_3_14_7.txt
+- QA_AXE_NET_BLACK_GOLD_SELFCONTAINED.html
+- QA_BROWSER_RESULTS.json
+- _docs/ (duplicate/mixed-version documentation)
+- QA/ (empty directory)
+
+Retained intentionally:
+- index.html, package.json, vercel.json
+- .env.example, .gitignore
+- api/, server/, src/
+- scripts/ because package.json still references the active/integrated and legacy validation commands
+- consolidated README / change / deploy / safety notes
+
+No runtime source directory was removed merely for cleanup.

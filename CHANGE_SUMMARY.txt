@@ -1,7 +1,26 @@
-AXE PRODUCT WEB STAGING 3.14.7 · AXE NET BLACK + SUBTLE GOLD
+AXE PRODUCT WEB STAGING · FINAL CLEAN FUND REGRESSION FIX
+Date: 2026-09-11
 
-1. Removed the broad warm/yellow surface treatment from 3.14.6.
-2. Restored near-black / neutral charcoal surfaces matching AXE NET's visual temperature.
-3. Gold is now restrained to active navigation, tabs, focus, key actions and ON state.
-4. Existing 3.14.5 fund settings month selector and runtime layout fixes are unchanged.
-5. No database, RPC, Auth, RLS, Discord or BOT changes.
+CONFIRMED FINDINGS
+- Discord FUND approval wrote the correct DB records:
+  request=approved, ledger week=2, entry_type=payment, status=active, category=주간공금, ledger_type=공금납부.
+- `fund_admin_get_period_status()` recognizes exactly that ledger shape as 완료.
+- `fund_admin_get_treasury_snapshot()` returns ledger `entry_type`, `category`, `ledger_type`, `request_id` without relabeling them.
+- Uploaded WEB source had no literal `추가입금` and renders `r.category`; therefore the staging screen showing `추가입금` was inconsistent with the uploaded current source + verified DB response.
+
+FIX 1 — WEEKLY STATUS REFRESH
+- `납부 현황` tab now reloads live weekly status every time it is opened.
+- FUND `새로고침` reloads weekly status when the weekly tab is active.
+
+FIX 2 — APPROVED WEEKLY PAYMENT DISPLAY
+- `entry_type=payment` is normalized in the renderer to title `주간공금` and sublabel `공금납부`.
+- This is a WEB-only display hardening; DB rows are not rewritten.
+
+CLEANUP
+Removed stale/generated packaging artifacts and duplicate mixed-version documentation from older 3.14.x / 3.15.x snapshots.
+Runtime source and active QA scripts were retained.
+
+NOT CHANGED
+- No SQL / DB / RLS / policy / trigger change.
+- No STAGING BOT change.
+- No LIVE change.

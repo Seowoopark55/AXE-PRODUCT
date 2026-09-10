@@ -1,8 +1,0 @@
-AXE PRODUCT WEB STAGING 3.15.2 SAFETY
-
-- Uses existing web_get_company_onboarding_status RPC only.
-- Does not create or mutate database schema.
-- Does not directly INSERT/UPDATE/DELETE Discord catalog tables.
-- Does not touch /home/pyipsw001/axe-bot or any LIVE process.
-- Catalog polling is read-only.
-- Role/module saves remain the existing authenticated admin write paths.

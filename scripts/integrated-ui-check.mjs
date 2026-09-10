@@ -41,6 +41,9 @@ expect('Feedback backdrop does not close modal', main.includes("if(event.target.
 expect('Feedback draft close protection', main.includes('작성 중인 피드백 내용이 사라질 수 있습니다.'));
 expect('Mandatory ledger cancellation reason', main.includes('취소 사유를 입력해 주세요.') && api.includes('normalizedReason'));
 expect('Fund monthly selector', render.includes('data-fund-weekly-month'));
+expect('Fund weekly tab always reloads live status', main.includes("if(state.fundTab==='weekly') await loadFundWeeklyMonth();") && !main.includes("state.fundTab==='weekly'&&!state.fundMonthlyRows.length"));
+expect('Fund refresh reloads weekly status when active', main.includes("if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();"));
+expect('Approved weekly payment renders as weekly fund, never manual extra income', render.includes("const isWeeklyPayment=r.entry_type==='payment'") && render.includes("const title=isWeeklyPayment?'주간공금':(r.category||'기타')") && !render.includes("'추가입금'"));
 expect('Fund AXE NET grouped ledger structure', render.includes('axe-fund-history-list') && render.includes('renderLedgerGroup'));
 expect('Settings basic/module tabs', render.includes("ops-settings-nav-row") && render.includes("ops-settings-tabs") && render.includes("data-settings-tab=\"basic\"") && render.includes("data-settings-tab=\"modules\""));
 expect('Power-style module controls', render.includes('runtime-power') && render.includes("icon('power')") && render.includes('ops-settings-module--channels-${ui.channels.length}'));
