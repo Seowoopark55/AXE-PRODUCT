@@ -1,9 +1,16 @@
-# AXE PRODUCT WEB STAGING 3.14.5
+# AXE PRODUCT WEB STAGING 3.14.6 · AXE BRAND SKIN PASS
 
-## FUND SETTINGS MONTH SELECT
-- 공금 설정에 적용 월 선택 추가
-- 현재 월 기준 과거 6개월 + 미래 6개월 선택 가능
-- 선택한 월의 snapshot을 다시 불러와 해당 월 fee rule을 표시
-- 공금 설정 dropdown을 native gray UI에서 AXE dark select로 통일
-- 공금 설정 행 폭을 재조정해 compact 500px 영역 유지
-- DB / BOT 변경 없음 (WEB only hotfix)
+기능/배치/DB 연결은 3.14.5 그대로 유지하고 시각 언어만 AXE 방향으로 통일한 WEB STAGING hotfix입니다.
+
+## 브랜드 기준
+- Black / warm charcoal
+- Aged Gold / Brass accents
+- 공금내역의 색 온도를 전역 기준으로 확장
+- 선택/활성/hover에 절제된 gold surface + edge
+- Green / Red / Amber 상태 의미는 유지
+- 로고/도끼 그래픽/과도한 장식은 추가하지 않음
+
+## 영향 범위
+- tokens / shell / sidebar / controls / management / settings / overlays
+- 공금내역 레이아웃과 데이터 구조는 변경 없음
+- Supabase RPC, Auth, RLS, DB, BOT 변경 없음
