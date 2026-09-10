@@ -24,3 +24,5 @@ NOT CHANGED
 - No SQL / DB / RLS / policy / trigger change.
 - No STAGING BOT change.
 - No LIVE change.
+
+- FUND weekly status now calls fund_admin_get_period_status only for Saturdays that actually exist in the selected month, preventing expected HTTP 400s for nonexistent 5th weeks while keeping the 5-column UI.

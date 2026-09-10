@@ -114,11 +114,23 @@ async function loadFundSnapshot() {
   state.fundSnapshot=snapshot||{}; state.fundRequests=requests||[];
 }
 
+function fundWeekNumbersForMonth(year, month) {
+  const safeYear=Number(year);
+  const safeMonth=Number(month);
+  const lastDay=new Date(Date.UTC(safeYear,safeMonth,0)).getUTCDate();
+  const weeks=[];
+  for(let day=1;day<=lastDay;day+=1){
+    if(new Date(Date.UTC(safeYear,safeMonth-1,day)).getUTCDay()===6) weeks.push(weeks.length+1);
+  }
+  return weeks;
+}
+
 async function loadFundWeeklyMonth(monthValue = state.fundWeeklyMonth) {
   if (!canAdmin(state) || !moduleEnabled(state,'fund')) { state.fundMonthlyRows=[]; return; }
   state.fundWeeklyLoading=true; render();
   const [year,month]=String(monthValue).split('-').map(Number);
-  const results = await Promise.all([1,2,3,4,5].map(async week => {
+  const weekNumbers=fundWeekNumbersForMonth(year,month);
+  const results = await Promise.all(weekNumbers.map(async week => {
     try { return await getFundAdminPeriodStatus(state.companyId,year,month,week); } catch { return []; }
   }));
   const map=new Map(); let fee=0;

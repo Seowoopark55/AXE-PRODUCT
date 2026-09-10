@@ -27,3 +27,7 @@ Current STAGING web source consolidated from the user-uploaded repository snapsh
 - Stable role/channel native select behavior.
 - Inline SVG favicon.
 - Existing FUND / members / assets / accounts / settings RPC bindings.
+
+5. FUND weekly console cleanup
+   - Weekly status requests are limited to real Saturday-based fund periods for the selected month.
+   - Months with four Saturdays no longer request week 5, so the browser console stays clean.
