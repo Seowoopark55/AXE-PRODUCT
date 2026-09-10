@@ -1,14 +1,13 @@
-AXE PRODUCT WEB STAGING 3.15.2
+AXE PRODUCT WEB STAGING 3.15.3
 
-ROOT-CAUSE UX FIX
-1. A Discord connection can become connected before role/channel catalog rows are repopulated.
-2. 3.15.2 treats catalog readiness as an onboarding gate.
-3. Empty dropdowns are replaced with an explicit loading state.
-4. Roles/channels are automatically reloaded once the existing onboarding-status RPC reports catalog_ready=true.
-5. 3.15.1 save-and-next behavior is preserved.
+UX POLISH
+1. Prevent notice auto-dismiss from re-rendering the entire app.
+2. This keeps an already-open native select dropdown from closing itself after ~3.2 seconds.
+3. Add an inline favicon so browsers no longer request /favicon.ico and log a harmless 404.
+4. 3.15.2 catalog-ready onboarding gate and 3.15.1 save-and-next behavior are preserved.
 
 SCOPE
 - WEB STAGING only.
 - No SQL.
-- No STAGING BOT file in this package.
-- No LIVE AXE BOT reference/change.
+- No STAGING BOT change.
+- No LIVE AXE BOT change.

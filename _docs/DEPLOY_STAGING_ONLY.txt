@@ -1,5 +1,5 @@
-AXE PRODUCT WEB STAGING ONLY
-
-Deploy this package only to the AXE PRODUCT WEB STAGING Vercel/GitHub project.
-Do not deploy it with apply-axe-product.sh (that script is for the STAGING BOT package).
-No LIVE AXE BOT files are included.
+AXE PRODUCT WEB STAGING 3.15.3
+WEB STAGING ONLY.
+Apply by replacing the WEB STAGING project contents, then commit/push and confirm Vercel Ready.
+Do NOT use apply-axe-product.sh for this package.
+No database or bot deployment is included.

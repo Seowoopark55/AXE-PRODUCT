@@ -69,7 +69,13 @@ function render() { renderShell(root, state); }
 function setNotice(message) {
   state.notice = String(message || ''); state.error = ''; render();
   if (noticeTimer) clearTimeout(noticeTimer);
-  if (state.notice) noticeTimer = setTimeout(() => { state.notice=''; render(); }, 3200);
+  if (state.notice) noticeTimer = setTimeout(() => {
+    state.notice = '';
+    // Do not re-render the whole app just to hide a notice. A full root.innerHTML
+    // replacement closes an open native <select>, which made role/channel
+    // dropdowns appear to close by themselves a few seconds after catalog load.
+    root.querySelector('.runtime-banner--notice')?.remove();
+  }, 3200);
 }
 function setError(error) { state.error = String(error?.message || error || '오류가 발생했습니다.'); render(); }
 function clearCompanyData() {
