@@ -1,0 +1,1307 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{
+  --bg:#090806;
+  --header:#0d0b08;
+  --sidebar:#12100c;
+  --surface:#15120e;
+  --surface-raised:#1a1610;
+  --surface-input:#0f0d0a;
+  --line:#342f26;
+  --line-soft:#28231c;
+  --text:#f1ede5;
+  --text-2:#c8c0b4;
+  --muted:#9b9183;
+  --sub:#766d61;
+  --gold:#c99a43;
+  --gold-strong:#e4b95d;
+  --gold-soft:rgba(201,154,67,.11);
+  --green:#78c997;
+  --green-soft:rgba(120,201,151,.09);
+  --red:#e47b75;
+  --red-soft:rgba(228,123,117,.09);
+  --amber:#d7a653;
+  --amber-soft:rgba(215,166,83,.10);
+  --blue:#8db5ff;
+
+  /* 3.9 visual language: AXE NET ledger becomes the readability baseline. */
+  --ops-title:#eee7dc;
+  --ops-copy:#d9d0c1;
+  --ops-sub:#81786c;
+  --ops-meta:#71695f;
+  --ops-gold:#caa55d;
+  --ops-gold-bright:#e5bd69;
+  --ops-font-primary:12.5px;
+  --ops-font-secondary:10.5px;
+  --ops-font-support:9.5px;
+  --ops-font-control:10.8px;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 22px 60px rgba(0,0,0,.22);
+
+  /* 3.5 layout contract: narrower operations console with wider outer margins. */
+  --shell-max:1320px;
+  --shell-gutter:48px;
+  --sidebar-width:220px;
+  --shell-gap:18px;
+
+  font-family:Inter,Pretendard,"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
+body{font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit}
+button{color:inherit}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* GLOBAL SHELL ---------------------------------------------------------- */
+.global-header{
+  height:70px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#0e0c09 0%,var(--header) 100%);box-shadow:inset 0 -1px rgba(201,154,67,.045);
+}
+.global-header__inner,
+.workspace-shell{
+  width:min(var(--shell-max),calc(100% - (var(--shell-gutter) * 2)));
+  margin-left:auto;
+  margin-right:auto;
+}
+.global-header__inner{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+.product-brand{display:flex;align-items:center}
+.product-brand>div{display:grid;gap:2px}
+.product-brand strong{font-size:16px;letter-spacing:.045em;color:#f1eadf}
+.product-brand small{font-size:8px;color:#8b7e69;font-weight:800;letter-spacing:.16em}
+.global-actions{display:flex;align-items:center;gap:9px}
+.environment-pill{
+  height:32px;display:flex;align-items:center;gap:7px;padding:0 11px;
+  border:1px solid var(--line);border-radius:999px;background:#14110d;
+  color:#9a9082;font-size:8.5px;font-weight:850
+}
+.environment-pill i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(120,211,155,.28)}
+.icon-button{
+  width:36px;height:36px;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:9px;background:#14110d;color:#8d8376;cursor:pointer
+}
+.icon-button:hover{border-color:rgba(201,154,67,.34);background:#19150f;color:#e8d3a1}
+
+.workspace-shell{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+  gap:var(--shell-gap);
+  align-items:start;
+}
+
+/* SIDEBAR --------------------------------------------------------------- */
+.sidebar{
+  position:sticky;top:92px;
+  min-height:calc(100vh - 114px);
+  display:flex;flex-direction:column;
+  padding:15px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:linear-gradient(180deg,#14110d 0%,var(--sidebar) 54%,#100e0b 100%);box-shadow:inset 0 1px rgba(201,154,67,.035);
+}
+.company-switcher{display:grid;gap:9px}
+.overline{color:#8a7d68;font-size:8px;font-weight:950;letter-spacing:.13em;text-transform:uppercase}
+.overline.gold{color:#a98543}
+.company-select{
+  min-height:54px;display:grid;grid-template-columns:minmax(0,1fr) 18px;align-items:center;gap:8px;
+  padding:9px 11px;border:1px solid #3b3429;border-radius:9px;background:#16130f;text-align:left;cursor:pointer
+}
+.company-select:hover{border-color:rgba(201,154,67,.38);background:#19150f}
+.company-select__copy{display:grid;gap:2px;min-width:0}
+.company-select__copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.8px}
+.company-select__copy small{color:#7d7264;font-size:8px}
+.company-select__chevron{color:#9a8b72}
+.company-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.company-quick-actions button{height:36px;border:1px solid var(--line);border-radius:8px;background:#14110d;color:#aaa092;font-size:9.5px;font-weight:850;cursor:pointer}
+.company-quick-actions .accent-action{border-color:rgba(228,178,75,.26);background:var(--gold-soft);color:#e8c470}
+.sidebar-nav{display:grid;gap:5px;margin-top:19px;padding-top:16px;border-top:1px solid var(--line-soft)}
+.sidebar-nav__label{padding:0 10px 5px;color:#6f6251;font-size:8px;font-weight:950;letter-spacing:.11em}
+.sidebar-nav__label.spaced{margin-top:12px}
+.nav-item{
+  height:48px;display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;gap:8px;padding:0 10px;
+  border:0;border-radius:9px;background:transparent;color:#aaa195;text-align:left;font-size:14px;font-weight:780;cursor:pointer
+}
+.nav-item:hover{background:#1a1712;color:#e7dfd3}
+.nav-item.is-active{background:linear-gradient(90deg,rgba(201,154,67,.14),rgba(201,154,67,.055));color:#ead2a0;box-shadow:inset 2px 0 #c99a43,inset 0 0 22px rgba(201,154,67,.035)}
+.nav-item__icon{display:grid;place-items:center;color:#7c7265}
+.nav-item.is-active .nav-item__icon{color:#d0a24c}
+.nav-item__icon svg{width:18px;height:18px}
+.sidebar-footer{margin-top:auto;display:grid;gap:5px;padding-top:16px;border-top:1px solid var(--line-soft)}
+.connection-status,.account-summary{display:flex;align-items:center;gap:9px;min-height:44px;padding:0 5px}.account-summary{padding-left:15px;border-left:2px solid rgba(228,178,75,.28)}
+.connection-status>i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(120,211,155,.25)}
+.connection-status>div,.account-summary>div{display:grid;gap:2px;min-width:0}
+.connection-status strong,.account-summary strong{font-size:10px}
+.connection-status small,.account-summary small{overflow:hidden;color:#7c7264;font-size:8px;text-overflow:ellipsis;white-space:nowrap}
+.mini-icon{width:30px;height:30px;display:grid;place-items:center;margin-left:auto;border:0;border-radius:7px;background:transparent;color:#82786b;cursor:pointer}
+.mini-icon:hover{background:#1b1712;color:#e5d8c2}
+.mini-icon svg{width:15px}
+
+/* MAIN ------------------------------------------------------------------ */
+.main{min-width:0;padding:3px 0 80px}
+.page-header{min-height:78px;display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:18px}
+.page-header h1{margin:5px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.035em}
+.page-header p{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.page-header__actions{display:flex;align-items:center;gap:8px;padding-top:17px}
+
+.nav-item--support{color:#a79b8a}.nav-item--support:hover{color:#e5c98e;background:rgba(201,154,67,.055)}.nav-item--support .nav-item__icon{color:#a48652}.nav-item--support:hover .nav-item__icon{color:#d0a24c}
+
+
+/* BUTTONS --------------------------------------------------------------- */
+.button{
+  min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 13px;
+  border:1px solid var(--line);border-radius:8px;background:#16130f;color:#d2c9bc;font-size:10.8px;font-weight:860;cursor:pointer
+}
+.button svg{width:14px;height:14px}
+.button:hover{border-color:rgba(201,154,67,.34);background:#1c1812;color:#f0e8dc}
+.button--primary{border-color:rgba(201,154,67,.40);background:linear-gradient(180deg,#272015,#1a160f);color:#e9c776;box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.button--primary:hover{border-color:rgba(229,185,93,.62);background:linear-gradient(180deg,#302617,#211a10);color:#f4d995}
+.button--primary:disabled{opacity:.48;cursor:not-allowed}
+.button--secondary{background:#16130f;color:#bdb3a5}
+/* SUMMARY / TABS -------------------------------------------------------- */
+
+.summary-strip{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  margin-bottom:14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--surface-raised),var(--surface));overflow:hidden;box-shadow:inset 0 1px rgba(201,154,67,.035)
+}
+.summary-metric{display:grid;gap:4px;padding:14px 16px;border-right:1px solid var(--line-soft)}
+.summary-metric:last-child{border-right:0}
+.summary-metric>span{color:#948878;font-size:9px}
+.summary-metric>strong{font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums}
+.summary-metric>small{color:#746a5e;font-size:8px}
+.positive{color:var(--green)!important}
+.negative{color:var(--red)!important}
+.warning{color:var(--amber)!important}
+
+.tab-row{display:flex;gap:3px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.tab-row button{
+  position:relative;height:44px;display:flex;align-items:center;gap:6px;padding:0 13px;
+  border:0;background:transparent;color:#93887a;font-size:11px;font-weight:820;cursor:pointer
+}
+.tab-row button:hover{color:#ded3c3;background:rgba(201,154,67,.018)}
+.tab-row button.is-active{color:#e9ca87}
+.tab-row button.is-active:after{content:"";position:absolute;left:11px;right:11px;bottom:-1px;height:2px;background:var(--gold)}
+.tab-row em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:8px;font-style:normal}
+/* PANELS ---------------------------------------------------------------- */
+
+.panel{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;box-shadow:inset 0 1px rgba(201,154,67,.025)}
+.panel--compact{align-self:start}
+.panel-heading{
+  min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:11px 14px;border-bottom:1px solid var(--line-soft);background:#17140f
+}
+.panel-heading>div{display:grid;gap:4px}
+.panel-heading h2{margin:0;font-size:14px;letter-spacing:-.01em}
+.panel-heading p{margin:0;color:#83796b;font-size:9.5px;line-height:1.45}
+.subtle-pill{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.04);color:#86919d;font-size:8.5px}
+/* TOOLBAR / CONTROLS ---------------------------------------------------- */
+
+.toolbar{
+  min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px;border-bottom:1px solid var(--line-soft);background:#17140f
+}
+.toolbar__filters{display:flex;align-items:center;gap:7px;min-width:0}
+.search-control{
+  width:235px;height:40px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  border:1px solid #3a3329;border-radius:9px;background:var(--surface-input)
+}
+.search-control svg{width:16px;color:#827566}
+.search-control input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#e4dbcf;font-size:10.5px}
+.search-control input::placeholder{color:#6e6458}
+.member-search{margin-left:auto}
+
+.control-select{
+  height:40px;padding:0 30px 0 10px;border:1px solid #3a3329;border-radius:9px;background:var(--surface-input);color:#c4b9ab;font-size:10.5px;outline:0
+}
+.control-select:focus,.search-control:focus-within,.basic-settings input:focus,.basic-settings select:focus,.module-card select:focus,.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{
+  border-color:rgba(201,154,67,.55);box-shadow:0 0 0 3px rgba(201,154,67,.07)
+}
+/* TABLE ----------------------------------------------------------------- */
+
+.table-meta{
+  height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+  border-bottom:1px solid var(--line-soft);color:#807466;font-size:8.5px
+}
+.table-meta strong{color:#bfb4a6}
+
+.table-scroll{overflow:auto}
+.data-table{width:100%;min-width:760px;border-collapse:collapse}
+.data-table th,.data-table td{
+  height:52px;padding:8px 11px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:middle;white-space:nowrap;font-size:11px
+}
+.data-table th{height:40px;background:#13110d;color:#857a6c;font-size:9.5px;font-weight:850}
+.data-table tbody tr:last-child td{border-bottom:0}
+.data-table tbody tr:hover{background:rgba(201,154,67,.018)}
+.data-table td{color:#c8bfb2}
+.data-table td strong{color:#f0e9df;font-size:11.5px}
+.align-right{text-align:right!important}
+.muted{color:#7f7467!important}
+.money{font-weight:850;font-variant-numeric:tabular-nums}
+.memo-col{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.action-col{text-align:right!important}
+.row-actions{display:flex;justify-content:flex-end;gap:4px}
+.row-actions button{
+  height:28px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:#8c8174;font-size:8.5px;cursor:pointer
+}
+.row-actions button:hover{background:#1c1812;color:#e6dbcc}
+.row-actions button.danger:hover{color:#ef8b86}
+
+.badge{display:inline-flex;align-items:center;justify-content:center;min-height:23px;padding:0 7px;border-radius:999px;font-size:8px;font-weight:850}
+.badge--green{background:var(--green-soft);color:#7dcc99}
+.badge--red{background:var(--red-soft);color:#e78781}
+.badge--amber{background:var(--amber-soft);color:#d9aa58}
+.badge--neutral{background:rgba(201,154,67,.045);color:#988b78}
+.text-action{padding:0;border:0;background:transparent;color:#cda75a;font-size:9px;font-weight:800;cursor:pointer}
+
+/* AXE PRODUCT 3.6
+   Page-specific ownership moved to management.css and settings.css.
+   This file intentionally remains as a compatibility slot for future pages. */
+
+/* AXE PRODUCT FUND 3.5 --------------------------------------------------
+   Fund remains isolated under .axe-fund-*. The ledger view is a direct
+   PRODUCT port of AXE NET's proven date-group + compact operations rows.
+------------------------------------------------------------------------ */
+
+.axe-fund{min-width:0}
+
+.axe-fund-header{
+  min-height:86px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:16px;
+}
+.axe-fund-header-copy{min-width:0}
+.axe-fund-header-copy>span{display:block;color:#b58d3f;font-size:8px;font-weight:950;letter-spacing:.15em}
+.axe-fund-header-copy h1{margin:6px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.035em}
+.axe-fund-header-copy p{margin:9px 0 0;color:var(--muted);font-size:12.5px;line-height:1.5}
+.axe-fund-header-actions{display:flex;align-items:center;gap:8px;padding-top:18px;flex:0 0 auto}
+
+.axe-fund-primary,
+.axe-fund-secondary,
+.axe-fund-tool-button{
+  height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 13px;
+  border-radius:9px;
+  font-size:10.5px;
+  font-weight:850;
+  cursor:pointer;
+}
+.axe-fund-primary svg,.axe-fund-secondary svg,.axe-fund-tool-button svg{width:15px;height:15px}
+.axe-fund-primary{border:1px solid rgba(228,178,75,.38);background:rgba(228,178,75,.105);color:#f0cf8c}
+.axe-fund-primary:hover{border-color:rgba(228,178,75,.56);background:rgba(228,178,75,.15)}
+.axe-fund-secondary{border:1px solid #34404c;background:#121920;color:#b6c0ca}
+.axe-fund-secondary:hover{border-color:#465260;color:#e3e8ed}
+.axe-fund-tool-button{border:1px solid #2e3945;background:#0f151c;color:#929eaa}
+.axe-fund-tool-button:hover{border-color:#414d5a;color:#d7dde3}
+.axe-fund-tool-button--compact{height:31px;padding:0 9px;font-size:8.5px}
+
+.axe-fund-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  margin-bottom:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--surface);
+}
+.axe-fund-metric{display:grid;gap:4px;padding:14px 15px;border-right:1px solid var(--line-soft)}
+.axe-fund-metric:last-child{border-right:0}
+.axe-fund-metric>span{color:#7b8794;font-size:8.5px}
+.axe-fund-metric>strong{font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums}
+.axe-fund-metric>small{color:#5f6b77;font-size:7.8px}
+.axe-fund-metric .is-income,.axe-fund .is-income{color:var(--green)}
+.axe-fund-metric .is-expense,.axe-fund .is-expense{color:var(--red)}
+.axe-fund-metric .is-warning{color:var(--amber)}
+
+.axe-fund-tabs{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.axe-fund-tabs button{
+  position:relative;height:46px;display:flex;align-items:center;gap:7px;padding:0 14px;
+  border:1px solid transparent;border-radius:10px 10px 0 0;background:transparent;color:#95a0ab;font-size:11.8px;font-weight:860;cursor:pointer;transition:.14s ease
+}
+.axe-fund-tabs button:hover{color:#d4dbe1;background:rgba(255,255,255,.015)}
+.axe-fund-tabs button.is-active{color:#efd59e;background:rgba(228,178,75,.05);border-color:rgba(228,178,75,.16)}
+.axe-fund-tabs button.is-active:after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--gold)}
+.axe-fund-tabs em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:8.3px;font-style:normal}
+.axe-fund-view{min-width:0}
+
+/* Fund ledger · AXE NET fidelity ---------------------------------------------
+   Source of truth: AXE NET UI System 4.0 + Ledger 3.0.
+   IMPORTANT: do not stretch low-density rows with 1fr. The ledger uses the
+   same 780px workspace and fixed content-driven columns as AXE NET.
+---------------------------------------------------------------------------- */
+.axe-fund-history{
+  width:min(780px,100%);
+  margin:0 auto;
+}
+.axe-fund-history-head{
+  width:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 0 10px;
+}
+.axe-fund-history-head>div:first-child{min-width:0}
+.axe-fund-history-head h2{margin:0;color:#f3efe7;font-size:18px;font-weight:900;line-height:1.15;letter-spacing:-.012em}
+.axe-fund-history-head p{margin:4px 0 0;color:#797d82;font-size:11.5px;line-height:1.42}
+.axe-fund-history-head-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.axe-fund-history-select{
+  height:32px;
+  min-width:112px;
+  padding:0 28px 0 9px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:7px;
+  outline:0;
+  color:#ded9d0;
+  background:#111317;
+  font-size:10.8px;
+  font-weight:780;
+}
+.axe-fund-history-select--month{min-width:118px}
+.axe-fund-history-select:focus{border-color:rgba(255,181,46,.34);box-shadow:0 0 0 2px rgba(255,181,46,.045)}
+.axe-fund-primary--ledger{
+  height:32px;
+  padding:0 11px;
+  border:1px solid #e9a627;
+  border-radius:7px;
+  color:#18120a;
+  background:linear-gradient(180deg,#ffbd41,#eaa323);
+  box-shadow:inset 0 1px rgba(255,255,255,.17);
+  font-size:10.8px;
+  font-weight:850;
+}
+.axe-fund-primary--ledger:hover{filter:brightness(1.04);background:linear-gradient(180deg,#ffbd41,#eaa323);border-color:#e9a627}
+.axe-fund-history-board{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:10px;
+  background:#0c0e11;
+  box-shadow:inset 0 1px rgba(255,255,255,.012);
+}
+.axe-fund-history-toolbar{
+  min-height:47px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:7px 10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:#0f1114;
+}
+.axe-fund-history-filters{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.axe-fund-history-toolbar .axe-fund-history-select{min-width:105px;height:30px;background-color:#111317}
+.axe-fund-history-meta{margin-left:auto;display:flex;align-items:center;gap:7px;color:#666b72;font-size:9.8px;white-space:nowrap}
+.axe-fund-history-reset{
+  height:30px;
+  padding:0 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:6px;
+  color:#777c83;
+  background:transparent;
+  font-size:10px;
+  font-weight:780;
+  cursor:pointer;
+}
+.axe-fund-history-reset:hover{color:#c7c2b9;border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.018)}
+.axe-fund-history-list{display:grid}
+.axe-fund-history-day{
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr);
+  border-bottom:1px solid rgba(255,255,255,.09);
+}
+.axe-fund-history-day:last-child{border-bottom:0}
+.axe-fund-history-date{
+  padding:12px 8px 9px 11px;
+  border-right:1px solid rgba(255,255,255,.045);
+  background:rgba(255,255,255,.008);
+}
+.axe-fund-history-date strong{display:block;color:#cdbd9f;font-size:11.4px;font-weight:860;font-variant-numeric:tabular-nums}
+.axe-fund-history-date span{display:block;margin-top:2px;color:#5e646b;font-size:9.5px;font-weight:740}
+.axe-fund-history-day-rows{min-width:0}
+.axe-fund-history-row{
+  min-height:55px;
+  display:grid;
+  grid-template-columns:330px 150px 96px 84px;
+  align-items:center;
+  gap:10px;
+  padding:7px 9px 7px 10px;
+  border-bottom:1px solid rgba(255,255,255,.045);
+  transition:background .14s ease;
+}
+.axe-fund-history-day-rows .axe-fund-history-row:last-child{border-bottom:0}
+.axe-fund-history-row:hover{background:rgba(255,255,255,.015)}
+.axe-fund-history-entry,.axe-fund-history-who{min-width:0}
+.axe-fund-history-title{display:flex;align-items:center;gap:6px;min-width:0}
+.axe-fund-history-title strong{min-width:0;overflow:hidden;color:#e8e4dc;font-size:12.5px;font-weight:880;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-history-entry>span{display:block;margin-top:2px;overflow:hidden;color:#777c83;font-size:10.5px;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-history-who strong{display:block;overflow:hidden;color:#d7d2c8;font-size:11.6px;font-weight:840;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-history-who span{display:block;margin-top:2px;overflow:hidden;color:#6f757c;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-history-money{color:#83dda8;font-size:12.8px;font-weight:900;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.axe-fund-history-money.is-expense{color:#ff8f89}
+.axe-fund-history-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px}
+.axe-fund-history-no-evidence{width:42px;color:#4f555c;font-size:10px;text-align:center}
+.axe-fund-history-action{
+  height:27px;
+  min-width:41px;
+  padding:0 7px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:6px;
+  color:#999da3;
+  background:transparent;
+  font-size:10px;
+  font-weight:820;
+  cursor:pointer;
+}
+.axe-fund-history-action:hover{color:#e3ded5;border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.018)}
+.axe-fund-history-action.is-evidence{color:#cda554;border-color:rgba(255,181,46,.18);background:rgba(255,181,46,.022)}
+.axe-fund-history-kind{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  height:17px;
+  padding:0 5px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:5px;
+  color:#93979d;
+  background:rgba(255,255,255,.014);
+  font-size:9px;
+  font-weight:850;
+}
+.axe-fund-history-kind--manual{color:#aaa69d;border-color:rgba(255,255,255,.085)}
+.axe-fund-history-kind--approval{color:#d4b46b;border-color:rgba(255,181,46,.15);background:rgba(255,181,46,.03)}
+.axe-fund-history-empty{padding:30px 16px;color:#73777d;font-size:11px;text-align:center}
+
+/* Secondary Fund screens · 3.7 content-adaptive density --------------------
+   Each sub-view owns a width that matches the amount of information it exposes.
+---------------------------------------------------------------------------- */
+.axe-fund-subview{margin-inline:auto}
+.axe-fund-subview--weekly{width:min(650px,100%)}
+.axe-fund-subview--review{width:min(610px,100%)}
+.axe-fund-subview--balance{width:min(600px,100%)}
+.axe-fund-subview--settings{width:min(500px,100%)}
+
+.axe-fund-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.axe-fund-card--compact{align-self:start}
+.axe-fund-card-head{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border-bottom:1px solid var(--line-soft);background:#111820}
+.axe-fund-card-head>div{display:grid;gap:3px}.axe-fund-card-head h2{margin:0;color:var(--ops-title);font-size:14px}.axe-fund-card-head p{margin:0;color:var(--ops-sub);font-size:10px;line-height:1.4}
+.axe-fund-chip{padding:3px 8px;border:1px solid rgba(228,178,75,.10);border-radius:999px;background:rgba(228,178,75,.035);color:#c7a75e;font-size:9px}
+
+/* Weekly payment status: grid is dense enough to justify a little more width. */
+
+.axe-fund-card-head--weekly{gap:12px}.axe-fund-week-actions{display:flex!important;align-items:center;gap:7px!important;flex:0 0 auto}.axe-fund-month-select{width:116px;height:30px;padding:0 27px 0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d;color:#d5dae0;font-size:10.2px;outline:0}.axe-fund-month-select:focus{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.05)}.axe-fund-chip.is-history{color:#a58b58;background:rgba(228,178,75,.04);border-color:rgba(228,178,75,.12)}
+.axe-fund-week-scroll{overflow:auto}.axe-fund-week-grid{min-width:590px}
+.axe-fund-week-row{display:grid;grid-template-columns:155px repeat(5,1fr);min-height:48px;align-items:center;border-bottom:1px solid var(--line-soft)}
+.axe-fund-week-row:last-child{border-bottom:0}.axe-fund-week-row>span{display:grid;gap:2px;padding:0 11px}.axe-fund-week-row>span strong{color:var(--ops-title);font-size:11.5px}.axe-fund-week-row>span small{color:var(--ops-sub);font-size:9.3px}
+.axe-fund-week-row--head{min-height:38px;background:#0f151c;color:#857b69;font-size:9.5px}.axe-fund-week-row--head span{display:block}
+.axe-fund-week-row>b{text-align:center}.axe-fund-week-row:not(.axe-fund-week-row--head)>b{height:47px;display:grid;place-items:center;border-left:1px solid var(--line-soft);font-size:11.5px}
+.axe-fund-week-row .is-ok{color:var(--green)}.axe-fund-week-row .is-bad{color:var(--red)}.axe-fund-week-row .is-skip{color:var(--blue)}.axe-fund-week-row .is-pending{color:var(--amber)}.axe-fund-week-row .is-future{color:#4f5a66}
+
+/* Review queue: only four information blocks, so it is intentionally narrower. */
+.axe-fund-review-list{display:grid}.axe-fund-review-row{min-height:60px;display:grid;grid-template-columns:225px 62px 72px 145px;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-soft)}.axe-fund-review-row:last-child{border-bottom:0}
+.axe-fund-person{display:flex;align-items:center;gap:8px}.axe-fund-person>span{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(228,178,75,.10);border-radius:7px;background:rgba(228,178,75,.055);color:var(--ops-gold);font-size:9.5px;font-weight:900}.axe-fund-person>div{display:grid;gap:2px}.axe-fund-person strong{color:var(--ops-title);font-size:11.5px}.axe-fund-person small{color:var(--ops-sub);font-size:9.3px}
+.axe-fund-review-state{color:var(--amber);font-size:9.5px;font-weight:850}.axe-fund-review-state.is-hold{color:#d59a58}.axe-fund-review-actions{display:flex;justify-content:flex-end;gap:4px}.axe-fund-review-actions button{height:28px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:#111820;color:#9ca5ae;font-size:9.3px;cursor:pointer}.axe-fund-review-actions button:hover{color:#efd59e;border-color:rgba(228,178,75,.20)}.axe-fund-review-actions button.danger{color:#cf817c}
+
+/* Balance check: fixed useful widths, no 1fr stretching. */
+.axe-fund-balance-layout{display:grid;grid-template-columns:360px 230px;gap:10px}
+.axe-fund-form-stack{display:grid;gap:10px;padding:12px}.axe-fund-field{display:grid;gap:5px}.axe-fund-field>span{color:#857b69;font-size:9.5px}.axe-fund-field input,.axe-fund-field textarea{border:1px solid #2d3844;border-radius:7px;background:var(--surface-input);color:#e0e4e8;outline:0;font-size:10.5px}.axe-fund-field input{width:220px;height:34px;padding:0 9px}.axe-fund-field textarea{width:100%;min-height:62px;padding:8px 9px;resize:vertical}.axe-fund-field input:disabled{color:#6c7783}
+.axe-fund-dropzone{width:100%;min-height:58px;border:1px dashed rgba(228,178,75,.14);border-radius:7px;background:var(--surface-input);color:#887d69;font-size:9.5px;cursor:pointer}.axe-fund-form-actions{display:flex;justify-content:flex-end;padding-top:1px}
+.axe-fund-status{padding:3px 8px;border-radius:999px;font-size:9px;font-weight:850}.axe-fund-status--ok{background:var(--green-soft);color:#80d69f}
+.axe-fund-kv{margin:0}.axe-fund-kv>div{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 10px;border-bottom:1px solid var(--line-soft)}.axe-fund-kv>div:last-child{border-bottom:0}.axe-fund-kv dt{color:var(--ops-sub);font-size:9.5px}.axe-fund-kv dd{margin:0;color:var(--ops-copy);font-size:10.5px;font-weight:820}
+
+/* Fund settings: controls use the size of the actual value/action. */
+.axe-fund-settings-list{display:grid}.axe-fund-setting{min-height:57px;display:grid;grid-template-columns:188px minmax(0,1fr);align-items:center;gap:14px;padding:8px 11px;border-bottom:1px solid var(--line-soft)}.axe-fund-setting:last-child{border-bottom:0}.axe-fund-setting>div:first-child{display:grid;gap:2px}.axe-fund-setting strong{color:var(--ops-title);font-size:11.5px}.axe-fund-setting>div:first-child span{color:var(--ops-sub);font-size:9.3px}.runtime-fee-controls{display:grid;grid-template-columns:116px 132px;align-items:center;gap:7px;min-width:0}.axe-fund-money-control{display:flex;align-items:center;gap:5px;min-width:0}.axe-fund-money-control input{width:104px;height:32px;padding:0 8px;border:1px solid #2d3844;border-radius:7px;background:var(--surface-input);color:#e0e4e8;font-size:10.5px;outline:0}.axe-fund-money-control input:focus{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.05)}.axe-fund-money-control span{color:#8c826f;font-size:9.5px}.axe-fund-subview--settings .axe-fund-select{height:32px;padding:0 29px 0 10px;border:1px solid #2d3844;border-radius:7px;appearance:none;-webkit-appearance:none;background-color:#0c1218;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2399a4ae' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;color:#d8dee4;font-size:10.5px;outline:0;box-shadow:inset 0 1px rgba(255,255,255,.025)}.axe-fund-subview--settings .axe-fund-select:hover{border-color:#3a4652;background-color:#101720}.axe-fund-subview--settings .axe-fund-select:focus{border-color:rgba(228,178,75,.50);box-shadow:0 0 0 2px rgba(228,178,75,.055)}.axe-fund-subview--settings .axe-fund-select option{background:#10161d;color:#d8dee4}.axe-fund-select--month{width:154px}.axe-fund-select--week{width:116px}.axe-fund-select--account{width:132px}.axe-fund-subview--settings .axe-fund-tool-button--compact{height:30px;font-size:9.5px}.axe-fund-primary--settings{min-width:112px}
+
+/* Fund modal is also isolated from generic modal CSS. */
+.axe-fund-modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.68);backdrop-filter:blur(3px)}
+.axe-fund-modal{width:min(620px,100%);overflow:hidden;border:1px solid #313c48;border-radius:14px;background:#10171e;box-shadow:0 34px 100px rgba(0,0,0,.55)}
+.axe-fund-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:16px;border-bottom:1px solid var(--line-soft)}.axe-fund-modal-head>div>span{color:#a98543;font-size:8px;font-weight:950;letter-spacing:.13em}.axe-fund-modal-head h2{margin:5px 0 0;font-size:18px}.axe-fund-modal-head p{margin:6px 0 0;color:#74808d;font-size:9px}.axe-fund-modal-head>button{width:31px;height:31px;border:0;background:transparent;color:#7f8a96;font-size:20px;cursor:pointer}
+.axe-fund-modal-form{padding:15px}.axe-fund-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.axe-fund-modal-field{display:grid;gap:5px}.axe-fund-modal-field.is-full{margin-top:10px}.axe-fund-modal-field>span{color:#7a8692;font-size:8.5px}.axe-fund-modal-field input,.axe-fund-modal-field select,.axe-fund-modal-field textarea{width:100%;border:1px solid #2d3844;border-radius:9px;background:var(--surface-input);color:#dce1e6;font-size:10px;outline:0}.axe-fund-modal-field input,.axe-fund-modal-field select{height:40px;padding:0 10px}.axe-fund-modal-field textarea{min-height:78px;padding:9px 10px;resize:vertical}.axe-fund-modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
+
+@media(max-width:1180px){
+  .axe-fund-summary{grid-template-columns:1fr 1fr}.axe-fund-metric:nth-child(2){border-right:0}.axe-fund-metric:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .axe-fund-history{width:100%}.axe-fund-history-row{grid-template-columns:minmax(240px,1fr) 145px 108px 90px}
+}
+@media(max-width:980px){
+  .axe-fund-balance-layout{grid-template-columns:1fr}.axe-fund-review-row{grid-template-columns:1fr 90px auto}.axe-fund-review-actions{grid-column:1/-1;justify-content:flex-start}
+}
+@media(max-width:760px){
+  .axe-fund-header{min-height:0;flex-direction:column}.axe-fund-header-copy h1{font-size:27px}.axe-fund-header-copy p{font-size:11px}.axe-fund-header-actions{width:100%;padding-top:0}.axe-fund-header-actions button{flex:1}
+  .axe-fund-summary{grid-template-columns:1fr}.axe-fund-metric{border-right:0;border-bottom:1px solid var(--line-soft)}.axe-fund-metric:last-child{border-bottom:0}
+  .axe-fund-tabs{overflow:auto}.axe-fund-tabs button{flex:0 0 auto}
+  .axe-fund-history-head{align-items:stretch;flex-direction:column}.axe-fund-history-head-actions{width:100%;flex-wrap:wrap}.axe-fund-history-head-actions .axe-fund-primary{flex:1}.axe-fund-history-select--month{flex:0 0 132px}
+  .axe-fund-history-toolbar{align-items:stretch;flex-direction:column}.axe-fund-history-meta{margin-left:0}.axe-fund-history-filters{align-items:stretch}.axe-fund-history-select{flex:1;min-width:120px}.axe-fund-history-row{grid-template-columns:minmax(190px,1fr) 108px 92px}.axe-fund-history-who{display:none}
+  .axe-fund-subview--weekly,.axe-fund-subview--review,.axe-fund-subview--balance,.axe-fund-subview--settings{width:100%}.axe-fund-review-row{grid-template-columns:1fr}.axe-fund-modal-grid{grid-template-columns:1fr}.axe-fund-setting{grid-template-columns:1fr;gap:6px}
+}
+
+/* 3.5 ledger edit modal actions */
+.axe-fund-modal-actions--spread{justify-content:space-between;align-items:center}
+.axe-fund-modal-actions-right{display:flex;justify-content:flex-end;gap:7px}
+.axe-fund-modal-delete{height:40px;padding:0 12px;border:1px solid rgba(239,129,124,.22);border-radius:9px;background:rgba(239,129,124,.035);color:#c87975;font-size:9.5px;font-weight:820;cursor:pointer}
+.axe-fund-modal-delete:hover{border-color:rgba(239,129,124,.38);color:#ef918c;background:rgba(239,129,124,.06)}
+
+
+/* 3.12: no-scroll laptop viewport refinement. Text scale and AXE NET ledger
+   columns stay unchanged; only vertical whitespace contracts. */
+@media(max-height:940px) and (min-width:761px){
+  .axe-fund-header{min-height:74px;margin-bottom:10px}
+  .axe-fund-header-actions{padding-top:12px}
+  .axe-fund-summary{margin-bottom:10px}
+  .axe-fund-tabs{margin-bottom:8px}
+  .axe-fund-history-head{margin-bottom:7px}
+}
+
+/* AXE PRODUCT 3.8 · Wide Anchor + Compact Workspace
+   The page header and summary stay wide to anchor the screen.
+   Only the task board adapts to the information density of each view. */
+
+.ops-mgmt-page{width:100%;margin:0}
+.ops-mgmt-page .page-header{min-height:78px;margin-bottom:18px}
+.ops-mgmt-page .page-header h1{margin-top:5px;font-size:34px}
+.ops-mgmt-page .page-header p{margin-top:9px;font-size:13px}
+.ops-mgmt-page .page-header__actions{padding-top:17px}
+.ops-mgmt-page .button{min-height:36px;padding-inline:12px;font-size:var(--ops-font-control)}
+
+/* Wide visual anchor: intentionally mirrors Fund summary proportions. */
+.ops-mgmt-summary{
+  width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px;
+  overflow:hidden;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--surface-raised),var(--surface));box-shadow:inset 0 1px rgba(201,154,67,.035)
+}
+.ops-mgmt-summary article{display:grid;gap:4px;padding:14px 15px;border-right:1px solid var(--line-soft)}
+.ops-mgmt-summary article:last-child{border-right:0}
+.ops-mgmt-summary span{color:#948879;font-size:9.2px}
+.ops-mgmt-summary strong{font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums}
+.ops-mgmt-summary small{color:#766d61;font-size:8.5px}
+.ops-mgmt-summary .is-positive{color:var(--green)}
+.ops-mgmt-summary .is-warning{color:var(--amber)}
+.ops-mgmt-summary .is-negative{color:var(--red)}
+
+/* The operational workspace, not the page shell, is content-adaptive. */
+.ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board{width:min(680px,100%);margin-inline:auto}
+.ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-assets .ops-mgmt-board{width:min(710px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:min(640px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,
+.ops-mgmt-page--accounts .ops-mgmt-board{width:min(690px,100%);margin-left:auto;margin-right:auto}
+
+/* Contextual action discovery: actions live beside the data they affect. */
+.ops-mgmt-section-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;padding:0 2px}
+.ops-mgmt-section-head>div{display:grid;gap:2px;min-width:0}.ops-mgmt-section-head strong{color:var(--ops-title);font-size:13.5px}.ops-mgmt-section-head>div>span{color:#877b6d;font-size:9.8px}
+.ops-mgmt-tabs-row{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;border-bottom:1px solid var(--line)}
+.ops-mgmt-tabs-row .ops-mgmt-tabs{flex:1;margin:0;border-bottom:0}
+.ops-action-primary,.ops-action-secondary{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:9px;font-size:10.5px;font-weight:900;white-space:nowrap;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease}
+.ops-action-primary svg,.ops-action-secondary svg{width:14px;height:14px;stroke-width:2}
+.ops-action-primary{border:1px solid rgba(228,178,75,.38);background:linear-gradient(180deg,rgba(62,48,22,.96),rgba(32,27,17,.98));color:#efc76d;box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.12)}
+.ops-action-primary svg{color:#f1b84a}.ops-action-primary:hover{border-color:rgba(236,186,80,.58);background:linear-gradient(180deg,rgba(75,57,24,.98),rgba(39,31,18,.99));color:#ffe0a0;box-shadow:0 5px 16px rgba(191,132,26,.09),inset 0 1px rgba(255,255,255,.05);transform:translateY(-1px)}.ops-action-primary:active{transform:translateY(0);background:#241c10}
+.ops-action-secondary{border:1px solid rgba(255,255,255,.09);background:#17140f;color:#aeb7c1}.ops-action-secondary svg{color:#9b8f80}
+.ops-action-secondary:hover{border-color:rgba(228,178,75,.28);background:#1b1712;color:#e4c98c;transform:translateY(-1px)}.ops-action-secondary:active{transform:translateY(0)}
+
+.ops-mgmt-tabs{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.ops-mgmt-tabs button{position:relative;height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid transparent;border-radius:9px 9px 0 0;background:transparent;color:#a39788;font-size:11.8px;font-weight:860;cursor:pointer;transition:.14s ease}
+.ops-mgmt-tabs button:hover{color:#ded4c5;background:rgba(201,154,67,.018)}
+.ops-mgmt-tabs button.is-active{color:var(--ops-gold-bright);background:rgba(228,178,75,.05);border-color:rgba(228,178,75,.15)}
+.ops-mgmt-tabs button.is-active:after{content:"";position:absolute;left:9px;right:9px;bottom:-1px;height:2px;background:var(--gold)}
+
+.ops-mgmt-board{overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#100e0b;box-shadow:inset 0 1px rgba(201,154,67,.028)}
+.ops-mgmt-board-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--line-soft);background:#14110d}
+.ops-mgmt-board-head>div{display:grid;gap:3px}.ops-mgmt-board-head h2{margin:0;color:var(--ops-title);font-size:14px}.ops-mgmt-board-head p{margin:0;color:var(--ops-sub);font-size:10px}.ops-mgmt-board-head>span{color:#8e806d;font-size:9.5px}
+
+.ops-mgmt-toolbar{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-bottom:1px solid var(--line-soft);background:#14110d}
+.ops-mgmt-filters{display:flex;align-items:center;gap:5px;min-width:0}
+.ops-mgmt-select{height:32px;min-width:100px;padding:0 27px 0 9px;border:1px solid #3a3329;border-radius:7px;background:#15120e;color:#d3c8ba;font-size:var(--ops-font-control);outline:0}
+.ops-mgmt-search{width:195px;height:32px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #3a3329;border-radius:7px;background:#15120e}
+.ops-mgmt-search svg{width:14px;color:#887d70}.ops-mgmt-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#e8dfd4;font-size:var(--ops-font-control)}.ops-mgmt-search input::placeholder{color:#756b5f}
+.ops-mgmt-select:focus,.ops-mgmt-search:focus-within{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.055)}
+.ops-mgmt-toolbar-note{color:#827669;font-size:9.3px;white-space:nowrap}
+.ops-mgmt-quiet{height:32px;display:flex;align-items:center;gap:6px;padding:0 9px;border:1px solid rgba(201,154,67,.10);border-radius:7px;background:transparent;color:#a09688;font-size:9.8px;cursor:pointer}.ops-mgmt-quiet svg{width:12px}.ops-mgmt-quiet:hover{color:#ddd3c5;border-color:rgba(201,154,67,.20)}
+
+.ops-mgmt-segments{display:flex;gap:6px}
+.ops-mgmt-segments button{height:35px;display:flex;align-items:center;gap:6px;padding:0 11px;border:1px solid rgba(201,154,67,.08);border-radius:9px;background:rgba(201,154,67,.012);color:#a39788;font-size:11.2px;font-weight:850;cursor:pointer;transition:.14s ease}
+.ops-mgmt-segments button:hover{color:#e5dbcd;border-color:rgba(201,154,67,.18)}
+.ops-mgmt-segments button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.09);color:#efd59e;box-shadow:inset 0 0 0 1px rgba(228,178,75,.05)}
+.ops-mgmt-segments button.is-exit{color:#b38b89;border-color:rgba(213,111,107,.10);background:rgba(213,111,107,.018)}
+.ops-mgmt-segments button.is-exit:hover{color:#dca29f;border-color:rgba(213,111,107,.18);background:rgba(213,111,107,.04)}
+.ops-mgmt-segments button.is-exit em{background:rgba(213,111,107,.08);color:#c88e8a}
+.ops-mgmt-segments button.is-exit.is-active{color:#efaaa5;border-color:rgba(225,116,111,.28);background:rgba(193,78,73,.10);box-shadow:inset 0 0 0 1px rgba(225,116,111,.04)}
+.ops-mgmt-segments button.is-exit.is-active em{background:rgba(225,116,111,.12);color:#f0aaa6}
+.ops-mgmt-segments em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.10);color:#ddb96d;font-size:8.5px;font-style:normal}
+
+.ops-mgmt-meta{height:33px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line-soft);color:#8b7f71;font-size:10px}.ops-mgmt-meta strong{color:#dac8a1}
+.ops-mgmt-list{display:grid}.ops-mgmt-row{border-bottom:1px solid var(--line-soft)}.ops-mgmt-row:last-child{border-bottom:0}.ops-mgmt-row:hover{background:rgba(201,154,67,.012)}
+.ops-mgmt-empty{padding:26px 12px;color:#83786b;font-size:10.5px;text-align:center}
+
+/* Members: only the data we actually expose. */
+.ops-member-row{min-height:57px;display:grid;grid-template-columns:260px 94px 140px 52px;align-items:center;gap:7px;padding:8px 11px}
+.ops-member-main{display:grid;gap:2px;min-width:0}.ops-account-main{display:flex;align-items:center;gap:9px;min-width:0}.ops-mgmt-avatar{width:31px;height:31px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(228,178,75,.10);border-radius:7px;background:rgba(228,178,75,.055);color:var(--ops-gold);font-size:10px;font-weight:900}
+.ops-member-role,.ops-asset-main,.ops-asset-holder,.ops-return-main,.ops-return-reason,.ops-return-actor,.ops-account-number,.ops-account-main>div{display:grid;gap:2px;min-width:0}
+.ops-member-main strong,.ops-asset-main strong,.ops-return-main strong,.ops-account-main strong{overflow:hidden;color:var(--ops-title);font-size:var(--ops-font-primary);font-weight:880;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-main span,.ops-member-role span,.ops-asset-main span,.ops-asset-holder span,.ops-return-main span,.ops-return-reason span,.ops-return-actor span,.ops-account-main span,.ops-account-number span{overflow:hidden;color:var(--ops-sub);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-role strong,.ops-asset-holder strong,.ops-return-reason strong,.ops-return-actor strong,.ops-account-number strong{overflow:hidden;color:var(--ops-copy);font-size:11.6px;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-state,.ops-asset-state{display:flex;align-items:center;gap:7px;min-width:0}.ops-member-state small,.ops-asset-state small{color:var(--ops-meta);font-size:9.5px;white-space:nowrap}
+
+.ops-mgmt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:22px;padding:0 7px;border:1px solid rgba(201,154,67,.10);border-radius:999px;color:#a89e90;background:rgba(255,255,255,.025);font-size:9px;font-weight:850;white-space:nowrap}
+.ops-mgmt-badge.is-green{color:#80d69f;border-color:rgba(120,211,155,.15);background:rgba(120,211,155,.055)}
+.ops-mgmt-badge.is-amber{color:#e7bb66;border-color:rgba(232,182,93,.18);background:rgba(232,182,93,.05)}
+.ops-mgmt-badge.is-muted{color:#a09688}.ops-mgmt-badge.is-red{color:#e88782;border-color:rgba(239,129,124,.18);background:rgba(239,129,124,.045)}
+.ops-mgmt-action{height:28px;min-width:42px;padding:0 7px;border:1px solid rgba(255,255,255,.085);border-radius:6px;background:transparent;color:#aca396;font-size:9.7px;font-weight:820;cursor:pointer}.ops-mgmt-action:hover{color:#efd59e;border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.035)}
+
+/* Assets view is a little wider; return history gets its own smaller contract. */
+.ops-asset-row{min-height:57px;display:grid;grid-template-columns:250px 132px 155px 52px;align-items:center;gap:7px;padding:8px 9px}
+.ops-return-row{min-height:57px;display:grid;grid-template-columns:270px 170px 105px;align-items:center;gap:9px;padding:8px 10px}
+
+/* Accounts. */
+.ops-account-review{margin-bottom:9px;overflow:hidden;border:1px solid rgba(232,182,93,.16);border-radius:9px;background:#100e0b}
+.ops-account-review-head{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid rgba(232,182,93,.10);background:rgba(232,182,93,.022)}
+.ops-account-review-head>div{display:flex;align-items:center;gap:7px}.ops-account-review-head strong{color:#ead39b;font-size:11.5px}.ops-account-review-head span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-head em{min-width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:rgba(232,182,93,.10);color:#e7bb66;font-size:8.5px;font-style:normal;font-weight:850}
+.ops-account-review article{min-height:54px;display:grid;grid-template-columns:300px 80px 96px;align-items:center;gap:8px;padding:7px 9px}.ops-account-review article>div:first-child{display:grid;gap:2px}.ops-account-review article strong{color:var(--ops-title);font-size:11.6px}.ops-account-review article span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-actions{display:flex;justify-content:flex-end;gap:4px}.ops-account-review-actions button{height:28px;padding:0 7px;border:1px solid rgba(201,154,67,.10);border-radius:6px;background:transparent;color:#aca396;font-size:9.4px;cursor:pointer}.ops-account-review-actions .is-primary{border-color:rgba(228,178,75,.28);background:rgba(228,178,75,.09);color:#efca78}
+.ops-account-row{min-height:57px;display:grid;grid-template-columns:245px 185px 98px 52px;align-items:center;gap:7px;padding:8px 9px}.ops-account-row.is-attention{background:rgba(232,182,93,.018)}.ops-account-state{display:flex;align-items:center}
+
+@media(max-width:900px){
+  .ops-member-row{grid-template-columns:minmax(220px,1fr) 90px 130px 52px}
+  .ops-asset-row{grid-template-columns:minmax(230px,1fr) 125px 150px 52px}
+  .ops-account-row{grid-template-columns:minmax(220px,1fr) 175px 96px 52px}
+}
+@media(max-width:720px){
+  .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head .ops-action-primary,.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
+  .ops-mgmt-tabs-row{align-items:stretch;flex-direction:column;border-bottom:0}.ops-mgmt-tabs-row .ops-mgmt-tabs{border-bottom:1px solid var(--line)}.ops-mgmt-tabs-row .ops-action-primary{align-self:flex-end}
+
+  .ops-mgmt-summary{grid-template-columns:1fr 1fr}.ops-mgmt-summary article:nth-child(2){border-right:0}.ops-mgmt-summary article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,200px)}
+  .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto}.ops-member-role,.ops-asset-holder,.ops-account-number{grid-column:1}.ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}.ops-mgmt-action{grid-column:2;grid-row:1 / span 3}
+  .ops-return-row{grid-template-columns:1fr}.ops-account-review article{grid-template-columns:1fr auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
+}
+
+/* AXE PRODUCT 3.12 · Viewport Compact + Alignment
+   Wide overview anchors the page. Settings controls use fixed operational lanes,
+   and all save/action controls stay inside a normal laptop browser viewport. */
+.ops-settings-page{width:100%;margin:0}
+.ops-settings-page .page-header{min-height:78px;margin-bottom:16px}.ops-settings-page .page-header h1{margin-top:5px;font-size:34px}.ops-settings-page .page-header p{margin-top:9px;font-size:13px}.ops-settings-page .page-header__actions{padding-top:17px}
+
+.ops-settings-overview{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--surface-raised),var(--surface));box-shadow:inset 0 1px rgba(201,154,67,.035)}
+.ops-settings-overview article{display:grid;gap:4px;padding:13px 15px;border-right:1px solid var(--line-soft);min-width:0}.ops-settings-overview article:last-child{border-right:0}
+.ops-settings-overview span{color:#948879;font-size:9.8px}.ops-settings-overview strong{overflow:hidden;color:var(--ops-title);font-size:18px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-settings-overview small{color:#766d61;font-size:8.8px}
+.ops-settings-overview .is-positive{color:var(--green)}.ops-settings-overview .is-warning{color:var(--amber)}
+.ops-settings-status{height:31px;display:flex;align-items:center;gap:6px;padding:0 11px;border:1px solid rgba(120,211,155,.17);border-radius:999px;background:rgba(120,211,155,.04);color:#8fd5a6;font-size:10.2px;font-weight:850}.ops-settings-status i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* Category navigation + save action occupy one compact row. */
+.ops-settings-nav-row{width:min(680px,100%);display:flex;align-items:stretch;gap:8px;margin:0 auto 9px}
+.ops-settings-tabs{min-width:0;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border:1px solid var(--line);border-radius:10px;background:#100e0b;box-shadow:inset 0 1px rgba(201,154,67,.025)}
+.ops-settings-tabs button{min-height:42px;display:grid;align-content:center;gap:1px;padding:5px 10px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;cursor:pointer;transition:.14s ease}
+.ops-settings-tabs button strong{color:#aaa093;font-size:11.7px;line-height:1.25}.ops-settings-tabs button span{color:#7d7264;font-size:9px}
+.ops-settings-tabs button:hover{border-color:rgba(201,154,67,.10);background:rgba(201,154,67,.018)}
+.ops-settings-tabs button.is-active{border-color:rgba(201,154,67,.28);background:linear-gradient(90deg,rgba(201,154,67,.13),rgba(201,154,67,.055));box-shadow:inset 3px 0 #c99a43}
+.ops-settings-tabs button.is-active strong{color:#efd59e}.ops-settings-tabs button.is-active span{color:#9c8761}
+.ops-settings-save-action{flex:0 0 auto;min-width:118px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;border:1px solid rgba(228,178,75,.36);border-radius:11px;background:linear-gradient(180deg,#111821 0%,#0c1218 100%);color:#f0cc7d;font-size:11.3px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 12px rgba(0,0,0,.12);transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease,color .12s ease}.ops-settings-save-action svg{width:14px;height:14px;stroke-width:2.15;color:#f0b84d;opacity:.95}.ops-settings-save-action:hover{border-color:rgba(237,188,84,.58);background:linear-gradient(180deg,#151e27 0%,#0e151c 100%);color:#ffe1a0;box-shadow:0 6px 14px rgba(191,132,26,.10),inset 0 1px rgba(255,255,255,.05);transform:translateY(-1px)}.ops-settings-save-action:active{background:linear-gradient(180deg,#0f151c 0%,#0b1117 100%);box-shadow:inset 0 2px 6px rgba(0,0,0,.22);transform:translateY(0)}
+.ops-settings-view{min-height:0}
+
+.ops-settings-board{overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#100e0b;box-shadow:inset 0 1px rgba(201,154,67,.028)}
+.ops-settings-basic{width:min(630px,100%);margin-left:auto;margin-right:auto}.ops-settings-modules{width:min(680px,100%);margin-left:auto;margin-right:auto}
+.ops-settings-board-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 11px;border-bottom:1px solid var(--line-soft);background:#14110d}.ops-settings-board-head>div{display:grid;gap:2px}.ops-settings-board-head h2{margin:0;color:var(--ops-title);font-size:14.5px}.ops-settings-board-head p{margin:0;color:var(--ops-sub);font-size:10px}.ops-settings-board-head>span{color:#93826a;font-size:9.5px}.ops-settings-board-head>span strong{color:var(--ops-gold-bright);font-size:11.7px}
+
+/* Basic info remains content-sized. */
+.ops-settings-row{min-height:57px;display:grid;grid-template-columns:205px max-content;align-items:center;justify-content:start;gap:14px;padding:8px 11px;border-bottom:1px solid var(--line-soft)}.ops-settings-row:last-child{border-bottom:0}.ops-settings-row>div:first-child{display:grid;gap:2px}.ops-settings-row>div:first-child strong{color:var(--ops-title);font-size:12.3px}.ops-settings-row>div:first-child span{color:var(--ops-sub);font-size:9.8px}.ops-settings-control{min-width:0;width:max-content}
+.ops-settings-control input,.ops-settings-control select,.ops-settings-channels select{height:32px;padding:0 28px 0 9px;border:1px solid #3a3329;border-radius:7px;background:#15120e;color:#e0d7cb;font-size:11px;outline:0}.ops-settings-control input{padding-right:9px}.ops-settings-control input:focus,.ops-settings-control select:focus,.ops-settings-channels select:focus{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.05)}
+.ops-settings-row--company .ops-settings-control input{width:270px}.ops-settings-row--role .ops-settings-control select{width:170px}.ops-settings-row--discord .ops-settings-control{width:270px}
+.ops-settings-discord{width:270px;height:32px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #3a3329;border-radius:7px;background:#15120e}.ops-settings-discord i{width:7px;height:7px;border-radius:50%;background:var(--green)}.ops-settings-discord strong{min-width:0;overflow:hidden;color:var(--ops-copy);font-size:11px;text-overflow:ellipsis;white-space:nowrap}.ops-settings-discord button{margin-left:auto;border:0;background:transparent;color:var(--ops-gold);font-size:9.8px;font-weight:820;cursor:pointer}
+
+/* Feature rows have a fixed 3-lane contract: copy / channels / power.
+   AMMO no longer expands the middle lane or moves the power control. */
+.ops-settings-module-list{display:grid}
+.ops-settings-module{min-height:56px;display:grid;grid-template-columns:190px 330px 68px;align-items:center;gap:10px;padding:4px 10px;border-bottom:1px solid var(--line-soft)}.ops-settings-module:last-child{border-bottom:0}.ops-settings-module.is-enabled{box-shadow:inset 2px 0 rgba(201,154,67,.52);background:linear-gradient(90deg,rgba(201,154,67,.028),transparent 32%)}
+.ops-settings-module-copy{display:grid;gap:2px;min-width:0}.ops-settings-module-copy>strong{overflow:hidden;color:var(--ops-title);font-size:12.5px;text-overflow:ellipsis;white-space:nowrap}.ops-settings-module-copy>small{overflow:hidden;color:var(--ops-sub);font-size:9.6px;text-overflow:ellipsis;white-space:nowrap}
+.ops-settings-channels{width:330px;display:flex;align-items:end;gap:6px;min-width:0}.ops-settings-channels label{display:grid;gap:2px;width:max-content;min-width:0}.ops-settings-channels span{color:#9e8c70;font-size:8.8px}.ops-settings-channels select{width:202px;height:30px;font-size:10.5px}.ops-settings-module--channels-2 .ops-settings-channels label{width:158px}.ops-settings-module--channels-2 .ops-settings-channels select{width:158px}
+.ops-settings-no-channel{width:202px;height:30px;display:flex;align-items:center;padding:0 9px;border:1px dashed rgba(228,178,75,.12);border-radius:7px;color:#95846d;font-size:9.6px}
+
+/* Power control stays on one exact X-axis for every module. */
+.ops-power-toggle{justify-self:end;width:66px;height:30px;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 7px;border:1px solid #463d31;border-radius:999px;background:#17140f;color:#85796c;cursor:pointer;transition:.15s ease;user-select:none}
+.ops-power-toggle input{position:absolute;opacity:0;pointer-events:none}.ops-power-toggle__icon{font-size:14px;line-height:1;font-weight:900}.ops-power-toggle__label{min-width:19px;font-size:8.8px;font-weight:900;letter-spacing:.03em}.ops-power-toggle__label:after{content:'OFF'}
+.ops-power-toggle:hover{border-color:#665845;color:#b9ae9f;background:#1b1712}.ops-power-toggle:has(input:checked){border-color:rgba(228,178,75,.48);background:rgba(112,87,34,.38);color:#f0ba4d;box-shadow:0 0 0 2px rgba(228,178,75,.045),inset 0 0 16px rgba(228,178,75,.05)}
+.ops-power-toggle:has(input:checked) .ops-power-toggle__icon{text-shadow:0 0 9px rgba(240,186,77,.35)}.ops-power-toggle:has(input:checked) .ops-power-toggle__label:after{content:'ON'}.ops-power-toggle:focus-within{outline:2px solid rgba(228,178,75,.18);outline-offset:2px}
+
+/* Bridge note is absorbed into the feature board so it cannot push Save below viewport. */
+.ops-settings-module-foot{min-height:34px;display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid rgba(228,178,75,.10);background:rgba(228,178,75,.018);white-space:nowrap;overflow:hidden}
+.ops-settings-module-foot strong{flex:0 0 auto;color:#d7b66f;font-size:9.5px}.ops-settings-module-foot span{overflow:hidden;color:#897c6e;font-size:9px;text-overflow:ellipsis}
+
+/* Vertical compact mode is based on browser viewport, not physical monitor pixels. */
+@media(max-height:940px) and (min-width:761px){
+  .ops-settings-page .page-header{min-height:70px;margin-bottom:10px}.ops-settings-page .page-header__actions{padding-top:12px}
+  .ops-settings-overview{margin-bottom:9px}.ops-settings-overview article{padding-top:10px;padding-bottom:10px}
+  .ops-settings-nav-row{margin-bottom:7px}
+}
+
+@media(max-width:760px){
+  .ops-settings-overview{grid-template-columns:1fr 1fr}.ops-settings-overview article:nth-child(2){border-right:0}.ops-settings-overview article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .ops-settings-nav-row{width:100%;align-items:stretch;flex-direction:column}.ops-settings-tabs{width:100%}.ops-settings-tabs button span{display:none}.ops-settings-save-action{flex-basis:36px;min-height:36px}
+  .ops-settings-basic,.ops-settings-modules{width:100%}
+  .ops-settings-row{grid-template-columns:1fr;gap:7px}.ops-settings-control,.ops-settings-row--discord .ops-settings-control{width:100%}.ops-settings-row--company .ops-settings-control input,.ops-settings-row--role .ops-settings-control select,.ops-settings-discord{width:min(100%,300px)}
+  .ops-settings-module{grid-template-columns:1fr 68px}.ops-settings-channels,.ops-settings-no-channel{grid-column:1/-1}.ops-power-toggle{grid-column:2;grid-row:1}.ops-settings-channels{width:100%;flex-wrap:wrap}.ops-settings-channels select,.ops-settings-module--channels-2 .ops-settings-channels select{width:170px}.ops-settings-module--channels-2 .ops-settings-channels label{width:170px}
+  .ops-settings-module-foot{white-space:normal;align-items:flex-start;flex-direction:column}
+}
+
+/* MODAL ----------------------------------------------------------------- */
+
+.modal-backdrop{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;
+  background:rgba(0,0,0,.68);backdrop-filter:blur(3px)
+}
+.modal{
+  width:min(630px,100%);overflow:hidden;border:1px solid #40382d;border-radius:14px;background:#15120e;box-shadow:0 34px 100px rgba(0,0,0,.55)
+}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:16px;border-bottom:1px solid var(--line-soft)}
+.modal-header h2{margin:5px 0 0;font-size:18px}.modal-header p{margin:6px 0 0;color:#887c6e;font-size:9.5px}
+.modal-header>button{width:31px;height:31px;border:0;background:transparent;color:#918577;font-size:20px;cursor:pointer}
+.modal form{padding:15px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-field{display:grid;gap:5px}.modal-field.full{margin-top:10px}
+.modal-field>span{color:#7a8692;font-size:9px}
+.modal-field input,.modal-field select,.modal-field textarea{
+  width:100%;border:1px solid #3a3329;border-radius:9px;background:var(--surface-input);color:#e5dccf;font-size:10.5px;outline:0
+}
+.modal-field input,.modal-field select{height:40px;padding:0 10px}
+.modal-field textarea{min-height:78px;padding:9px 10px;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
+/* TOAST ----------------------------------------------------------------- */
+
+.toast{
+  position:fixed;left:50%;bottom:22px;z-index:120;
+  transform:translate(-50%,18px);opacity:0;
+  padding:10px 13px;border:1px solid #42392d;border-radius:9px;background:#1b1712;color:#e9e0d4;font-size:9.5px;
+  transition:.16s;pointer-events:none
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.preview-fatal{max-width:720px;margin:80px auto;padding:22px;border:1px solid rgba(239,129,124,.35);border-radius:12px;background:#15120e;color:#f1f4f7;display:grid;gap:8px}.preview-fatal strong{color:#ef817c;font-size:16px}.preview-fatal span{color:#c8c0b4;font-size:12px;word-break:break-word}
+
+/* FEEDBACK / REPORT ------------------------------------------------------ */
+.feedback-modal{width:min(520px,100%);border-color:rgba(228,178,75,.18);background:#14110d}.feedback-modal-head{background:linear-gradient(180deg,rgba(228,178,75,.035),transparent)}.feedback-form{padding:14px!important}.feedback-type-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:2px}.feedback-type-row button{height:34px;border:1px solid rgba(201,154,67,.10);border-radius:8px;background:#17140f;color:#988d7e;font-size:10.2px;font-weight:850;cursor:pointer;transition:.14s ease}.feedback-type-row button:hover{color:#e2d8ca;border-color:rgba(201,154,67,.20)}.feedback-type-row button.is-active{border-color:rgba(228,178,75,.30);background:rgba(228,178,75,.075);color:#efd59e;box-shadow:inset 0 0 0 1px rgba(228,178,75,.035)}.feedback-form .modal-field>span{font-size:9.7px;color:#9c9080}.feedback-form .modal-field>span em{margin-left:4px;color:#766b5e;font-size:8.5px;font-style:normal}.feedback-form .modal-field input,.feedback-form .modal-field textarea{font-size:11px}.feedback-form .modal-field textarea{min-height:94px;resize:none}.feedback-context{display:flex;align-items:center;gap:7px;margin-top:10px;padding:8px 9px;border:1px solid rgba(201,154,67,.075);border-radius:8px;background:rgba(201,154,67,.012);color:#83776a;font-size:9.2px;line-height:1.4}.feedback-context svg{width:13px;height:13px;color:#a9894b;flex:0 0 auto}.feedback-actions{align-items:center}.feedback-cancel,.feedback-submit{height:34px;padding:0 11px;border-radius:8px;font-size:10.3px;font-weight:850;cursor:pointer}.feedback-cancel{border:1px solid rgba(201,154,67,.10);background:transparent;color:#9f9383}.feedback-cancel:hover{border-color:rgba(201,154,67,.20);color:#dfd5c8}.feedback-submit{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(228,178,75,.40);background:linear-gradient(180deg,rgba(68,52,22,.98),rgba(34,28,17,.99));color:#efc66d}.feedback-submit:hover{border-color:rgba(236,187,81,.60);color:#ffe0a0;background:linear-gradient(180deg,rgba(78,59,24,.99),rgba(41,32,18,.99))}
+
+/* RESPONSIVE ------------------------------------------------------------ */
+
+@media(max-width:1440px){
+  .workspace-shell{grid-template-columns:220px minmax(0,1fr);gap:16px}
+  .global-header__inner,.workspace-shell{width:calc(100% - 48px)}
+  .basic-settings__grid{grid-template-columns:1fr 1fr}
+  .basic-settings__grid>label:nth-child(2){border-right:0}
+  .basic-settings__grid>label:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .summary-strip{grid-template-columns:1fr 1fr}
+  .summary-metric:nth-child(2){border-right:0}
+  .summary-metric:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+}
+
+@media(max-width:980px){
+  .account-review-list article{grid-template-columns:1fr auto}
+  .account-review-actions{grid-column:1/-1;justify-content:flex-start}
+  .member-toolbar-filters{margin-left:0}
+  .toolbar-note{white-space:normal}
+
+  .module-grid{grid-template-columns:1fr}
+  .toolbar{align-items:stretch;flex-direction:column}
+  .toolbar__filters{flex-wrap:wrap}
+  .member-search{margin-left:0}
+}
+
+@media(max-width:760px){
+  .account-review-list article{grid-template-columns:1fr}
+  .account-review-actions{justify-content:flex-start}
+
+  .global-header{height:60px}.global-header__inner{width:calc(100% - 20px)}
+  .product-brand small{display:none}
+  .workspace-shell{display:block;width:100%;margin-top:0}
+  .sidebar{position:static;min-height:auto;padding:9px;border-left:0;border-right:0;border-radius:0}
+  .company-switcher,.sidebar-footer,.sidebar-nav__label{display:none}
+  .sidebar-nav{display:flex;gap:4px;margin:0;padding:0;border:0;overflow:auto}
+  .nav-item{flex:0 0 auto;width:max-content;height:42px;padding:0 9px;font-size:11px}
+  .main{padding:18px 10px 60px}
+  .page-header{min-height:0;align-items:flex-start;flex-direction:column}
+  .page-header h1{font-size:27px}.page-header p{font-size:11px}
+  .page-header__actions{width:100%;padding-top:0}.page-header__actions .button{flex:1}
+  .summary-strip{grid-template-columns:1fr}
+  .summary-metric{border-right:0;border-bottom:1px solid var(--line-soft)}
+  .summary-metric:last-child{border-bottom:0}
+  .toolbar__filters{align-items:stretch;flex-direction:column}
+  .search-control,.control-select{width:100%}
+  .basic-settings__grid{grid-template-columns:1fr}
+  .basic-settings__grid>label{border-right:0;border-bottom:1px solid var(--line-soft)}
+  .discord-server{min-height:66px}
+  .module-grid{padding:8px}
+  .module-card__channels{grid-template-columns:1fr}
+  .module-card__channels label:only-child{grid-column:auto}
+  .modal-grid{grid-template-columns:1fr}
+  .save-bar{align-items:stretch;flex-direction:column}.save-bar .button{width:100%}
+}
+
+
+/* AXE PRODUCT STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
+html,body,#app{min-height:100%;}
+body{margin:0;background:radial-gradient(circle at 50% -12%,rgba(201,154,67,.035),transparent 30%),var(--bg);color:var(--text);overflow-x:hidden;}
+button,select,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+.runtime-app{min-height:100vh}
+.runtime-banner{position:fixed;z-index:9999;left:50%;top:12px;transform:translateX(-50%);max-width:min(720px,calc(100vw - 32px));padding:10px 14px;border-radius:10px;font-size:12px;font-weight:800;box-shadow:0 14px 32px rgba(0,0,0,.28)}
+.runtime-banner--error{border:1px solid rgba(255,108,108,.35);background:#241114;color:#ffb3b3}.runtime-banner--notice{border:1px solid rgba(201,154,67,.3);background:#211a0e;color:#efd18d}.runtime-banner button{margin-left:10px;border:0;background:transparent;color:inherit}
+.runtime-auth{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 10%,rgba(201,154,67,.07),transparent 36%),#090806}.runtime-auth-card{width:min(480px,100%);padding:34px;border:1px solid #342f26;border-radius:18px;background:#110f0b;box-shadow:0 22px 60px rgba(0,0,0,.3)}.product-brand--login{margin-bottom:30px}.runtime-auth-kicker{color:#b98c3e;font-size:10px;font-weight:900;letter-spacing:.15em}.runtime-auth h1{margin:10px 0 8px;font-size:34px}.runtime-auth p{color:#998f81;font-size:13px;line-height:1.65}.runtime-login-button{width:100%;height:44px;margin-top:20px;border:1px solid rgba(201,154,67,.45);border-radius:11px;background:#17130b;color:#f1c96f;font-weight:900}.runtime-login-button:hover{background:#21190c}.runtime-login-button--ghost{background:#15120e;border-color:#3b3429;color:#e1d8cc}.runtime-auth--onboarding{align-items:start;padding-top:12vh}.runtime-onboarding{width:min(900px,100%);display:grid;grid-template-columns:1fr 1fr;gap:14px}.runtime-onboarding-card{padding:24px;border:1px solid #342f26;border-radius:15px;background:#110f0b}.runtime-onboarding-card>span{color:#b98c3e;font-size:9px;font-weight:900;letter-spacing:.12em}.runtime-onboarding-card h2{margin:8px 0}.runtime-onboarding-card form{display:grid;gap:12px;margin-top:18px}.runtime-onboarding-card label{display:grid;gap:6px;color:#b9aea0;font-size:11px}.runtime-onboarding-card input{height:40px;border:1px solid #3b3429;border-radius:9px;background:#0f0d0a;color:#eee6dc;padding:0 11px}
+.runtime-company-picker{position:relative;width:100%}.runtime-company-trigger{width:100%;height:52px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 11px;border:1px solid #3a3329;border-radius:10px;background:#15120e;color:#f0e9df;text-align:left}.runtime-company-trigger>span{display:grid;gap:2px;min-width:0}.runtime-company-trigger strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.runtime-company-trigger small{color:#827667;font-size:8.5px}.runtime-company-trigger>b{color:#948676;font-size:12px;transition:.14s}.runtime-company-picker.is-open .runtime-company-trigger{border-color:rgba(201,154,67,.42);box-shadow:0 0 0 2px rgba(201,154,67,.045)}.runtime-company-picker.is-open .runtime-company-trigger>b{transform:rotate(180deg)}.runtime-company-menu{position:absolute;z-index:120;top:58px;left:0;right:0;display:grid;gap:4px;padding:6px;border:1px solid #3b3429;border-radius:10px;background:#12100c;box-shadow:0 18px 38px rgba(0,0,0,.38)}.runtime-company-menu button{min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#c8bfb2;font-size:10.5px;text-align:left}.runtime-company-menu button:hover{background:#1a1712;color:#f0e9df}.runtime-company-menu button.is-current{border-color:rgba(201,154,67,.18);background:rgba(201,154,67,.055);color:#efd59e}.runtime-company-menu em{color:#c29a50;font-size:8px;font-style:normal}.runtime-auth--startup{background:#090806}.runtime-startup-card{display:flex;align-items:center;gap:12px;padding:18px 20px;border:1px solid #332d24;border-radius:13px;background:#100e0b;box-shadow:0 16px 40px rgba(0,0,0,.2)}.runtime-startup-card strong{font-size:13px}.runtime-startup-card p{margin:3px 0 0;color:#897d6f;font-size:10px}.runtime-startup-spinner{width:18px;height:18px;border:2px solid #40372c;border-top-color:#c79b45;border-radius:50%;animation:axe-spin .8s linear infinite}@keyframes axe-spin{to{transform:rotate(360deg)}}.connection-status.is-off i{background:#7f7467!important;box-shadow:none!important}.runtime-loading{height:240px;display:grid;place-items:center;color:#9d9181}.runtime-permission{width:min(680px,100%);display:grid;gap:6px;padding:28px;border:1px solid #393127;border-radius:14px;background:#110f0b}.runtime-permission strong{font-size:18px}.runtime-permission span{color:#918577;font-size:12px}
+.ops-mgmt-list{max-height:430px;overflow:auto}.axe-fund-history-list{max-height:430px;overflow:auto}.axe-fund-review-list{max-height:430px;overflow:auto}.ops-account-review{max-height:215px;overflow:auto}.runtime-inline-loading{grid-column:1/-1;padding:24px;color:#908476;text-align:center;font-size:11px}.runtime-fee-controls{display:flex;gap:8px;align-items:center}.runtime-settings-save{display:flex;justify-content:flex-end;padding:10px 0 0}.runtime-module-list{display:grid}.runtime-bot-note{min-height:34px;display:flex;align-items:center;gap:8px;padding:0 11px;border-top:1px solid var(--line-soft);color:#897c6e;font-size:9.5px}.runtime-bot-note strong{color:#c6a15b}.runtime-power{width:72px;height:34px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;font-size:10px;font-weight:900;transition:.15s}.runtime-power svg{width:14px;height:14px}.runtime-power.is-on{border:1px solid rgba(201,154,67,.48);background:rgba(114,83,25,.35);color:#f0b94f;box-shadow:0 0 0 3px rgba(201,154,67,.04)}.runtime-power.is-off{border:1px solid #493f32;background:#17140f;color:#918577}.runtime-power:hover{transform:translateY(-1px)}
+.runtime-modal-backdrop{position:fixed;z-index:5000;inset:0;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.68);backdrop-filter:blur(4px)}.runtime-modal{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;border:1px solid #3a3329;border-radius:15px;background:#100e0b;box-shadow:0 28px 70px rgba(0,0,0,.48)}.runtime-modal.is-wide{width:min(700px,100%)}.runtime-modal>header{min-height:76px;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #2d271f;background:#15120e}.runtime-modal>header h2{margin:0;color:#f2ece3;font-size:18px}.runtime-modal>header p{margin:4px 0 0;color:#918577;font-size:10px}.runtime-modal>header button{width:30px;height:30px;border:1px solid #313c46;border-radius:8px;background:#0b1015;color:#b7ada0;font-size:18px}.runtime-modal-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}.runtime-modal-form label{display:grid;gap:6px;color:#afa496;font-size:10.5px;font-weight:800}.runtime-modal-form label.is-full{grid-column:1/-1}.runtime-modal-form input,.runtime-modal-form select,.runtime-modal-form textarea{width:100%;min-width:0;border:1px solid #3a3329;border-radius:9px;background:#14110d;color:#eee6dc;outline:0}.runtime-modal-form input,.runtime-modal-form select{height:38px;padding:0 10px}.runtime-modal-form textarea{min-height:90px;padding:10px;resize:vertical}.runtime-modal-form input:focus,.runtime-modal-form select:focus,.runtime-modal-form textarea:focus{border-color:rgba(201,154,67,.48)}.runtime-modal-form footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px}.runtime-modal-form footer>div{display:flex;gap:8px}.runtime-btn-primary,.runtime-btn-ghost,.runtime-btn-danger{height:36px;padding:0 14px;border-radius:9px;font-size:10.5px;font-weight:900}.runtime-btn-primary{border:1px solid rgba(201,154,67,.42);background:#17130b;color:#edc468}.runtime-btn-ghost{border:1px solid #40372d;background:#12100c;color:#bab0a2}.runtime-btn-danger{border:1px solid rgba(255,104,104,.3);background:rgba(94,31,31,.18);color:#f08c8c}.runtime-invite-code{display:grid;grid-template-columns:1fr auto;gap:8px;padding:18px}.runtime-invite-code span{grid-column:1/-1;color:#85919d;font-size:10px}.runtime-invite-code strong{padding:10px 12px;border:1px solid rgba(201,154,67,.25);border-radius:9px;color:#f0c56e;background:#17130c;font-family:monospace}.runtime-invite-code button{border:1px solid #463c30;border-radius:9px;background:#15120e;color:#ddd3c6}.runtime-modal-simple-footer{display:flex;justify-content:flex-end;padding:0 18px 18px}.ops-mgmt-tabs--with-action{display:flex;align-items:flex-end;justify-content:space-between}.ops-mgmt-tabs__items{display:flex;gap:6px}.ops-mgmt-tabs__items button{position:relative;height:40px;padding:0 12px;border:1px solid transparent;border-radius:9px 9px 0 0;background:transparent;color:#a39788;font-size:11.8px;font-weight:860}.ops-mgmt-tabs__items button.is-active{color:#efd59e;background:rgba(201,154,67,.05);border-color:rgba(201,154,67,.15)}.ops-mgmt-tabs__items button.is-active:after{content:"";position:absolute;left:9px;right:9px;bottom:-1px;height:2px;background:var(--gold)}.ops-mgmt-segments button.is-left{color:#aa8080}.ops-mgmt-segments button.is-left.is-active{border-color:rgba(214,86,86,.24);background:rgba(214,86,86,.07);color:#e89a9a}.ops-mgmt-action:disabled{opacity:.28}.page-header__actions:empty{display:none}
+@media(max-width:900px){.runtime-onboarding{grid-template-columns:1fr}.runtime-modal-form{grid-template-columns:1fr}.runtime-modal-form label.is-full,.runtime-modal-form footer{grid-column:1}.ops-mgmt-list,.axe-fund-history-list,.axe-fund-review-list{max-height:none}.runtime-power{width:66px}.ops-settings-module{grid-template-columns:1fr 72px!important}.ops-settings-channels,.ops-settings-no-channel{grid-column:1/-1}.runtime-power{grid-column:2;grid-row:1}.workspace-shell{padding-left:12px!important;padding-right:12px!important}}
+
+
+/* 3.14.4 runtime layout fidelity fixes */
+.axe-fund-subview--settings .axe-fund-settings-list{min-width:0}
+.axe-fund-subview--settings .axe-fund-setting{grid-template-columns:205px minmax(0,1fr);gap:12px;min-width:0}
+.axe-fund-subview--settings .runtime-fee-controls{width:100%;min-width:0;gap:6px;justify-content:flex-start}
+.axe-fund-subview--settings .runtime-fee-controls>.axe-fund-select{width:112px;min-width:112px}
+.axe-fund-subview--settings .axe-fund-money-control{flex:0 0 auto;gap:4px}
+.axe-fund-subview--settings .axe-fund-money-control input{width:86px}
+.axe-fund-subview--settings .runtime-settings-save{padding:9px 11px;border-top:1px solid var(--line-soft)}
+.axe-fund-subview--settings .runtime-settings-save .axe-fund-primary{height:32px;padding:0 12px;font-size:10px}
+.runtime-power{justify-self:end;width:66px;height:30px;padding:0 7px;gap:5px}
+.runtime-power svg{width:13px;height:13px}
+.ops-settings-module--channels-2 .runtime-power{justify-self:end}
+
+/* AXE BRAND SKIN 3.14.6: native option palette */
+select{color-scheme:dark} select option{background:#15120e;color:#e8dfd3}</style><style>
+/* AXE PRODUCT 3.14.7 · AXE NET BLACK + SUBTLE GOLD
+   Visual-only override. Layout, runtime, RPC, auth and data flow are unchanged. */
+:root{
+  --bg:#08090b;
+  --header:#090a0c;
+  --sidebar:#0b0d10;
+  --surface:#0c0e11;
+  --surface-raised:#0f1114;
+  --surface-input:#111317;
+  --line:rgba(255,255,255,.085);
+  --line-soft:rgba(255,255,255,.055);
+  --text:#e9e5dd;
+  --text-2:#d8d4cc;
+  --muted:#85888d;
+  --sub:#686c72;
+  --gold:#d5a343;
+  --gold-strong:#e2b45a;
+  --gold-soft:rgba(255,181,46,.038);
+  --amber:#d6ad61;
+  --amber-soft:rgba(255,181,46,.045);
+  --green:#83d4a4;
+  --green-soft:rgba(93,191,127,.07);
+  --red:#ef8f89;
+  --red-soft:rgba(255,92,92,.055);
+  --ops-title:#e9e5dd;
+  --ops-copy:#d8d4cc;
+  --ops-sub:#777c83;
+  --ops-meta:#666b72;
+  --ops-gold:#cda554;
+  --ops-gold-bright:#d9b566;
+}
+
+body{background:var(--bg);color:var(--text)}
+.global-header{background:#090a0c;box-shadow:none}
+.product-brand small{color:#6f7379}
+.environment-pill,.icon-button{background:#0e1013;color:#858a91}
+.icon-button:hover{border-color:rgba(255,255,255,.15);background:#111317;color:#e3ded5}
+
+.sidebar{background:#0b0d10;box-shadow:none}
+.overline{color:#62666c}.overline.gold{color:#9d8049}
+.runtime-company-trigger,.company-select{background:#0f1114!important;border-color:rgba(255,255,255,.09)!important;color:#e7e3dc!important}
+.runtime-company-trigger small,.company-select__copy small{color:#666b72!important}
+.runtime-company-menu{background:#0c0e11!important;border-color:rgba(255,255,255,.10)!important}
+.runtime-company-menu button{color:#aaa9a5!important}.runtime-company-menu button:hover{background:rgba(255,255,255,.025)!important;color:#e8e3d9!important}
+.runtime-company-menu button.is-current{background:rgba(255,181,46,.035)!important;border-color:rgba(255,181,46,.16)!important;color:#d6b16a!important}
+.company-quick-actions button{background:#0f1114;color:#999da3}
+.company-quick-actions .accent-action{background:rgba(255,181,46,.025);border-color:rgba(255,181,46,.16);color:#cda554}
+.sidebar-nav__label{color:#565b61}
+.nav-item{color:#aaa9a5}
+.nav-item:hover{background:rgba(255,255,255,.022);color:#e8e3d9}
+.nav-item.is-active{background:rgba(255,181,46,.035);color:#e7d6b4;box-shadow:inset 2px 0 rgba(213,163,67,.74)}
+.nav-item__icon{color:#6e7379}.nav-item.is-active .nav-item__icon{color:#cda554}
+.nav-item--support{color:#989a9d}.nav-item--support:hover{background:rgba(255,255,255,.022);color:#ddd8cf}.nav-item--support .nav-item__icon{color:#7f735e}.nav-item--support:hover .nav-item__icon{color:#cda554}
+.account-summary{border-left-color:rgba(213,163,67,.22)}
+.connection-status small,.account-summary small{color:#666b72}
+.mini-icon{color:#73787f}.mini-icon:hover{background:rgba(255,255,255,.025);color:#ded9d0}
+
+/* Surfaces stay neutral black. Gold is reserved for state and action accents. */
+.summary-strip,.panel,.ops-mgmt-summary,.ops-mgmt-board,.ops-settings-overview,.ops-settings-board,
+.axe-fund-card,.axe-fund-review-card,.axe-fund-settings-list,.axe-fund-history-surface{
+  background:#0c0e11!important;
+  box-shadow:none!important;
+}
+.panel-heading,.toolbar,.ops-mgmt-toolbar,.ops-settings-board-head{background:#0f1114!important}
+.summary-metric>span{color:#777b82}.summary-metric>small{color:#5f646a}
+
+.button{background:#111317;color:#bab7b0}
+.button:hover{background:#15171a;border-color:rgba(255,255,255,.15);color:#e5e1d8}
+.button--primary{border-color:rgba(255,181,46,.24);background:#12130f;color:#d9b566;text-shadow:none;box-shadow:none}
+.button--primary:hover{border-color:rgba(255,181,46,.38);background:#17160f;color:#e5c57f}
+.button--secondary{background:#111317;color:#aaa9a5}
+
+.tab-row button,.axe-fund-tabs button,.ops-mgmt-tabs button,.ops-mgmt-tabs__items button{color:#7f838a}
+.tab-row button:hover,.axe-fund-tabs button:hover,.ops-mgmt-tabs button:hover,.ops-mgmt-tabs__items button:hover{background:rgba(255,255,255,.012);color:#ddd8cf}
+.tab-row button.is-active,.axe-fund-tabs button.is-active,.ops-mgmt-tabs button.is-active,.ops-mgmt-tabs__items button.is-active{color:#d6b16a;background:transparent;border-color:transparent}
+.tab-row button.is-active:after,.axe-fund-tabs button.is-active:after,.ops-mgmt-tabs button.is-active:after,.ops-mgmt-tabs__items button.is-active:after{background:#d5a343}
+
+.search-control,.control-select,.ops-mgmt-search,.ops-mgmt-select,.ops-settings-control input,.ops-settings-control select,.ops-settings-channels select,
+.axe-fund-select,.axe-fund-input,.axe-fund-history-select,.runtime-modal-form input,.runtime-modal-form select,.runtime-modal-form textarea{
+  background:#111317!important;border-color:rgba(255,255,255,.09)!important;color:#ded9d0!important
+}
+.search-control input{color:#ded9d0}.search-control input::placeholder{color:#5f646a}
+.control-select:focus,.search-control:focus-within,.ops-mgmt-search:focus-within,.ops-mgmt-select:focus,.ops-settings-control input:focus,.ops-settings-control select:focus,.ops-settings-channels select:focus,.axe-fund-select:focus,.axe-fund-input:focus,.axe-fund-history-select:focus,.runtime-modal-form input:focus,.runtime-modal-form select:focus,.runtime-modal-form textarea:focus{
+  border-color:rgba(255,181,46,.28)!important;box-shadow:0 0 0 2px rgba(255,181,46,.035)!important
+}
+select{color-scheme:dark}select option{background:#111317;color:#ded9d0}
+
+.data-table th{background:#0f1114;color:#7f838a}.data-table tbody tr:hover{background:rgba(255,255,255,.015)}
+.row-actions button:hover{background:rgba(255,255,255,.022);color:#e3ded5}
+.badge--neutral{background:rgba(255,255,255,.025);color:#93979d}
+.text-action{color:#cda554}
+
+/* Management screens: remove warm washes, keep only small active clues. */
+.ops-mgmt-segments button{background:transparent;border-color:rgba(255,255,255,.05);color:#85888d}
+.ops-mgmt-segments button:hover{border-color:rgba(255,255,255,.11);color:#d7d3cb}
+.ops-mgmt-segments button.is-active{border-color:rgba(255,181,46,.15);background:rgba(255,181,46,.03);color:#d6b16a;box-shadow:none}
+.ops-mgmt-segments em{background:rgba(255,255,255,.035);color:#8f9399}
+.ops-mgmt-segments button.is-active em{background:rgba(255,181,46,.055);color:#cda554}
+.ops-mgmt-row:hover{background:rgba(255,255,255,.012)}
+.ops-mgmt-action{background:transparent!important;border-color:rgba(255,255,255,.08)!important;color:#999da3!important}
+.ops-mgmt-action:hover{background:rgba(255,255,255,.018)!important;border-color:rgba(255,255,255,.14)!important;color:#e3ded5!important}
+
+/* Settings: black first, gold only on selected tab / enabled power. */
+.ops-settings-tabs{background:#0c0e11}
+.ops-settings-tabs button strong{color:#9b9da1}.ops-settings-tabs button span{color:#666b72}
+.ops-settings-tabs button:hover{background:rgba(255,255,255,.012);border-color:rgba(255,255,255,.07)}
+.ops-settings-tabs button.is-active{border-color:rgba(255,181,46,.14);background:rgba(255,181,46,.025);box-shadow:inset 2px 0 rgba(213,163,67,.68)}
+.ops-settings-tabs button.is-active strong{color:#d8c39b}.ops-settings-tabs button.is-active span{color:#83755d}
+.ops-settings-save-action{border-color:rgba(255,181,46,.22);background:#111317;color:#d6b16a;box-shadow:none}
+.ops-settings-save-action svg{color:#cda554}.ops-settings-save-action:hover{border-color:rgba(255,181,46,.34);background:#15171a;color:#e3c57f;box-shadow:none}
+.ops-settings-module.is-enabled{box-shadow:inset 2px 0 rgba(213,163,67,.42)}
+.ops-settings-no-channel{border-color:rgba(255,181,46,.10);color:#7f765f}
+.ops-power-toggle,.runtime-power.is-off{border-color:rgba(255,255,255,.10);background:#111317;color:#777b82}
+.ops-power-toggle:hover,.runtime-power.is-off:hover{border-color:rgba(255,255,255,.15);background:#15171a;color:#a8aaad}
+.ops-power-toggle:has(input:checked),.runtime-power.is-on{border-color:rgba(255,181,46,.30);background:rgba(255,181,46,.055);color:#d9b566;box-shadow:none}
+.ops-power-toggle:has(input:checked) .ops-power-toggle__icon{text-shadow:none}
+.ops-settings-module-foot,.runtime-bot-note{background:rgba(255,255,255,.008);border-top-color:rgba(255,255,255,.055)}
+.ops-settings-module-foot strong,.runtime-bot-note strong{color:#a88a52}
+
+/* Runtime/login/modal surfaces follow the same AXE NET temperature. */
+.runtime-auth{background:#08090b}.runtime-auth-card,.runtime-onboarding-card,.runtime-startup-card,.runtime-permission{background:#0c0e11;border-color:rgba(255,255,255,.085)}
+.runtime-auth p,.runtime-startup-card p,.runtime-permission span{color:#7f838a}
+.runtime-onboarding-card input{background:#111317;border-color:rgba(255,255,255,.09);color:#ded9d0}
+.runtime-login-button{border-color:rgba(255,181,46,.24);background:#111317;color:#d9b566}.runtime-login-button:hover{background:#15171a}
+.runtime-login-button--ghost{background:#111317;border-color:rgba(255,255,255,.09);color:#bab7b0}
+.runtime-modal{background:#0c0e11;border-color:rgba(255,255,255,.10)}.runtime-modal>header{background:#0f1114;border-bottom-color:rgba(255,255,255,.06)}
+.runtime-modal>header h2{color:#e9e5dd}.runtime-modal>header p{color:#7f838a}
+.runtime-btn-primary{border-color:rgba(255,181,46,.22);background:#111317;color:#d9b566}.runtime-btn-ghost{border-color:rgba(255,255,255,.09);background:#111317;color:#aaa9a5}
+.feedback-modal{background:#0c0e11!important;border-color:rgba(255,255,255,.10)!important}.feedback-modal-head{background:#0f1114!important}
+.feedback-type-row button{background:#111317!important;color:#85888d!important}.feedback-type-row button.is-active{background:rgba(255,181,46,.03)!important;border-color:rgba(255,181,46,.16)!important;color:#d6b16a!important;box-shadow:none!important}
+.feedback-submit{border-color:rgba(255,181,46,.22)!important;background:#111317!important;color:#d9b566!important}.feedback-submit:hover{border-color:rgba(255,181,46,.36)!important;background:#15171a!important;color:#e3c57f!important}
+
+/* Preserve the AXE NET ledger as visual source of truth. */
+.axe-fund-history-surface{background:#0c0e11!important;border-color:rgba(255,255,255,.075)!important}
+.axe-fund-history-toolbar{background:#0f1114!important}
+.axe-fund-history-row:hover{background:rgba(255,255,255,.015)!important}
+
+</style>
+</head><body><div id="app"></div><script>const ROLE_LABEL = { owner: 'OWNER', admin: 'ADMIN', manager: 'MANAGER', member: 'MEMBER' };
+const ROLE_KO = { owner: '대표', admin: '관리자', manager: '매니저', member: '멤버' };
+
+function esc(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function icon(name) {
+  const icons = {
+    fund:'<path d="M7 3v18M3 7h8M4 11h7M6 7v8M3 15h8"/>',
+    members:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    assets:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2M3 10h18"/>',
+    accounts:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/>',
+    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2v-4h.1A1.7 1.7 0 0 0 3.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8 3.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 15 3.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 20.4 8a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7 1.6z"/>',
+    feedback:'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/>',
+    refresh:'<path d="M20 11a8 8 0 1 0 2 5"/><path d="M20 4v7h-7"/>',
+    more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h8"/><path d="M8 17h8"/><path d="M9 9h6"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+    power:'<path d="M12 2v10"/><path d="M18.4 6.6a8 8 0 1 1-12.8 0"/>',
+    logout:'<path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 3h7v18h-7"/>',
+    upload:'<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 21h14"/>',
+    check:'<path d="m5 12 4 4L19 6"/>',
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.settings}</svg>`;
+}
+
+function money(value) {
+  const n = Number(value || 0);
+  return `${Math.abs(n).toLocaleString('ko-KR')}원`;
+}
+function signedMoney(value) {
+  const n = Number(value || 0);
+  if (!n) return '0원';
+  return `${n > 0 ? '+' : '-'}${Math.abs(n).toLocaleString('ko-KR')}원`;
+}
+function fmtDate(value, short = false) {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return new Intl.DateTimeFormat('ko-KR', short ? { year:'numeric', month:'2-digit', day:'2-digit' } : {
+    year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+  }).format(d);
+}
+function dateKey(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value || '').slice(0,10);
+  const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function currentCompany(state) { return (state.companies || []).find(c => c.id === state.companyId) || null; }
+function currentMembership(state) { return (state.memberships || []).find(m => m.user_id === state.session?.user?.id) || null; }
+function canAdmin(state) { return ['owner','admin'].includes(currentMembership(state)?.role); }
+function moduleEnabled(state, key) { return (state.modules || []).some(m => m.module_key === key && Boolean(m.enabled)); }
+function moduleRow(state, key) { return (state.modules || []).find(m => m.module_key === key) || null; }
+function companyDisplayName(state) { return state.companySettings?.brand_name || currentCompany(state)?.name || '회사'; }
+function userDisplayName(state) {
+  const m = currentMembership(state);
+  return m?.display_name || state.session?.user?.user_metadata?.full_name || state.session?.user?.user_metadata?.name || '사용자';
+}
+
+function renderShell(root, state) {
+  const user = state.session?.user;
+  root.innerHTML = `
+    ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
+    ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : !state.companies?.length ? renderOnboarding(state) : renderAuthed(state)}
+  `;
+}
+
+function renderStartupLoading() {
+  return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card"><span class="runtime-startup-spinner" aria-hidden="true"></span><div><strong>AXE PRODUCT</strong><p>회사 정보를 불러오는 중입니다.</p></div></div></section>`;
+}
+
+function renderEnvironmentMissing() {
+  return `<section class="runtime-auth"><div class="runtime-auth-card"><strong>AXE PRODUCT</strong><h1>STAGING 환경 설정이 필요합니다.</h1><p>VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY를 Vercel 환경변수에 설정해 주세요.</p></div></section>`;
+}
+
+function renderLogin(state) {
+  return `<section class="runtime-auth"><div class="runtime-auth-card">
+    <div class="product-brand product-brand--login"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
+    <span class="runtime-auth-kicker">PRODUCT STAGING</span>
+    <h1>회사 운영을 한곳에서.</h1><p>Discord 계정으로 로그인해 소속 회사의 운영 콘솔에 접속합니다.</p>
+    <button class="runtime-login-button" data-action="discord-login" ${state.loading ? 'disabled' : ''}>Discord로 로그인</button>
+  </div></section>`;
+}
+
+function renderOnboarding(state) {
+  return `<section class="runtime-auth runtime-auth--onboarding"><div class="runtime-onboarding">
+    <div class="runtime-onboarding-card"><span>NEW COMPANY</span><h2>새 회사 생성</h2><p>생성자는 OWNER가 되고 회사 데이터는 다른 회사와 분리됩니다.</p>
+      <form data-form="create-company"><label>회사 이름<input name="name" maxlength="80" required></label><label>Slug <small>선택</small><input name="slug" maxlength="63"></label><button class="runtime-login-button" type="submit">회사 생성</button></form>
+    </div>
+    <div class="runtime-onboarding-card"><span>JOIN COMPANY</span><h2>초대코드로 참가</h2><p>회사 관리자에게 받은 초대코드로 MEMBER로 참가합니다.</p>
+      <form data-form="redeem-invite"><label>초대코드<input name="invite_code" required></label><button class="runtime-login-button runtime-login-button--ghost" type="submit">회사 참가</button></form>
+    </div>
+  </div></section>`;
+}
+
+function renderAuthed(state) {
+  const company = currentCompany(state);
+  const membership = currentMembership(state);
+  const connected = state.discordConnection?.status === 'connected';
+  return `<div class="runtime-app">
+    <header class="global-header"><div class="global-header__inner">
+      <div class="product-brand"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
+      <div class="global-actions"><span class="environment-pill"><i></i>PRODUCT STAGING</span><button class="icon-button" data-action="refresh" aria-label="새로고침">${icon('refresh')}</button></div>
+    </div></header>
+    <div class="workspace-shell">
+      <aside class="sidebar">
+        <section class="company-switcher"><span class="overline">현재 회사</span>
+          <div class="runtime-company-picker ${state.companyMenuOpen?'is-open':''}">
+            <button type="button" class="runtime-company-trigger" data-action="toggle-company-menu" aria-expanded="${state.companyMenuOpen?'true':'false'}" aria-haspopup="listbox">
+              <span><strong>${esc(company?.name||'회사')}</strong><small>${(state.companies||[]).length}개 회사</small></span><b>⌄</b>
+            </button>
+            ${state.companyMenuOpen?`<div class="runtime-company-menu" role="listbox">${(state.companies||[]).map(c=>`<button type="button" class="${c.id===state.companyId?'is-current':''}" data-action="switch-company" data-company-id="${esc(c.id)}"><span>${esc(c.name)}</span>${c.id===state.companyId?'<em>현재</em>':''}</button>`).join('')}</div>`:''}
+          </div>
+          <div class="company-quick-actions"><button class="accent-action" data-action="open-create-company">+ 새 회사</button><button data-action="open-join-company">초대코드 참가</button></div>
+        </section>
+        <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
+          ${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
+          <span class="sidebar-nav__label spaced">설정</span>${navItem(state,'settings','회사 설정')}
+          <span class="sidebar-nav__label spaced">지원</span><button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
+        </nav>
+        <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div>
+          <div class="account-summary"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="mini-icon" data-action="logout" title="로그아웃">${icon('logout')}</button></div>
+        </footer>
+      </aside>
+      <main class="main">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
+    </div>
+    ${renderModal(state)}
+  </div>`;
+}
+
+function navItem(state,key,label){ return `<button class="nav-item ${state.page===key?'is-active':''}" data-page="${key}"><span class="nav-item__icon">${icon(key)}</span><span>${label}</span></button>`; }
+function pageHeader(kicker,title,desc,action=''){ return `<header class="page-header"><div><span class="page-eyebrow">${esc(kicker)}</span><h1>${esc(title)}</h1><p>${esc(desc)}</p></div>${action?`<div class="page-header__actions">${action}</div>`:''}</header>`; }
+function summary(items){ return `<section class="ops-mgmt-summary">${items.map(([label,value,sub,tone])=>`<article><span>${label}</span><strong class="${tone||''}">${value}</strong><small>${esc(sub)}</small></article>`).join('')}</section>`; }
+function empty(text){ return `<div class="ops-mgmt-empty">${esc(text)}</div>`; }
+
+function renderPage(state) {
+  if (!canAdmin(state)) return renderPermission(state);
+  if (state.page === 'members') return renderMembers(state);
+  if (state.page === 'assets') return renderAssets(state);
+  if (state.page === 'accounts') return renderAccounts(state);
+  if (state.page === 'settings') return renderSettings(state);
+  return renderFund(state);
+}
+function renderPermission(state){ return `<div class="ops-mgmt-page">${pageHeader('OPERATIONS','관리자 콘솔','OWNER 또는 ADMIN 권한이 있는 회사에서 사용할 수 있습니다.')}<section class="runtime-permission"><strong>관리 권한이 필요합니다.</strong><span>현재 역할: ${esc(ROLE_LABEL[currentMembership(state)?.role]||'-')}</span></section></div>`; }
+
+// ============================================================
+// FUND
+// ============================================================
+function renderFund(state) {
+  const snap = state.fundSnapshot || {};
+  const balance = Number(snap.balance?.public || 0);
+  const pending = Number(snap.pending_review_count || 0);
+  return `<section class="axe-fund">
+    <header class="axe-fund-header"><div class="axe-fund-header-copy"><span>FUND</span><h1>공금 관리</h1><p>회사 자금의 수입·지출·납부·잔액을 한곳에서 관리합니다.</p></div><div class="axe-fund-header-actions"><button class="axe-fund-tool-button" data-action="refresh-fund">${icon('refresh')}<span>새로고침</span></button></div></header>
+    <section class="axe-fund-summary"><article class="axe-fund-metric"><span>현재 계산 잔액</span><strong>${money(balance)}</strong><small>공용계좌 기준</small></article><article class="axe-fund-metric"><span>이번 달 수입</span><strong class="is-income">+${money(snap.month_income)}</strong><small>승인 + 직접 등록</small></article><article class="axe-fund-metric"><span>이번 달 지출</span><strong class="is-expense">-${money(snap.month_expense)}</strong><small>회사 운영 지출</small></article><article class="axe-fund-metric"><span>검수 필요</span><strong class="is-warning">${pending}건</strong><small>대기 · 보류 포함</small></article></section>
+    <nav class="axe-fund-tabs">${[['ledger','공금 내역'],['weekly','납부 현황'],['review','납부 검수'],['balance','잔액 점검'],['settings','공금 설정']].map(([k,l])=>`<button class="${state.fundTab===k?'is-active':''}" data-fund-tab="${k}"><span>${l}</span>${k==='review'&&pending?`<em>${pending}</em>`:''}</button>`).join('')}</nav>
+    <div class="axe-fund-view">${state.fundTab==='weekly'?renderFundWeekly(state):state.fundTab==='review'?renderFundReview(state):state.fundTab==='balance'?renderFundBalance(state):state.fundTab==='settings'?renderFundSettings(state):renderFundLedger(state)}</div>
+  </section>`;
+}
+
+function monthOptions(selected, count=12) {
+  const base = new Date();
+  return Array.from({length:count},(_,i)=>{ const d=new Date(base.getFullYear(),base.getMonth()-i,1); const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; return `<option value="${v}" ${v===selected?'selected':''}>${d.getFullYear()}년 ${d.getMonth()+1}월</option>`; }).join('');
+}
+
+function renderFundLedger(state) {
+  const ledger = Array.isArray(state.fundSnapshot?.ledger) ? state.fundSnapshot.ledger : [];
+  const q = state.fundFilters || {person:'all',type:'all',account:'all'};
+  let rows = ledger.slice();
+  if(q.person!=='all') rows=rows.filter(r=>(r.member_display_name||'')===q.person);
+  if(q.type==='approval') rows=rows.filter(r=>r.request_id); else if(q.type==='manual') rows=rows.filter(r=>!r.request_id); else if(q.type==='income') rows=rows.filter(r=>r.direction==='수입'); else if(q.type==='expense') rows=rows.filter(r=>r.direction==='지출');
+  if(q.account!=='all') rows=rows.filter(r=>r.account===q.account);
+  const people=[...new Set(ledger.map(r=>r.member_display_name).filter(Boolean))]; const accounts=[...new Set(ledger.map(r=>r.account).filter(Boolean))];
+  const groups=[]; for(const row of rows){ const key=dateKey(row.ledger_date); let g=groups.find(x=>x.date===key); if(!g){g={date:key,rows:[]};groups.push(g);} g.rows.push(row); }
+  return `<section class="axe-fund-history"><header class="axe-fund-history-head"><div><h2>공금내역</h2><p>필요한 정보만 빠르게 확인하고, 상세 작업은 행에서 바로 처리합니다.</p></div><div class="axe-fund-history-head-actions"><select class="axe-fund-history-select axe-fund-history-select--month" data-fund-ledger-month>${monthOptions(state.fundMonth,12)}</select><button class="axe-fund-primary axe-fund-primary--ledger" data-action="open-ledger">수입·지출 등록</button></div></header>
+    <section class="axe-fund-history-board"><div class="axe-fund-history-toolbar"><div class="axe-fund-history-filters"><select class="axe-fund-history-select" data-fund-filter="person"><option value="all">전체 이름</option>${people.map(v=>`<option ${q.person===v?'selected':''}>${esc(v)}</option>`).join('')}</select><select class="axe-fund-history-select" data-fund-filter="type"><option value="all">전체 구분</option><option value="approval" ${q.type==='approval'?'selected':''}>승인반영</option><option value="manual" ${q.type==='manual'?'selected':''}>직접기입</option><option value="income" ${q.type==='income'?'selected':''}>수입</option><option value="expense" ${q.type==='expense'?'selected':''}>지출</option></select><select class="axe-fund-history-select" data-fund-filter="account"><option value="all">전체 계좌</option>${accounts.map(v=>`<option ${q.account===v?'selected':''}>${esc(v)}</option>`).join('')}</select><button class="axe-fund-history-reset" data-action="reset-fund-filter">필터 초기화</button></div><div class="axe-fund-history-meta"><span>${rows.length}건</span></div></div>
+    <div class="axe-fund-history-list">${groups.length?groups.map(g=>renderLedgerGroup(g)).join(''):'<div class="axe-fund-history-empty">조건에 맞는 공금내역이 없습니다.</div>'}</div></section></section>`;
+}
+function renderLedgerGroup(group){ const [y,m,d]=group.date.split('-'); return `<section class="axe-fund-history-day"><div class="axe-fund-history-date"><strong>${m}.${d}</strong><span>${y}</span></div><div class="axe-fund-history-day-rows">${group.rows.map(renderLedgerRow).join('')}</div></section>`; }
+function renderLedgerRow(r){ const amount=Number(r.amount||0); const source=r.request_id?'승인':'직접'; const sub=[r.entry_type==='payment'?'공금납부':r.ledger_type,r.direction,r.memo].filter(Boolean).join(' · '); const who=r.member_display_name||'—'; return `<article class="axe-fund-history-row"><div class="axe-fund-history-entry"><div class="axe-fund-history-title"><strong>${esc(r.category||'기타')}</strong><span class="axe-fund-history-kind axe-fund-history-kind--${r.request_id?'approval':'manual'}">${source}</span></div><span>${esc(sub||'—')}</span></div><div class="axe-fund-history-who"><strong>${esc(who)}</strong><span>${esc(r.account||'—')}</span></div><div class="axe-fund-history-money ${amount<0?'is-expense':'is-income'}">${signedMoney(amount)}</div><div class="axe-fund-history-actions">${r.evidence_path?`<button class="axe-fund-history-action is-evidence" data-action="open-evidence" data-evidence-path="${esc(r.evidence_path)}">증빙</button>`:'<span class="axe-fund-history-no-evidence">—</span>'}${r.can_edit?`<button class="axe-fund-history-action" data-action="edit-ledger" data-entry-id="${esc(r.id)}">수정</button>`:'<span class="axe-fund-history-no-evidence">—</span>'}</div></article>`; }
+
+function renderFundWeekly(state) {
+  const rows=state.fundMonthlyRows||[]; const [y,m]=state.fundWeeklyMonth.split('-'); const fee=state.fundWeeklyFee || state.fundSnapshot?.fee_rules?.[0]?.weekly_fee || 0;
+  return `<section class="axe-fund-card axe-fund-subview axe-fund-subview--weekly"><header class="axe-fund-card-head axe-fund-card-head--weekly"><div><h2>${y}년 ${Number(m)}월 납부 현황</h2><p>주간 공금 ${money(fee)} · 과거 월을 선택해 납부 이력을 확인할 수 있습니다.</p></div><div class="axe-fund-week-actions"><select class="axe-fund-select axe-fund-month-select" data-fund-weekly-month>${monthOptions(state.fundWeeklyMonth,12)}</select><span class="axe-fund-chip ${state.fundWeeklyMonth===state.currentMonth?'':'is-history'}">${state.fundWeeklyMonth===state.currentMonth?'현재 월':'과거 내역'}</span></div></header><div class="axe-fund-week-scroll"><div class="axe-fund-week-grid"><div class="axe-fund-week-row axe-fund-week-row--head"><span>멤버</span>${[1,2,3,4,5].map(n=>`<b>${n}주</b>`).join('')}</div>${state.fundWeeklyLoading?'<div class="runtime-inline-loading">납부 현황을 불러오는 중…</div>':rows.length?rows.map(r=>`<div class="axe-fund-week-row"><span><strong>${esc(r.name)}</strong><small>${esc(r.role)}</small></span>${r.weeks.map(s=>`<b class="${weekClass(s)}" title="${esc(s)}">${weekSymbol(s)}</b>`).join('')}</div>`).join(''):'<div class="runtime-inline-loading">해당 월의 납부 기록이 없습니다.</div>'}</div></div></section>`;
+}
+function weekClass(v){return ({'완료':'is-ok','미납':'is-bad','면제':'is-skip','검수대기':'is-pending','보류':'is-pending','예정':'is-future','가입 전':'is-future'})[v]||'is-future';} function weekSymbol(v){return ({'완료':'✓','미납':'×','면제':'–','검수대기':'•','보류':'•','예정':'·','가입 전':'·'})[v]||'·';}
+
+function renderFundReview(state) {
+  const open=(state.fundRequests||[]).filter(r=>['pending','hold'].includes(r.status));
+  return `<section class="axe-fund-card axe-fund-subview axe-fund-subview--review"><header class="axe-fund-card-head"><div><h2>납부 검수</h2><p>Discord에서 제출된 주간 공금 납부 신청만 검수합니다.</p></div></header><div class="axe-fund-review-list">${open.length?open.map(r=>`<article class="axe-fund-review-row"><div class="axe-fund-person"><div><strong>${esc(r.member_display_name||'멤버')}</strong><small>${esc(r.year)}년 ${esc(r.month)}월 ${esc(r.week)}주차 · ${money(r.amount)} · ${esc(r.payment_mode||'')}</small></div></div><span class="axe-fund-review-state ${r.status==='hold'?'is-hold':''}">${r.status==='hold'?'보류':'대기'}</span>${r.evidence_path?`<button class="axe-fund-tool-button axe-fund-tool-button--compact" data-action="open-evidence" data-evidence-path="${esc(r.evidence_path)}">증빙 보기</button>`:'<span></span>'}<div class="axe-fund-review-actions"><button data-action="fund-review" data-request-id="${esc(r.request_id)}" data-review-action="approve">승인</button><button data-action="fund-review" data-request-id="${esc(r.request_id)}" data-review-action="hold">보류</button><button class="danger" data-action="fund-review" data-request-id="${esc(r.request_id)}" data-review-action="reject">반려</button></div></article>`).join(''):empty('현재 검수할 납부 신청이 없습니다.')}</div></section>`;
+}
+function renderFundBalance(state) {
+  const current=Number(state.fundSnapshot?.balance?.public||0); const check=state.companySettings?.settings?.fund_balance_check||{}; const diff=check.game_balance==null?null:Number(check.game_balance)-current;
+  return `<div class="axe-fund-subview axe-fund-subview--balance axe-fund-balance-layout"><section class="axe-fund-card"><header class="axe-fund-card-head"><div><h2>공용계좌 잔액 점검</h2><p>웹 계산 잔액과 게임 내 실제 잔액을 비교합니다.</p></div></header><form class="axe-fund-form-stack" data-form="fund-balance"><label class="axe-fund-field"><span>웹 계산 잔액</span><input value="${money(current)}" disabled></label><label class="axe-fund-field"><span>게임 내 공용계좌 잔액</span><input name="game_balance" type="number" value="${esc(check.game_balance??'')}" placeholder="현재 잔액 입력"></label><label class="axe-fund-field"><span>메모</span><textarea name="note" placeholder="차이가 있다면 이유를 적어주세요.">${esc(check.note||'')}</textarea></label><div class="axe-fund-form-actions"><button class="axe-fund-primary" type="submit">점검 저장</button></div></form></section><section class="axe-fund-card axe-fund-card--compact"><header class="axe-fund-card-head"><div><h2>최근 점검</h2><p>${check.checked_at?fmtDate(check.checked_at,true):'아직 점검 기록이 없습니다.'}</p></div>${diff===0?'<span class="axe-fund-status axe-fund-status--ok">일치</span>':''}</header><dl class="axe-fund-kv"><div><dt>웹 계산 잔액</dt><dd>${money(current)}</dd></div><div><dt>게임 내 잔액</dt><dd>${check.game_balance==null?'—':money(check.game_balance)}</dd></div><div><dt>차액</dt><dd class="${diff===0?'is-income':diff==null?'':'is-expense'}">${diff==null?'—':signedMoney(diff)}</dd></div></dl></section></div>`;
+}
+function renderFundSettings(state){ const rule=(state.fundSnapshot?.fee_rules||[]).find(r=>r.enabled)||(state.fundSnapshot?.fee_rules||[])[0]||{}; const [y,m]=state.currentMonth.split('-'); const defaultAccount=state.companySettings?.settings?.fund_default_account||'공용계좌'; return `<section class="axe-fund-card axe-fund-subview axe-fund-subview--settings"><header class="axe-fund-card-head"><div><h2>공금 설정</h2><p>운영자가 실제로 자주 바꾸는 설정만 노출합니다.</p></div></header><form class="axe-fund-settings-list" data-form="fund-fee-rule"><div class="axe-fund-setting"><div><strong>기본 주간 공금</strong><span>선택한 주차부터 적용되는 납부 금액</span></div><div class="runtime-fee-controls"><input name="year" type="hidden" value="${esc(y)}"><input name="month" type="hidden" value="${esc(Number(m))}"><select class="axe-fund-select" name="week">${[1,2,3,4,5].map(n=>`<option value="${n}">${n}주차부터</option>`).join('')}</select><div class="axe-fund-money-control"><input name="weekly_fee" type="number" min="0" value="${esc(rule.weekly_fee||0)}"><span>원</span></div></div></div><div class="axe-fund-setting"><div><strong>납부 대상</strong><span>활동 중인 멤버를 기본 포함</span></div><button type="button" class="axe-fund-tool-button axe-fund-tool-button--compact" data-page="members">멤버 관리</button></div><div class="axe-fund-setting"><div><strong>기본 계좌</strong><span>직접 수입·지출 등록 시 기본값</span></div><select class="axe-fund-select" name="default_account"><option ${defaultAccount==='공용계좌'?'selected':''}>공용계좌</option><option ${defaultAccount==='회사잔고'?'selected':''}>회사잔고</option></select></div><div class="runtime-settings-save"><button class="axe-fund-primary" type="submit">기준액 저장</button></div></form></section>`; }
+
+// ============================================================
+// MEMBERS
+// ============================================================
+function renderMembers(state){ const all=state.memberships||[]; const active=all.filter(m=>m.status==='active'); const left=all.filter(m=>m.status==='left'); const admins=active.filter(m=>['owner','admin'].includes(m.role)); let rows=all.filter(m=>state.memberFilter==='active'?m.status==='active':state.memberFilter==='left'?m.status==='left':true); if(state.memberRole) rows=rows.filter(m=>m.role===state.memberRole); const q=(state.memberQuery||'').toLowerCase(); if(q)rows=rows.filter(m=>`${m.display_name||''} ${m.discord_user_id||''}`.toLowerCase().includes(q));
+  return `<div class="ops-mgmt-page ops-mgmt-page--members">${pageHeader('MEMBERS','멤버 관리','회사 구성원의 역할과 활동 상태를 빠르게 확인하고 관리합니다.','')}${summary([['전체 멤버',`${all.length}명`,'누적 등록',''],['활동 중',`${active.length}명`,'현재 회사','is-positive'],['관리 권한',`${admins.length}명`,'대표 · 관리자','is-warning'],['퇴사',`${left.length}명`,'기록 유지','']])}<div class="ops-mgmt-section-head"><div><strong>멤버 현황</strong><span>역할과 상태를 한곳에서 관리합니다.</span></div><button class="ops-action-primary" data-action="create-invite">${icon('plus')}<span>멤버 추가</span></button></div><section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-segments">${segment(state,'all','전체',all.length)}${segment(state,'active','활동',active.length)}${segment(state,'left','퇴사',left.length,true)}</div><div class="ops-mgmt-filters"><select class="ops-mgmt-select" data-member-role><option value="">역할 전체</option>${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${state.memberRole===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select><label class="ops-mgmt-search">${icon('search')}<input data-member-query value="${esc(state.memberQuery||'')}" placeholder="닉네임 · Discord 검색"></label></div></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>명 표시</span><span>활동 상태와 역할 기준</span></div><div class="ops-mgmt-list ops-mgmt-list--members">${rows.length?rows.map(m=>`<article class="ops-mgmt-row ops-member-row"><div class="ops-member-main"><strong>${esc(m.display_name||'멤버')}</strong><span>${m.discord_user_id?`Discord ${esc(m.discord_user_id)}`:'Discord 미연결'} · 입사 ${fmtDate(m.joined_at||m.created_at,true)}</span></div><div class="ops-member-role"><strong>${esc(ROLE_KO[m.role]||m.role)}</strong><span>회사 역할</span></div><div class="ops-member-state"><span class="ops-mgmt-badge ${m.status==='active'?'is-green':m.status==='left'?'is-red':'is-amber'}">${memberStatus(m.status)}</span></div><button class="ops-mgmt-action" data-action="edit-member" data-membership-id="${esc(m.id)}">상세</button></article>`).join(''):empty('조건에 맞는 멤버가 없습니다.')}</div></section></div>`; }
+function segment(state,key,label,count,left=false){ return `<button class="${state.memberFilter===key?'is-active':''} ${left?'is-left':''}" data-member-filter="${key}">${label}<em>${count}</em></button>`; } function memberStatus(v){return ({active:'활동',left:'퇴사',suspended:'중지',invited:'초대'})[v]||v;}
+
+// ============================================================
+// ASSETS
+// ============================================================
+function renderAssets(state){ const snap=state.assetsSnapshot||{}; const assets=snap.assets||[]; const returns=snap.returns||[]; const assigned=assets.filter(a=>a.membership_id).length; const unassigned=assets.filter(a=>!a.membership_id).length; return `<div class="ops-mgmt-page ops-mgmt-page--assets ${state.assetTab==='returns'?'is-returns':'is-assets'}">${pageHeader('ASSETS','자산 관리','회사 자산의 배정 상태와 반납 이력을 빠르게 확인합니다.','')}${summary([['전체 자산',`${assets.length}개`,'등록 자산',''],['사용 중',`${assigned}개`,'멤버 배정','is-positive'],['미배정',`${unassigned}개`,'배정 필요','is-warning'],['반납 기록',`${returns.length}건`,'이력 보존','']])}<div class="ops-mgmt-tabs-row"><div class="ops-mgmt-tabs"><button class="${state.assetTab==='assets'?'is-active':''}" data-asset-tab="assets">자산 현황</button><button class="${state.assetTab==='returns'?'is-active':''}" data-asset-tab="returns">반납 내역</button></div><button class="ops-action-primary" data-action="open-asset">${icon('plus')}<span>자산 추가</span></button></div>${state.assetTab==='returns'?renderReturns(state):renderAssetBoard(state)}</div>`; }
+function renderAssetBoard(state){ let rows=(state.assetsSnapshot?.assets||[]).slice(); const q=(state.assetQuery||'').toLowerCase(); if(state.assetCategory)rows=rows.filter(a=>a.asset_category===state.assetCategory); if(state.assetStatus)rows=rows.filter(a=>(a.membership_id?'사용중':'미배정')===state.assetStatus); if(q)rows=rows.filter(a=>`${a.asset_name} ${a.owner_name} ${a.legacy_no||''}`.toLowerCase().includes(q)); const cats=[...new Set((state.assetsSnapshot?.assets||[]).map(a=>a.asset_category).filter(Boolean))]; return `<section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-asset-query value="${esc(state.assetQuery||'')}" placeholder="자산명 · 보유자 검색"></label><select class="ops-mgmt-select" data-asset-category><option value="">분류 전체</option>${cats.map(c=>`<option ${state.assetCategory===c?'selected':''}>${esc(c)}</option>`).join('')}</select><select class="ops-mgmt-select" data-asset-status><option value="">상태 전체</option><option ${state.assetStatus==='사용중'?'selected':''}>사용중</option><option ${state.assetStatus==='미배정'?'selected':''}>미배정</option></select></div></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>개 표시</span><span>배정 상태와 보유자 기준</span></div><div class="ops-mgmt-list">${rows.length?rows.map(a=>`<article class="ops-mgmt-row ops-asset-row"><div class="ops-asset-main"><strong>${esc(a.asset_name)}</strong><span>${esc(a.legacy_no||a.id.slice(0,8))} · ${esc(a.asset_category||'기타')}</span></div><div class="ops-asset-holder"><strong>${esc(a.owner_name||'미배정')}</strong><span>현재 보유자</span></div><div class="ops-asset-state"><span class="ops-mgmt-badge ${a.membership_id?'is-green':'is-amber'}">${a.membership_id?'사용중':'미배정'}</span><small>${fmtDate(a.updated_at,true)} 변경</small></div><button class="ops-mgmt-action" data-action="edit-asset" data-asset-id="${esc(a.id)}">상세</button></article>`).join(''):empty('조건에 맞는 자산이 없습니다.')}</div></section>`; }
+function renderReturns(state){ const rows=state.assetsSnapshot?.returns||[]; return `<section class="ops-mgmt-board"><div class="ops-mgmt-board-head"><div><h2>반납 내역</h2><p>퇴사 자동반납과 수동 반납 이력을 기록으로 보존합니다.</p></div><span>${rows.length}건</span></div><div class="ops-mgmt-list">${rows.length?rows.map(r=>`<article class="ops-mgmt-row ops-return-row"><div class="ops-return-main"><strong>${esc(r.asset_name)}</strong><span>${esc(r.processed_at||fmtDate(r.created_at,true))} · 이전 보유자 ${esc(r.owner_name)}</span></div><div class="ops-return-reason"><strong>${r.note?'수동 반납':'반납 처리'}</strong><span>${esc(r.note||'기록 보존')}</span></div><div class="ops-return-actor"><strong>${esc(r.checker_name||'SYSTEM')}</strong><span>확인자</span></div></article>`).join(''):empty('반납 기록이 없습니다.')}</div></section>`; }
+
+// ============================================================
+// ACCOUNTS
+// ============================================================
+function accountRecords(state){ const snap=state.accountsSnapshot||{}; const reqs=snap.requests||[]; return (snap.accounts||[]).filter(a=>a.member_status==='active').map(a=>{ const pending=reqs.find(r=>r.membership_id===a.membership_id&&r.status==='pending'); return {...a,pending,status:pending?(a.account?'변경 대기':'등록 대기'):a.account&&a.enabled?'승인':'미등록'};}); }
+function renderAccounts(state){ const records=accountRecords(state); const approved=records.filter(r=>r.status==='승인').length; const pending=records.filter(r=>['변경 대기','등록 대기'].includes(r.status)); const missing=records.filter(r=>r.status==='미등록').length; let rows=records.slice(); if(state.accountStatus)rows=rows.filter(r=>r.status===state.accountStatus); const q=(state.accountQuery||'').toLowerCase(); if(q)rows=rows.filter(r=>`${r.display_name} ${r.account||''}`.toLowerCase().includes(q)); const my=currentMembership(state); const myRow=records.find(r=>r.membership_id===my?.id);
+  return `<div class="ops-mgmt-page ops-mgmt-page--accounts">${pageHeader('ACCOUNTS','계좌 관리','멤버별 플리카 계좌 등록 상태와 변경 신청을 별도로 관리합니다.','')}${summary([['전체 대상',`${records.length}명`,'활동 멤버',''],['등록 완료',`${approved}명`,'승인 계좌','is-positive'],['검수 필요',`${pending.length}건`,'등록 · 변경','is-warning'],['미등록',`${missing}명`,'등록 필요','is-negative']])}<div class="ops-mgmt-section-head ops-mgmt-section-head--accounts"><div><strong>계좌 현황</strong><span>등록 상태와 변경 요청을 한곳에서 확인합니다.</span></div><button class="ops-action-secondary" data-action="open-account-request">${icon('accounts')}<span>${myRow?.account?'내 계좌 변경':'내 계좌 등록'}</span></button></div>${pending.length?`<section class="ops-account-review"><div class="ops-account-review-head"><div><strong>검수 필요</strong><span>등록·변경 요청을 우선 처리합니다.</span></div><em>${pending.length}</em></div>${pending.map(r=>`<article><div><strong>${esc(r.display_name)}</strong><span>${esc(r.status)} · ${esc(r.pending?.account||'')}</span></div><span class="ops-mgmt-badge is-amber">${esc(r.status)}</span><div class="ops-account-review-actions"><button data-action="account-review" data-request-id="${esc(r.pending.id)}" data-review-action="reject">반려</button><button class="is-primary" data-action="account-review" data-request-id="${esc(r.pending.id)}" data-review-action="approve">승인</button></div></article>`).join('')}</section>`:''}<section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-account-query value="${esc(state.accountQuery||'')}" placeholder="멤버 · 계좌 검색"></label><select class="ops-mgmt-select" data-account-status><option value="">상태 전체</option>${['승인','등록 대기','변경 대기','미등록'].map(v=>`<option ${state.accountStatus===v?'selected':''}>${v}</option>`).join('')}</select></div><span class="ops-mgmt-toolbar-note">계좌 변경은 신청 → 검수 방식</span></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>명 표시</span><span>멤버별 계좌 현황</span></div><div class="ops-mgmt-list">${rows.length?rows.map(r=>`<article class="ops-mgmt-row ops-account-row ${r.pending?'is-attention':''}"><div class="ops-account-main"><div><strong>${esc(r.display_name)}</strong><span>${esc(ROLE_KO[r.role]||r.role)} · ${r.updated_at?`최근 변경 ${fmtDate(r.updated_at,true)}`:'변경 기록 없음'}</span></div></div><div class="ops-account-number"><strong>${r.account?esc(r.account):'등록된 계좌 없음'}</strong><span>플리카 계좌</span></div><div class="ops-account-state">${accountBadge(r.status)}</div><button class="ops-mgmt-action" ${r.pending?`data-action="account-review" data-request-id="${esc(r.pending.id)}" data-review-action="approve"`:'disabled'}>${r.pending?'검수':'—'}</button></article>`).join(''):empty('조건에 맞는 계좌가 없습니다.')}</div></section></div>`; }
+function accountBadge(v){ if(v==='승인')return '<span class="ops-mgmt-badge is-green">승인</span>'; if(v==='미등록')return '<span class="ops-mgmt-badge is-red">미등록</span>'; return `<span class="ops-mgmt-badge is-amber">${esc(v)}</span>`; }
+
+// ============================================================
+// SETTINGS
+// ============================================================
+const MODULE_ORDER = ['fund','ammo','outlaw','modbook','cooking','assets'];
+const MODULE_UI = {
+  fund:{name:'공금',desc:'납부 현황 · 검수 · 공금 관리',channels:[['status_channel_id','공금 현황 채널']]},
+  ammo:{name:'총알',desc:'3시 · 10시 주문 / 제작 / 배분',channels:[['three_channel_id','3시 채널'],['ten_channel_id','10시 채널']]},
+  outlaw:{name:'무법지대 전적',desc:'스크린샷 OCR · 랭킹 · 기록',channels:[['record_channel_id','전적 등록 채널']]},
+  modbook:{name:'개조서',desc:'조회 · 등록 신청 · 검수',channels:[]},
+  cooking:{name:'요리 주문',desc:'주문 · 변경 · 영업 관리',channels:[['order_channel_id','요리 주문 채널']]},
+  assets:{name:'자산 · 계좌 관리',desc:'회사 자산 · 반납 · 멤버 계좌 관리',channels:[]},
+};
+function renderSettings(state){ const visibleModules=(state.modules||[]).filter(m=>MODULE_UI[m.module_key]).sort((a,b)=>MODULE_ORDER.indexOf(a.module_key)-MODULE_ORDER.indexOf(b.module_key)); const enabled=visibleModules.filter(m=>m.enabled).length; const channels=(state.discordChannels||[]).filter(c=>c.is_text_based); const roles=(state.discordRoles||[]).filter(r=>!r.managed&&r.role_name!=='@everyone'); return `<div class="ops-settings-page">${pageHeader('COMPANY SETTINGS','회사 설정','회사 기본 정보와 Discord 기능 연결을 관리합니다.','')}<section class="ops-settings-overview"><article><span>현재 회사</span><strong>${esc(companyDisplayName(state))}</strong><small>회사 단위 설정</small></article><article><span>Discord</span><strong class="${state.discordConnection?.status==='connected'?'is-positive':''}">${state.discordConnection?.status==='connected'?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name||'연결 필요')}</small></article><article><span>사용 기능</span><strong class="is-warning">${enabled} / ${visibleModules.length}</strong><small>활성 기능</small></article><article><span>관리 역할</span><strong>${esc(roleName(state.discordCompanyConfig?.admin_role_id,roles)||'미설정')}</strong><small>Discord 관리자 역할</small></article></section><div class="ops-settings-nav-row"><nav class="ops-settings-tabs" aria-label="회사 설정 하위 메뉴"><button class="${state.settingsTab==='basic'?'is-active':''}" data-settings-tab="basic"><strong>기본 정보</strong><span>회사·Discord 공통 값</span></button><button class="${state.settingsTab==='modules'?'is-active':''}" data-settings-tab="modules"><strong>기능 설정</strong><span>기능별 채널 · 사용 여부</span></button></nav><button class="ops-settings-save-action" form="settings-active-form" type="submit">${icon('save')}<span>설정 저장</span></button></div><div class="ops-settings-view">${state.settingsTab==='modules'?renderModuleSettings(state,channels):renderBasicSettings(state,roles)}</div></div>`; }
+function roleName(id,roles){return roles.find(r=>r.role_id===id)?.role_name||'';}
+function renderBasicSettings(state,roles){ const cfg=state.discordCompanyConfig||{}; return `<form id="settings-active-form" data-form="settings-basic" class="ops-settings-board ops-settings-basic"><div class="ops-settings-board-head"><div><h2>기본 정보</h2><p>회사와 Discord에서 공통으로 사용하는 핵심 값입니다.</p></div></div>${settingRow('회사 이름','서비스와 Discord 안내에 표시',`<input name="brand_name" value="${esc(companyDisplayName(state))}">`,'company')}${settingRow('관리자 역할','공금 · 멤버 · 자산 · 설정 관리',`<select name="admin_role_id"><option value="">선택 안 함</option>${roles.map(r=>`<option value="${esc(r.role_id)}" ${cfg.admin_role_id===r.role_id?'selected':''}>${esc(r.role_name)}</option>`).join('')}</select>`,'role')}${settingRow('일반 멤버 역할','회사 기능을 사용하는 일반 멤버',`<select name="member_role_id"><option value="">선택 안 함</option>${roles.map(r=>`<option value="${esc(r.role_id)}" ${cfg.member_role_id===r.role_id?'selected':''}>${esc(r.role_name)}</option>`).join('')}</select>`,'role')}${settingRow('Discord 서버','현재 연결된 서버',`<div class="ops-settings-discord"><i></i><strong>${esc(state.discordConnection?.guild_name||'미연결')}</strong><button type="button" data-action="connect-discord">관리</button></div>`,'discord')}</form>`; }
+function settingRow(title,desc,control,kind){return `<div class="ops-settings-row ops-settings-row--${kind}"><div><strong>${title}</strong><span>${desc}</span></div><div class="ops-settings-control">${control}</div></div>`;}
+function renderModuleSettings(state,channels){ const visible=(state.modules||[]).filter(m=>MODULE_UI[m.module_key]).sort((a,b)=>MODULE_ORDER.indexOf(a.module_key)-MODULE_ORDER.indexOf(b.module_key)); return `<form id="settings-active-form" data-form="settings-modules" class="ops-settings-board ops-settings-modules"><div class="ops-settings-board-head"><div><h2>기능 설정</h2><p>기능 하나에서 사용 여부와 필요한 Discord 채널 설정까지 끝냅니다.</p></div><span><strong>${visible.filter(m=>m.enabled).length}</strong> / ${visible.length} 사용 중</span></div><div class="ops-settings-module-list runtime-module-list">${visible.map(m=>renderModuleRow(m,channels)).join('')}</div><div class="ops-settings-module-foot"><strong>BOT 자동 반영 연결 예정</strong><span>현재는 웹 설정값 저장까지 적용됩니다. 패널 생성·갱신은 STAGING BOT bridge 단계에서 연결합니다.</span></div></form>`; }
+function renderModuleRow(m,channels){ const ui=MODULE_UI[m.module_key]; const settings=m.settings||{}; const controls=ui.channels.length?`<div class="ops-settings-channels">${ui.channels.map(([key,label])=>`<label><span>${label}</span><select name="module_${m.module_key}_${key}"><option value="">채널 선택</option>${channels.map(c=>`<option value="${esc(c.channel_id)}" ${settings[key]===c.channel_id?'selected':''}>#${esc(c.channel_name)}</option>`).join('')}</select></label>`).join('')}</div>`:'<div class="ops-settings-no-channel">별도 채널 설정 없음</div>'; return `<article class="ops-settings-module ops-settings-module--channels-${ui.channels.length} ${m.enabled?'is-enabled':''}"><div class="ops-settings-module-copy"><strong>${esc(ui.name)}</strong><small>${esc(ui.desc)}</small></div>${controls}<button type="button" class="runtime-power ${m.enabled?'is-on':'is-off'}" data-action="toggle-module" data-module-key="${esc(m.module_key)}">${icon('power')}<span>${m.enabled?'ON':'OFF'}</span></button></article>`; }
+
+function renderModal(state){ const m=state.modal; if(!m)return ''; if(m.type==='feedback')return feedbackModal(state); if(m.type==='ledger')return ledgerModal(state,m); if(m.type==='member')return memberModal(state,m); if(m.type==='asset')return assetModal(state,m); if(m.type==='account')return accountModal(state); if(m.type==='invite')return inviteModal(state,m); if(m.type==='create-company')return companyModal('create'); if(m.type==='join-company')return companyModal('join'); return ''; }
+function modalShell(title,desc,body,wide=false){return `<div class="runtime-modal-backdrop" data-modal-backdrop><section class="runtime-modal ${wide?'is-wide':''}" role="dialog" aria-modal="true"><header><div><h2>${esc(title)}</h2><p>${esc(desc)}</p></div><button type="button" data-action="close-modal">×</button></header>${body}</section></div>`;}
+function feedbackModal(state){return modalShell('피드백 · 제보','서비스 개선 제안이나 오류를 운영자에게 전달합니다.',`<form data-form="feedback" class="runtime-modal-form"><label>유형<select name="category"><option value="improvement">개선 제안</option><option value="bug">오류 제보</option><option value="other">기타</option></select></label><label>제목<input name="title" maxlength="120" required></label><label class="is-full">내용<textarea name="detail" maxlength="4000" required></textarea></label><label class="is-full">회신 Discord <small>선택</small><input name="contact" maxlength="160" placeholder="예: @닉네임"></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">보내기</button></footer></form>`);}
+function ledgerModal(state,m){ const row=(state.fundSnapshot?.ledger||[]).find(r=>r.id===m.entryId)||{}; const direction=row.direction||'수입'; const account=row.account||state.companySettings?.settings?.fund_default_account||'공용계좌'; return modalShell(row.id?'공금 내역 수정':'수입·지출 등록','회사의 수입·지출을 공금 원장에 기록합니다.',`<form data-form="ledger" class="runtime-modal-form"><input type="hidden" name="entry_id" value="${esc(row.id||'')}"><label>날짜<input name="ledger_date" type="date" value="${esc(row.ledger_date?dateKey(row.ledger_date):dateKey(new Date()))}" required></label><label>구분<select name="direction"><option ${direction==='수입'?'selected':''}>수입</option><option ${direction==='지출'?'selected':''}>지출</option></select></label><label>항목<input name="category" value="${esc(row.category||'')}" placeholder="예: 재료 구입" required></label><label>금액<input name="amount" type="number" min="1" value="${esc(Math.abs(Number(row.amount||0))||'')}" required></label><label>계좌<select name="account"><option ${account==='공용계좌'?'selected':''}>공용계좌</option><option ${account==='회사잔고'?'selected':''}>회사잔고</option></select></label><label>관련자<select name="membership_id"><option value="">관련자 없음</option>${(state.memberships||[]).filter(x=>x.status==='active').map(x=>`<option value="${esc(x.id)}" ${row.membership_id===x.id?'selected':''}>${esc(x.display_name||'멤버')}</option>`).join('')}</select></label><label class="is-full">메모<textarea name="memo">${esc(row.memo||'')}</textarea></label><footer>${row.id?`<button type="button" class="runtime-btn-danger" data-action="cancel-ledger" data-entry-id="${esc(row.id)}">내역 취소</button>`:'<span></span>'}<div><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">${row.id?'수정 저장':'내역 등록'}</button></div></footer></form>`,true);}
+function memberModal(state,m){ const row=(state.memberships||[]).find(x=>x.id===m.membershipId); if(!row)return ''; return modalShell('멤버 관리',row.display_name||'멤버',`<form data-form="member" class="runtime-modal-form"><input type="hidden" name="membership_id" value="${esc(row.id)}"><label>역할<select name="role">${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${row.role===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select></label><label>상태<select name="status"><option value="active" ${row.status==='active'?'selected':''}>활동</option><option value="suspended" ${row.status==='suspended'?'selected':''}>중지</option><option value="left" ${row.status==='left'?'selected':''}>퇴사</option></select></label><label class="is-full">Discord<input value="${esc(row.discord_user_id||'미연결')}" disabled></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">저장</button></footer></form>`);}
+function assetModal(state,m){ const row=(state.assetsSnapshot?.assets||[]).find(x=>x.id===m.assetId)||{}; return modalShell(row.id?'자산 수정':'자산 추가','회사 자산과 현재 보유자를 관리합니다.',`<form data-form="asset" class="runtime-modal-form"><input type="hidden" name="asset_id" value="${esc(row.id||'')}"><label>자산명<input name="asset_name" value="${esc(row.asset_name||'')}" required></label><label>분류<input name="asset_category" value="${esc(row.asset_category||'기타')}" required></label><label>보유자<select name="membership_id"><option value="">미배정</option>${(state.assetsSnapshot?.members||[]).filter(x=>x.status==='active').map(x=>`<option value="${esc(x.id)}" ${row.membership_id===x.id?'selected':''}>${esc(x.display_name)}</option>`).join('')}</select></label><label>상태<input name="status" value="${esc(row.status||'')}" placeholder="보유 / 미배정"></label><label>기존 ID<input name="legacy_no" value="${esc(row.legacy_no||'')}" placeholder="선택"></label><label>취득 방식<input name="acquisition_method" value="${esc(row.acquisition_method||'')}" placeholder="선택"></label><label class="is-full">메모<textarea name="note">${esc(row.note||'')}</textarea></label><footer>${row.id&&row.membership_id?`<button type="button" class="runtime-btn-danger" data-action="return-asset" data-asset-id="${esc(row.id)}">반납 처리</button>`:'<span></span>'}<div><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">저장</button></div></footer></form>`,true);}
+function accountModal(state){ const mine=accountRecords(state).find(r=>r.membership_id===currentMembership(state)?.id); return modalShell(mine?.account?'내 계좌 변경 신청':'내 계좌 등록 신청','계좌 변경은 관리자 검수 후 반영됩니다.',`<form data-form="account-request" class="runtime-modal-form"><label class="is-full">플리카 계좌<input name="account" value="${esc(mine?.account||'')}" inputmode="numeric" maxlength="20" required></label><label class="is-full">메모<textarea name="note" placeholder="변경 사유 등"></textarea></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">신청 제출</button></footer></form>`);}
+function inviteModal(state,m){ return modalShell('멤버 초대','초대코드를 전달하면 상대가 MEMBER로 참가할 수 있습니다.',m.code?`<div class="runtime-invite-code"><span>초대코드</span><strong>${esc(m.code)}</strong><button data-action="copy-invite" data-invite-code="${esc(m.code)}">복사</button></div><div class="runtime-modal-simple-footer"><button class="runtime-btn-primary" data-action="close-modal">확인</button></div>`:`<form data-form="invite" class="runtime-modal-form"><label>사용 가능 횟수<input name="max_uses" type="number" min="1" max="500" value="1"></label><label>유효시간<input name="expires_in_hours" type="number" min="1" max="2160" value="168"></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">초대코드 생성</button></footer></form>`);}
+function companyModal(type){ if(type==='create')return modalShell('새 회사 생성','생성자는 OWNER가 됩니다.',`<form data-form="create-company" class="runtime-modal-form"><label>회사 이름<input name="name" maxlength="80" required></label><label>Slug <small>선택</small><input name="slug" maxlength="63"></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">생성</button></footer></form>`); return modalShell('초대코드로 참가','회사 관리자에게 받은 초대코드를 입력합니다.',`<form data-form="redeem-invite" class="runtime-modal-form"><label class="is-full">초대코드<input name="invite_code" required></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">참가</button></footer></form>`);}
+
+const qs=new URLSearchParams(location.search); const page=qs.get('page')||'fund'; const fundTab=qs.get('fundTab')||'ledger'; const settingsTab=qs.get('settingsTab')||'basic'; const assetTab=qs.get('assetTab')||'assets'; const modal=qs.get('modal'); const companyMenuOpen=qs.get('companyMenu')==='1'; const ready=qs.get('ready')!=='0';
+const company='11111111-1111-4111-8111-111111111111'; const uid='22222222-2222-4222-8222-222222222222';
+const memberships=[
+{id:'m1',company_id:company,user_id:uid,display_name:'박영인',discord_user_id:'123456789012345678',role:'owner',status:'active',joined_at:'2026-05-13T00:00:00Z',created_at:'2026-05-13T00:00:00Z'},
+{id:'m2',company_id:company,user_id:'u2',display_name:'수호',discord_user_id:'223456789012345678',role:'admin',status:'active',joined_at:'2026-08-22T00:00:00Z',created_at:'2026-08-22T00:00:00Z'},
+{id:'m3',company_id:company,user_id:'u3',display_name:'연우',discord_user_id:'323456789012345678',role:'member',status:'active',joined_at:'2026-06-04T00:00:00Z',created_at:'2026-06-04T00:00:00Z'},
+{id:'m4',company_id:company,user_id:'u4',display_name:'키스',discord_user_id:'423456789012345678',role:'member',status:'left',joined_at:'2026-01-08T00:00:00Z',created_at:'2026-01-08T00:00:00Z'},
+{id:'m5',company_id:company,user_id:'u5',display_name:'영포티',discord_user_id:'523456789012345678',role:'member',status:'active',joined_at:'2026-04-19T00:00:00Z',created_at:'2026-04-19T00:00:00Z'},
+];
+const modules=['fund','ammo','outlaw','modbook','cooking','assets'].map((k,i)=>({module_key:k,enabled:true,settings:k==='fund'?{status_channel_id:'c1'}:k==='ammo'?{three_channel_id:'c2',ten_channel_id:'c3'}:k==='outlaw'?{record_channel_id:'c4'}:k==='cooking'?{order_channel_id:'c5'}:{}}));
+const ledger=[
+{id:'l1',ledger_date:'2026-09-10T01:00:00Z',entry_type:'expense',direction:'지출',category:'재료 구입',member_display_name:null,membership_id:null,amount:-180000,account:'공용계좌',memo:'무법지대 총알 제작 재료',request_id:null,can_edit:true,can_cancel:true},
+{id:'l2',ledger_date:'2026-09-10T02:00:00Z',entry_type:'payment',direction:'수입',category:'주간 공금',member_display_name:'키스',membership_id:'m4',amount:20000,account:'공용계좌',memo:'9월 2주차 납부 승인',request_id:'r2',can_edit:false,can_cancel:false},
+{id:'l3',ledger_date:'2026-09-09T02:00:00Z',entry_type:'expense',direction:'지출',category:'회사 물품',amount:-350000,account:'공용계좌',memo:'공용 차량 수리비',request_id:null,can_edit:true,can_cancel:true},
+{id:'l4',ledger_date:'2026-09-09T03:00:00Z',entry_type:'payment',direction:'수입',category:'주간 공금',member_display_name:'수호',membership_id:'m2',amount:20000,account:'공용계좌',memo:'9월 2주차 납부 승인',request_id:'r4'},
+{id:'l5',ledger_date:'2026-09-08T04:00:00Z',entry_type:'income',direction:'수입',category:'기타 수입',amount:1200000,account:'공용계좌',memo:'회사 의뢰 수익',request_id:null,can_edit:true,can_cancel:true},
+{id:'l6',ledger_date:'2026-09-06T04:00:00Z',entry_type:'expense',direction:'지출',category:'재료 구입',amount:-212000,account:'공용계좌',memo:'요리 재료 대량 구입',request_id:null,can_edit:true,can_cancel:true},
+{id:'l7',ledger_date:'2026-09-05T04:00:00Z',entry_type:'payment',direction:'수입',category:'주간 공금',member_display_name:'연우',membership_id:'m3',amount:20000,account:'공용계좌',memo:'9월 1주차 납부 승인',request_id:'r7'},
+];
+const assets=[
+{id:'a1',legacy_no:'A-001',membership_id:'m1',owner_name:'박영인',asset_category:'총기',asset_name:'라이플 A',status:'보유',updated_at:'2026-09-08T00:00:00Z'},
+{id:'a2',legacy_no:'A-002',membership_id:null,owner_name:'미배정',asset_category:'총기',asset_name:'SMG B',status:'미배정',updated_at:'2026-09-06T00:00:00Z'},
+{id:'a3',legacy_no:'A-003',membership_id:'m2',owner_name:'수호',asset_category:'차량',asset_name:'작업 차량',status:'보유',updated_at:'2026-09-02T00:00:00Z'},
+{id:'a4',legacy_no:'A-004',membership_id:null,owner_name:'미배정',asset_category:'기타',asset_name:'공용 장비',status:'미배정',updated_at:'2026-08-29T00:00:00Z'},
+];
+const returns=[{id:'rt1',asset_name:'라이플 C',owner_name:'키스',checker_name:'박영인',processed_at:'2026-09-08',note:'퇴사 자동반납',created_at:'2026-09-08T00:00:00Z'},{id:'rt2',asset_name:'작업 차량',owner_name:'연우',checker_name:'수호',processed_at:'2026-08-24',note:'수동 반납',created_at:'2026-08-24T00:00:00Z'}];
+const accounts=[
+{id:'ac1',membership_id:'m1',display_name:'박영인',role:'owner',member_status:'active',account:'000012345678',enabled:true,updated_at:'2026-09-06T00:00:00Z'},
+{id:'ac2',membership_id:'m2',display_name:'수호',role:'admin',member_status:'active',account:'000087654321',enabled:true,updated_at:'2026-09-01T00:00:00Z'},
+{id:null,membership_id:'m3',display_name:'연우',role:'member',member_status:'active',account:null,enabled:false,updated_at:null},
+{id:null,membership_id:'m5',display_name:'영포티',role:'member',member_status:'active',account:null,enabled:false,updated_at:null},
+];
+const requests=[{id:'ar1',membership_id:'m3',member_display_name:'연우',account:'000011112222',status:'pending',created_at:'2026-09-09T00:00:00Z'}];
+const state={envReady:true,session:{user:{id:uid,user_metadata:{name:'박영인'}}},companies:[{id:company,name:'AXE TEST COMPANY 2'}],companyId:company,memberships,moduleCatalog:[],modules,companySettings:{company_id:company,brand_name:'AXE TEST COMPANY 2',locale:'ko-KR',timezone:'Asia/Seoul',settings:{}},discordConnection:{status:'connected',guild_name:'AXE TEST SERVER'},discordChannels:[{channel_id:'c1',channel_name:'공금현황'},{channel_id:'c2',channel_name:'총알-3시'},{channel_id:'c3',channel_name:'총알-10시'},{channel_id:'c4',channel_name:'무법지대-전적'},{channel_id:'c5',channel_name:'요리-주문'}],discordRoles:[{role_id:'role1',role_name:'관리자'},{role_id:'role2',role_name:'멤버'}],discordCompanyConfig:{admin_role_id:'role1',member_role_id:'role2'},page,fundTab,fundMonth:'2026-09',fundWeeklyMonth:'2026-09',currentMonth:'2026-09',fundSnapshot:{balance:{public:12840000,company:0,total:12840000},month_income:1280000,month_expense:742000,pending_review_count:2,ledger,fee_rules:[{weekly_fee:20000,start_year:2026,start_month:9,start_week:1,enabled:true}]},fundRequests:[{request_id:'fr1',member_display_name:'영포티',year:2026,month:9,week:2,amount:20000,payment_mode:'공용계좌',status:'pending',memo:'납부 확인 부탁드립니다.',evidence_path:'x',created_at:'2026-09-10T00:00:00Z'}],fundMonthlyRows:[{name:'박영인',role:'OWNER',weeks:['완료','완료','예정','예정','예정']},{name:'수호',role:'ADMIN',weeks:['완료','완료','예정','예정','예정']},{name:'연우',role:'MEMBER',weeks:['완료','미납','예정','예정','예정']},{name:'영포티',role:'MEMBER',weeks:['완료','완료','예정','예정','예정']}],fundWeeklyFee:20000,fundWeeklyLoading:false,fundFilters:{person:'all',type:'all',account:'all'},memberFilter:'all',memberRole:'',memberQuery:'',assetTab,assetQuery:'',assetCategory:'',assetStatus:'',assetsSnapshot:{assets,returns,members:memberships.map(m=>({id:m.id,display_name:m.display_name,discord_user_id:m.discord_user_id,role:m.role,status:m.status}))},accountQuery:'',accountStatus:'',accountsSnapshot:{accounts,requests},settingsTab,companyMenuOpen,modal:modal==='feedback'?{type:'feedback'}:null,loading:false,ready,error:'',notice:''};
+renderShell(document.querySelector('#app'),state);
+document.documentElement.dataset.qaReady='true';</script></body></html>

@@ -1,8 +1,7 @@
-AXE PRODUCT WEB STAGING 3.14.6 AXE BRAND SKIN PASS
+AXE PRODUCT WEB STAGING 3.14.7 · AXE NET BLACK + SUBTLE GOLD
 
-1. 차가운 blue-gray dark palette를 warm black / charcoal로 변경
-2. Gold를 bright yellow가 아닌 aged brass 계열로 정리
-3. Sidebar active / hover에 얇은 brass edge와 warm surface 적용
-4. Header / panels / summary / toolbars / inputs / modals 색 온도 통일
-5. 멤버/자산/계좌/회사설정의 neutral surface를 공금내역과 같은 계열로 통일
-6. 기능/배치/DB/Auth/RLS/RPC/BOT 변경 없음
+1. Removed the broad warm/yellow surface treatment from 3.14.6.
+2. Restored near-black / neutral charcoal surfaces matching AXE NET's visual temperature.
+3. Gold is now restrained to active navigation, tabs, focus, key actions and ON state.
+4. Existing 3.14.5 fund settings month selector and runtime layout fixes are unchanged.
+5. No database, RPC, Auth, RLS, Discord or BOT changes.
