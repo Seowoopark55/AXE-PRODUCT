@@ -1,0 +1,7 @@
+AXE PRODUCT WEB STAGING ONLY
+
+DB v1.7.41 foundation + WEB unlock and STAGING BOT v1.7.41 must already be applied.
+No additional SQL for this ZIP.
+Do not use apply-axe-product.sh (BOT deploy helper).
+GitHub PRODUCT STAGING web project root: copy/overwrite this package contents -> commit/push -> wait for Vercel Ready.
+Then test only the STAGING site.

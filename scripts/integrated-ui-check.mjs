@@ -50,6 +50,12 @@ expect('Asset compact mode contract', render.includes("state.assetTab==='returns
 expect('Fund settings compact runtime override', css.includes('.axe-fund-subview--settings .axe-fund-setting{grid-template-columns:205px minmax(0,1fr)'));
 expect('Customer settings hide internal code badge', !render.includes('<span>${esc(m.module_key)}</span>') && render.includes('<div class="ops-settings-module-copy"><strong>${esc(ui.name)}</strong>'));
 expect('Compact save action visual', settingsCss.includes('.ops-settings-save-action'));
+expect('Onboarding status RPC binding', api.includes("'web_get_company_onboarding_status'") && api.includes('function getCompanyOnboardingStatus'));
+expect('Reconnect request RPC binding', api.includes("'request_company_discord_reconnect'") && api.includes('function requestCompanyDiscordReconnect'));
+expect('Reconnect confirmation modal', render.includes("data-form=\"reconnect-discord\"") && render.includes('그대로 보존되는 항목'));
+expect('Reconnect poll lifecycle', main.includes('startReconnectStatusPoll') && main.includes("['reset_requested','resetting']"));
+expect('New company enters settings onboarding', main.includes("state.page='settings';state.settingsTab='basic'"));
+expect('BOT bridge copy reflects connected state', render.includes('BOT 자동 반영 연결됨'));
 expect('Prototype CSS system imported', ['tokens.css','layout.css','fund.css','management.css','settings.css','overlays.css'].every(x=>css.includes(x)));
 
 if(failures.length){

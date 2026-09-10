@@ -494,6 +494,24 @@ export async function completeDiscordConnection(linkToken) {
   return data.connection;
 }
 
+export async function getCompanyOnboardingStatus(companyId) {
+  assertClient();
+  const result = await supabase.rpc('web_get_company_onboarding_status', {
+    p_company_id: companyId,
+  });
+  return unwrap(result, '회사 온보딩 상태를 불러오지 못했습니다.') || null;
+}
+
+export async function requestCompanyDiscordReconnect(companyId) {
+  assertClient();
+  const result = await supabase.rpc('request_company_discord_reconnect', {
+    p_company_id: companyId,
+  });
+  const jobId = unwrap(result, 'Discord 연결 다시 설정 요청을 만들지 못했습니다.');
+  if (!jobId) throw new Error('Discord 연결 다시 설정 작업 ID를 받지 못했습니다.');
+  return String(jobId);
+}
+
 // ============================================================
 // STAGE 5C / AMMO
 // ============================================================

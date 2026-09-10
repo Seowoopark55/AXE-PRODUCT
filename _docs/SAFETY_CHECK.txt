@@ -1,0 +1,9 @@
+AXE PRODUCT WEB STAGING 3.15.0 SECURITY / SCOPE CHECK
+
+STAGING web source only.
+No runtime key or service-role credential included.
+Browser does not call bot_runtime_* RPCs.
+Reconnect request uses request_company_discord_reconnect only.
+Reset tables remain non-writable from authenticated browser role.
+
+Static source check: PASS

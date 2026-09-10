@@ -1,0 +1,11 @@
+AXE PRODUCT WEB STAGING 3.15.0
+
+1. Company onboarding status is loaded from web_get_company_onboarding_status.
+2. New company creation moves directly to Company Settings > Basic.
+3. Settings shows a compact Discord / roles / modules / complete onboarding progress strip.
+4. Connected Discord server can be safely reset through a confirmation modal.
+5. request_company_discord_reconnect creates the reset queue job; browser performs no raw reset-table writes.
+6. While BOT cleanup is running, settings are locked and the page polls reset status.
+7. After cleanup, the same Discord server can be connected again from the normal OAuth flow.
+8. Existing business data is preserved by the DB/BOT reset contract.
+9. Module footer now reports BOT automatic reflection as connected.

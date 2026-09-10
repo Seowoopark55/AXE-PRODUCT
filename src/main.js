@@ -8,7 +8,7 @@ import {
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   createCompanyInvite, redeemCompanyInvite,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl,
-  startDiscordConnection, completeDiscordConnection,
+  startDiscordConnection, completeDiscordConnection, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
@@ -34,6 +34,7 @@ const state = {
   discordChannels: [],
   discordRoles: [],
   discordCompanyConfig: null,
+  onboardingStatus: null,
   page: validPages.includes(sessionStorage.getItem('axe_product_page')) ? sessionStorage.getItem('axe_product_page') : 'fund',
   fundTab: sessionStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
@@ -59,6 +60,8 @@ const state = {
 
 let noticeTimer = null;
 let mutationBusy = false;
+let reconnectPollTimer = null;
+let reconnectPollAttempts = 0;
 
 function render() { renderShell(root, state); }
 function setNotice(message) {
@@ -69,7 +72,7 @@ function setNotice(message) {
 function setError(error) { state.error = String(error?.message || error || '오류가 발생했습니다.'); render(); }
 function clearCompanyData() {
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.companySettings=null;
-  state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null;
+  state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.assetsSnapshot=null; state.accountsSnapshot=null;
 }
 
@@ -84,12 +87,13 @@ async function loadBaseCompanyData() {
   if (!state.companyId) { clearCompanyData(); return; }
   const memberships = await getMemberships(state.companyId);
   state.memberships = memberships || [];
-  const [catalog, modules, settings, discord, channels, roles, config] = await Promise.all([
+  const [catalog, modules, settings, discord, channels, roles, config, onboarding] = await Promise.all([
     getModuleCatalog(), getCompanyModules(state.companyId), getCompanySettings(state.companyId),
     getDiscordConnection(state.companyId), getDiscordChannels(state.companyId), getDiscordRoles(state.companyId), getDiscordCompanyConfig(state.companyId),
+    getCompanyOnboardingStatus(state.companyId),
   ]);
   state.moduleCatalog=catalog||[]; state.modules=modules||[]; state.companySettings=settings||null;
-  state.discordConnection=discord||null; state.discordChannels=channels||[]; state.discordRoles=roles||[]; state.discordCompanyConfig=config||null;
+  state.discordConnection=discord||null; state.discordChannels=channels||[]; state.discordRoles=roles||[]; state.discordCompanyConfig=config||null; state.onboardingStatus=onboarding||null;
 }
 
 async function loadFundSnapshot() {
@@ -146,6 +150,48 @@ async function refreshAll() {
   finally { state.loading=false; render(); }
 }
 
+function clearReconnectPoll() {
+  if (reconnectPollTimer) clearTimeout(reconnectPollTimer);
+  reconnectPollTimer = null;
+  reconnectPollAttempts = 0;
+}
+
+function startReconnectStatusPoll() {
+  clearReconnectPoll();
+  const run = async () => {
+    if (!state.companyId || !state.session?.user) return clearReconnectPoll();
+    reconnectPollAttempts += 1;
+    try {
+      const status = await getCompanyOnboardingStatus(state.companyId);
+      state.onboardingStatus = status || null;
+      const phase = String(status?.status || '');
+      if (phase === 'error') {
+        clearReconnectPoll();
+        setError(status?.last_error || 'Discord 연결 초기화에 실패했습니다.');
+        return;
+      }
+      if (!['reset_requested','resetting'].includes(phase)) {
+        clearReconnectPoll();
+        await loadBaseCompanyData();
+        state.settingsTab='basic';
+        sessionStorage.setItem('axe_product_settings_tab','basic');
+        setNotice('기존 Discord 연결 정리가 완료됐습니다. 다시 연결할 수 있습니다.');
+        return;
+      }
+      render();
+    } catch (error) {
+      if (reconnectPollAttempts >= 20) {
+        clearReconnectPoll();
+        setError(error);
+        return;
+      }
+    }
+    if (reconnectPollAttempts < 20) reconnectPollTimer=setTimeout(run,2500);
+    else { clearReconnectPoll(); setNotice('Discord 연결 정리가 진행 중입니다. 잠시 후 새로고침해 주세요.'); }
+  };
+  reconnectPollTimer=setTimeout(run,1200);
+}
+
 function discordOAuthErrorMessage(code) {
   const map={access_denied:'Discord 서버 연결이 취소됐습니다.',invalid_request:'Discord 인증 요청이 올바르지 않습니다.',temporarily_unavailable:'Discord 인증 서비스를 잠시 사용할 수 없습니다.',token_exchange_failed:'Discord 인증 코드 교환에 실패했습니다.',guild_not_returned:'선택한 Discord 서버 정보를 확인하지 못했습니다.',oauth_validation_failed:'Discord 인증 보안 검증에 실패했습니다.',missing_oauth_response:'Discord 인증 결과가 비어 있습니다.',oauth_failed:'Discord 서버 연결에 실패했습니다.'};
   return map[code]||'Discord 서버 연결에 실패했습니다.';
@@ -156,7 +202,7 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(null,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic';
+  const connection=await completeDiscordConnection(token); clearReconnectPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; sessionStorage.setItem('axe_product_page','settings'); sessionStorage.setItem('axe_product_settings_tab','basic');
   setNotice(`Discord 서버 ${connection.guild_name||''} 연결이 완료됐습니다.`);
 }
 
@@ -190,7 +236,7 @@ root.addEventListener('click', async event => {
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
@@ -205,15 +251,16 @@ root.addEventListener('click', async event => {
   if(action==='create-invite'){state.modal={type:'invite'};render();return;}
   if(action==='copy-invite'){await navigator.clipboard.writeText(actionEl.dataset.inviteCode||'');setNotice('초대코드를 복사했습니다.');return;}
   if(action==='reset-fund-filter'){state.fundFilters={person:'all',type:'all',account:'all'};render();return;}
+  if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
 
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
-    if(action==='logout'){await signOut();state.modal=null;return;}
+    if(action==='logout'){clearReconnectPoll();await signOut();state.modal=null;return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();setNotice('공금 데이터를 새로고침했습니다.');return;}
-    if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
+    if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){
-      if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.'); const key=actionEl.dataset.moduleKey; const current=moduleRow(state,key); if(!current)throw new Error('기능 설정을 찾지 못했습니다.');
+      if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('Discord 연결을 정리 중에는 기능 설정을 변경할 수 없습니다.'); const key=actionEl.dataset.moduleKey; const current=moduleRow(state,key); if(!current)throw new Error('기능 설정을 찾지 못했습니다.');
       await setCompanyModule(state.companyId,key,!current.enabled,state.session.user.id); await loadCompanyData(); setNotice(`${(current.enabled?'기능을 껐습니다.':'기능을 켰습니다.')}`); return;
     }
     if(action==='cancel-ledger'){const id=actionEl.dataset.entryId;if(!window.confirm('이 공금 내역을 취소할까요?'))return;const input=window.prompt('취소 사유를 입력해 주세요.','');if(input===null)return;const reason=input.trim();if(!reason)throw new Error('취소 사유를 입력해 주세요.');await cancelFundLedgerEntry(state.companyId,id,reason);state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 취소했습니다.');return;}
@@ -248,8 +295,9 @@ document.addEventListener('click', event => {
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
-    if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;await loadCompanies();await loadCompanyData();state.ready=true;setNotice('새 회사가 생성됐습니다.');return;}
+    if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;state.page='settings';state.settingsTab='basic';sessionStorage.setItem('axe_product_page','settings');sessionStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;setNotice('새 회사가 생성됐습니다. Discord 연결부터 설정해 주세요.');return;}
     if(type==='redeem-invite'){const joined=await redeemCompanyInvite(String(data.get('invite_code')||'').trim());if(!joined?.company_id)throw new Error('가입된 회사 정보를 받지 못했습니다.');state.companyId=joined.company_id;localStorage.setItem('axe_product_company_id',state.companyId);state.modal=null;await loadCompanies();await loadCompanyData();setNotice('회사에 참가했습니다.');return;}
+    if(type==='reconnect-discord'){if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='feedback'){const result=await submitProductFeedback(state.companyId,String(data.get('category')),String(data.get('title')||'').trim(),String(data.get('detail')||'').trim(),String(data.get('contact')||'').trim());state.modal=null;setNotice(`피드백을 보냈습니다. 접수번호 ${result?.reference||''}`);return;}
     if(type==='ledger'){await saveFundLedgerEntry(state.companyId,{entryId:String(data.get('entry_id')||'')||null,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')});state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 저장했습니다.');return;}
     if(type==='member'){const id=String(data.get('membership_id'));const row=state.memberships.find(m=>m.id===id);const role=String(data.get('role'));const status=String(data.get('status'));if(row.role!==role)await updateMembershipRole(id,role);if(row.status!==status)await updateMembershipStatus(id,status);state.modal=null;await loadCompanyData();setNotice('멤버 정보를 저장했습니다.');return;}
@@ -260,7 +308,7 @@ root.addEventListener('submit', async event => {
     if(type==='fund-fee-rule'){const feeMonth=String(data.get('fee_month')||state.fundMonth||state.currentMonth);const [feeYear,feeMonthNo]=feeMonth.split('-').map(Number);if(!feeYear||!feeMonthNo)throw new Error('적용 월을 확인해 주세요.');await setFundFeeRule(state.companyId,feeYear,feeMonthNo,Number(data.get('week')),Number(data.get('weekly_fee')),'WEB 공금 설정');const settings={...(state.companySettings?.settings||{}),fund_default_account:String(data.get('default_account')||'공용계좌')};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);state.fundMonth=feeMonth;await loadFundSnapshot();setNotice(`${feeYear}년 ${feeMonthNo}월 공금 설정을 저장했습니다.`);return;}
     if(type==='settings-basic'){
       await updateCompanySettings(state.companyId,{brand_name:String(data.get('brand_name')||'').trim(),locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul'},state.session.user.id);
-      await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);await loadBaseCompanyData();setNotice('기본 정보를 저장했습니다.');return;
+      await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);await loadBaseCompanyData();if(state.onboardingStatus?.current_step==='modules'){state.settingsTab='modules';sessionStorage.setItem('axe_product_settings_tab','modules');}setNotice('기본 정보를 저장했습니다.');return;
     }
     if(type==='settings-modules'){
       for(const mod of state.modules){
