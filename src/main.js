@@ -49,6 +49,7 @@ const state = {
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountsSnapshot:null,
   settingsTab: sessionStorage.getItem('axe_product_settings_tab') || 'basic',
+  companyMenuOpen: false,
   modal: null,
   loading: false,
   ready: false,
@@ -188,6 +189,8 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(state.modal?.type==='feedback')return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
@@ -223,7 +226,6 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
-    if(event.target.matches('[data-action="switch-company"]')){state.companyId=event.target.value;localStorage.setItem('axe_product_company_id',state.companyId);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
     if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;await withMutation(loadFundSnapshot);return;}
     if(event.target.matches('[data-fund-weekly-month]')){state.fundWeeklyMonth=event.target.value;state.fundMonthlyRows=[];await loadFundWeeklyMonth();return;}
     if(event.target.matches('[data-fund-filter]')){state.fundFilters[event.target.dataset.fundFilter]=event.target.value;render();return;}
@@ -237,6 +239,10 @@ root.addEventListener('input', event => {
   if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+});
+
+document.addEventListener('click', event => {
+  if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;render();}
 });
 
 root.addEventListener('submit', async event => {

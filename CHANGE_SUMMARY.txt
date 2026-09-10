@@ -1,36 +1,25 @@
-AXE PRODUCT WEB STAGING APPLY READY
-UI baseline: 3.14.3
-DB bridge dependency: 1.7.37
+AXE PRODUCT WEB STAGING 3.14.4 · RUNTIME LAYOUT FIX
 
-INTEGRATED
-- Final approved operations-console layout from UI 3.14.3.
-- Sidebar: 회사 운영 / 설정 / 지원.
-- Fund ledger uses AXE NET dense grouped history layout.
-- Month selector for ledger/payment history.
-- Members/assets/accounts content-adaptive management screens.
-- Company settings split into 기본 정보 / 기능 설정.
-- Power-style module ON/OFF controls.
-- Feedback · 제보 modal with draft-loss protection.
-- Boxed AXE mark / member initial boxes remain removed.
+1. Startup flash
+- 로그인 세션이 있지만 회사 목록이 아직 로드되지 않은 순간에는 회사 생성 onboarding을 렌더하지 않습니다.
+- 전용 startup loading 화면을 거친 뒤 회사 목록 로드가 끝난 경우에만 onboarding 여부를 판단합니다.
 
-REAL DATA CONNECTION
-- fund_admin_get_treasury_snapshot
-- fund_admin_save_ledger_entry
-- fund_admin_cancel_ledger_entry
-- web_assets_admin_snapshot / save / manage
-- web_accounts_admin_snapshot / submit_request / review_request
-- submit_product_feedback
-- Existing company/membership/settings/Discord catalog APIs retained.
+2. Company switcher
+- 브라우저 native select를 제거하고 상태 유지형 custom company picker로 교체했습니다.
+- 렌더가 발생해도 open state가 유지되므로 드롭다운이 순간적으로 닫히는 현상을 방지합니다.
 
-SAFETY
-- Browser does not use BOT runtime keys.
-- Browser does not write fund_ledger / asset_company_assets / asset_member_accounts directly.
-- axe_product schema lock retained.
-- Discord OAuth API routes retained.
-- Direct fund cancellation now requires a non-empty reason, matching DB 1.7.37.
+3. Fund settings
+- 500px compact board 안에서 주차 선택 + 금액 입력이 넘치지 않도록 lane/controls 폭을 재설계했습니다.
+- 저장 버튼이 카드 오른쪽에서 잘리지 않도록 footer와 min-width를 정리했습니다.
 
-SMALL FUNCTIONAL POLISH DURING INTEGRATION
-- Fund default account setting is now persisted in company_settings.settings.
-- Ledger create modal respects the saved default account.
-- Settings module counts only customer-facing modules.
-- Month dropdown remains anchored to current month so users can return from old history.
+4. Assets
+- Prototype에서 확정한 is-assets / is-returns adaptive class와 ops-mgmt-tabs-row 구조를 복구했습니다.
+- 자산 현황 710px / 반납 내역 640px compact workspace가 실제 runtime에서도 적용됩니다.
+
+5. Company settings
+- Prototype의 ops-settings-nav-row / ops-settings-tabs 마크업을 runtime에 복구했습니다.
+- 설정 저장 버튼과 하위 카테고리가 같은 행에서 정렬됩니다.
+- 기능 rows에 channel-count class를 추가하여 총알 2채널 폭과 전원 버튼 X축을 다시 맞췄습니다.
+- 기능 순서를 공금 → 총알 → 무법지대 → 개조서 → 요리 → 자산·계좌로 고정했습니다.
+
+DB/SQL 변경 없음. BOT/LIVE 변경 없음.

@@ -1,71 +1,18 @@
+AXE PRODUCT WEB STAGING 3.14.4 CHECK RESULTS
 
-> axe-product-staging@1.7.37-web-ui.1 check
-> node scripts/source-check.mjs && node scripts/integrated-ui-check.mjs
+PASS npm run check: 47/47
+PASS source-check.mjs
+PASS integrated-ui-check.mjs
+PASS all src/*.js node --check
+PASS onboarding ready gate
+PASS stable custom company picker contract
+PASS asset adaptive compact contract
+PASS settings navigation markup contract
+PASS 2-channel module compact class contract
+PASS fund settings compact width contract
 
-AXE PRODUCT SOURCE CHECK: PASS
-Checked 20 source files.
- - axe_product schema lock: PASS
- - no NEW AXE NET / HUB app-table reference: PASS
- - no server master key dependency: PASS
- - Discord OAuth API routes: PASS
- - Discord catalog/mapping integration: PASS
-AXE PRODUCT INTEGRATED UI CHECK: PASS
-43/43 checks passed.
- - WEB bridge helper: getFundTreasurySnapshot: PASS
- - WEB bridge helper: saveFundLedgerEntry: PASS
- - WEB bridge helper: cancelFundLedgerEntry: PASS
- - WEB bridge helper: getWebAssetsSnapshot: PASS
- - WEB bridge helper: saveWebAsset: PASS
- - WEB bridge helper: manageWebAsset: PASS
- - WEB bridge helper: getWebAccountsSnapshot: PASS
- - WEB bridge helper: submitWebAccountRequest: PASS
- - WEB bridge helper: reviewWebAccountRequest: PASS
- - WEB bridge helper: submitProductFeedback: PASS
- - RPC binding: fund_admin_get_treasury_snapshot: PASS
- - RPC binding: fund_admin_save_ledger_entry: PASS
- - RPC binding: fund_admin_cancel_ledger_entry: PASS
- - RPC binding: web_assets_admin_snapshot: PASS
- - RPC binding: web_assets_admin_save: PASS
- - RPC binding: web_assets_admin_manage: PASS
- - RPC binding: web_accounts_admin_snapshot: PASS
- - RPC binding: web_accounts_submit_request: PASS
- - RPC binding: web_accounts_review_request: PASS
- - RPC binding: submit_product_feedback: PASS
- - axe_product schema lock: PASS
- - No browser BOT runtime RPC usage: PASS
- - No raw fund ledger browser write: PASS
- - No raw company asset browser write: PASS
- - No raw member account browser write: PASS
- - Accepted sidebar group label: PASS
- - Sidebar/page label: 공금 관리: PASS
- - Sidebar/page label: 멤버 관리: PASS
- - Sidebar/page label: 자산 관리: PASS
- - Sidebar/page label: 계좌 관리: PASS
- - Sidebar/page label: 회사 설정: PASS
- - Sidebar/page label: 피드백 · 제보: PASS
- - Boxed AXE header mark removed: PASS
- - Feedback backdrop does not close modal: PASS
- - Feedback draft close protection: PASS
- - Mandatory ledger cancellation reason: PASS
- - Fund monthly selector: PASS
- - Fund AXE NET grouped ledger structure: PASS
- - Settings basic/module tabs: PASS
- - Power-style module controls: PASS
- - Customer settings hide internal code badge: PASS
- - Compact save action visual: PASS
- - Prototype CSS system imported: PASS
+NOTE: local `vite build` was not executed because this sandbox copy intentionally has no node_modules and network install is unavailable. Vercel installs dependencies from package.json during deployment. No source syntax or static-contract failures were found.
 
-ALL JS/MJS SYNTAX: PASS
-BROWSER STATIC RENDER QA 1920x900: 12/12 PASS
- - FUND_LEDGER: scroll 900/900, errors 0
- - FUND_WEEKLY: scroll 900/900, errors 0
- - FUND_REVIEW: scroll 900/900, errors 0
- - FUND_BALANCE: scroll 900/900, errors 0
- - FUND_SETTINGS: scroll 900/900, errors 0
- - MEMBERS: scroll 900/900, errors 0
- - ASSETS: scroll 900/900, errors 0
- - RETURNS: scroll 900/900, errors 0
- - ACCOUNTS: scroll 900/900, errors 0
- - SETTINGS_BASIC: scroll 900/900, errors 0
- - SETTINGS_MODULES: scroll 900/900, errors 0
- - FEEDBACK: scroll 900/900, errors 0
+DB/SQL changes: NONE
+BOT changes: NONE
+LIVE BOT changes: NONE

@@ -1,16 +1,6 @@
 AXE PRODUCT WEB STAGING ONLY
 
-1. This package is WEB source. Do NOT use apply-axe-product.sh.
-2. Keep the existing Vercel environment variables unchanged.
-3. Replace/update only the PRODUCT STAGING web project/repository with this ZIP's contents.
-4. Let Vercel run the normal Vite install/build/deploy flow.
-5. After deployment smoke-test:
-   - Discord login
-   - company switch
-   - 공금 5 tabs
-   - 멤버 관리
-   - 자산 현황 / 반납 내역
-   - 계좌 검수
-   - 회사 설정 기본정보 / 기능설정
-   - 피드백 · 제보
-6. LIVE BOT and PRODUCT STAGING BOT are not part of this deployment.
+이 패키지는 WEB STAGING 소스 덮어쓰기용입니다.
+SQL 추가 실행 없음.
+apply-axe-product.sh 사용 금지 (BOT 배포 아님).
+GitHub PRODUCT STAGING 웹 프로젝트 루트에 내용 전체 덮어쓰기 → commit/push → Vercel Ready 확인.

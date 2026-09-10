@@ -42,8 +42,12 @@ expect('Feedback draft close protection', main.includes('작성 중인 피드백
 expect('Mandatory ledger cancellation reason', main.includes('취소 사유를 입력해 주세요.') && api.includes('normalizedReason'));
 expect('Fund monthly selector', render.includes('data-fund-weekly-month'));
 expect('Fund AXE NET grouped ledger structure', render.includes('axe-fund-history-list') && render.includes('renderLedgerGroup'));
-expect('Settings basic/module tabs', render.includes("data-settings-tab=\"basic\"") && render.includes("data-settings-tab=\"modules\""));
-expect('Power-style module controls', render.includes('runtime-power') && render.includes("icon('power')"));
+expect('Settings basic/module tabs', render.includes("ops-settings-nav-row") && render.includes("ops-settings-tabs") && render.includes("data-settings-tab=\"basic\"") && render.includes("data-settings-tab=\"modules\""));
+expect('Power-style module controls', render.includes('runtime-power') && render.includes("icon('power')") && render.includes('ops-settings-module--channels-${ui.channels.length}'));
+expect('No onboarding flash while company list loads', render.includes('!state.ready ? renderStartupLoading()'));
+expect('Stable custom company picker', render.includes('runtime-company-picker') && main.includes("action==='toggle-company-menu'") && main.includes("action==='switch-company'"));
+expect('Asset compact mode contract', render.includes("state.assetTab==='returns'?'is-returns':'is-assets'") && render.includes('ops-mgmt-tabs-row'));
+expect('Fund settings compact runtime override', css.includes('.axe-fund-subview--settings .axe-fund-setting{grid-template-columns:205px minmax(0,1fr)'));
 expect('Customer settings hide internal code badge', !render.includes('<span>${esc(m.module_key)}</span>') && render.includes('<div class="ops-settings-module-copy"><strong>${esc(ui.name)}</strong>'));
 expect('Compact save action visual', settingsCss.includes('.ops-settings-save-action'));
 expect('Prototype CSS system imported', ['tokens.css','layout.css','fund.css','management.css','settings.css','overlays.css'].every(x=>css.includes(x)));
