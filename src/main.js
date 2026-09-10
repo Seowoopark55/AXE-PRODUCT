@@ -62,6 +62,8 @@ let noticeTimer = null;
 let mutationBusy = false;
 let reconnectPollTimer = null;
 let reconnectPollAttempts = 0;
+let catalogPollTimer = null;
+let catalogPollAttempts = 0;
 
 function render() { renderShell(root, state); }
 function setNotice(message) {
@@ -156,6 +158,52 @@ function clearReconnectPoll() {
   reconnectPollAttempts = 0;
 }
 
+function clearCatalogPoll() {
+  if (catalogPollTimer) clearTimeout(catalogPollTimer);
+  catalogPollTimer = null;
+  catalogPollAttempts = 0;
+}
+
+function discordCatalogPending(status = state.onboardingStatus) {
+  return state.discordConnection?.status === 'connected' && status?.catalog_ready === false;
+}
+
+function startCatalogStatusPoll() {
+  clearCatalogPoll();
+  const run = async () => {
+    if (!state.companyId || !state.session?.user) return clearCatalogPoll();
+    catalogPollAttempts += 1;
+    try {
+      const status = await getCompanyOnboardingStatus(state.companyId);
+      state.onboardingStatus = status || null;
+      if (!status?.discord_connected) {
+        clearCatalogPoll();
+        render();
+        return;
+      }
+      if (status?.catalog_ready === true) {
+        clearCatalogPoll();
+        await loadBaseCompanyData();
+        setNotice(`Discord 역할 ${Number(status.role_count||0)}개 · 채널 ${Number(status.channel_count||0)}개를 불러왔습니다.`);
+        return;
+      }
+      render();
+    } catch (error) {
+      if (catalogPollAttempts >= 30) {
+        clearCatalogPoll();
+        setError(error);
+        return;
+      }
+    }
+    if (catalogPollAttempts < 30) catalogPollTimer=setTimeout(run,2000);
+    else {
+      clearCatalogPoll();
+      setNotice('Discord 역할·채널 동기화가 지연되고 있습니다. 잠시 후 새로고침해 주세요.');
+    }
+  };
+  catalogPollTimer=setTimeout(run,600);
+}
+
 function startReconnectStatusPoll() {
   clearReconnectPoll();
   const run = async () => {
@@ -202,13 +250,15 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(null,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); clearReconnectPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; sessionStorage.setItem('axe_product_page','settings'); sessionStorage.setItem('axe_product_settings_tab','basic');
-  setNotice(`Discord 서버 ${connection.guild_name||''} 연결이 완료됐습니다.`);
+  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; sessionStorage.setItem('axe_product_page','settings'); sessionStorage.setItem('axe_product_settings_tab','basic');
+  if(discordCatalogPending()){setNotice(`Discord 서버 ${connection.guild_name||''} 연결 완료 · 역할·채널 정보를 불러오는 중입니다.`);startCatalogStatusPoll();}
+  else setNotice(`Discord 서버 ${connection.guild_name||''} 연결이 완료됐습니다.`);
 }
 
 async function boot() {
   if(!envReady){state.ready=true;render();return;}
   try{state.session=await getSession();}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
+  if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
   onAuthStateChange(async (_event,session)=>{const before=state.session?.user?.id||null; const after=session?.user?.id||null; state.session=session; if(before!==after){state.ready=false;await refreshAll();}});
 }
@@ -230,6 +280,7 @@ function isOnboardingStep(step){ return onboardingPhase()==='onboarding' && onbo
 
 function assertOnboardingRoles(data){
   if(!isOnboardingStep('roles')) return;
+  if(discordCatalogPending()) throw new Error('Discord 역할·채널 정보를 불러오는 중입니다. 잠시만 기다려 주세요.');
   if(!String(data.get('admin_role_id')||'').trim()) throw new Error('관리자 역할을 선택해 주세요.');
   if(!String(data.get('member_role_id')||'').trim()) throw new Error('일반 멤버 역할을 선택해 주세요.');
 }
@@ -261,6 +312,7 @@ root.addEventListener('click', async event => {
   if(settingsTab){
     const nextTab=String(settingsTab.dataset.settingsTab||'basic');
     if(nextTab==='modules' && state.settingsTab==='basic' && isOnboardingStep('roles')){
+      if(discordCatalogPending()){setError('Discord 역할·채널 정보를 불러오는 중입니다. 잠시만 기다려 주세요.');startCatalogStatusPoll();return;}
       const activeForm=root.querySelector('form[data-form="settings-basic"]');
       if(!activeForm){setError('기본 설정 화면을 다시 열어 주세요.');return;}
       const activeData=new FormData(activeForm);
@@ -283,7 +335,7 @@ root.addEventListener('click', async event => {
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
@@ -344,7 +396,7 @@ root.addEventListener('submit', async event => {
   await withMutation(async()=>{
     if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;state.page='settings';state.settingsTab='basic';sessionStorage.setItem('axe_product_page','settings');sessionStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;setNotice('새 회사가 생성됐습니다. Discord 연결부터 설정해 주세요.');return;}
     if(type==='redeem-invite'){const joined=await redeemCompanyInvite(String(data.get('invite_code')||'').trim());if(!joined?.company_id)throw new Error('가입된 회사 정보를 받지 못했습니다.');state.companyId=joined.company_id;localStorage.setItem('axe_product_company_id',state.companyId);state.modal=null;await loadCompanies();await loadCompanyData();setNotice('회사에 참가했습니다.');return;}
-    if(type==='reconnect-discord'){if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
+    if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='feedback'){const result=await submitProductFeedback(state.companyId,String(data.get('category')),String(data.get('title')||'').trim(),String(data.get('detail')||'').trim(),String(data.get('contact')||'').trim());state.modal=null;setNotice(`피드백을 보냈습니다. 접수번호 ${result?.reference||''}`);return;}
     if(type==='ledger'){await saveFundLedgerEntry(state.companyId,{entryId:String(data.get('entry_id')||'')||null,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')});state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 저장했습니다.');return;}
     if(type==='member'){const id=String(data.get('membership_id'));const row=state.memberships.find(m=>m.id===id);const role=String(data.get('role'));const status=String(data.get('status'));if(row.role!==role)await updateMembershipRole(id,role);if(row.status!==status)await updateMembershipStatus(id,status);state.modal=null;await loadCompanyData();setNotice('멤버 정보를 저장했습니다.');return;}

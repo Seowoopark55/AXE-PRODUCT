@@ -1,14 +1,8 @@
-AXE PRODUCT WEB STAGING 3.15.1 SECURITY / SCOPE CHECK
+AXE PRODUCT WEB STAGING 3.15.2 SAFETY
 
-STAGING web source only.
-No runtime key or service-role credential included.
-Browser does not call bot_runtime_* RPCs.
-Reconnect request uses request_company_discord_reconnect only.
-Reset tables remain non-writable from authenticated browser role.
-
-Static source check: PASS
-
-- 3.15.1 change scope: src/main.js, src/ui/render.js, package/docs/checks only.
-- No DB SQL included.
-- No BOT source included.
-- No LIVE deployment path or command included.
+- Uses existing web_get_company_onboarding_status RPC only.
+- Does not create or mutate database schema.
+- Does not directly INSERT/UPDATE/DELETE Discord catalog tables.
+- Does not touch /home/pyipsw001/axe-bot or any LIVE process.
+- Catalog polling is read-only.
+- Role/module saves remain the existing authenticated admin write paths.

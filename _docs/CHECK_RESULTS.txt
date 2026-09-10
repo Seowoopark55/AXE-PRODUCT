@@ -1,38 +1,21 @@
-AXE PRODUCT WEB STAGING 3.15.1 CHECK RESULTS
+AXE PRODUCT WEB STAGING 3.15.2 CHECK RESULTS
 
-PRIMARY CHECK
-> npm run check
+npm run check: PASS
+- source-check.mjs: PASS
+- integrated-ui-check.mjs: PASS (58/58)
+- onboarding-catalog-check.mjs: PASS
 
-AXE PRODUCT SOURCE CHECK: PASS
-- axe_product schema lock: PASS
-- no NEW AXE NET / HUB app-table reference: PASS
-- no server master key dependency: PASS
-- Discord OAuth API routes: PASS
-- Discord catalog/mapping integration: PASS
+Syntax checks:
+- src/main.js: PASS
+- src/ui/render.js: PASS
+- scripts/onboarding-catalog-check.mjs: PASS
 
-AXE PRODUCT INTEGRATED UI CHECK: PASS
-58/58 checks passed.
+Catalog readiness checks:
+- OAuth reconnect starts readiness polling when catalog_ready=false: PASS
+- Reload path self-starts readiness polling: PASS
+- Basic role save is blocked while catalog is pending: PASS
+- Function/settings forward navigation is blocked while catalog is pending: PASS
+- Role selects show a loading label instead of an empty choice list: PASS
+- Roles/channels reload automatically after catalog_ready=true: PASS
 
-3.15.1 onboarding-specific checks:
-- role-step forward navigation auto-saves Basic/role values: PASS
-- role-step required role validation: PASS
-- dynamic onboarding CTA (저장하고 다음 / 설정 완료): PASS
-- onboarding automatic-save guidance copy: PASS
-- onboarding completion notice: PASS
-
-SYNTAX CHECK
-- node --check src/main.js: PASS
-- node --check src/ui/render.js: PASS
-- node --check src/lib/productApi.js: PASS
-
-LEGACY CHECK NOTE
-The archived stage4/stage5 legacy check scripts already fail against the untouched 3.15.0 base because they assert UI/functions removed in earlier product revisions.
-3.15.1 was compared against 3.15.0 and shows the same legacy failure set; no new legacy regression was introduced by this patch.
-
-SCOPE CHECK
-- DB SQL changes: NONE
-- BOT changes: NONE
-- LIVE changes: NONE
-- runtime/API route changes: NONE
-- productApi.js changes: NONE
-- WEB behavior changes: onboarding save/navigation copy and handlers only
+No SQL or LIVE BOT changes are included.
