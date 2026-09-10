@@ -55,6 +55,11 @@ expect('Reconnect request RPC binding', api.includes("'request_company_discord_r
 expect('Reconnect confirmation modal', render.includes("data-form=\"reconnect-discord\"") && render.includes('그대로 보존되는 항목'));
 expect('Reconnect poll lifecycle', main.includes('startReconnectStatusPoll') && main.includes("['reset_requested','resetting']"));
 expect('New company enters settings onboarding', main.includes("state.page='settings';state.settingsTab='basic'"));
+expect('Onboarding role forward navigation auto-saves', main.includes("nextTab==='modules' && state.settingsTab==='basic' && isOnboardingStep('roles')") && main.includes("saveBasicSettingsData(activeData,{requireOnboardingRoles:true})"));
+expect('Onboarding role validation', main.includes('관리자 역할을 선택해 주세요.') && main.includes('일반 멤버 역할을 선택해 주세요.'));
+expect('Onboarding dynamic save CTA', render.includes("return '저장하고 다음'") && render.includes("return '설정 완료'"));
+expect('Onboarding save guidance copy', render.includes('기능 설정으로 이동하면 현재 입력값이 자동 저장됩니다.'));
+expect('Onboarding completion notice', main.includes('초기 설정이 완료됐습니다.'));
 expect('BOT bridge copy reflects connected state', render.includes('BOT 자동 반영 연결됨'));
 expect('Prototype CSS system imported', ['tokens.css','layout.css','fund.css','management.css','settings.css','overlays.css'].every(x=>css.includes(x)));
 

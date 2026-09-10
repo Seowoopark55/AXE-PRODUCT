@@ -1,11 +1,10 @@
-AXE PRODUCT WEB STAGING 3.15.0
+AXE PRODUCT WEB STAGING 3.15.1
 
-1. Company onboarding status is loaded from web_get_company_onboarding_status.
-2. New company creation moves directly to Company Settings > Basic.
-3. Settings shows a compact Discord / roles / modules / complete onboarding progress strip.
-4. Connected Discord server can be safely reset through a confirmation modal.
-5. request_company_discord_reconnect creates the reset queue job; browser performs no raw reset-table writes.
-6. While BOT cleanup is running, settings are locked and the page polls reset status.
-7. After cleanup, the same Discord server can be connected again from the normal OAuth flow.
-8. Existing business data is preserved by the DB/BOT reset contract.
-9. Module footer now reports BOT automatic reflection as connected.
+1. Keeps the existing 3.15.0 Discord onboarding/reconnect behavior.
+2. During onboarding role step, clicking 기능 설정 now saves Basic/role values first and then advances.
+3. Top-right CTA changes to 저장하고 다음 for role onboarding and 설정 완료 for module/channel onboarding.
+4. Both 관리자 역할 and 일반 멤버 역할 are required only while advancing the onboarding role step.
+5. Onboarding progress copy now explains automatic forward-save behavior.
+6. Final module/channel save reports 초기 설정 완료 when DB status becomes ready/complete.
+7. Normal post-onboarding settings keep the existing independent 설정 저장 behavior.
+8. WEB STAGING only. No SQL, no STAGING BOT change, and no LIVE change.

@@ -224,6 +224,32 @@ function closeModal({force=false}={}) {
 
 async function withMutation(fn){ if(mutationBusy)return; mutationBusy=true; state.loading=true; render(); try{await fn();}catch(error){setError(error);}finally{mutationBusy=false;state.loading=false;render();} }
 
+function onboardingPhase(){ return String(state.onboardingStatus?.status||''); }
+function onboardingStep(){ return String(state.onboardingStatus?.current_step||''); }
+function isOnboardingStep(step){ return onboardingPhase()==='onboarding' && onboardingStep()===step; }
+
+function assertOnboardingRoles(data){
+  if(!isOnboardingStep('roles')) return;
+  if(!String(data.get('admin_role_id')||'').trim()) throw new Error('관리자 역할을 선택해 주세요.');
+  if(!String(data.get('member_role_id')||'').trim()) throw new Error('일반 멤버 역할을 선택해 주세요.');
+}
+
+async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
+  if(requireOnboardingRoles) assertOnboardingRoles(data);
+  await updateCompanySettings(state.companyId,{brand_name:String(data.get('brand_name')||'').trim(),locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul'},state.session.user.id);
+  await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);
+}
+
+async function saveModuleSettingsData(form,data){
+  for(const mod of state.modules){
+    const settings={...(mod.settings||{})};
+    for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','order_channel_id']){
+      const field=`module_${mod.module_key}_${key}`; if(form.elements[field])settings[key]=String(data.get(field)||'')||null;
+    }
+    await updateCompanyModuleSettings(state.companyId,mod.module_key,settings,state.session.user.id);
+  }
+}
+
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ state.page=pageBtn.dataset.page; sessionStorage.setItem('axe_product_page',state.page); if(state.page==='fund'&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); render(); return; }
@@ -231,7 +257,28 @@ root.addEventListener('click', async event => {
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;sessionStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly'&&!state.fundMonthlyRows.length) await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
   const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;render();return;}
-  const settingsTab=event.target.closest('[data-settings-tab]'); if(settingsTab){state.settingsTab=settingsTab.dataset.settingsTab;sessionStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;}
+  const settingsTab=event.target.closest('[data-settings-tab]');
+  if(settingsTab){
+    const nextTab=String(settingsTab.dataset.settingsTab||'basic');
+    if(nextTab==='modules' && state.settingsTab==='basic' && isOnboardingStep('roles')){
+      const activeForm=root.querySelector('form[data-form="settings-basic"]');
+      if(!activeForm){setError('기본 설정 화면을 다시 열어 주세요.');return;}
+      const activeData=new FormData(activeForm);
+      await withMutation(async()=>{
+        await saveBasicSettingsData(activeData,{requireOnboardingRoles:true});
+        await loadBaseCompanyData();
+        state.settingsTab='modules';
+        sessionStorage.setItem('axe_product_settings_tab','modules');
+        setNotice('역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.');
+      });
+      return;
+    }
+    if(nextTab==='modules' && state.settingsTab==='basic' && isOnboardingStep('discord')){
+      setError('먼저 Discord 서버를 연결해 주세요.');
+      return;
+    }
+    state.settingsTab=nextTab;sessionStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
+  }
   if(event.target.matches('[data-modal-backdrop]')){ if(state.modal?.type==='feedback')return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
@@ -307,18 +354,21 @@ root.addEventListener('submit', async event => {
     if(type==='fund-balance'){const game=Number(data.get('game_balance'));if(!Number.isFinite(game)||game<0)throw new Error('게임 내 공용계좌 잔액을 확인해 주세요.');const settings={...(state.companySettings?.settings||{}),fund_balance_check:{game_balance:game,note:String(data.get('note')||'').trim(),calculated_balance:Number(state.fundSnapshot?.balance?.public||0),checked_at:new Date().toISOString()}};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);setNotice('잔액 점검을 저장했습니다.');return;}
     if(type==='fund-fee-rule'){const feeMonth=String(data.get('fee_month')||state.fundMonth||state.currentMonth);const [feeYear,feeMonthNo]=feeMonth.split('-').map(Number);if(!feeYear||!feeMonthNo)throw new Error('적용 월을 확인해 주세요.');await setFundFeeRule(state.companyId,feeYear,feeMonthNo,Number(data.get('week')),Number(data.get('weekly_fee')),'WEB 공금 설정');const settings={...(state.companySettings?.settings||{}),fund_default_account:String(data.get('default_account')||'공용계좌')};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);state.fundMonth=feeMonth;await loadFundSnapshot();setNotice(`${feeYear}년 ${feeMonthNo}월 공금 설정을 저장했습니다.`);return;}
     if(type==='settings-basic'){
-      await updateCompanySettings(state.companyId,{brand_name:String(data.get('brand_name')||'').trim(),locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul'},state.session.user.id);
-      await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);await loadBaseCompanyData();if(state.onboardingStatus?.current_step==='modules'){state.settingsTab='modules';sessionStorage.setItem('axe_product_settings_tab','modules');}setNotice('기본 정보를 저장했습니다.');return;
+      const wasRoleStep=isOnboardingStep('roles');
+      await saveBasicSettingsData(data,{requireOnboardingRoles:wasRoleStep});
+      await loadBaseCompanyData();
+      if(wasRoleStep || state.onboardingStatus?.current_step==='modules'){
+        state.settingsTab='modules';
+        sessionStorage.setItem('axe_product_settings_tab','modules');
+      }
+      setNotice(wasRoleStep?'역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.':'기본 정보를 저장했습니다.');return;
     }
     if(type==='settings-modules'){
-      for(const mod of state.modules){
-        const settings={...(mod.settings||{})};
-        for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','order_channel_id']){
-          const field=`module_${mod.module_key}_${key}`; if(form.elements[field])settings[key]=String(data.get(field)||'')||null;
-        }
-        await updateCompanyModuleSettings(state.companyId,mod.module_key,settings,state.session.user.id);
-      }
-      await loadBaseCompanyData();setNotice('기능 설정을 저장했습니다.');return;
+      const wasModuleStep=isOnboardingStep('modules');
+      await saveModuleSettingsData(form,data);
+      await loadBaseCompanyData();
+      const completed=wasModuleStep && (String(state.onboardingStatus?.status||'')==='ready' || String(state.onboardingStatus?.current_step||'')==='complete');
+      setNotice(completed?'초기 설정이 완료됐습니다.':'기능 설정을 저장했습니다.');return;
     }
   });
 });
