@@ -1,0 +1,36 @@
+AXE PRODUCT WEB STAGING APPLY READY
+UI baseline: 3.14.3
+DB bridge dependency: 1.7.37
+
+INTEGRATED
+- Final approved operations-console layout from UI 3.14.3.
+- Sidebar: 회사 운영 / 설정 / 지원.
+- Fund ledger uses AXE NET dense grouped history layout.
+- Month selector for ledger/payment history.
+- Members/assets/accounts content-adaptive management screens.
+- Company settings split into 기본 정보 / 기능 설정.
+- Power-style module ON/OFF controls.
+- Feedback · 제보 modal with draft-loss protection.
+- Boxed AXE mark / member initial boxes remain removed.
+
+REAL DATA CONNECTION
+- fund_admin_get_treasury_snapshot
+- fund_admin_save_ledger_entry
+- fund_admin_cancel_ledger_entry
+- web_assets_admin_snapshot / save / manage
+- web_accounts_admin_snapshot / submit_request / review_request
+- submit_product_feedback
+- Existing company/membership/settings/Discord catalog APIs retained.
+
+SAFETY
+- Browser does not use BOT runtime keys.
+- Browser does not write fund_ledger / asset_company_assets / asset_member_accounts directly.
+- axe_product schema lock retained.
+- Discord OAuth API routes retained.
+- Direct fund cancellation now requires a non-empty reason, matching DB 1.7.37.
+
+SMALL FUNCTIONAL POLISH DURING INTEGRATION
+- Fund default account setting is now persisted in company_settings.settings.
+- Ledger create modal respects the saved default account.
+- Settings module counts only customer-facing modules.
+- Month dropdown remains anchored to current month so users can return from old history.

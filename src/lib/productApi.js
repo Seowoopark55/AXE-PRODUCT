@@ -645,3 +645,151 @@ export async function resetAmmoRound(companyId, roundId, reason = '') {
   });
   return unwrap(result, '총알 회차를 초기화하지 못했습니다.');
 }
+
+
+// ============================================================
+// AXE PRODUCT WEB OPERATIONS BRIDGE v1.7.37
+// Authenticated browser-safe RPCs. Never pass BOT runtime keys.
+// ============================================================
+export async function getFundTreasurySnapshot(companyId, year = null, month = null, limit = 120) {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_get_treasury_snapshot', {
+    p_company_id: companyId,
+    p_year: year,
+    p_month: month,
+    p_limit: limit,
+  });
+  return unwrap(result, '공금 원장을 불러오지 못했습니다.') || {};
+}
+
+export async function saveFundLedgerEntry(companyId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_save_ledger_entry', {
+    p_company_id: companyId,
+    p_entry_id: payload.entryId || null,
+    p_direction: payload.direction || null,
+    p_amount: payload.amount == null ? null : Number(payload.amount),
+    p_account: payload.account || '공용계좌',
+    p_category: payload.category || null,
+    p_membership_id: payload.membershipId || null,
+    p_memo: payload.memo || null,
+    p_ledger_date: payload.ledgerDate || null,
+  });
+  return unwrap(result, '공금 내역을 저장하지 못했습니다.');
+}
+
+export async function cancelFundLedgerEntry(companyId, entryId, reason = '') {
+  assertClient();
+  const normalizedReason = String(reason || '').trim();
+  if (!normalizedReason) throw new Error('취소 사유를 입력해 주세요.');
+  const result = await supabase.rpc('fund_admin_cancel_ledger_entry', {
+    p_company_id: companyId,
+    p_entry_id: entryId,
+    p_reason: normalizedReason,
+  });
+  return unwrap(result, '공금 내역을 취소하지 못했습니다.');
+}
+
+export async function getWebAssetsSnapshot(companyId) {
+  assertClient();
+  const result = await supabase.rpc('web_assets_admin_snapshot', {
+    p_company_id: companyId,
+  });
+  return unwrap(result, '자산 현황을 불러오지 못했습니다.') || {};
+}
+
+export async function saveWebAsset(companyId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('web_assets_admin_save', {
+    p_company_id: companyId,
+    p_asset_id: payload.assetId || null,
+    p_legacy_no: payload.legacyNo || null,
+    p_membership_id: payload.membershipId || null,
+    p_owner_name: payload.ownerName || null,
+    p_asset_category: payload.category || null,
+    p_asset_name: payload.name || null,
+    p_acquisition_method: payload.acquisitionMethod || null,
+    p_acquired_at: payload.acquiredAt || null,
+    p_personal_cost: payload.personalCost == null || payload.personalCost === '' ? null : Number(payload.personalCost),
+    p_status: payload.status || null,
+    p_note: payload.note || null,
+    p_clear_acquired_at: Boolean(payload.clearAcquiredAt),
+    p_clear_personal_cost: Boolean(payload.clearPersonalCost),
+  });
+  return unwrap(result, '자산을 저장하지 못했습니다.');
+}
+
+export async function manageWebAsset(companyId, assetId, action, note = '') {
+  assertClient();
+  const result = await supabase.rpc('web_assets_admin_manage', {
+    p_company_id: companyId,
+    p_asset_id: assetId,
+    p_action: action,
+    p_note: note || null,
+  });
+  return unwrap(result, '자산 상태를 변경하지 못했습니다.');
+}
+
+export async function getWebAccountsSnapshot(companyId) {
+  assertClient();
+  const result = await supabase.rpc('web_accounts_admin_snapshot', {
+    p_company_id: companyId,
+  });
+  return unwrap(result, '계좌 현황을 불러오지 못했습니다.') || {};
+}
+
+export async function submitWebAccountRequest(companyId, account, note = '') {
+  assertClient();
+  const result = await supabase.rpc('web_accounts_submit_request', {
+    p_company_id: companyId,
+    p_account: account,
+    p_note: note || null,
+  });
+  return unwrap(result, '계좌 등록·변경 신청을 제출하지 못했습니다.');
+}
+
+export async function reviewWebAccountRequest(companyId, requestId, action, reviewNote = '') {
+  assertClient();
+  const result = await supabase.rpc('web_accounts_review_request', {
+    p_company_id: companyId,
+    p_request_id: requestId,
+    p_action: action,
+    p_review_note: reviewNote || null,
+  });
+  return unwrap(result, '계좌 신청을 처리하지 못했습니다.');
+}
+
+export async function submitProductFeedback(companyId, category, title, detail, contact = '') {
+  assertClient();
+  const result = await supabase.rpc('submit_product_feedback', {
+    p_company_id: companyId,
+    p_category: category,
+    p_title: title,
+    p_detail: detail,
+    p_contact: contact || null,
+  });
+  return unwrap(result, '피드백을 전송하지 못했습니다.');
+}
+
+export async function updateMembershipStatus(membershipId, status) {
+  assertClient();
+  const result = await supabase
+    .from('company_memberships')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', membershipId)
+    .select('id,status')
+    .single();
+  return unwrap(result, '멤버 상태를 변경하지 못했습니다.');
+}
+
+export async function updateCompanyModuleSettings(companyId, moduleKey, settings, userId) {
+  assertClient();
+  const result = await supabase
+    .from('company_modules')
+    .update({ settings: settings || {}, updated_by: userId })
+    .eq('company_id', companyId)
+    .eq('module_key', moduleKey)
+    .select('company_id,module_key,enabled,settings,updated_at')
+    .single();
+  return unwrap(result, '기능 설정을 저장하지 못했습니다.');
+}

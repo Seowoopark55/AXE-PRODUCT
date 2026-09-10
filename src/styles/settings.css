@@ -1,0 +1,66 @@
+/* AXE PRODUCT 3.12 · Viewport Compact + Alignment
+   Wide overview anchors the page. Settings controls use fixed operational lanes,
+   and all save/action controls stay inside a normal laptop browser viewport. */
+.ops-settings-page{width:100%;margin:0}
+.ops-settings-page .page-header{min-height:78px;margin-bottom:16px}.ops-settings-page .page-header h1{margin-top:5px;font-size:34px}.ops-settings-page .page-header p{margin-top:9px;font-size:13px}.ops-settings-page .page-header__actions{padding-top:17px}
+
+.ops-settings-overview{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.ops-settings-overview article{display:grid;gap:4px;padding:13px 15px;border-right:1px solid var(--line-soft);min-width:0}.ops-settings-overview article:last-child{border-right:0}
+.ops-settings-overview span{color:#82909d;font-size:9.8px}.ops-settings-overview strong{overflow:hidden;color:var(--ops-title);font-size:18px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-settings-overview small{color:#66727f;font-size:8.8px}
+.ops-settings-overview .is-positive{color:var(--green)}.ops-settings-overview .is-warning{color:var(--amber)}
+.ops-settings-status{height:31px;display:flex;align-items:center;gap:6px;padding:0 11px;border:1px solid rgba(120,211,155,.17);border-radius:999px;background:rgba(120,211,155,.04);color:#8fd5a6;font-size:10.2px;font-weight:850}.ops-settings-status i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* Category navigation + save action occupy one compact row. */
+.ops-settings-nav-row{width:min(680px,100%);display:flex;align-items:stretch;gap:8px;margin:0 auto 9px}
+.ops-settings-tabs{min-width:0;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border:1px solid var(--line);border-radius:10px;background:#0c1117}
+.ops-settings-tabs button{min-height:42px;display:grid;align-content:center;gap:1px;padding:5px 10px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;cursor:pointer;transition:.14s ease}
+.ops-settings-tabs button strong{color:#9da7b1;font-size:11.7px;line-height:1.25}.ops-settings-tabs button span{color:#687480;font-size:9px}
+.ops-settings-tabs button:hover{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.018)}
+.ops-settings-tabs button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.075);box-shadow:inset 3px 0 rgba(228,178,75,.58)}
+.ops-settings-tabs button.is-active strong{color:#efd59e}.ops-settings-tabs button.is-active span{color:#9c8761}
+.ops-settings-save-action{flex:0 0 auto;min-width:118px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;border:1px solid rgba(228,178,75,.36);border-radius:11px;background:linear-gradient(180deg,#111821 0%,#0c1218 100%);color:#f0cc7d;font-size:11.3px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 12px rgba(0,0,0,.12);transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease,color .12s ease}.ops-settings-save-action svg{width:14px;height:14px;stroke-width:2.15;color:#f0b84d;opacity:.95}.ops-settings-save-action:hover{border-color:rgba(237,188,84,.58);background:linear-gradient(180deg,#151e27 0%,#0e151c 100%);color:#ffe1a0;box-shadow:0 6px 14px rgba(191,132,26,.10),inset 0 1px rgba(255,255,255,.05);transform:translateY(-1px)}.ops-settings-save-action:active{background:linear-gradient(180deg,#0f151c 0%,#0b1117 100%);box-shadow:inset 0 2px 6px rgba(0,0,0,.22);transform:translateY(0)}
+.ops-settings-view{min-height:0}
+
+.ops-settings-board{overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#0c1117}
+.ops-settings-basic{width:min(630px,100%);margin-left:auto;margin-right:auto}.ops-settings-modules{width:min(680px,100%);margin-left:auto;margin-right:auto}
+.ops-settings-board-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 11px;border-bottom:1px solid var(--line-soft);background:#0f151b}.ops-settings-board-head>div{display:grid;gap:2px}.ops-settings-board-head h2{margin:0;color:var(--ops-title);font-size:14.5px}.ops-settings-board-head p{margin:0;color:var(--ops-sub);font-size:10px}.ops-settings-board-head>span{color:#8a7f6f;font-size:9.5px}.ops-settings-board-head>span strong{color:var(--ops-gold-bright);font-size:11.7px}
+
+/* Basic info remains content-sized. */
+.ops-settings-row{min-height:57px;display:grid;grid-template-columns:205px max-content;align-items:center;justify-content:start;gap:14px;padding:8px 11px;border-bottom:1px solid var(--line-soft)}.ops-settings-row:last-child{border-bottom:0}.ops-settings-row>div:first-child{display:grid;gap:2px}.ops-settings-row>div:first-child strong{color:var(--ops-title);font-size:12.3px}.ops-settings-row>div:first-child span{color:var(--ops-sub);font-size:9.8px}.ops-settings-control{min-width:0;width:max-content}
+.ops-settings-control input,.ops-settings-control select,.ops-settings-channels select{height:32px;padding:0 28px 0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d;color:#d6dbe0;font-size:11px;outline:0}.ops-settings-control input{padding-right:9px}.ops-settings-control input:focus,.ops-settings-control select:focus,.ops-settings-channels select:focus{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.05)}
+.ops-settings-row--company .ops-settings-control input{width:270px}.ops-settings-row--role .ops-settings-control select{width:170px}.ops-settings-row--discord .ops-settings-control{width:270px}
+.ops-settings-discord{width:270px;height:32px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d}.ops-settings-discord i{width:7px;height:7px;border-radius:50%;background:var(--green)}.ops-settings-discord strong{min-width:0;overflow:hidden;color:var(--ops-copy);font-size:11px;text-overflow:ellipsis;white-space:nowrap}.ops-settings-discord button{margin-left:auto;border:0;background:transparent;color:var(--ops-gold);font-size:9.8px;font-weight:820;cursor:pointer}
+
+/* Feature rows have a fixed 3-lane contract: copy / channels / power.
+   AMMO no longer expands the middle lane or moves the power control. */
+.ops-settings-module-list{display:grid}
+.ops-settings-module{min-height:56px;display:grid;grid-template-columns:190px 330px 68px;align-items:center;gap:10px;padding:4px 10px;border-bottom:1px solid var(--line-soft)}.ops-settings-module:last-child{border-bottom:0}.ops-settings-module.is-enabled{box-shadow:inset 2px 0 rgba(228,178,75,.42)}
+.ops-settings-module-copy{display:grid;gap:2px;min-width:0}.ops-settings-module-copy>strong{overflow:hidden;color:var(--ops-title);font-size:12.5px;text-overflow:ellipsis;white-space:nowrap}.ops-settings-module-copy>small{overflow:hidden;color:var(--ops-sub);font-size:9.6px;text-overflow:ellipsis;white-space:nowrap}
+.ops-settings-channels{width:330px;display:flex;align-items:end;gap:6px;min-width:0}.ops-settings-channels label{display:grid;gap:2px;width:max-content;min-width:0}.ops-settings-channels span{color:#9b907c;font-size:8.8px}.ops-settings-channels select{width:202px;height:30px;font-size:10.5px}.ops-settings-module--channels-2 .ops-settings-channels label{width:158px}.ops-settings-module--channels-2 .ops-settings-channels select{width:158px}
+.ops-settings-no-channel{width:202px;height:30px;display:flex;align-items:center;padding:0 9px;border:1px dashed rgba(228,178,75,.12);border-radius:7px;color:#8f856f;font-size:9.6px}
+
+/* Power control stays on one exact X-axis for every module. */
+.ops-power-toggle{justify-self:end;width:66px;height:30px;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 7px;border:1px solid #3d4853;border-radius:999px;background:#111820;color:#747f89;cursor:pointer;transition:.15s ease;user-select:none}
+.ops-power-toggle input{position:absolute;opacity:0;pointer-events:none}.ops-power-toggle__icon{font-size:14px;line-height:1;font-weight:900}.ops-power-toggle__label{min-width:19px;font-size:8.8px;font-weight:900;letter-spacing:.03em}.ops-power-toggle__label:after{content:'OFF'}
+.ops-power-toggle:hover{border-color:#54616d;color:#aab3bb;background:#141c24}.ops-power-toggle:has(input:checked){border-color:rgba(228,178,75,.48);background:rgba(112,87,34,.38);color:#f0ba4d;box-shadow:0 0 0 2px rgba(228,178,75,.045),inset 0 0 16px rgba(228,178,75,.05)}
+.ops-power-toggle:has(input:checked) .ops-power-toggle__icon{text-shadow:0 0 9px rgba(240,186,77,.35)}.ops-power-toggle:has(input:checked) .ops-power-toggle__label:after{content:'ON'}.ops-power-toggle:focus-within{outline:2px solid rgba(228,178,75,.18);outline-offset:2px}
+
+/* Bridge note is absorbed into the feature board so it cannot push Save below viewport. */
+.ops-settings-module-foot{min-height:34px;display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid rgba(228,178,75,.10);background:rgba(228,178,75,.018);white-space:nowrap;overflow:hidden}
+.ops-settings-module-foot strong{flex:0 0 auto;color:#d7b66f;font-size:9.5px}.ops-settings-module-foot span{overflow:hidden;color:#77828d;font-size:9px;text-overflow:ellipsis}
+
+/* Vertical compact mode is based on browser viewport, not physical monitor pixels. */
+@media(max-height:940px) and (min-width:761px){
+  .ops-settings-page .page-header{min-height:70px;margin-bottom:10px}.ops-settings-page .page-header__actions{padding-top:12px}
+  .ops-settings-overview{margin-bottom:9px}.ops-settings-overview article{padding-top:10px;padding-bottom:10px}
+  .ops-settings-nav-row{margin-bottom:7px}
+}
+
+@media(max-width:760px){
+  .ops-settings-overview{grid-template-columns:1fr 1fr}.ops-settings-overview article:nth-child(2){border-right:0}.ops-settings-overview article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .ops-settings-nav-row{width:100%;align-items:stretch;flex-direction:column}.ops-settings-tabs{width:100%}.ops-settings-tabs button span{display:none}.ops-settings-save-action{flex-basis:36px;min-height:36px}
+  .ops-settings-basic,.ops-settings-modules{width:100%}
+  .ops-settings-row{grid-template-columns:1fr;gap:7px}.ops-settings-control,.ops-settings-row--discord .ops-settings-control{width:100%}.ops-settings-row--company .ops-settings-control input,.ops-settings-row--role .ops-settings-control select,.ops-settings-discord{width:min(100%,300px)}
+  .ops-settings-module{grid-template-columns:1fr 68px}.ops-settings-channels,.ops-settings-no-channel{grid-column:1/-1}.ops-power-toggle{grid-column:2;grid-row:1}.ops-settings-channels{width:100%;flex-wrap:wrap}.ops-settings-channels select,.ops-settings-module--channels-2 .ops-settings-channels select{width:170px}.ops-settings-module--channels-2 .ops-settings-channels label{width:170px}
+  .ops-settings-module-foot{white-space:normal;align-items:flex-start;flex-direction:column}
+}

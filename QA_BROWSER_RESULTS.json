@@ -1,0 +1,110 @@
+[
+  {
+    "name": "FUND_LEDGER",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "FUND_WEEKLY",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "FUND_REVIEW",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "FUND_BALANCE",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "FUND_SETTINGS",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "MEMBERS",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "ASSETS",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "RETURNS",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "ACCOUNTS",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "SETTINGS_BASIC",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "SETTINGS_MODULES",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "FEEDBACK",
+    "ready": "true",
+    "scrollHeight": 900,
+    "innerHeight": 900,
+    "noPageScroll": true,
+    "errors": [],
+    "consoleErrors": []
+  }
+]

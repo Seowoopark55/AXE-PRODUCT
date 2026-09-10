@@ -1,0 +1,118 @@
+/* AXE PRODUCT 3.8 · Wide Anchor + Compact Workspace
+   The page header and summary stay wide to anchor the screen.
+   Only the task board adapts to the information density of each view. */
+
+.ops-mgmt-page{width:100%;margin:0}
+.ops-mgmt-page .page-header{min-height:78px;margin-bottom:18px}
+.ops-mgmt-page .page-header h1{margin-top:5px;font-size:34px}
+.ops-mgmt-page .page-header p{margin-top:9px;font-size:13px}
+.ops-mgmt-page .page-header__actions{padding-top:17px}
+.ops-mgmt-page .button{min-height:36px;padding-inline:12px;font-size:var(--ops-font-control)}
+
+/* Wide visual anchor: intentionally mirrors Fund summary proportions. */
+.ops-mgmt-summary{
+  width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px;
+  overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface)
+}
+.ops-mgmt-summary article{display:grid;gap:4px;padding:14px 15px;border-right:1px solid var(--line-soft)}
+.ops-mgmt-summary article:last-child{border-right:0}
+.ops-mgmt-summary span{color:#82909d;font-size:9.2px}
+.ops-mgmt-summary strong{font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums}
+.ops-mgmt-summary small{color:#66727f;font-size:8.5px}
+.ops-mgmt-summary .is-positive{color:var(--green)}
+.ops-mgmt-summary .is-warning{color:var(--amber)}
+.ops-mgmt-summary .is-negative{color:var(--red)}
+
+/* The operational workspace, not the page shell, is content-adaptive. */
+.ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board{width:min(680px,100%);margin-inline:auto}
+.ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-assets .ops-mgmt-board{width:min(710px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:min(640px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,
+.ops-mgmt-page--accounts .ops-mgmt-board{width:min(690px,100%);margin-left:auto;margin-right:auto}
+
+/* Contextual action discovery: actions live beside the data they affect. */
+.ops-mgmt-section-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;padding:0 2px}
+.ops-mgmt-section-head>div{display:grid;gap:2px;min-width:0}.ops-mgmt-section-head strong{color:var(--ops-title);font-size:13.5px}.ops-mgmt-section-head>div>span{color:#74808b;font-size:9.8px}
+.ops-mgmt-tabs-row{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;border-bottom:1px solid var(--line)}
+.ops-mgmt-tabs-row .ops-mgmt-tabs{flex:1;margin:0;border-bottom:0}
+.ops-action-primary,.ops-action-secondary{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:9px;font-size:10.5px;font-weight:900;white-space:nowrap;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease}
+.ops-action-primary svg,.ops-action-secondary svg{width:14px;height:14px;stroke-width:2}
+.ops-action-primary{border:1px solid rgba(228,178,75,.38);background:linear-gradient(180deg,rgba(62,48,22,.96),rgba(32,27,17,.98));color:#efc76d;box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.12)}
+.ops-action-primary svg{color:#f1b84a}.ops-action-primary:hover{border-color:rgba(236,186,80,.58);background:linear-gradient(180deg,rgba(75,57,24,.98),rgba(39,31,18,.99));color:#ffe0a0;box-shadow:0 5px 16px rgba(191,132,26,.09),inset 0 1px rgba(255,255,255,.05);transform:translateY(-1px)}.ops-action-primary:active{transform:translateY(0);background:#241c10}
+.ops-action-secondary{border:1px solid rgba(255,255,255,.09);background:#111820;color:#aeb7c1}.ops-action-secondary svg{color:#8d99a5}
+.ops-action-secondary:hover{border-color:rgba(228,178,75,.28);background:#151b22;color:#e4c98c;transform:translateY(-1px)}.ops-action-secondary:active{transform:translateY(0)}
+
+.ops-mgmt-tabs{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.ops-mgmt-tabs button{position:relative;height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid transparent;border-radius:9px 9px 0 0;background:transparent;color:#96a1ab;font-size:11.8px;font-weight:860;cursor:pointer;transition:.14s ease}
+.ops-mgmt-tabs button:hover{color:#ced5dc;background:rgba(255,255,255,.018)}
+.ops-mgmt-tabs button.is-active{color:var(--ops-gold-bright);background:rgba(228,178,75,.05);border-color:rgba(228,178,75,.15)}
+.ops-mgmt-tabs button.is-active:after{content:"";position:absolute;left:9px;right:9px;bottom:-1px;height:2px;background:var(--gold)}
+
+.ops-mgmt-board{overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#0c1117}
+.ops-mgmt-board-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--line-soft);background:#0f151b}
+.ops-mgmt-board-head>div{display:grid;gap:3px}.ops-mgmt-board-head h2{margin:0;color:var(--ops-title);font-size:14px}.ops-mgmt-board-head p{margin:0;color:var(--ops-sub);font-size:10px}.ops-mgmt-board-head>span{color:#807765;font-size:9.5px}
+
+.ops-mgmt-toolbar{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-bottom:1px solid var(--line-soft);background:#0f151b}
+.ops-mgmt-filters{display:flex;align-items:center;gap:5px;min-width:0}
+.ops-mgmt-select{height:32px;min-width:100px;padding:0 27px 0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d;color:#c7cdd3;font-size:var(--ops-font-control);outline:0}
+.ops-mgmt-search{width:195px;height:32px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d}
+.ops-mgmt-search svg{width:14px;color:#7b8793}.ops-mgmt-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#e2e5e8;font-size:var(--ops-font-control)}.ops-mgmt-search input::placeholder{color:#66717c}
+.ops-mgmt-select:focus,.ops-mgmt-search:focus-within{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.055)}
+.ops-mgmt-toolbar-note{color:#707b85;font-size:9.3px;white-space:nowrap}
+.ops-mgmt-quiet{height:32px;display:flex;align-items:center;gap:6px;padding:0 9px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:transparent;color:#929aa3;font-size:9.8px;cursor:pointer}.ops-mgmt-quiet svg{width:12px}.ops-mgmt-quiet:hover{color:#cfd4d9;border-color:rgba(255,255,255,.13)}
+
+.ops-mgmt-segments{display:flex;gap:6px}
+.ops-mgmt-segments button{height:35px;display:flex;align-items:center;gap:6px;padding:0 11px;border:1px solid rgba(255,255,255,.06);border-radius:9px;background:rgba(255,255,255,.012);color:#96a1ab;font-size:11.2px;font-weight:850;cursor:pointer;transition:.14s ease}
+.ops-mgmt-segments button:hover{color:#d7dde3;border-color:rgba(255,255,255,.12)}
+.ops-mgmt-segments button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.09);color:#efd59e;box-shadow:inset 0 0 0 1px rgba(228,178,75,.05)}
+.ops-mgmt-segments button.is-exit{color:#b38b89;border-color:rgba(213,111,107,.10);background:rgba(213,111,107,.018)}
+.ops-mgmt-segments button.is-exit:hover{color:#dca29f;border-color:rgba(213,111,107,.18);background:rgba(213,111,107,.04)}
+.ops-mgmt-segments button.is-exit em{background:rgba(213,111,107,.08);color:#c88e8a}
+.ops-mgmt-segments button.is-exit.is-active{color:#efaaa5;border-color:rgba(225,116,111,.28);background:rgba(193,78,73,.10);box-shadow:inset 0 0 0 1px rgba(225,116,111,.04)}
+.ops-mgmt-segments button.is-exit.is-active em{background:rgba(225,116,111,.12);color:#f0aaa6}
+.ops-mgmt-segments em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.10);color:#ddb96d;font-size:8.5px;font-style:normal}
+
+.ops-mgmt-meta{height:33px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line-soft);color:#7a8590;font-size:10px}.ops-mgmt-meta strong{color:#d7caa6}
+.ops-mgmt-list{display:grid}.ops-mgmt-row{border-bottom:1px solid var(--line-soft)}.ops-mgmt-row:last-child{border-bottom:0}.ops-mgmt-row:hover{background:rgba(255,255,255,.012)}
+.ops-mgmt-empty{padding:26px 12px;color:#747b82;font-size:10.5px;text-align:center}
+
+/* Members: only the data we actually expose. */
+.ops-member-row{min-height:57px;display:grid;grid-template-columns:260px 94px 140px 52px;align-items:center;gap:7px;padding:8px 11px}
+.ops-member-main{display:grid;gap:2px;min-width:0}.ops-account-main{display:flex;align-items:center;gap:9px;min-width:0}.ops-mgmt-avatar{width:31px;height:31px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(228,178,75,.10);border-radius:7px;background:rgba(228,178,75,.055);color:var(--ops-gold);font-size:10px;font-weight:900}
+.ops-member-role,.ops-asset-main,.ops-asset-holder,.ops-return-main,.ops-return-reason,.ops-return-actor,.ops-account-number,.ops-account-main>div{display:grid;gap:2px;min-width:0}
+.ops-member-main strong,.ops-asset-main strong,.ops-return-main strong,.ops-account-main strong{overflow:hidden;color:var(--ops-title);font-size:var(--ops-font-primary);font-weight:880;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-main span,.ops-member-role span,.ops-asset-main span,.ops-asset-holder span,.ops-return-main span,.ops-return-reason span,.ops-return-actor span,.ops-account-main span,.ops-account-number span{overflow:hidden;color:var(--ops-sub);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-role strong,.ops-asset-holder strong,.ops-return-reason strong,.ops-return-actor strong,.ops-account-number strong{overflow:hidden;color:var(--ops-copy);font-size:11.6px;text-overflow:ellipsis;white-space:nowrap}
+.ops-member-state,.ops-asset-state{display:flex;align-items:center;gap:7px;min-width:0}.ops-member-state small,.ops-asset-state small{color:var(--ops-meta);font-size:9.5px;white-space:nowrap}
+
+.ops-mgmt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:22px;padding:0 7px;border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#9aa2aa;background:rgba(255,255,255,.025);font-size:9px;font-weight:850;white-space:nowrap}
+.ops-mgmt-badge.is-green{color:#80d69f;border-color:rgba(120,211,155,.15);background:rgba(120,211,155,.055)}
+.ops-mgmt-badge.is-amber{color:#e7bb66;border-color:rgba(232,182,93,.18);background:rgba(232,182,93,.05)}
+.ops-mgmt-badge.is-muted{color:#929aa3}.ops-mgmt-badge.is-red{color:#e88782;border-color:rgba(239,129,124,.18);background:rgba(239,129,124,.045)}
+.ops-mgmt-action{height:28px;min-width:42px;padding:0 7px;border:1px solid rgba(255,255,255,.085);border-radius:6px;background:transparent;color:#a0a7ae;font-size:9.7px;font-weight:820;cursor:pointer}.ops-mgmt-action:hover{color:#efd59e;border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.035)}
+
+/* Assets view is a little wider; return history gets its own smaller contract. */
+.ops-asset-row{min-height:57px;display:grid;grid-template-columns:250px 132px 155px 52px;align-items:center;gap:7px;padding:8px 9px}
+.ops-return-row{min-height:57px;display:grid;grid-template-columns:270px 170px 105px;align-items:center;gap:9px;padding:8px 10px}
+
+/* Accounts. */
+.ops-account-review{margin-bottom:9px;overflow:hidden;border:1px solid rgba(232,182,93,.16);border-radius:9px;background:#0c1117}
+.ops-account-review-head{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid rgba(232,182,93,.10);background:rgba(232,182,93,.022)}
+.ops-account-review-head>div{display:flex;align-items:center;gap:7px}.ops-account-review-head strong{color:#ead39b;font-size:11.5px}.ops-account-review-head span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-head em{min-width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:rgba(232,182,93,.10);color:#e7bb66;font-size:8.5px;font-style:normal;font-weight:850}
+.ops-account-review article{min-height:54px;display:grid;grid-template-columns:300px 80px 96px;align-items:center;gap:8px;padding:7px 9px}.ops-account-review article>div:first-child{display:grid;gap:2px}.ops-account-review article strong{color:var(--ops-title);font-size:11.6px}.ops-account-review article span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-actions{display:flex;justify-content:flex-end;gap:4px}.ops-account-review-actions button{height:28px;padding:0 7px;border:1px solid rgba(255,255,255,.08);border-radius:6px;background:transparent;color:#a0a7ae;font-size:9.4px;cursor:pointer}.ops-account-review-actions .is-primary{border-color:rgba(228,178,75,.28);background:rgba(228,178,75,.09);color:#efca78}
+.ops-account-row{min-height:57px;display:grid;grid-template-columns:245px 185px 98px 52px;align-items:center;gap:7px;padding:8px 9px}.ops-account-row.is-attention{background:rgba(232,182,93,.018)}.ops-account-state{display:flex;align-items:center}
+
+@media(max-width:900px){
+  .ops-member-row{grid-template-columns:minmax(220px,1fr) 90px 130px 52px}
+  .ops-asset-row{grid-template-columns:minmax(230px,1fr) 125px 150px 52px}
+  .ops-account-row{grid-template-columns:minmax(220px,1fr) 175px 96px 52px}
+}
+@media(max-width:720px){
+  .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head .ops-action-primary,.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
+  .ops-mgmt-tabs-row{align-items:stretch;flex-direction:column;border-bottom:0}.ops-mgmt-tabs-row .ops-mgmt-tabs{border-bottom:1px solid var(--line)}.ops-mgmt-tabs-row .ops-action-primary{align-self:flex-end}
+
+  .ops-mgmt-summary{grid-template-columns:1fr 1fr}.ops-mgmt-summary article:nth-child(2){border-right:0}.ops-mgmt-summary article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,200px)}
+  .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto}.ops-member-role,.ops-asset-holder,.ops-account-number{grid-column:1}.ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}.ops-mgmt-action{grid-column:2;grid-row:1 / span 3}
+  .ops-return-row{grid-template-columns:1fr}.ops-account-review article{grid-template-columns:1fr auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
+}
