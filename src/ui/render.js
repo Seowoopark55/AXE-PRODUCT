@@ -172,6 +172,17 @@ function monthOptions(selected, count=12) {
   return Array.from({length:count},(_,i)=>{ const d=new Date(base.getFullYear(),base.getMonth()-i,1); const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; return `<option value="${v}" ${v===selected?'selected':''}>${d.getFullYear()}년 ${d.getMonth()+1}월</option>`; }).join('');
 }
 
+function monthOptionsAround(selected, past=6, future=6) {
+  const base = new Date();
+  const rows=[];
+  for(let offset=future; offset>=-past; offset--){
+    const d=new Date(base.getFullYear(),base.getMonth()+offset,1);
+    const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    rows.push(`<option value="${v}" ${v===selected?'selected':''}>${d.getFullYear()}년 ${d.getMonth()+1}월</option>`);
+  }
+  return rows.join('');
+}
+
 function renderFundLedger(state) {
   const ledger = Array.isArray(state.fundSnapshot?.ledger) ? state.fundSnapshot.ledger : [];
   const q = state.fundFilters || {person:'all',type:'all',account:'all'};
@@ -202,11 +213,39 @@ function renderFundBalance(state) {
   const current=Number(state.fundSnapshot?.balance?.public||0); const check=state.companySettings?.settings?.fund_balance_check||{}; const diff=check.game_balance==null?null:Number(check.game_balance)-current;
   return `<div class="axe-fund-subview axe-fund-subview--balance axe-fund-balance-layout"><section class="axe-fund-card"><header class="axe-fund-card-head"><div><h2>공용계좌 잔액 점검</h2><p>웹 계산 잔액과 게임 내 실제 잔액을 비교합니다.</p></div></header><form class="axe-fund-form-stack" data-form="fund-balance"><label class="axe-fund-field"><span>웹 계산 잔액</span><input value="${money(current)}" disabled></label><label class="axe-fund-field"><span>게임 내 공용계좌 잔액</span><input name="game_balance" type="number" value="${esc(check.game_balance??'')}" placeholder="현재 잔액 입력"></label><label class="axe-fund-field"><span>메모</span><textarea name="note" placeholder="차이가 있다면 이유를 적어주세요.">${esc(check.note||'')}</textarea></label><div class="axe-fund-form-actions"><button class="axe-fund-primary" type="submit">점검 저장</button></div></form></section><section class="axe-fund-card axe-fund-card--compact"><header class="axe-fund-card-head"><div><h2>최근 점검</h2><p>${check.checked_at?fmtDate(check.checked_at,true):'아직 점검 기록이 없습니다.'}</p></div>${diff===0?'<span class="axe-fund-status axe-fund-status--ok">일치</span>':''}</header><dl class="axe-fund-kv"><div><dt>웹 계산 잔액</dt><dd>${money(current)}</dd></div><div><dt>게임 내 잔액</dt><dd>${check.game_balance==null?'—':money(check.game_balance)}</dd></div><div><dt>차액</dt><dd class="${diff===0?'is-income':diff==null?'':'is-expense'}">${diff==null?'—':signedMoney(diff)}</dd></div></dl></section></div>`;
 }
-function renderFundSettings(state){ const rule=(state.fundSnapshot?.fee_rules||[]).find(r=>r.enabled)||(state.fundSnapshot?.fee_rules||[])[0]||{}; const [y,m]=state.currentMonth.split('-'); const defaultAccount=state.companySettings?.settings?.fund_default_account||'공용계좌'; return `<section class="axe-fund-card axe-fund-subview axe-fund-subview--settings"><header class="axe-fund-card-head"><div><h2>공금 설정</h2><p>운영자가 실제로 자주 바꾸는 설정만 노출합니다.</p></div></header><form class="axe-fund-settings-list" data-form="fund-fee-rule"><div class="axe-fund-setting"><div><strong>기본 주간 공금</strong><span>선택한 주차부터 적용되는 납부 금액</span></div><div class="runtime-fee-controls"><input name="year" type="hidden" value="${esc(y)}"><input name="month" type="hidden" value="${esc(Number(m))}"><select class="axe-fund-select" name="week">${[1,2,3,4,5].map(n=>`<option value="${n}">${n}주차부터</option>`).join('')}</select><div class="axe-fund-money-control"><input name="weekly_fee" type="number" min="0" value="${esc(rule.weekly_fee||0)}"><span>원</span></div></div></div><div class="axe-fund-setting"><div><strong>납부 대상</strong><span>활동 중인 멤버를 기본 포함</span></div><button type="button" class="axe-fund-tool-button axe-fund-tool-button--compact" data-page="members">멤버 관리</button></div><div class="axe-fund-setting"><div><strong>기본 계좌</strong><span>직접 수입·지출 등록 시 기본값</span></div><select class="axe-fund-select" name="default_account"><option ${defaultAccount==='공용계좌'?'selected':''}>공용계좌</option><option ${defaultAccount==='회사잔고'?'selected':''}>회사잔고</option></select></div><div class="runtime-settings-save"><button class="axe-fund-primary" type="submit">기준액 저장</button></div></form></section>`; }
+function renderFundSettings(state){
+  const rule=(state.fundSnapshot?.fee_rules||[]).find(r=>r.enabled)||(state.fundSnapshot?.fee_rules||[])[0]||{};
+  const selectedMonth=state.fundMonth||state.currentMonth;
+  const [y,m]=selectedMonth.split('-');
+  const defaultAccount=state.companySettings?.settings?.fund_default_account||'공용계좌';
+  const selectedWeek=Number(rule.week||rule.start_week||1);
+  return `<section class="axe-fund-card axe-fund-subview axe-fund-subview--settings">
+    <header class="axe-fund-card-head"><div><h2>공금 설정</h2><p>월별 주간 공금 기준과 기본 등록 계좌를 관리합니다.</p></div></header>
+    <form class="axe-fund-settings-list" data-form="fund-fee-rule">
+      <div class="axe-fund-setting">
+        <div><strong>적용 월</strong><span>공금 기준을 적용할 월을 선택</span></div>
+        <select class="axe-fund-select axe-fund-select--month" name="fee_month" data-fund-ledger-month>${monthOptionsAround(selectedMonth,6,6)}</select>
+      </div>
+      <div class="axe-fund-setting">
+        <div><strong>주간 공금 기준</strong><span>선택한 주차부터 적용되는 납부 금액</span></div>
+        <div class="runtime-fee-controls">
+          <select class="axe-fund-select axe-fund-select--week" name="week">${[1,2,3,4,5].map(n=>`<option value="${n}" ${selectedWeek===n?'selected':''}>${n}주차부터</option>`).join('')}</select>
+          <div class="axe-fund-money-control"><input name="weekly_fee" type="number" min="0" step="1000" value="${esc(rule.weekly_fee||0)}"><span>원</span></div>
+        </div>
+      </div>
+      <div class="axe-fund-setting">
+        <div><strong>납부 대상</strong><span>활동 중인 멤버를 기본 포함</span></div>
+        <button type="button" class="axe-fund-tool-button axe-fund-tool-button--compact" data-page="members">멤버 관리</button>
+      </div>
+      <div class="axe-fund-setting">
+        <div><strong>기본 계좌</strong><span>직접 수입·지출 등록 시 기본값</span></div>
+        <select class="axe-fund-select axe-fund-select--account" name="default_account"><option ${defaultAccount==='공용계좌'?'selected':''}>공용계좌</option><option ${defaultAccount==='회사잔고'?'selected':''}>회사잔고</option></select>
+      </div>
+      <div class="runtime-settings-save"><button class="axe-fund-primary axe-fund-primary--settings" type="submit">공금 설정 저장</button></div>
+    </form>
+  </section>`;
+}
 
-// ============================================================
-// MEMBERS
-// ============================================================
 function renderMembers(state){ const all=state.memberships||[]; const active=all.filter(m=>m.status==='active'); const left=all.filter(m=>m.status==='left'); const admins=active.filter(m=>['owner','admin'].includes(m.role)); let rows=all.filter(m=>state.memberFilter==='active'?m.status==='active':state.memberFilter==='left'?m.status==='left':true); if(state.memberRole) rows=rows.filter(m=>m.role===state.memberRole); const q=(state.memberQuery||'').toLowerCase(); if(q)rows=rows.filter(m=>`${m.display_name||''} ${m.discord_user_id||''}`.toLowerCase().includes(q));
   return `<div class="ops-mgmt-page ops-mgmt-page--members">${pageHeader('MEMBERS','멤버 관리','회사 구성원의 역할과 활동 상태를 빠르게 확인하고 관리합니다.','')}${summary([['전체 멤버',`${all.length}명`,'누적 등록',''],['활동 중',`${active.length}명`,'현재 회사','is-positive'],['관리 권한',`${admins.length}명`,'대표 · 관리자','is-warning'],['퇴사',`${left.length}명`,'기록 유지','']])}<div class="ops-mgmt-section-head"><div><strong>멤버 현황</strong><span>역할과 상태를 한곳에서 관리합니다.</span></div><button class="ops-action-primary" data-action="create-invite">${icon('plus')}<span>멤버 추가</span></button></div><section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-segments">${segment(state,'all','전체',all.length)}${segment(state,'active','활동',active.length)}${segment(state,'left','퇴사',left.length,true)}</div><div class="ops-mgmt-filters"><select class="ops-mgmt-select" data-member-role><option value="">역할 전체</option>${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${state.memberRole===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select><label class="ops-mgmt-search">${icon('search')}<input data-member-query value="${esc(state.memberQuery||'')}" placeholder="닉네임 · Discord 검색"></label></div></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>명 표시</span><span>활동 상태와 역할 기준</span></div><div class="ops-mgmt-list ops-mgmt-list--members">${rows.length?rows.map(m=>`<article class="ops-mgmt-row ops-member-row"><div class="ops-member-main"><strong>${esc(m.display_name||'멤버')}</strong><span>${m.discord_user_id?`Discord ${esc(m.discord_user_id)}`:'Discord 미연결'} · 입사 ${fmtDate(m.joined_at||m.created_at,true)}</span></div><div class="ops-member-role"><strong>${esc(ROLE_KO[m.role]||m.role)}</strong><span>회사 역할</span></div><div class="ops-member-state"><span class="ops-mgmt-badge ${m.status==='active'?'is-green':m.status==='left'?'is-red':'is-amber'}">${memberStatus(m.status)}</span></div><button class="ops-mgmt-action" data-action="edit-member" data-membership-id="${esc(m.id)}">상세</button></article>`).join(''):empty('조건에 맞는 멤버가 없습니다.')}</div></section></div>`; }
 function segment(state,key,label,count,left=false){ return `<button class="${state.memberFilter===key?'is-active':''} ${left?'is-left':''}" data-member-filter="${key}">${label}<em>${count}</em></button>`; } function memberStatus(v){return ({active:'활동',left:'퇴사',suspended:'중지',invited:'초대'})[v]||v;}
