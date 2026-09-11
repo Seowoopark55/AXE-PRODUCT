@@ -31,3 +31,6 @@ Current STAGING web source consolidated from the user-uploaded repository snapsh
 5. FUND weekly console cleanup
    - Weekly status requests are limited to real Saturday-based fund periods for the selected month.
    - Months with four Saturdays no longer request week 5, so the browser console stays clean.
+
+## Company cooking menu
+Company Settings includes a company-scoped cooking menu manager backed directly by `axe_product.cooking_order_types` and existing authenticated RLS. The UI intentionally uses enable/disable instead of hard delete so historical order type keys remain stable.

@@ -4,6 +4,7 @@ import {
   getSession, signInWithDiscord, signOut, onAuthStateChange,
   listCompanies, createCompany, getMemberships, updateMembershipRole, updateMembershipStatus,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
+  getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled,
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   createCompanyInvite, redeemCompanyInvite,
@@ -29,6 +30,7 @@ const state = {
   memberships: [],
   moduleCatalog: [],
   modules: [],
+  cookingOrderTypes: [],
   companySettings: null,
   discordConnection: null,
   discordChannels: [],
@@ -79,7 +81,7 @@ function setNotice(message) {
 }
 function setError(error) { state.error = String(error?.message || error || '오류가 발생했습니다.'); render(); }
 function clearCompanyData() {
-  state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.companySettings=null;
+  state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.assetsSnapshot=null; state.accountsSnapshot=null;
 }
@@ -95,12 +97,12 @@ async function loadBaseCompanyData() {
   if (!state.companyId) { clearCompanyData(); return; }
   const memberships = await getMemberships(state.companyId);
   state.memberships = memberships || [];
-  const [catalog, modules, settings, discord, channels, roles, config, onboarding] = await Promise.all([
-    getModuleCatalog(), getCompanyModules(state.companyId), getCompanySettings(state.companyId),
+  const [catalog, modules, cookingTypes, settings, discord, channels, roles, config, onboarding] = await Promise.all([
+    getModuleCatalog(), getCompanyModules(state.companyId), getCookingOrderTypes(state.companyId), getCompanySettings(state.companyId),
     getDiscordConnection(state.companyId), getDiscordChannels(state.companyId), getDiscordRoles(state.companyId), getDiscordCompanyConfig(state.companyId),
     getCompanyOnboardingStatus(state.companyId),
   ]);
-  state.moduleCatalog=catalog||[]; state.modules=modules||[]; state.companySettings=settings||null;
+  state.moduleCatalog=catalog||[]; state.modules=modules||[]; state.cookingOrderTypes=cookingTypes||[]; state.companySettings=settings||null;
   state.discordConnection=discord||null; state.discordChannels=channels||[]; state.discordRoles=roles||[]; state.discordCompanyConfig=config||null; state.onboardingStatus=onboarding||null;
 }
 
@@ -380,6 +382,16 @@ root.addEventListener('click', async event => {
       if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('Discord 연결을 정리 중에는 기능 설정을 변경할 수 없습니다.'); const key=actionEl.dataset.moduleKey; const current=moduleRow(state,key); if(!current)throw new Error('기능 설정을 찾지 못했습니다.');
       await setCompanyModule(state.companyId,key,!current.enabled,state.session.user.id); await loadCompanyData(); setNotice(`${(current.enabled?'기능을 껐습니다.':'기능을 켰습니다.')}`); return;
     }
+    if(action==='open-cooking-menu'){if(!canAdmin(state))throw new Error('요리 메뉴 관리는 OWNER 또는 관리자만 가능합니다.');state.modal={type:'cooking-menu',typeKey:null};render();return;}
+    if(action==='edit-cooking-menu'){if(!canAdmin(state))throw new Error('요리 메뉴 관리는 OWNER 또는 관리자만 가능합니다.');state.modal={type:'cooking-menu',typeKey:String(actionEl.dataset.typeKey||'')};render();return;}
+    if(action==='toggle-cooking-menu'){
+      if(!canAdmin(state))throw new Error('요리 메뉴 관리는 OWNER 또는 관리자만 가능합니다.');
+      const typeKey=String(actionEl.dataset.typeKey||''); const current=state.cookingOrderTypes.find(x=>String(x.type_key)===typeKey);
+      if(!current)throw new Error('요리 메뉴를 찾지 못했습니다.');
+      await setCookingOrderTypeEnabled(state.companyId,typeKey,current.enabled===false);
+      state.cookingOrderTypes=await getCookingOrderTypes(state.companyId);
+      setNotice(current.enabled===false?'요리 메뉴를 사용하도록 변경했습니다.':'요리 메뉴를 숨겼습니다.');return;
+    }
     if(action==='cancel-ledger'){const id=actionEl.dataset.entryId;if(!window.confirm('이 공금 내역을 취소할까요?'))return;const input=window.prompt('취소 사유를 입력해 주세요.','');if(input===null)return;const reason=input.trim();if(!reason)throw new Error('취소 사유를 입력해 주세요.');await cancelFundLedgerEntry(state.companyId,id,reason);state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 취소했습니다.');return;}
     if(action==='return-asset'){const id=actionEl.dataset.assetId;if(!window.confirm('이 자산을 반납 처리할까요?'))return;const note=window.prompt('반납 메모 (선택)','')??'';await manageWebAsset(state.companyId,id,'return',note);state.modal=null;await loadAssetsAndAccounts();setNotice('자산을 반납 처리했습니다.');return;}
     if(action==='account-review'){const req=actionEl.dataset.requestId;const reviewAction=actionEl.dataset.reviewAction;const note=reviewAction==='reject'?(window.prompt('반려 사유 (선택)','')??''):'';await reviewWebAccountRequest(state.companyId,req,reviewAction,note);await loadAssetsAndAccounts();setNotice(reviewAction==='approve'?'계좌 신청을 승인했습니다.':'계좌 신청을 반려했습니다.');return;}
@@ -423,6 +435,17 @@ root.addEventListener('submit', async event => {
     if(type==='invite'){const result=await createCompanyInvite(state.companyId,Number(data.get('max_uses')||1),Number(data.get('expires_in_hours')||168));state.modal={type:'invite',code:result?.invite_code||''};render();return;}
     if(type==='fund-balance'){const game=Number(data.get('game_balance'));if(!Number.isFinite(game)||game<0)throw new Error('게임 내 공용계좌 잔액을 확인해 주세요.');const settings={...(state.companySettings?.settings||{}),fund_balance_check:{game_balance:game,note:String(data.get('note')||'').trim(),calculated_balance:Number(state.fundSnapshot?.balance?.public||0),checked_at:new Date().toISOString()}};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);setNotice('잔액 점검을 저장했습니다.');return;}
     if(type==='fund-fee-rule'){const feeMonth=String(data.get('fee_month')||state.fundMonth||state.currentMonth);const [feeYear,feeMonthNo]=feeMonth.split('-').map(Number);if(!feeYear||!feeMonthNo)throw new Error('적용 월을 확인해 주세요.');await setFundFeeRule(state.companyId,feeYear,feeMonthNo,Number(data.get('week')),Number(data.get('weekly_fee')),'WEB 공금 설정');const settings={...(state.companySettings?.settings||{}),fund_default_account:String(data.get('default_account')||'공용계좌')};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);state.fundMonth=feeMonth;await loadFundSnapshot();setNotice(`${feeYear}년 ${feeMonthNo}월 공금 설정을 저장했습니다.`);return;}
+    if(type==='cooking-menu'){
+      if(!canAdmin(state))throw new Error('요리 메뉴 관리는 OWNER 또는 관리자만 가능합니다.');
+      const existingKey=String(data.get('type_key')||'').trim();
+      const randomPart=(globalThis.crypto?.randomUUID?.()||`${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`).replace(/-/g,'').slice(0,12);
+      const typeKey=existingKey||`m_${randomPart}`;
+      const label=String(data.get('label')||'').trim(); const shortLabel=String(data.get('short_label')||'').trim();
+      if(!label)throw new Error('메뉴 이름을 입력해 주세요.');
+      await saveCookingOrderType(state.companyId,{typeKey,label,shortLabel:shortLabel||label,detail:String(data.get('detail')||'').trim(),pricePerSet:Number(data.get('price_per_set')||0),sortOrder:Number(data.get('sort_order')||0),enabled:data.get('enabled')==='on'});
+      state.cookingOrderTypes=await getCookingOrderTypes(state.companyId); state.modal=null;
+      setNotice(existingKey?'요리 메뉴를 저장했습니다.':'요리 메뉴를 추가했습니다.');return;
+    }
     if(type==='settings-basic'){
       const wasRoleStep=isOnboardingStep('roles');
       await saveBasicSettingsData(data,{requireOnboardingRoles:wasRoleStep});

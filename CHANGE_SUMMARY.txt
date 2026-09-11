@@ -26,3 +26,8 @@ NOT CHANGED
 - No LIVE change.
 
 - FUND weekly status now calls fund_admin_get_period_status only for Saturdays that actually exist in the selected month, preventing expected HTTP 400s for nonexistent 5th weeks while keeping the 5-column UI.
+
+COOKING CUSTOM MENU
+- Company Settings now includes a company-scoped 요리 메뉴 manager.
+- Uses existing axe_product.cooking_order_types with authenticated RLS CRUD; no DB schema/RPC change required.
+- Menu add/edit/enable/disable supported. Hard delete is intentionally not exposed so historical orders keep stable type keys.

@@ -114,6 +114,47 @@ export async function setCompanyModule(companyId, moduleKey, enabled, userId) {
   return unwrap(result, '모듈 설정을 변경하지 못했습니다.');
 }
 
+export async function getCookingOrderTypes(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('cooking_order_types')
+    .select('company_id,type_key,label,short_label,detail,price_per_set,sort_order,enabled')
+    .eq('company_id', companyId)
+    .order('sort_order', { ascending: true })
+    .order('type_key', { ascending: true });
+  return unwrap(result, '요리 주문 메뉴를 불러오지 못했습니다.') || [];
+}
+
+export async function saveCookingOrderType(companyId, payload) {
+  assertClient();
+  const typeKey = String(payload?.typeKey || '').trim();
+  const label = String(payload?.label || '').trim();
+  const shortLabel = String(payload?.shortLabel || '').trim();
+  const detail = String(payload?.detail || '').trim();
+  const pricePerSet = Math.max(0, Math.floor(Number(payload?.pricePerSet || 0)));
+  const sortOrder = Math.max(0, Math.floor(Number(payload?.sortOrder || 0)));
+  if (!typeKey) throw new Error('메뉴 내부 키가 없습니다.');
+  if (!label) throw new Error('메뉴 이름을 입력해 주세요.');
+  const result = await supabase
+    .from('cooking_order_types')
+    .upsert({ company_id: companyId, type_key: typeKey, label, short_label: shortLabel || label, detail: detail || null, price_per_set: pricePerSet, sort_order: sortOrder, enabled: payload?.enabled !== false }, { onConflict: 'company_id,type_key' })
+    .select('company_id,type_key,label,short_label,detail,price_per_set,sort_order,enabled')
+    .single();
+  return unwrap(result, '요리 주문 메뉴를 저장하지 못했습니다.');
+}
+
+export async function setCookingOrderTypeEnabled(companyId, typeKey, enabled) {
+  assertClient();
+  const result = await supabase
+    .from('cooking_order_types')
+    .update({ enabled: Boolean(enabled) })
+    .eq('company_id', companyId)
+    .eq('type_key', String(typeKey || '').trim())
+    .select('company_id,type_key,label,short_label,detail,price_per_set,sort_order,enabled')
+    .single();
+  return unwrap(result, '요리 주문 메뉴 상태를 변경하지 못했습니다.');
+}
+
 export async function getCompanySettings(companyId) {
   assertClient();
   const result = await supabase

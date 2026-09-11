@@ -67,6 +67,12 @@ expect('Onboarding completion notice', main.includes('초기 설정이 완료됐
 expect('BOT bridge copy reflects connected state', render.includes('BOT 자동 반영 연결됨'));
 expect('Prototype CSS system imported', ['tokens.css','layout.css','fund.css','management.css','settings.css','overlays.css'].every(x=>css.includes(x)));
 
+expect('Cooking menu settings tab', render.includes('요리 메뉴') && render.includes('renderCookingMenuSettings'));
+expect('Cooking menu modal', render.includes('cookingMenuModal') && render.includes('data-form=\"cooking-menu\"'));
+expect('Cooking menu direct RLS CRUD API', api.includes("from('cooking_order_types')") && api.includes('saveCookingOrderType') && api.includes('setCookingOrderTypeEnabled'));
+expect('Cooking menu state wiring', main.includes('cookingOrderTypes') && main.includes('getCookingOrderTypes') && main.includes("action==='toggle-cooking-menu'"));
+expect('Cooking menu avoids hard delete', !api.includes(".from('cooking_order_types').delete") && !main.includes('deleteCookingOrderType'));
+
 if(failures.length){
   console.error('AXE PRODUCT INTEGRATED UI CHECK: FAIL');
   for(const [label,ok] of checks) console.error(`${ok?' PASS':' FAIL'} ${label}`);
