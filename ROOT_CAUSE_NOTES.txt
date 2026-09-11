@@ -1,0 +1,12 @@
+AXE PRODUCT OPERATIONS UI — ROOT CAUSE
+
+1. The issue was not simply "left alignment" or "table vs grid".
+2. Company Settings works because it has one explicit lane contract:
+   fixed board width, fixed row height, fixed column responsibilities, and one
+   typography scale.
+3. Members/Assets/Accounts had historical CSS from several redesign attempts in the
+   same stylesheet. Different selectors remained active even after markup changed.
+4. Semantic tables added a fourth contract. They aligned headers but stretched empty
+   space across the board and squeezed text inside percentage columns.
+5. The fix is therefore a single dense operational component system, not another
+   layer of width overrides.

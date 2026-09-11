@@ -1,184 +1,87 @@
-/* AXE PRODUCT 3.8 · Wide Anchor + Compact Workspace
-   The page header and summary stay wide to anchor the screen.
-   Only the task board adapts to the information density of each view. */
+/* AXE PRODUCT 3.17.0 · Dense Operations System
+   Goal: reuse the visual grammar of Company Settings across Members / Assets /
+   Accounts. One compact board rhythm, one lane contract per row, no tables,
+   no historical override stacks. */
 
 .ops-mgmt-page{width:100%;margin:0}
-.ops-mgmt-page .page-header{min-height:78px;margin-bottom:18px}
+.ops-mgmt-page .page-header{min-height:78px;margin-bottom:16px}
 .ops-mgmt-page .page-header h1{margin-top:5px;font-size:34px}
 .ops-mgmt-page .page-header p{margin-top:9px;font-size:13px}
 .ops-mgmt-page .page-header__actions{padding-top:17px}
-.ops-mgmt-page .button{min-height:36px;padding-inline:12px;font-size:var(--ops-font-control)}
 
-/* Wide visual anchor: intentionally mirrors Fund summary proportions. */
-.ops-mgmt-summary{
-  width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px;
-  overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface)
-}
-.ops-mgmt-summary article{display:grid;gap:4px;padding:14px 15px;border-right:1px solid var(--line-soft)}
-.ops-mgmt-summary article:last-child{border-right:0}
-.ops-mgmt-summary span{color:#82909d;font-size:9.2px}
-.ops-mgmt-summary strong{font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums}
-.ops-mgmt-summary small{color:#66727f;font-size:8.5px}
-.ops-mgmt-summary .is-positive{color:var(--green)}
-.ops-mgmt-summary .is-warning{color:var(--amber)}
-.ops-mgmt-summary .is-negative{color:var(--red)}
+/* Summary mirrors Company Settings overview. */
+.ops-mgmt-summary{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.ops-mgmt-summary article{display:grid;gap:4px;padding:13px 15px;border-right:1px solid var(--line-soft);min-width:0}.ops-mgmt-summary article:last-child{border-right:0}
+.ops-mgmt-summary span{color:#82909d;font-size:9.8px}.ops-mgmt-summary strong{overflow:hidden;color:var(--ops-title);font-size:18px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}.ops-mgmt-summary small{color:#66727f;font-size:8.8px}
+.ops-mgmt-summary .is-positive{color:var(--green)}.ops-mgmt-summary .is-warning{color:var(--amber)}.ops-mgmt-summary .is-negative{color:var(--red)}
 
-/* The operational workspace, not the page shell, is content-adaptive. */
-/* One operational column: same left edge and width across members/assets/accounts. */
-.ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board,
-.ops-mgmt-page--assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets .ops-mgmt-board,
-.ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,
-.ops-mgmt-page--accounts .ops-mgmt-board{width:min(860px,100%);margin-left:0;margin-right:0}
+/* Every operational workspace uses the same compact width as Company Settings. */
+.ops-mgmt-workspace{width:min(680px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-section-head{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding:0 1px}
+.ops-mgmt-section-head>div{display:grid;gap:2px;min-width:0}.ops-mgmt-section-head strong{color:var(--ops-title);font-size:12.8px}.ops-mgmt-section-head>div>span{overflow:hidden;color:#74808b;font-size:9.2px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.ops-mgmt-section-head--solo{justify-content:flex-start}
 
-/* Contextual action discovery: actions live beside the data they affect. */
-.ops-mgmt-section-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;padding:0 2px}
-.ops-mgmt-section-head>div{display:grid;gap:2px;min-width:0}.ops-mgmt-section-head strong{color:var(--ops-title);font-size:13.5px}.ops-mgmt-section-head>div>span{color:#74808b;font-size:9.8px}
-.ops-mgmt-tabs-row{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;border-bottom:1px solid var(--line)}
-.ops-mgmt-tabs-row .ops-mgmt-tabs{flex:1;margin:0;border-bottom:0}
-.ops-action-primary,.ops-action-secondary{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:9px;font-size:10.5px;font-weight:900;white-space:nowrap;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease}
-.ops-action-primary svg,.ops-action-secondary svg{width:14px;height:14px;stroke-width:2}
-.ops-action-primary{border:1px solid rgba(228,178,75,.38);background:linear-gradient(180deg,rgba(62,48,22,.96),rgba(32,27,17,.98));color:#efc76d;box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.12)}
-.ops-action-primary svg{color:#f1b84a}.ops-action-primary:hover{border-color:rgba(236,186,80,.58);background:linear-gradient(180deg,rgba(75,57,24,.98),rgba(39,31,18,.99));color:#ffe0a0;box-shadow:0 5px 16px rgba(191,132,26,.09),inset 0 1px rgba(255,255,255,.05);transform:translateY(-1px)}.ops-action-primary:active{transform:translateY(0);background:#241c10}
-.ops-action-secondary{border:1px solid rgba(255,255,255,.09);background:#111820;color:#aeb7c1}.ops-action-secondary svg{color:#8d99a5}
-.ops-action-secondary:hover{border-color:rgba(228,178,75,.28);background:#151b22;color:#e4c98c;transform:translateY(-1px)}.ops-action-secondary:active{transform:translateY(0)}
+.ops-action-primary,.ops-action-secondary{height:32px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border-radius:8px;font-size:9.8px;font-weight:800;white-space:nowrap;cursor:pointer;transition:.14s ease}
+.ops-action-primary svg,.ops-action-secondary svg{width:13px;height:13px;stroke-width:2}
+.ops-action-primary{border:1px solid rgba(228,178,75,.36);background:rgba(228,178,75,.08);color:#efc76d}.ops-action-primary:hover{background:rgba(228,178,75,.14);border-color:rgba(228,178,75,.52);color:#ffe0a0}
+.ops-action-secondary{border:1px solid rgba(255,255,255,.09);background:#111820;color:#aeb7c1}.ops-action-secondary:hover{border-color:rgba(228,178,75,.24);color:#e4c98c;background:#151b22}
 
-.ops-mgmt-tabs{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line)}
-.ops-mgmt-tabs button{position:relative;height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid transparent;border-radius:9px 9px 0 0;background:transparent;color:#96a1ab;font-size:11.8px;font-weight:860;cursor:pointer;transition:.14s ease}
-.ops-mgmt-tabs button:hover{color:#ced5dc;background:rgba(255,255,255,.018)}
-.ops-mgmt-tabs button.is-active{color:var(--ops-gold-bright);background:rgba(228,178,75,.05);border-color:rgba(228,178,75,.15)}
-.ops-mgmt-tabs button.is-active:after{content:"";position:absolute;left:9px;right:9px;bottom:-1px;height:2px;background:var(--gold)}
+/* Asset tabs reuse the same compact nav rhythm as settings. */
+.ops-mgmt-tabs-row{width:min(680px,100%);min-height:42px;display:flex;align-items:center;gap:8px;margin:0 auto 8px}
+.ops-dense-tabs{min-width:0;flex:1;display:flex;align-items:stretch;gap:5px;padding:4px;border:1px solid var(--line);border-radius:10px;background:#0c1117}
+.ops-dense-tabs button{min-height:34px;display:flex;align-items:center;justify-content:center;padding:0 11px;border:1px solid transparent;border-radius:7px;background:transparent;color:#8f9aa4;font-size:10.4px;font-weight:800;cursor:pointer;transition:.14s ease}
+.ops-dense-tabs button:hover{border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.018);color:#cbd2d8}.ops-dense-tabs button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.075);color:#efd59e;box-shadow:inset 2px 0 rgba(228,178,75,.55)}
 
-.ops-mgmt-board{overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#0c1117}
-.ops-mgmt-board-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--line-soft);background:#0f151b}
-.ops-mgmt-board-head>div{display:grid;gap:3px}.ops-mgmt-board-head h2{margin:0;color:var(--ops-title);font-size:14px}.ops-mgmt-board-head p{margin:0;color:var(--ops-sub);font-size:10px}.ops-mgmt-board-head>span{color:#807765;font-size:9.5px}
+/* Board shell: same border, radius, background and row density as settings. */
+.ops-mgmt-board{width:min(680px,100%);margin:0 auto;overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#0c1117}
+.ops-mgmt-board-head{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-bottom:1px solid var(--line-soft);background:#0f151b}
+.ops-mgmt-board-head>div{display:grid;gap:2px}.ops-mgmt-board-head h2{margin:0;color:var(--ops-title);font-size:13.5px}.ops-mgmt-board-head p{margin:0;color:var(--ops-sub);font-size:9.4px}.ops-mgmt-board-head>span{color:#817765;font-size:9px}
 
-.ops-mgmt-toolbar{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-bottom:1px solid var(--line-soft);background:#0f151b}
-.ops-mgmt-filters{display:flex;align-items:center;gap:5px;min-width:0}
-.ops-mgmt-select{height:32px;min-width:100px;padding:0 27px 0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d;color:#c7cdd3;font-size:var(--ops-font-control);outline:0}
-.ops-mgmt-search{width:170px;height:32px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #2a3540;border-radius:7px;background:#10161d}
-.ops-mgmt-search svg{width:14px;color:#7b8793}.ops-mgmt-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#e2e5e8;font-size:var(--ops-font-control)}.ops-mgmt-search input::placeholder{color:#66717c}
-.ops-mgmt-select:focus,.ops-mgmt-search:focus-within{border-color:rgba(228,178,75,.45);box-shadow:0 0 0 2px rgba(228,178,75,.055)}
-.ops-mgmt-toolbar-note{color:#707b85;font-size:9.3px;white-space:nowrap}
-.ops-mgmt-quiet{height:32px;display:flex;align-items:center;gap:6px;padding:0 9px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:transparent;color:#929aa3;font-size:9.8px;cursor:pointer}.ops-mgmt-quiet svg{width:12px}.ops-mgmt-quiet:hover{color:#cfd4d9;border-color:rgba(255,255,255,.13)}
+.ops-mgmt-toolbar{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:7px;padding:6px 8px;border-bottom:1px solid var(--line-soft);background:#0f151b}
+.ops-mgmt-filters{display:flex;align-items:center;gap:5px;min-width:0}.ops-mgmt-segments{display:flex;align-items:center;gap:4px;min-width:0}
+.ops-mgmt-select{height:30px;min-width:96px;padding:0 27px 0 9px;border:1px solid #29333d;border-radius:7px;background:#0d1217;color:#cbd1d6;font-size:9.6px;outline:0}
+.ops-mgmt-search{width:182px;height:30px;display:flex;align-items:center;gap:6px;padding:0 8px;border:1px solid #29333d;border-radius:7px;background:#0d1217}.ops-mgmt-search svg{width:12px;color:#74808b}.ops-mgmt-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#dce1e6;font-size:9.6px}.ops-mgmt-search input::placeholder{color:#65717c}
+.ops-mgmt-select:focus,.ops-mgmt-search:focus-within{border-color:rgba(228,178,75,.44);box-shadow:0 0 0 2px rgba(228,178,75,.045)}
+.ops-mgmt-toolbar-note{overflow:hidden;color:#727d87;font-size:8.8px;text-overflow:ellipsis;white-space:nowrap}
 
-.ops-mgmt-segments{display:flex;gap:6px}
-.ops-mgmt-segments button{height:35px;display:flex;align-items:center;gap:6px;padding:0 11px;border:1px solid rgba(255,255,255,.06);border-radius:9px;background:rgba(255,255,255,.012);color:#96a1ab;font-size:11.2px;font-weight:850;cursor:pointer;transition:.14s ease}
-.ops-mgmt-segments button:hover{color:#d7dde3;border-color:rgba(255,255,255,.12)}
-.ops-mgmt-segments button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.09);color:#efd59e;box-shadow:inset 0 0 0 1px rgba(228,178,75,.05)}
-.ops-mgmt-segments button.is-exit{color:#b38b89;border-color:rgba(213,111,107,.10);background:rgba(213,111,107,.018)}
-.ops-mgmt-segments button.is-exit:hover{color:#dca29f;border-color:rgba(213,111,107,.18);background:rgba(213,111,107,.04)}
-.ops-mgmt-segments button.is-exit em{background:rgba(213,111,107,.08);color:#c88e8a}
-.ops-mgmt-segments button.is-exit.is-active{color:#efaaa5;border-color:rgba(225,116,111,.28);background:rgba(193,78,73,.10);box-shadow:inset 0 0 0 1px rgba(225,116,111,.04)}
-.ops-mgmt-segments button.is-exit.is-active em{background:rgba(225,116,111,.12);color:#f0aaa6}
-.ops-mgmt-segments em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.10);color:#ddb96d;font-size:8.5px;font-style:normal}
+.ops-mgmt-segments button{height:30px;display:flex;align-items:center;gap:5px;padding:0 8px;border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(255,255,255,.012);color:#8f9aa4;font-size:9.6px;font-weight:800;cursor:pointer}.ops-mgmt-segments button:hover{border-color:rgba(255,255,255,.11);color:#d2d8dd}.ops-mgmt-segments button.is-active{border-color:rgba(228,178,75,.23);background:rgba(228,178,75,.075);color:#efd59e}.ops-mgmt-segments button.is-left{color:#aa8080}.ops-mgmt-segments button.is-left.is-active{border-color:rgba(214,86,86,.23);background:rgba(214,86,86,.065);color:#e89a9a}.ops-mgmt-segments em{min-width:17px;height:17px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.09);color:#d7b268;font-size:8px;font-style:normal}
 
-.ops-mgmt-meta{height:33px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line-soft);color:#7a8590;font-size:10px}.ops-mgmt-meta strong{color:#d7caa6}
-.ops-mgmt-list{display:grid}.ops-mgmt-row{border-bottom:1px solid var(--line-soft)}.ops-mgmt-row:last-child{border-bottom:0}.ops-mgmt-row:hover{background:rgba(255,255,255,.012)}
-.ops-mgmt-empty{padding:26px 12px;color:#747b82;font-size:10.5px;text-align:center}
+.ops-mgmt-meta{min-height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid var(--line-soft);color:#737f89;font-size:8.9px}.ops-mgmt-meta strong{color:#d7caa6;font-size:9.5px}
 
-/* Members: only the data we actually expose. */
-.ops-member-row{min-height:57px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.82fr) minmax(0,.68fr) minmax(58px,.56fr) 54px;align-items:center;column-gap:10px;padding:8px 10px}
-.ops-member-main{display:grid;gap:2px;min-width:0}.ops-account-main{display:flex;align-items:center;gap:9px;min-width:0}.ops-mgmt-avatar{width:31px;height:31px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(228,178,75,.10);border-radius:7px;background:rgba(228,178,75,.055);color:var(--ops-gold);font-size:10px;font-weight:900}
-.ops-member-hire,.ops-member-role,.ops-asset-main,.ops-asset-holder,.ops-return-main,.ops-return-reason,.ops-return-actor,.ops-account-number,.ops-account-main>div{display:grid;gap:2px;min-width:0}
-.ops-member-main strong,.ops-asset-main strong,.ops-return-main strong,.ops-account-main strong{overflow:hidden;color:var(--ops-title);font-size:var(--ops-font-primary);font-weight:880;text-overflow:ellipsis;white-space:nowrap}
-.ops-member-main span,.ops-member-hire span,.ops-member-role span,.ops-asset-main span,.ops-asset-holder span,.ops-return-main span,.ops-return-reason span,.ops-return-actor span,.ops-account-main span,.ops-account-number span{overflow:hidden;color:var(--ops-sub);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
-.ops-member-hire strong,.ops-member-role strong,.ops-asset-holder strong,.ops-return-reason strong,.ops-return-actor strong,.ops-account-number strong{overflow:hidden;color:var(--ops-copy);font-size:11.6px;text-overflow:ellipsis;white-space:nowrap}
-.ops-member-state,.ops-asset-state{display:flex;align-items:center;justify-content:flex-start;gap:7px;min-width:0}.ops-member-state small,.ops-asset-state small{color:var(--ops-meta);font-size:9.5px;white-space:nowrap}
+/* Shared fixed-lane list. The header and rows use the exact same template. */
+.ops-lane-head,.ops-lane-row{display:grid;align-items:center;gap:8px;padding-left:10px;padding-right:10px}
+.ops-lane-head{height:30px;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:8.8px;font-weight:700;line-height:1}
+.ops-lane-row{min-height:54px;border-bottom:1px solid var(--line-soft);transition:background .14s ease}.ops-lane-row:last-child{border-bottom:0}.ops-lane-row:hover{background:rgba(255,255,255,.012)}.ops-lane-row.is-attention{background:rgba(228,178,75,.018)}
+.ops-lane-cell{min-width:0}.ops-lane-cell.is-center{display:flex;align-items:center;justify-content:center}.ops-lane-cell.is-right{display:flex;align-items:center;justify-content:flex-end}
+.ops-lane-copy{min-width:0;display:grid;gap:2px}.ops-lane-copy strong{overflow:hidden;color:var(--ops-title);font-size:11.8px;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-lane-copy span{overflow:hidden;color:var(--ops-sub);font-size:8.8px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}.ops-lane-value{overflow:hidden;color:var(--ops-copy);font-size:10.8px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.ops-lane-value.is-muted{color:#89949e;font-weight:600}
 
-.ops-mgmt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:26px;padding:0 8px;border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#9aa2aa;background:rgba(255,255,255,.025);font-size:10.3px;font-weight:850;white-space:nowrap}
-.ops-mgmt-badge.is-green{color:#80d69f;border-color:rgba(120,211,155,.15);background:rgba(120,211,155,.055)}
-.ops-mgmt-badge.is-amber{color:#e7bb66;border-color:rgba(232,182,93,.18);background:rgba(232,182,93,.05)}
-.ops-mgmt-badge.is-muted{color:#929aa3}.ops-mgmt-badge.is-red{color:#e88782;border-color:rgba(239,129,124,.18);background:rgba(239,129,124,.045)}
-.ops-mgmt-action{height:30px;min-width:48px;padding:0 8px;border:1px solid rgba(255,255,255,.085);border-radius:7px;background:transparent;color:#aeb5bc;font-size:10.5px;font-weight:850;cursor:pointer}.ops-mgmt-action:hover{color:#efd59e;border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.035)}
+.ops-lane-head--member,.ops-lane-row--member{grid-template-columns:minmax(0,1fr) 104px 112px 82px 60px}
+.ops-lane-head--asset,.ops-lane-row--asset{grid-template-columns:minmax(0,1.2fr) minmax(0,1.35fr) 88px 82px 60px}
+.ops-lane-head--return,.ops-lane-row--return{grid-template-columns:minmax(0,1.45fr) minmax(0,1.1fr) 118px}
+.ops-lane-head--account,.ops-lane-row--account{grid-template-columns:minmax(0,1fr) minmax(160px,1.45fr) 88px 60px}
 
-/* Assets view is a little wider; return history gets its own smaller contract. */
-.ops-asset-row{min-height:57px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr) minmax(74px,.62fr) 54px;align-items:center;column-gap:10px;padding:8px 10px}
-.ops-return-row{min-height:57px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(92px,.72fr);align-items:center;column-gap:10px;padding:8px 10px}
+.ops-mgmt-badge{min-width:48px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:#111820;color:#8f9aa4;font-size:9px;font-weight:800;white-space:nowrap}.ops-mgmt-badge.is-green{border-color:rgba(77,207,142,.18);background:rgba(77,207,142,.055);color:#73daa4}.ops-mgmt-badge.is-amber{border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.065);color:#e1ba69}.ops-mgmt-badge.is-red{border-color:rgba(224,92,92,.20);background:rgba(224,92,92,.045);color:#df9696}
+.ops-mgmt-action{min-width:54px;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:#0d1319;color:#a6afb8;font-size:9.2px;font-weight:800;cursor:pointer;white-space:nowrap}.ops-mgmt-action:hover{border-color:rgba(228,178,75,.22);color:#e3c582;background:#12191f}.ops-mgmt-action:disabled{opacity:.28;cursor:not-allowed}.ops-mgmt-action.is-assign{border-color:rgba(228,178,75,.27);background:rgba(228,178,75,.055);color:#e5bd67}
+.ops-mgmt-empty{padding:24px 12px;color:#747d86;font-size:9.8px;text-align:center}
 
-/* Accounts. */
-.ops-account-review{margin-bottom:9px;overflow:hidden;border:1px solid rgba(232,182,93,.16);border-radius:9px;background:#0c1117}
-.ops-account-review-head{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid rgba(232,182,93,.10);background:rgba(232,182,93,.022)}
-.ops-account-review-head>div{display:flex;align-items:center;gap:7px}.ops-account-review-head strong{color:#ead39b;font-size:11.5px}.ops-account-review-head span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-head em{min-width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:rgba(232,182,93,.10);color:#e7bb66;font-size:8.5px;font-style:normal;font-weight:850}
-.ops-account-review article{min-height:56px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(76px,.62fr) auto;align-items:center;column-gap:10px;padding:8px 10px}.ops-account-review article>div:first-child{display:grid;gap:2px}.ops-account-review article strong{color:var(--ops-title);font-size:11.6px}.ops-account-review article span{color:var(--ops-sub);font-size:9.5px}.ops-account-review-actions{display:flex;justify-content:flex-end;gap:4px}.ops-account-review-actions button{height:28px;padding:0 7px;border:1px solid rgba(255,255,255,.08);border-radius:6px;background:transparent;color:#a0a7ae;font-size:9.4px;cursor:pointer}.ops-account-review-actions .is-primary{border-color:rgba(228,178,75,.28);background:rgba(228,178,75,.09);color:#efca78}
-.ops-account-row{min-height:57px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(78px,.62fr) 54px;align-items:center;column-gap:10px;padding:8px 10px}.ops-account-row.is-attention{background:rgba(232,182,93,.018)}.ops-account-state{display:flex;align-items:center}
+/* Account review is intentionally folded into the same 680px contract. */
+.ops-account-review{width:min(680px,100%);margin:0 auto 8px;overflow:hidden;border:1px solid rgba(228,178,75,.16);border-radius:10px;background:#0c1117}
+.ops-account-review-head{min-height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid rgba(228,178,75,.10);background:rgba(228,178,75,.022)}.ops-account-review-head>div{display:flex;align-items:center;gap:6px}.ops-account-review-head strong{color:#ead39b;font-size:10.5px}.ops-account-review-head span{color:var(--ops-sub);font-size:8.8px}.ops-account-review-head em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.10);color:#e7bb66;font-size:8px;font-style:normal;font-weight:800}
+.ops-account-review article{min-height:48px;display:grid;grid-template-columns:minmax(0,1fr) 86px 112px;align-items:center;gap:8px;padding:5px 9px;border-bottom:1px solid rgba(255,255,255,.045)}.ops-account-review article:last-child{border-bottom:0}.ops-account-review article>div:first-child{min-width:0;display:grid;gap:2px}.ops-account-review article strong{overflow:hidden;color:var(--ops-title);font-size:10.8px;text-overflow:ellipsis;white-space:nowrap}.ops-account-review article span{overflow:hidden;color:var(--ops-sub);font-size:8.8px;text-overflow:ellipsis;white-space:nowrap}.ops-account-review-actions{display:flex;justify-content:flex-end;gap:4px}.ops-account-review-actions button{height:26px;padding:0 7px;border:1px solid rgba(255,255,255,.08);border-radius:6px;background:transparent;color:#9aa3ab;font-size:8.8px;font-weight:700}.ops-account-review-actions .is-primary{border-color:rgba(228,178,75,.28);background:rgba(228,178,75,.08);color:#efca78}
 
-@media(max-width:900px){
-  .ops-member-row{grid-template-columns:minmax(0,1.35fr) minmax(82px,.82fr) minmax(64px,.68fr) 58px 54px}
-  .ops-asset-row{grid-template-columns:minmax(0,1.35fr) minmax(105px,.9fr) 78px 54px}
-  .ops-account-row{grid-template-columns:minmax(0,1.2fr) minmax(145px,1fr) 82px 54px}
-}
-@media(max-width:720px){
-  .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head .ops-action-primary,.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
-  .ops-mgmt-tabs-row{align-items:stretch;flex-direction:column;border-bottom:0}.ops-mgmt-tabs-row .ops-mgmt-tabs{border-bottom:1px solid var(--line)}.ops-mgmt-tabs-row .ops-action-primary{align-self:flex-end}
-
-  .ops-mgmt-summary{grid-template-columns:1fr 1fr}.ops-mgmt-summary article:nth-child(2){border-right:0}.ops-mgmt-summary article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
-  .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,200px)}
-  .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto}.ops-member-hire,.ops-member-role,.ops-asset-holder,.ops-account-number{grid-column:1}.ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}.ops-mgmt-action{grid-column:2;grid-row:1 / span 4}
-  .ops-return-row{grid-template-columns:1fr}.ops-account-review article{grid-template-columns:1fr auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
-}
-
-
-.ops-mgmt-action.is-assign{border-color:rgba(228,178,75,.27);background:rgba(228,178,75,.055);color:#e5bd67}
+/* Used from Cooking settings as a shared compact action. */
 .ops-mgmt-action.is-assign:hover{background:rgba(228,178,75,.09);color:#f2cf82}
 
-/* 3.16.3 compact operations refinement */
-.ops-mgmt-section-head--solo{justify-content:flex-start}
-.ops-mgmt-page--members .ops-mgmt-toolbar{gap:6px;padding-inline:7px}
-.ops-mgmt-page--members .ops-mgmt-filters{margin-left:auto}
-.ops-mgmt-page--members .ops-mgmt-select{min-width:92px}
-.ops-mgmt-page--members .ops-mgmt-search{width:164px}
-.ops-mgmt-page--members .ops-mgmt-segments{gap:4px}
-.ops-mgmt-page--members .ops-mgmt-segments button{height:32px;padding-inline:9px}
-.ops-mgmt-page--assets .ops-mgmt-toolbar,.ops-mgmt-page--accounts .ops-mgmt-toolbar{justify-content:flex-start}
-.ops-mgmt-page--assets .ops-mgmt-filters,.ops-mgmt-page--accounts .ops-mgmt-filters{width:100%}
-.ops-mgmt-page--assets .ops-mgmt-search,.ops-mgmt-page--accounts .ops-mgmt-search{width:168px}
-
-/* 3.16.8 clean semantic table system ----------------------------------------
-   Rebuilt from the last stable grid source. One table contract only: no
-   stacked override blocks, no per-tab centering drift, no repeated labels.
----------------------------------------------------------------------------- */
-.ops-data-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;border-top:1px solid rgba(255,255,255,.045);scrollbar-width:thin}
-.ops-data-table{width:100%;border-collapse:collapse;table-layout:fixed;color:var(--ops-copy);letter-spacing:0}
-.ops-data-table thead th{height:34px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.007);color:#6e7882;font-size:10px;font-weight:700;line-height:1;white-space:nowrap}
-.ops-data-table tbody tr{height:58px;border-bottom:1px solid rgba(255,255,255,.052);transition:background .14s ease}
-.ops-data-table tbody tr:last-child{border-bottom:0}.ops-data-table tbody tr:not(.is-empty):hover{background:rgba(255,255,255,.014)}.ops-data-table tbody tr.is-attention{background:rgba(255,181,46,.018)}
-.ops-data-table td{min-width:0;padding:10px 16px;vertical-align:middle;overflow:hidden;color:var(--ops-copy);font-size:12px;line-height:1.3}
-.ops-data-table td strong,.ops-data-table td small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ops-data-table td strong{color:var(--ops-title);font-size:12.3px;font-weight:780;line-height:1.3;letter-spacing:0}.ops-data-table td small{margin-top:3px;color:var(--ops-sub);font-size:9.8px;font-weight:500;line-height:1.25}
-.ops-data-table .ops-mgmt-badge{min-width:48px;height:26px;margin-inline:auto;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:760}
-.ops-data-table .ops-mgmt-action{min-width:52px;height:30px;margin-inline:auto;padding:0 10px;font-size:10px;font-weight:700}
-.ops-data-table tr.is-empty{height:auto}.ops-data-table tr.is-empty td{padding:0;text-align:center}.ops-data-table tr.is-empty .ops-mgmt-empty{padding:28px 12px}
-
-/* Text columns read from the left; status/actions keep a stable centre axis. */
-.ops-member-table th:nth-child(-n+3),.ops-member-table td:nth-child(-n+3),
-.ops-asset-table th:nth-child(-n+3),.ops-asset-table td:nth-child(-n+3),
-.ops-account-table th:nth-child(-n+2),.ops-account-table td:nth-child(-n+2),
-.ops-return-table th,.ops-return-table td{text-align:left}
-.ops-member-table th:nth-child(n+4),.ops-member-table td:nth-child(n+4),
-.ops-asset-table th:nth-child(n+4),.ops-asset-table td:nth-child(n+4),
-.ops-account-table th:nth-child(n+3),.ops-account-table td:nth-child(n+3){text-align:center}
-
-/* Column widths are chosen per data type, but every board uses the same 860px workspace. */
-.ops-member-table col.is-name{width:32%}.ops-member-table col.is-role{width:20%}.ops-member-table col.is-hire{width:20%}.ops-member-table col.is-status{width:14%}.ops-member-table col.is-manage{width:14%}
-.ops-asset-table col.is-holder{width:24%}.ops-asset-table col.is-asset{width:32%}.ops-asset-table col.is-category{width:18%}.ops-asset-table col.is-status{width:13%}.ops-asset-table col.is-manage{width:13%}
-.ops-account-table col.is-name{width:29%}.ops-account-table col.is-account{width:41%}.ops-account-table col.is-status{width:15%}.ops-account-table col.is-manage{width:15%}
-.ops-return-table col.is-asset{width:42%}.ops-return-table col.is-process{width:34%}.ops-return-table col.is-checker{width:24%}
-
-/* Clean toolbar/meta rhythm across management tabs. */
-.ops-mgmt-board .ops-mgmt-toolbar{min-height:48px;padding:7px 10px}.ops-mgmt-board .ops-mgmt-meta{height:32px;padding:0 12px}.ops-mgmt-board .ops-mgmt-meta>span:last-child:not(:first-child){color:#69747f}
-.ops-mgmt-page--members .ops-mgmt-search{width:205px}.ops-mgmt-page--assets .ops-mgmt-search,.ops-mgmt-page--accounts .ops-mgmt-search{width:210px}
-
-@media(max-width:900px){
-  .ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board,
-  .ops-mgmt-page--assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets .ops-mgmt-board,
-  .ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,.ops-mgmt-page--accounts .ops-mgmt-board{width:100%}
+@media(max-height:940px) and (min-width:761px){
+  .ops-mgmt-page .page-header{min-height:70px;margin-bottom:10px}.ops-mgmt-summary{margin-bottom:9px}.ops-mgmt-summary article{padding-top:10px;padding-bottom:10px}
 }
-@media(max-width:720px){
-  .ops-data-table-wrap{overflow:visible;border-top:0}
-  .ops-data-table,.ops-data-table tbody,.ops-data-table tr,.ops-data-table td{display:block;width:100%}.ops-data-table colgroup,.ops-data-table thead{display:none}
-  .ops-data-table tbody tr{height:auto;margin:8px 0;padding:7px 10px;border:1px solid rgba(255,255,255,.065);border-radius:9px;background:rgba(255,255,255,.012)}
-  .ops-data-table tbody tr.is-empty{padding:0;border:0;background:transparent}
-  .ops-data-table td{display:grid;grid-template-columns:74px minmax(0,1fr);align-items:center;gap:10px;min-height:35px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.038);text-align:left!important;overflow:visible}
-  .ops-data-table td:last-child{border-bottom:0}.ops-data-table td::before{content:attr(data-label);color:#6e757c;font-size:9.4px;font-weight:700;text-align:left;white-space:nowrap}
-  .ops-data-table td strong,.ops-data-table td small{text-align:left}.ops-data-table td>.ops-mgmt-badge,.ops-data-table td>.ops-mgmt-action{margin:0;justify-self:start}.ops-data-table tr.is-empty td{display:block;padding:0}.ops-data-table tr.is-empty td::before{display:none}
+
+@media(max-width:760px){
+  .ops-mgmt-summary{grid-template-columns:1fr 1fr}.ops-mgmt-summary article:nth-child(2){border-right:0}.ops-mgmt-summary article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .ops-mgmt-workspace,.ops-mgmt-board,.ops-mgmt-tabs-row,.ops-account-review{width:100%}
+  .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head>div>span{white-space:normal}.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
+  .ops-mgmt-tabs-row{align-items:stretch;flex-direction:column}.ops-mgmt-tabs-row>.ops-action-primary{align-self:flex-end}
+  .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,210px)}
+  .ops-lane-head{display:none}.ops-lane-row{grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px;padding:9px 10px}.ops-lane-row>.ops-lane-cell{grid-column:1}.ops-lane-row>.ops-lane-cell.is-center,.ops-lane-row>.ops-lane-cell.is-right{justify-content:flex-start}.ops-lane-row>.ops-lane-cell:last-child{grid-column:2;grid-row:1 / span 4;align-self:center;justify-content:flex-end}
+  .ops-account-review article{grid-template-columns:minmax(0,1fr) auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
 }

@@ -1,10 +1,24 @@
-AXE PRODUCT WEB STAGING 3.16.8 · CLEAN OPERATIONS TABLE R3
+AXE PRODUCT WEB STAGING 3.17.0 — DENSE OPERATIONS ROOT REDESIGN
 
-- Rebased the management/table work on the last stable 3.16.5 source instead of stacking more CSS over 3.16.7.
-- One 860px operational workspace shared by members, assets, returns, and accounts.
-- Same left edge across management tabs; removed per-tab centred widths that made each screen drift.
-- Kept real semantic tables, but removed repeated in-cell labels already present in the header.
-- Text columns are left aligned; status/actions stay centred.
-- Fund keeps its compact table; the item/details column is wider and header alignment matches the body.
-- Mobile remains card-like.
-- No DB or BOT changes.
+Scope: WEB STAGING only. DB/BOT/LIVE untouched.
+
+Root causes removed:
+- Management pages had accumulated three different layout contracts: old grid rows,
+  compact refinements, and semantic table overrides.
+- Per-page workspaces used different width assumptions, so the same information
+  density produced different visual rhythm.
+- table-layout:fixed solved axis alignment but introduced squeezed text and did not
+  reproduce the compact Company Settings visual language.
+- repeated secondary labels increased row height and made sparse data feel emptier.
+
+New design:
+- Company Settings is the reference visual grammar and is not changed.
+- Members / Assets / Accounts use one 680px operational workspace.
+- All boards use the same toolbar / meta / lane header / 54px row rhythm.
+- Header and data rows share the exact same CSS grid template per category.
+- Standard 700/800 font weights replace interpolated 780/860/880 weights.
+- Fund ledger keeps its existing functionality but switches from a stretched table
+  to a compact 760px fixed-lane board; the entry lane receives the flexible width.
+- Mobile collapses lane rows without relying on table display overrides.
+
+No functional API/RPC changes.
