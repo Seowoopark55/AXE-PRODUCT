@@ -35,3 +35,10 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - FUND page: refresh button removed
 - Sidebar no longer stretches with a large empty footer gap
 - FUND summary/ledger aligned to a tighter app shell rail
+
+
+## 3.17.5 · GLOBAL APP SHELL HARMONIZATION R1
+- Restored shell max constraint below 1440px so header account area stays inside the app frame
+- FUND summary reduced to 3 metrics (removed pending review card)
+- Members / Assets / Accounts / Settings page shells are left-anchored to the same compact content rail
+- Compact boards, settings boards, review strips and tabs no longer auto-center inside the page shell

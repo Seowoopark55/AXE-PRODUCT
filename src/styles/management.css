@@ -3,7 +3,7 @@
    Accounts. One compact board rhythm, one lane contract per row, no tables,
    no historical override stacks. */
 
-.ops-mgmt-page{width:100%;margin:0}
+.ops-mgmt-page{width:min(860px,100%);margin:0 auto 0 0}
 .ops-mgmt-page .page-header{min-height:78px;margin-bottom:16px}
 .ops-mgmt-page .page-header h1{margin-top:5px;font-size:34px}
 .ops-mgmt-page .page-header p{margin-top:9px;font-size:13px}
@@ -16,7 +16,7 @@
 .ops-mgmt-summary .is-positive{color:var(--green)}.ops-mgmt-summary .is-warning{color:var(--amber)}.ops-mgmt-summary .is-negative{color:var(--red)}
 
 /* Every operational workspace uses the same compact width as Company Settings. */
-.ops-mgmt-workspace{width:min(680px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-workspace{width:min(680px,100%);margin-left:0;margin-right:auto}
 .ops-mgmt-section-head{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding:0 1px}
 .ops-mgmt-section-head>div{display:grid;gap:2px;min-width:0}.ops-mgmt-section-head strong{color:var(--ops-title);font-size:12.8px}.ops-mgmt-section-head>div>span{overflow:hidden;color:#74808b;font-size:9.2px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
 .ops-mgmt-section-head--solo{justify-content:flex-start}
@@ -27,13 +27,13 @@
 .ops-action-secondary{border:1px solid rgba(255,255,255,.09);background:#111820;color:#aeb7c1}.ops-action-secondary:hover{border-color:rgba(228,178,75,.24);color:#e4c98c;background:#151b22}
 
 /* Asset tabs reuse the same compact nav rhythm as settings. */
-.ops-mgmt-tabs-row{width:min(680px,100%);min-height:42px;display:flex;align-items:center;gap:8px;margin:0 auto 8px}
+.ops-mgmt-tabs-row{width:min(680px,100%);min-height:42px;display:flex;align-items:center;gap:8px;margin:0 0 8px}
 .ops-dense-tabs{min-width:0;flex:1;display:flex;align-items:stretch;gap:5px;padding:4px;border:1px solid var(--line);border-radius:10px;background:#0c1117}
 .ops-dense-tabs button{min-height:34px;display:flex;align-items:center;justify-content:center;padding:0 11px;border:1px solid transparent;border-radius:7px;background:transparent;color:#8f9aa4;font-size:10.4px;font-weight:800;cursor:pointer;transition:.14s ease}
 .ops-dense-tabs button:hover{border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.018);color:#cbd2d8}.ops-dense-tabs button.is-active{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.075);color:#efd59e;box-shadow:inset 2px 0 rgba(228,178,75,.55)}
 
 /* Board shell: same border, radius, background and row density as settings. */
-.ops-mgmt-board{width:min(680px,100%);margin:0 auto;overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#0c1117}
+.ops-mgmt-board{width:min(680px,100%);margin:0 0 0 0;overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#0c1117}
 .ops-mgmt-board-head{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-bottom:1px solid var(--line-soft);background:#0f151b}
 .ops-mgmt-board-head>div{display:grid;gap:2px}.ops-mgmt-board-head h2{margin:0;color:var(--ops-title);font-size:13.5px}.ops-mgmt-board-head p{margin:0;color:var(--ops-sub);font-size:9.4px}.ops-mgmt-board-head>span{color:#817765;font-size:9px}
 
@@ -65,7 +65,7 @@
 .ops-mgmt-empty{padding:24px 12px;color:#747d86;font-size:9.8px;text-align:center}
 
 /* Account review is intentionally folded into the same 680px contract. */
-.ops-account-review{width:min(680px,100%);margin:0 auto 8px;overflow:hidden;border:1px solid rgba(228,178,75,.16);border-radius:10px;background:#0c1117}
+.ops-account-review{width:min(680px,100%);margin:0 0 8px 0;overflow:hidden;border:1px solid rgba(228,178,75,.16);border-radius:10px;background:#0c1117}
 .ops-account-review-head{min-height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-bottom:1px solid rgba(228,178,75,.10);background:rgba(228,178,75,.022)}.ops-account-review-head>div{display:flex;align-items:center;gap:6px}.ops-account-review-head strong{color:#ead39b;font-size:10.5px}.ops-account-review-head span{color:var(--ops-sub);font-size:8.8px}.ops-account-review-head em{min-width:18px;height:18px;display:grid;place-items:center;border-radius:999px;background:rgba(228,178,75,.10);color:#e7bb66;font-size:8px;font-style:normal;font-weight:800}
 .ops-account-review article{min-height:48px;display:grid;grid-template-columns:minmax(0,1fr) 86px 112px;align-items:center;gap:8px;padding:5px 9px;border-bottom:1px solid rgba(255,255,255,.045)}.ops-account-review article:last-child{border-bottom:0}.ops-account-review article>div:first-child{min-width:0;display:grid;gap:2px}.ops-account-review article strong{overflow:hidden;color:var(--ops-title);font-size:10.8px;text-overflow:ellipsis;white-space:nowrap}.ops-account-review article span{overflow:hidden;color:var(--ops-sub);font-size:8.8px;text-overflow:ellipsis;white-space:nowrap}.ops-account-review-actions{display:flex;justify-content:flex-end;gap:4px}.ops-account-review-actions button{height:26px;padding:0 7px;border:1px solid rgba(255,255,255,.08);border-radius:6px;background:transparent;color:#9aa3ab;font-size:8.8px;font-weight:700}.ops-account-review-actions .is-primary{border-color:rgba(228,178,75,.28);background:rgba(228,178,75,.08);color:#efca78}
 

@@ -404,3 +404,23 @@
   .main--fund .axe-fund-tabs{margin-bottom:10px}
   .main--fund .axe-fund-ledger{width:636px;max-width:100%;margin-left:0;margin-right:auto}
 }
+
+
+/* AXE PRODUCT 3.17.5 · global shell harmonization
+   Applies the compact app-frame principle across PRODUCT, keeps the user box
+   inside the same shell, and normalizes FUND summary balance. */
+@media(min-width:761px){
+  .main--fund .axe-fund,
+  .main--members .ops-mgmt-page,
+  .main--assets .ops-mgmt-page,
+  .main--accounts .ops-mgmt-page,
+  .main--settings .ops-settings-page{
+    width:min(860px,100%);
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  .main--fund .axe-fund-summary{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
