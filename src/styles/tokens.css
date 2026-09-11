@@ -38,7 +38,7 @@
   --shadow:0 22px 60px rgba(0,0,0,.22);
 
   /* 3.5 layout contract: narrower operations console with wider outer margins. */
-  --shell-max:1120px;
+  --shell-max:1020px;
   --shell-gutter:48px;
   --sidebar-width:220px;
   --shell-gap:18px;

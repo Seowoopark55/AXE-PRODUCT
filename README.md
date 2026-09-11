@@ -42,3 +42,10 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - FUND summary reduced to 3 metrics (removed pending review card)
 - Members / Assets / Accounts / Settings page shells are left-anchored to the same compact content rail
 - Compact boards, settings boards, review strips and tabs no longer auto-center inside the page shell
+
+
+## 3.17.6 · CONTENT-FIT PROPAGATION R1
+- Removed the company banner from all main pages so each management page starts tighter under the global header
+- Reduced shell max to 1020px so the top-right account box stays further inside the app frame
+- FUND summary/tabs/ledger now share the same 636px rail
+- Members / Assets / Accounts / Settings now use page-specific content-fit rails for both the top summary and the working board

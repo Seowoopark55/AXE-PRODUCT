@@ -136,7 +136,7 @@ function renderAuthed(state) {
         </nav>
         <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div></footer>
       </aside>
-      <main class="main main--${esc(state.page||'fund')}">${state.page==='fund'?'':renderCompanyBanner(state)}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
+      <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
   </div>`;

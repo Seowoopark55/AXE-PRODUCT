@@ -35,7 +35,7 @@
 .icon-button:hover{border-color:#36414d;color:#d5dbe1}
 
 .workspace-shell{
-  margin-top:14px;
+  margin-top:10px;
   display:grid;
   grid-template-columns:var(--sidebar-width) minmax(0,1fr);
   gap:var(--shell-gap);
@@ -90,7 +90,7 @@
 .mini-icon svg{width:15px}
 
 /* MAIN ------------------------------------------------------------------ */
-.main{min-width:0;padding:0 0 80px}
+.main{min-width:0;padding:0 0 72px}
 .page-header{min-height:78px;display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:18px}
 .page-header h1{margin:5px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.035em}
 .page-header p{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.5}

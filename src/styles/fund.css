@@ -424,3 +424,25 @@
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
+
+
+/* AXE PRODUCT 3.17.6 · page-wide content-fit propagation
+   The FUND compact treatment becomes the baseline for every top rail:
+   no banner, tighter shell, and summary/tabs aligned to the same lane width. */
+@media(min-width:761px){
+  .main--fund .axe-fund,
+  .main--fund .axe-fund-summary,
+  .main--fund .axe-fund-tabs,
+  .main--fund .axe-fund-ledger{
+    width:636px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  .main--fund .axe-fund-header,
+  .main--fund .axe-fund-summary,
+  .main--fund .axe-fund-tabs{
+    margin-bottom:10px;
+  }
+}
