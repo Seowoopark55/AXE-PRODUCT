@@ -352,7 +352,7 @@ root.addEventListener('click', async event => {
     }
     state.settingsTab=nextTab;sessionStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
   }
-  if(event.target.matches('[data-modal-backdrop]')){ if(state.modal?.type==='feedback')return; closeModal(); return; }
+  if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
@@ -442,7 +442,6 @@ root.addEventListener('submit', async event => {
       if(!membershipId)throw new Error('현재 회사 멤버 정보를 확인하지 못했습니다.');
       state.cookingDiscordConfig=await saveCookingDiscordGuide(state.companyId,{
         scheduleText:String(data.get('schedule_text')||''),
-        setGuide:String(data.get('set_guide')||''),
         extraGuide:String(data.get('extra_guide')||''),
       },membershipId);
       setNotice('Discord 요리 주문 안내를 저장했습니다.');return;

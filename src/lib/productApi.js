@@ -168,14 +168,12 @@ export async function getCookingDiscordConfig(companyId) {
 export async function saveCookingDiscordGuide(companyId, payload, membershipId) {
   assertClient();
   const scheduleText = String(payload?.scheduleText || '').trim().slice(0, 200);
-  const setGuide = String(payload?.setGuide || '').trim().slice(0, 500);
   const extraGuide = String(payload?.extraGuide || '').trim().slice(0, 1000);
   const result = await supabase
     .from('cooking_discord_config')
     .update({
-      schedule_text: scheduleText || null,
-      set_guide: setGuide || null,
-      extra_guide: extraGuide || null,
+      schedule_text: scheduleText,
+      extra_guide: extraGuide,
       updated_by_membership_id: membershipId || null,
     })
     .eq('company_id', companyId)

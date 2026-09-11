@@ -37,7 +37,7 @@ expect('No raw member account browser write', !/\.from\(\s*['"]asset_member_acco
 expect('Accepted sidebar group label', render.includes('회사 운영'));
 for (const label of ['공금 관리','멤버 관리','자산 관리','계좌 관리','회사 설정','피드백 · 제보']) expect(`Sidebar/page label: ${label}`, render.includes(label));
 expect('Boxed AXE header mark removed', !render.includes('brand-mark'));
-expect('Feedback backdrop does not close modal', main.includes("if(event.target.matches('[data-modal-backdrop]')){ if(state.modal?.type==='feedback')return; closeModal(); return; }"));
+expect('Feedback backdrop does not close modal', main.includes("['feedback','cooking-menu'].includes(state.modal?.type)"));
 expect('Feedback draft close protection', main.includes('작성 중인 피드백 내용이 사라질 수 있습니다.'));
 expect('Mandatory ledger cancellation reason', main.includes('취소 사유를 입력해 주세요.') && api.includes('normalizedReason'));
 expect('Fund monthly selector', render.includes('data-fund-weekly-month'));
@@ -75,6 +75,8 @@ expect('Cooking menu avoids hard delete', !api.includes(".from('cooking_order_ty
 expect('Cooking Discord guide direct RLS config API', api.includes("from('cooking_discord_config')") && api.includes('getCookingDiscordConfig') && api.includes('saveCookingDiscordGuide'));
 expect('Cooking Discord guide state wiring', main.includes('cookingDiscordConfig') && main.includes("type==='cooking-guide'"));
 expect('Cooking compact settings UX', render.includes('ops-cooking-guide-card') && render.includes('ops-cooking-menu-tools') && render.includes('안내 저장'));
+expect('Cooking guide SET baseline field removed', !render.includes('name="set_guide"') && !main.includes("data.get('set_guide')"));
+expect('Cooking menu modal ignores backdrop click', main.includes("['feedback','cooking-menu'].includes(state.modal?.type)"));
 
 if(failures.length){
   console.error('AXE PRODUCT INTEGRATED UI CHECK: FAIL');

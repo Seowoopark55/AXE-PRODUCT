@@ -38,3 +38,5 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .runtime-power{justify-self:end;width:66px;height:30px;padding:0 7px;gap:5px}
 .runtime-power svg{width:13px;height:13px}
 .ops-settings-module--channels-2 .runtime-power{justify-self:end}
+
+.ops-cooking-guide-grid--simple{grid-template-columns:minmax(220px,.8fr) minmax(320px,1.2fr)}.ops-cooking-guide-grid--simple .is-wide{grid-column:auto}@media(max-width:900px){.ops-cooking-guide-grid--simple{grid-template-columns:1fr}.ops-cooking-guide-grid--simple .is-wide{grid-column:1}}
