@@ -116,3 +116,7 @@
   .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto}.ops-member-role,.ops-asset-holder,.ops-account-number{grid-column:1}.ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}.ops-mgmt-action{grid-column:2;grid-row:1 / span 3}
   .ops-return-row{grid-template-columns:1fr}.ops-account-review article{grid-template-columns:1fr auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
 }
+
+
+.ops-mgmt-action.is-assign{border-color:rgba(228,178,75,.27);background:rgba(228,178,75,.055);color:#e5bd67}
+.ops-mgmt-action.is-assign:hover{background:rgba(228,178,75,.09);color:#f2cf82}

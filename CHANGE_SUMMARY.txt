@@ -1,46 +1,14 @@
-AXE PRODUCT WEB STAGING · FINAL CLEAN FUND REGRESSION FIX
-Date: 2026-09-11
+AXE PRODUCT WEB STAGING · Operations UX Redesign R1
 
-CONFIRMED FINDINGS
-- Discord FUND approval wrote the correct DB records:
-  request=approved, ledger week=2, entry_type=payment, status=active, category=주간공금, ledger_type=공금납부.
-- `fund_admin_get_period_status()` recognizes exactly that ledger shape as 완료.
-- `fund_admin_get_treasury_snapshot()` returns ledger `entry_type`, `category`, `ledger_type`, `request_id` without relabeling them.
-- Uploaded WEB source had no literal `추가입금` and renders `r.category`; therefore the staging screen showing `추가입금` was inconsistent with the uploaded current source + verified DB response.
+- Canonical company name: companies.name everywhere; brand_name is no longer a separate customer-facing name.
+- Company banner hero area + Company Settings banner upload/remove.
+- Current account/role/logout moved to top-right header.
+- PRODUCT STAGING + refresh moved to sidebar footer with Discord status.
+- Member list hides Discord numeric IDs and shows an explicit actual employment date only.
+- Member detail can edit actual employment date independently from AXE PRODUCT registration timestamps.
+- Fund income/expense modal replaces selectable related-person field with automatic readonly registrant.
+- Asset list/modal hides legacy/internal IDs; status is a dropdown; unassigned assets surface a direct Assign action.
+- Existing legacy_no is preserved internally during edits.
+- Existing DB auto-unassign-on-left flow is preserved; WEB exposes smooth reassignment.
 
-FIX 1 — WEEKLY STATUS REFRESH
-- `납부 현황` tab now reloads live weekly status every time it is opened.
-- FUND `새로고침` reloads weekly status when the weekly tab is active.
-
-FIX 2 — APPROVED WEEKLY PAYMENT DISPLAY
-- `entry_type=payment` is normalized in the renderer to title `주간공금` and sublabel `공금납부`.
-- This is a WEB-only display hardening; DB rows are not rewritten.
-
-CLEANUP
-Removed stale/generated packaging artifacts and duplicate mixed-version documentation from older 3.14.x / 3.15.x snapshots.
-Runtime source and active QA scripts were retained.
-
-NOT CHANGED
-- No SQL / DB / RLS / policy / trigger change.
-- No STAGING BOT change.
-- No LIVE change.
-
-- FUND weekly status now calls fund_admin_get_period_status only for Saturdays that actually exist in the selected month, preventing expected HTTP 400s for nonexistent 5th weeks while keeping the 5-column UI.
-
-COOKING CUSTOM MENU
-- Company Settings now includes a company-scoped 요리 메뉴 manager.
-- Uses existing axe_product.cooking_order_types with authenticated RLS CRUD; no DB schema/RPC change required.
-- Menu add/edit/enable/disable supported. Hard delete is intentionally not exposed so historical orders keep stable type keys.
-
-R2 COOKING UX
-- Company-editable Discord cooking guide: schedule / SET guide / extra guide.
-- Menu add action moved into menu section header.
-- Cooking settings compacted to match other settings boards.
-
-
-R4 COOKING SETTINGS COMPACT FIX
-- cooking_order_types.detail is always saved as non-null text
-- cooking settings constrained to same 680px operational width as feature settings
-- 3 settings tabs stay in one row when cooking is available
-- guide inputs share one compact row on desktop
-- menu rows/header/footer tightened; redundant hint row removed
+STAGING WEB ONLY. Deploy through GitHub STAGING -> commit/push -> Vercel Ready.

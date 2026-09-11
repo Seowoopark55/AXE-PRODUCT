@@ -63,7 +63,7 @@ export async function getMemberships(companyId) {
   assertClient();
   const result = await supabase
     .from('company_memberships')
-    .select('id,company_id,user_id,role,status,display_name,discord_user_id,joined_at,created_at,updated_at')
+    .select('id,company_id,user_id,role,status,display_name,discord_user_id,employment_started_on,joined_at,created_at,updated_at')
     .eq('company_id', companyId)
     .order('created_at', { ascending: true });
   return unwrap(result, '멤버 목록을 불러오지 못했습니다.') || [];
@@ -78,6 +78,68 @@ export async function updateMembershipRole(membershipId, role) {
     .select('id,role')
     .single();
   return unwrap(result, '멤버 역할을 변경하지 못했습니다.');
+}
+
+
+export async function updateMembershipEmploymentDate(membershipId, employmentStartedOn) {
+  assertClient();
+  const value = String(employmentStartedOn || '').trim() || null;
+  const result = await supabase
+    .from('company_memberships')
+    .update({ employment_started_on: value, updated_at: new Date().toISOString() })
+    .eq('id', membershipId)
+    .select('id,employment_started_on')
+    .single();
+  return unwrap(result, '입사일을 저장하지 못했습니다.');
+}
+
+export async function updateCompanyName(companyId, name) {
+  assertClient();
+  const normalized = String(name || '').trim();
+  if (!normalized) throw new Error('회사 이름을 입력해 주세요.');
+  const result = await supabase.rpc('web_company_admin_update_name', {
+    p_company_id: companyId,
+    p_name: normalized,
+  });
+  return unwrap(result, '회사 이름을 변경하지 못했습니다.');
+}
+
+const COMPANY_BRANDING_BUCKET = 'axe-product-company-branding';
+
+export function getCompanyBannerPublicUrl(companyId, cacheKey = '') {
+  assertClient();
+  if (!companyId) return '';
+  const path = `${companyId}/banner`;
+  const result = supabase.storage.from(COMPANY_BRANDING_BUCKET).getPublicUrl(path);
+  const url = result?.data?.publicUrl || '';
+  if (!url) return '';
+  return cacheKey ? `${url}?v=${encodeURIComponent(String(cacheKey))}` : url;
+}
+
+export async function uploadCompanyBanner(companyId, file) {
+  assertClient();
+  if (!companyId) throw new Error('회사를 확인할 수 없습니다.');
+  if (!(file instanceof File) || !file.size) throw new Error('배너 이미지를 선택해 주세요.');
+  const allowed = new Set(['image/jpeg','image/png','image/webp']);
+  if (!allowed.has(file.type)) throw new Error('배너는 JPG, PNG, WEBP 이미지만 사용할 수 있습니다.');
+  if (file.size > 5 * 1024 * 1024) throw new Error('배너 이미지는 5MB 이하여야 합니다.');
+  const path = `${companyId}/banner`;
+  const result = await supabase.storage.from(COMPANY_BRANDING_BUCKET).upload(path, file, {
+    upsert: true,
+    contentType: file.type,
+    cacheControl: '3600',
+  });
+  if (result.error) throw new Error(result.error.message || '배너 이미지를 업로드하지 못했습니다.');
+  return { path, updatedAt: new Date().toISOString() };
+}
+
+export async function removeCompanyBanner(companyId) {
+  assertClient();
+  if (!companyId) throw new Error('회사를 확인할 수 없습니다.');
+  const path = `${companyId}/banner`;
+  const result = await supabase.storage.from(COMPANY_BRANDING_BUCKET).remove([path]);
+  if (result.error) throw new Error(result.error.message || '배너 이미지를 삭제하지 못했습니다.');
+  return true;
 }
 
 export async function getModuleCatalog() {

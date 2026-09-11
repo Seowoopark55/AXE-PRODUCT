@@ -52,3 +52,6 @@
   .modal-grid{grid-template-columns:1fr}
   .save-bar{align-items:stretch;flex-direction:column}.save-bar .button{width:100%}
 }
+
+
+@media(max-width:760px){.global-account>div{display:none}.company-hero{height:108px;margin:8px 0 14px;border-radius:10px}.company-hero__copy{left:14px;bottom:13px}.company-hero__copy strong{font-size:17px}}

@@ -92,3 +92,7 @@
 .ops-cooking-settings .ops-settings-module-foot{min-height:30px;padding:5px 9px}
 @media (max-width:900px){.ops-cooking-guide-grid{grid-template-columns:1fr}.ops-cooking-guide-head{align-items:flex-start}.ops-cooking-guide-head>div{display:grid;gap:2px}.ops-cooking-guide-head span{white-space:normal}.ops-cooking-menu-row{grid-template-columns:minmax(0,1fr) 72px 66px}.ops-cooking-menu-order{display:none}.ops-cooking-menu-row .runtime-power,.ops-cooking-menu-row .ops-mgmt-action{grid-row:2}.ops-cooking-menu-tools{gap:5px}}
 @media(max-width:760px){.ops-settings-tabs.has-cooking{grid-template-columns:repeat(3,minmax(0,1fr))}.ops-cooking-settings{width:100%}}
+
+
+.ops-settings-row--branding .ops-settings-control{width:370px}.ops-branding-control{display:flex;align-items:center;gap:7px;width:100%}.ops-branding-control input[type=file]{width:270px;height:34px;padding:5px 7px;font-size:9px}.ops-branding-control button{height:32px;padding:0 9px;border:1px solid rgba(255,255,255,.1);border-radius:7px;background:#0c1116;color:#9ea5ac;font-size:9px;font-weight:800;white-space:nowrap}.ops-branding-control button:hover{border-color:rgba(228,178,75,.24);color:#e0c486}
+@media(max-width:700px){.ops-settings-row--branding .ops-settings-control,.ops-branding-control{width:100%}.ops-branding-control{align-items:stretch;flex-direction:column}.ops-branding-control input[type=file]{width:100%}}
