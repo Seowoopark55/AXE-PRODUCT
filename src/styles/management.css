@@ -160,3 +160,176 @@
     margin-right:auto;
   }
 }
+
+
+/* AXE PRODUCT 3.17.7 · FUND visual standard for operational pages
+   Company Settings is deliberately excluded. Members / Assets / Accounts now
+   share FUND's 636px frame, header rhythm, summary density and left anchor. */
+@media(min-width:761px){
+  .main--members .ops-mgmt-page,
+  .main--assets .ops-mgmt-page,
+  .main--accounts .ops-mgmt-page,
+  .main--members .ops-mgmt-summary,
+  .main--assets .ops-mgmt-summary,
+  .main--accounts .ops-mgmt-summary,
+  .main--members .ops-mgmt-workspace,
+  .main--assets .ops-mgmt-tabs-row,
+  .main--accounts .ops-mgmt-workspace,
+  .main--members .ops-mgmt-board,
+  .main--assets .ops-mgmt-board,
+  .main--accounts .ops-mgmt-board,
+  .main--accounts .ops-account-review{
+    width:636px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  /* Same title/description rhythm as FUND. */
+  .main--members .page-header,
+  .main--assets .page-header,
+  .main--accounts .page-header{
+    min-height:0;
+    margin-bottom:12px;
+  }
+  .main--members .page-header .page-eyebrow,
+  .main--assets .page-header .page-eyebrow,
+  .main--accounts .page-header .page-eyebrow{
+    display:block;
+    color:#b58d3f;
+    font-size:8px;
+    font-weight:950;
+    letter-spacing:.15em;
+  }
+  .main--members .page-header h1,
+  .main--assets .page-header h1,
+  .main--accounts .page-header h1{
+    margin:6px 0 0;
+    font-size:32px;
+    line-height:1.05;
+    letter-spacing:-.035em;
+  }
+  .main--members .page-header p,
+  .main--assets .page-header p,
+  .main--accounts .page-header p{
+    margin:7px 0 0;
+    color:var(--muted);
+    font-size:12.5px;
+    line-height:1.5;
+  }
+
+  /* Same summary-card scale as FUND; data count is page-specific. */
+  .main--members .ops-mgmt-summary,
+  .main--assets .ops-mgmt-summary,
+  .main--accounts .ops-mgmt-summary{
+    margin-bottom:10px;
+    border-radius:12px;
+  }
+  .main--members .ops-mgmt-summary article,
+  .main--assets .ops-mgmt-summary article,
+  .main--accounts .ops-mgmt-summary article{
+    gap:4px;
+    padding:12px 14px;
+  }
+  .main--members .ops-mgmt-summary span,
+  .main--assets .ops-mgmt-summary span,
+  .main--accounts .ops-mgmt-summary span{font-size:8.5px}
+  .main--members .ops-mgmt-summary strong,
+  .main--assets .ops-mgmt-summary strong,
+  .main--accounts .ops-mgmt-summary strong{font-size:17px}
+  .main--members .ops-mgmt-summary small,
+  .main--assets .ops-mgmt-summary small,
+  .main--accounts .ops-mgmt-summary small{font-size:7.8px}
+
+  /* FUND ledger-head rhythm for section headings/actions. */
+  .main--members .ops-mgmt-section-head,
+  .main--accounts .ops-mgmt-section-head{
+    width:636px;
+    max-width:100%;
+    min-height:40px;
+    margin:0 0 7px 0;
+    padding:0;
+  }
+  .main--members .ops-mgmt-section-head strong,
+  .main--accounts .ops-mgmt-section-head strong{font-size:14.2px}
+  .main--members .ops-mgmt-section-head>div>span,
+  .main--accounts .ops-mgmt-section-head>div>span{font-size:9.4px}
+
+  /* Assets uses FUND's underline navigation grammar instead of a floating pill. */
+  .main--assets .ops-mgmt-tabs-row{
+    min-height:46px;
+    align-items:center;
+    margin:0 0 10px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .main--assets .ops-dense-tabs{
+    align-self:stretch;
+    display:flex;
+    gap:6px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+  }
+  .main--assets .ops-dense-tabs button{
+    position:relative;
+    min-height:46px;
+    padding:0 14px;
+    border:1px solid transparent;
+    border-radius:10px 10px 0 0;
+    background:transparent;
+    color:#95a0ab;
+    font-size:11.8px;
+    font-weight:850;
+    box-shadow:none;
+  }
+  .main--assets .ops-dense-tabs button:hover{
+    color:#d4dbe1;
+    background:rgba(255,255,255,.015);
+  }
+  .main--assets .ops-dense-tabs button.is-active{
+    color:#efd59e;
+    background:rgba(228,178,75,.05);
+    border-color:rgba(228,178,75,.16);
+    box-shadow:none;
+  }
+  .main--assets .ops-dense-tabs button.is-active:after{
+    content:"";
+    position:absolute;
+    left:10px;
+    right:10px;
+    bottom:-1px;
+    height:2px;
+    background:var(--gold);
+  }
+
+  /* Fill the shared 636px board instead of leaving a narrow cluster inside it. */
+  .main--members .ops-lane-head--member,
+  .main--members .ops-lane-row--member{
+    grid-template-columns:240px 90px 105px 85px 70px;
+    gap:7px;
+    padding-left:9px;
+    padding-right:9px;
+  }
+  .main--assets .ops-lane-head--asset,
+  .main--assets .ops-lane-row--asset{
+    grid-template-columns:180px 190px 80px 70px 70px;
+    gap:7px;
+    padding-left:9px;
+    padding-right:9px;
+  }
+  .main--assets .ops-lane-head--return,
+  .main--assets .ops-lane-row--return{
+    grid-template-columns:250px 200px 152px;
+    gap:8px;
+    padding-left:9px;
+    padding-right:9px;
+  }
+  .main--accounts .ops-lane-head--account,
+  .main--accounts .ops-lane-row--account{
+    grid-template-columns:180px 250px 90px 77px;
+    gap:7px;
+    padding-left:9px;
+    padding-right:9px;
+  }
+}

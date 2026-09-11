@@ -413,8 +413,7 @@
   .main--fund .axe-fund,
   .main--members .ops-mgmt-page,
   .main--assets .ops-mgmt-page,
-  .main--accounts .ops-mgmt-page,
-  .main--settings .ops-settings-page{
+  .main--accounts .ops-mgmt-page{
     width:min(860px,100%);
     margin-left:0;
     margin-right:auto;

@@ -49,3 +49,12 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - Reduced shell max to 1020px so the top-right account box stays further inside the app frame
 - FUND summary/tabs/ledger now share the same 636px rail
 - Members / Assets / Accounts / Settings now use page-specific content-fit rails for both the top summary and the working board
+
+
+## 3.17.7 · FUND VISUAL STANDARD PROPAGATION R1
+- Members / Assets / Accounts now inherit FUND's 636px operational frame
+- Header title/description rhythm and summary-card density match FUND
+- Assets navigation adopts the same underline-tab grammar as FUND
+- Top-right user identity is aligned inside the active content rail instead of the outer shell edge
+- Company Settings is explicitly excluded: its 3.17.3 gold layout is restored and its company banner remains available there
+- LIVE AXE / PRODUCT BOT / DB are untouched

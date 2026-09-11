@@ -113,7 +113,7 @@ function renderAuthed(state) {
   const company = currentCompany(state);
   const membership = currentMembership(state);
   const connected = state.discordConnection?.status === 'connected';
-  return `<div class="runtime-app">
+  return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
       <div class="product-brand"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
       <div class="global-account"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
@@ -136,7 +136,7 @@ function renderAuthed(state) {
         </nav>
         <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div></footer>
       </aside>
-      <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
+      <main class="main main--${esc(state.page||'fund')}">${state.page==='settings'?renderCompanyBanner(state):''}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
   </div>`;

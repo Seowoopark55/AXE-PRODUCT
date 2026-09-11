@@ -1,27 +1,11 @@
-AXE PRODUCT WEB STAGING 3.17.3 · FUND LEFT-ANCHOR BALANCE R1
+AXE PRODUCT WEB 3.17.7 - FUND VISUAL STANDARD PROPAGATION R1
 
-Scope: WEB STAGING only. No DB/BOT/LIVE changes.
+Scope: PRODUCT WEB STAGING only.
 
-Verified issues from the 3.17.2 staging screenshot:
-- The 636px ledger was visually floating in the center of a much wider FUND workspace.
-- Full-width company banner / summary / tabs and a centered small ledger produced an unbalanced hierarchy.
-- The approved row duplicated state with an unnecessary `승인` badge.
-- The amount header/value axis still felt detached from the other columns.
-- The management lane showed a dash when a row was not editable, making the lane look empty rather than operational.
-
-Implementation:
-1. Added a FUND-only 900px left-anchored visual rail.
-2. FUND company banner, header, summary, tabs, and views now share the same left origin.
-3. Kept the ledger at 636px, but left-anchored it inside the FUND rail.
-4. Rebuilt the desktop ledger tracks as:
-   70px / 92px / flexible detail / 96px amount / 58px evidence / 56px management.
-5. Centered the amount header and amount value on the same axis.
-6. Removed approval/manual source badges from ledger rows.
-7. The management lane always shows `수정`.
-   - `can_edit=true`: active edit action.
-   - `can_edit=false`: visible disabled edit action with a DB-boundary tooltip.
-
-Safety:
-- No attempt is made to override DB `can_edit` for approval-linked entries.
-- Company Settings is untouched.
-- LIVE AXE / PRODUCT BOT / DATABASE are untouched.
+- Standardized Members / Assets / Accounts on the FUND 636px frame.
+- Matched operational page header spacing/typography to FUND.
+- Matched operational summary density to FUND.
+- Reworked Assets tab row to FUND-style underline navigation.
+- Moved global account identity into the content rail.
+- Restored Company Settings visual gold baseline and banner; excluded from this propagation.
+- No LIVE AXE, BOT, schema, SQL, policy or trigger changes.

@@ -1,30 +1,34 @@
 import fs from 'node:fs';
 
-const management = fs.readFileSync(new URL('../src/styles/management.css', import.meta.url), 'utf8');
-const fund = fs.readFileSync(new URL('../src/styles/fund.css', import.meta.url), 'utf8');
-const render = fs.readFileSync(new URL('../src/ui/render.js', import.meta.url), 'utf8');
+const management=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
+const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
+const layout=fs.readFileSync(new URL('../src/styles/layout.css',import.meta.url),'utf8');
+const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
+const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
 
-const checks = [
-  ['members board is content-fit', management, /ops-mgmt-page--members \.ops-mgmt-board\{width:520px/],
-  ['members lanes use fixed useful widths', management, /grid-template-columns:172px 72px 88px 68px 56px/],
-  ['assets board is content-fit', management, /ops-mgmt-page--assets \.ops-mgmt-board\{width:570px/],
-  ['assets lanes use fixed useful widths', management, /grid-template-columns:158px 174px 74px 68px 56px/],
-  ['accounts board is content-fit', management, /ops-mgmt-page--accounts \.ops-mgmt-board,[\s\S]*width:540px/],
-  ['accounts lanes use fixed useful widths', management, /grid-template-columns:150px 184px 72px 56px/],
-  ['fund page uses left anchored visual rail', fund, /\.main--fund \.company-hero,[\s\S]*\.main--fund \.axe-fund\{[\s\S]*width:min\(900px,100%\);[\s\S]*margin-left:0;[\s\S]*margin-right:auto/],
-  ['fund ledger stays content-fit and left anchored', fund, /\.main--fund \.axe-fund-ledger\{[\s\S]*width:636px;[\s\S]*margin-left:0;[\s\S]*margin-right:auto/],
-  ['fund lanes fill ledger with flexible detail lane', fund, /grid-template-columns:70px 92px minmax\(0,1fr\) 96px 58px 56px/],
-  ['fund amount shares header center axis', fund, /\.main--fund \.axe-fund-ledger-columns>span,[\s\S]*\.main--fund \.axe-fund-ledger-money\{[\s\S]*text-align:center/],
-  ['fund approval badge is removed from ledger row', render, /axe-fund-ledger-entry"><div><strong>\$\{esc\(title\)\}<\/strong><\/div><small>/],
-  ['fund management always occupies edit control slot', render, /const editControl=r\.can_edit[\s\S]*data-action="edit-ledger"[\s\S]*disabled title="현재 DB에서 직접 수정이 제한된 연동 내역입니다\."/],
-  ['dense rows are 48px', management, /ops-mgmt-page--members \.ops-lane-row,[\s\S]*min-height:48px/],
-  ['mobile keeps full width fallback', management, /@media\(max-width:760px\)[\s\S]*\.ops-mgmt-workspace,\.ops-mgmt-board/],
+const checks=[
+  ['fund frame remains 636px', fund, /main--fund[\s\S]*?width:636px/],
+  ['members inherits 636px FUND frame', management, /main--members \.ops-mgmt-page[\s\S]*?width:636px/],
+  ['assets inherits 636px FUND frame', management, /main--assets \.ops-mgmt-page[\s\S]*?width:636px/],
+  ['accounts inherits 636px FUND frame', management, /main--accounts \.ops-mgmt-page[\s\S]*?width:636px/],
+  ['members lanes fill shared frame', management, /grid-template-columns:240px 90px 105px 85px 70px/],
+  ['assets lanes fill shared frame', management, /grid-template-columns:180px 190px 80px 70px 70px/],
+  ['accounts lanes fill shared frame', management, /grid-template-columns:180px 250px 90px 77px/],
+  ['assets tabs use FUND underline grammar', management, /main--assets \.ops-dense-tabs button\.is-active:after/],
+  ['operational headers use FUND 32px title rhythm', management, /main--members \.page-header h1[\s\S]*?font-size:32px/],
+  ['operational summaries use FUND 17px metric rhythm', management, /main--members \.ops-mgmt-summary strong[\s\S]*?font-size:17px/],
+  ['header identity is aligned inside content rail', layout, /\.global-account\{[\s\S]*?width:636px;[\s\S]*?justify-self:start;[\s\S]*?justify-content:flex-end/],
+  ['runtime app carries current page class', render, /runtime-app runtime-app--\$\{esc\(state\.page\|\|'fund'\)\}/],
+  ['company banner is restored only for settings', render, /state\.page==='settings'\?renderCompanyBanner\(state\):''/],
+  ['company settings gold page width remains untouched', settings, /\.ops-settings-page\{width:100%;margin:0\}/],
+  ['mobile keeps full width fallback', management, /@media\(max-width:760px\)[\s\S]*?\.ops-mgmt-workspace,\.ops-mgmt-board,\.ops-mgmt-tabs-row,\.ops-account-review\{width:100%\}/],
 ];
-let pass = 0;
-for (const [name, source, re] of checks) {
-  const ok = re.test(source);
-  console.log(`${ok ? 'PASS' : 'FAIL'} - ${name}`);
-  if (ok) pass++;
+
+let passed=0;
+for(const [name,source,re] of checks){
+  const ok=re.test(source);
+  console.log(`${ok?'PASS':'FAIL'} - ${name}`);
+  if(ok) passed++;
 }
-console.log(`Content-fit density: ${pass}/${checks.length} PASS`);
-if (pass !== checks.length) process.exit(1);
+console.log(`Content-fit density: ${passed}/${checks.length} PASS`);
+if(passed!==checks.length) process.exit(1);

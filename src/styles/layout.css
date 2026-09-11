@@ -107,3 +107,27 @@
 .company-hero__shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,7,10,.74),rgba(4,7,10,.24) 54%,rgba(4,7,10,.42))}
 .company-hero__copy{position:absolute;left:20px;bottom:17px;display:grid;gap:2px}.company-hero__copy span{font-size:8px;letter-spacing:.18em;color:#a88a50}.company-hero__copy strong{font-size:20px;color:#f0f1f2;letter-spacing:-.02em}
 .company-hero.is-fallback:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 25%,rgba(213,163,67,.09),transparent 35%)}
+
+
+/* AXE PRODUCT 3.17.7 · unified app header rail
+   Header identity is no longer pinned to the outer shell edge. It lives on
+   the same X-axis as the active page content, so the console reads as one app. */
+@media(min-width:761px){
+  .global-header__inner{
+    display:grid;
+    grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+    gap:var(--shell-gap);
+    align-items:center;
+    justify-content:initial;
+  }
+  .product-brand{grid-column:1}
+  .global-account{
+    grid-column:2;
+    width:636px;
+    max-width:100%;
+    margin-left:0;
+    justify-self:start;
+    justify-content:flex-end;
+  }
+  .runtime-app--settings .global-account{width:680px}
+}
