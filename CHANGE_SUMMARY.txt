@@ -1,7 +1,7 @@
-AXE PRODUCT WEB STAGING 3.16.3
+AXE PRODUCT WEB STAGING 3.16.4
 
-- Remove obsolete member External Invite button from member management.
-- Compact member/assets/accounts workspaces to remove low-density blank columns.
-- Compact Fund ledger width and fixed columns.
-- Align Discord display name and alias fields to the same vertical baseline.
-- Preserve Discord context-menu member onboarding as the primary registration flow.
+- Normalize member/assets/accounts/FUND row spacing with proportional grids and consistent gaps.
+- Increase status badges and row action controls so they visually balance primary text.
+- Remove the asset row updated-date label that crowded status/action controls.
+- Preserve existing account behavior while preparing a separate DB-backed admin direct-registration patch.
+- STAGING WEB only; no BOT/LIVE changes.
