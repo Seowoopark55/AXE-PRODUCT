@@ -58,3 +58,12 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - Top-right user identity is aligned inside the active content rail instead of the outer shell edge
 - Company Settings is explicitly excluded: its 3.17.3 gold layout is restored and its company banner remains available there
 - LIVE AXE / PRODUCT BOT / DB are untouched
+
+
+## 3.17.8 · APP SHELL LEFT-RAIL COMPLETION R1
+- Company Settings top company hero/banner is no longer rendered; settings begins directly under the global header.
+- Company Settings is left-anchored on a 680px content rail; its header/overview/navigation use the same compact vertical rhythm as FUND.
+- FUND `납부 현황 / 납부 검수 / 잔액 점검 / 공금 설정` subviews no longer auto-center; they share the same left origin as the FUND ledger.
+- Top-right identity remains inside the active content rail: 636px for operational pages and 680px for Company Settings.
+- Company banner data/upload behavior is preserved; this patch only removes the large page hero from the app shell.
+- LIVE AXE / PRODUCT BOT / DB are untouched.

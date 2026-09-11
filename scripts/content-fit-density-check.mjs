@@ -18,9 +18,12 @@ const checks=[
   ['operational headers use FUND 32px title rhythm', management, /main--members \.page-header h1[\s\S]*?font-size:32px/],
   ['operational summaries use FUND 17px metric rhythm', management, /main--members \.ops-mgmt-summary strong[\s\S]*?font-size:17px/],
   ['header identity is aligned inside content rail', layout, /\.global-account\{[\s\S]*?width:636px;[\s\S]*?justify-self:start;[\s\S]*?justify-content:flex-end/],
+  ['settings identity uses settings rail', layout, /runtime-app--settings \.global-account\{width:680px\}/],
   ['runtime app carries current page class', render, /runtime-app runtime-app--\$\{esc\(state\.page\|\|'fund'\)\}/],
-  ['company banner is restored only for settings', render, /state\.page==='settings'\?renderCompanyBanner\(state\):''/],
-  ['company settings gold page width remains untouched', settings, /\.ops-settings-page\{width:100%;margin:0\}/],
+  ['company hero is no longer rendered in main shell', render, /<main class="main main--\$\{esc\(state\.page\|\|'fund'\)\}">\$\{state\.loading/],
+  ['settings uses compact 680px left rail', settings, /main--settings \.ops-settings-page\{[\s\S]*?width:680px;[\s\S]*?margin-left:0/],
+  ['settings header uses FUND vertical rhythm', settings, /main--settings \.ops-settings-page \.page-header\{[\s\S]*?min-height:0;[\s\S]*?margin-bottom:10px/],
+  ['fund subviews are left anchored', fund, /main--fund \.axe-fund-subview,[\s\S]*?margin-left:0;[\s\S]*?margin-right:auto/],
   ['mobile keeps full width fallback', management, /@media\(max-width:760px\)[\s\S]*?\.ops-mgmt-workspace,\.ops-mgmt-board,\.ops-mgmt-tabs-row,\.ops-account-review\{width:100%\}/],
 ];
 

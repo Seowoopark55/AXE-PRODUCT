@@ -96,3 +96,58 @@
 
 .ops-settings-row--branding .ops-settings-control{width:370px}.ops-branding-control{display:flex;align-items:center;gap:7px;width:100%}.ops-branding-control input[type=file]{width:270px;height:34px;padding:5px 7px;font-size:9px}.ops-branding-control button{height:32px;padding:0 9px;border:1px solid rgba(255,255,255,.1);border-radius:7px;background:#0c1116;color:#9ea5ac;font-size:9px;font-weight:800;white-space:nowrap}.ops-branding-control button:hover{border-color:rgba(228,178,75,.24);color:#e0c486}
 @media(max-width:700px){.ops-settings-row--branding .ops-settings-control,.ops-branding-control{width:100%}.ops-branding-control{align-items:stretch;flex-direction:column}.ops-branding-control input[type=file]{width:100%}}
+
+
+/* AXE PRODUCT 3.17.8 · Company Settings app-shell integration
+   The settings page now begins directly under the global header and follows
+   the same left-anchored app composition as the operational pages. */
+@media(min-width:761px){
+  .main--settings .ops-settings-page{
+    width:680px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+  .main--settings .ops-settings-page .page-header{
+    min-height:0;
+    margin-bottom:10px;
+  }
+  .main--settings .ops-settings-page .page-header h1{
+    margin:6px 0 0;
+    font-size:32px;
+    line-height:1.05;
+    letter-spacing:-.035em;
+  }
+  .main--settings .ops-settings-page .page-header p{
+    margin:7px 0 0;
+    font-size:12.5px;
+    line-height:1.5;
+  }
+  .main--settings .ops-settings-overview,
+  .main--settings .ops-settings-nav-row,
+  .main--settings .ops-onboarding-progress,
+  .main--settings .ops-onboarding-strip,
+  .main--settings .ops-settings-modules,
+  .main--settings .ops-cooking-settings{
+    width:680px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+  .main--settings .ops-settings-basic{
+    width:630px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+  .main--settings .ops-settings-overview{
+    margin-bottom:10px;
+  }
+  .main--settings .ops-settings-overview article{
+    gap:4px;
+    padding:12px 14px;
+  }
+  .main--settings .ops-settings-overview span{font-size:8.5px}
+  .main--settings .ops-settings-overview strong{font-size:17px}
+  .main--settings .ops-settings-overview small{font-size:7.8px}
+}

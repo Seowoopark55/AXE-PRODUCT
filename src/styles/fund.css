@@ -445,3 +445,18 @@
     margin-bottom:10px;
   }
 }
+
+
+/* AXE PRODUCT 3.17.8 · FUND subview rail lock
+   Weekly/review/balance/settings keep their content-fit widths but share the
+   exact same left origin as the FUND header, summary, tabs and ledger. */
+@media(min-width:761px){
+  .main--fund .axe-fund-subview,
+  .main--fund .axe-fund-subview--weekly,
+  .main--fund .axe-fund-subview--review,
+  .main--fund .axe-fund-subview--balance,
+  .main--fund .axe-fund-subview--settings{
+    margin-left:0;
+    margin-right:auto;
+  }
+}
