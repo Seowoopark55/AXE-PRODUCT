@@ -1,0 +1,9 @@
+AXE PRODUCT WEB STAGING 3.17.3 VALIDATION
+
+npm run check: PASS
+- Integrated UI: 72/72 PASS
+- Dense operations: 12/12 PASS
+- Content-fit density: 14/14 PASS
+- Node syntax checks: PASS
+
+Vite production build was not executed in this container because local node_modules/vite is not present. Source/package validation passed.

@@ -1,6 +1,6 @@
 # AXE PRODUCT WEB STAGING
 
-Current STAGING web source for WEB 3.17.2 FUND COLUMN ALIGNMENT R1, based on the verified 3.17.1 content-fit source.
+Current STAGING web source for **WEB 3.17.3 FUND LEFT-ANCHOR BALANCE R1**, based on the verified 3.17.2 source.
 
 ## Runtime scope
 - WEB STAGING only.
@@ -10,34 +10,21 @@ Current STAGING web source for WEB 3.17.2 FUND COLUMN ALIGNMENT R1, based on the
 - No STAGING BOT patch is included.
 - LIVE AXE BOT is not touched.
 
+## 3.17.3 FUND left-anchor balance
+- FUND-only page rail is capped at 900px and anchored to the left edge of the main workspace.
+- The company banner on the FUND page follows the same 900px rail so banner / summary / tabs / ledger share one visual origin.
+- The ledger remains 636px content-fit, but is left anchored instead of floating in the center.
+- Ledger columns now consume the whole 636px board with a flexible detail lane.
+- `금액` header and amount values share the same centered column axis.
+- Approved/manual source badges are removed from ledger rows; an approved entry already being present in the ledger is enough state information.
+- `관리` always reserves a visible `수정` control. Rows reported by the current DB as `can_edit=true` remain fully editable; rows reported as non-editable show a disabled `수정` control rather than a meaningless dash.
 
-## 3.17.2 FUND column alignment
-- Keeps the verified 636px content-fit ledger width from 3.17.1.
-- Centers all six desktop ledger headers on their lane axes.
-- Centers member, detail, and amount row values under the same axes; detail badges stay grouped with the title.
-- Company Settings, DB, BOT, and LIVE AXE are untouched.
-
-## Included fixes
-1. FUND weekly payment status refresh
-   - Opening `납부 현황` always reloads `fund_admin_get_period_status`.
-   - The FUND `새로고침` button also reloads weekly status while that tab is active.
-   - This prevents an already-approved payment from remaining as a stale `미납` mark.
-
-2. FUND approved weekly-payment label hardening
-   - Rows with `entry_type = payment` are rendered as `주간공금` / `공금납부`.
-   - This matches the verified DB row and `fund_admin_get_treasury_snapshot`, which pass the ledger fields through unchanged.
-   - The uploaded source did not contain the literal `추가입금`; the staging screen that showed that label was therefore not consistent with this source + verified DB response. Deploying this consolidated source removes that mismatch and the renderer now defensively normalizes weekly payment rows.
+## Important DB boundary
+This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-linked rows that the current PRODUCT DB reports as non-editable are intentionally not forced editable from the browser. Enabling those rows requires verifying the actual STAGING DB function behavior first; no DB assumption is made in this package.
 
 ## Preserved behavior
-- Discord OAuth/connect flow.
-- Catalog-ready onboarding gate.
-- Stable role/channel native select behavior.
-- Inline SVG favicon.
-- Existing FUND / members / assets / accounts / settings RPC bindings.
-
-5. FUND weekly console cleanup
-   - Weekly status requests are limited to real Saturday-based fund periods for the selected month.
-   - Months with four Saturdays no longer request week 5, so the browser console stays clean.
-
-## Company cooking menu
-Company Settings includes a company-scoped cooking menu manager backed directly by `axe_product.cooking_order_types` and existing authenticated RLS. The UI intentionally uses enable/disable instead of hard delete so historical order type keys remain stable.
+- Company Settings visual layout and behavior are untouched.
+- Members / assets / returns / accounts content-fit rules are untouched.
+- Discord OAuth/connect flow is untouched.
+- FUND data RPC bindings are unchanged.
+- Mobile FUND fallback is unchanged.

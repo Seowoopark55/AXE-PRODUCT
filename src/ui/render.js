@@ -136,7 +136,7 @@ function renderAuthed(state) {
         </nav>
         <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div></footer>
       </aside>
-      <main class="main">${renderCompanyBanner(state)}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
+      <main class="main main--${esc(state.page||'fund')}">${renderCompanyBanner(state)}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
   </div>`;
@@ -199,11 +199,14 @@ function renderFundLedger(state) {
   return `<section class="axe-fund-ledger"><header class="axe-fund-ledger-head"><div><h2>공금내역</h2><p>필요한 정보만 빠르게 확인하고, 상세 작업은 행에서 바로 처리합니다.</p></div><div class="axe-fund-ledger-head-actions"><select class="axe-fund-history-select axe-fund-history-select--month" data-fund-ledger-month>${monthOptions(state.fundMonth,12)}</select><button class="axe-fund-primary axe-fund-primary--ledger" data-action="open-ledger">수입·지출 등록</button></div></header><section class="axe-fund-ledger-board"><div class="axe-fund-ledger-toolbar"><div class="axe-fund-ledger-filters"><select class="axe-fund-history-select" data-fund-filter="person"><option value="all">전체 이름</option>${people.map(v=>`<option ${q.person===v?'selected':''}>${esc(v)}</option>`).join('')}</select><select class="axe-fund-history-select" data-fund-filter="type"><option value="all">전체 구분</option><option value="approval" ${q.type==='approval'?'selected':''}>승인반영</option><option value="manual" ${q.type==='manual'?'selected':''}>직접기입</option><option value="income" ${q.type==='income'?'selected':''}>수입</option><option value="expense" ${q.type==='expense'?'selected':''}>지출</option></select><select class="axe-fund-history-select" data-fund-filter="account"><option value="all">전체 계좌</option>${accounts.map(v=>`<option ${q.account===v?'selected':''}>${esc(v)}</option>`).join('')}</select><button class="axe-fund-history-reset" data-action="reset-fund-filter">필터 초기화</button></div><span class="axe-fund-ledger-count">${rows.length}건</span></div><div class="axe-fund-ledger-columns"><span>날짜</span><span>이름</span><span>내역</span><span>금액</span><span>증빙</span><span>관리</span></div><div class="axe-fund-ledger-list">${body}</div></section></section>`;
 }
 function renderLedgerRow(r,state){
-  const amount=Number(r.amount||0); const source=r.request_id?'승인':'직접'; const isWeeklyPayment=r.entry_type==='payment'; const title=isWeeklyPayment?'주간공금':(r.category||'기타');
+  const amount=Number(r.amount||0); const isWeeklyPayment=r.entry_type==='payment'; const title=isWeeklyPayment?'주간공금':(r.category||'기타');
   const sub=[isWeeklyPayment?'공금납부':r.ledger_type,r.direction,r.memo].filter(Boolean).join(' · ');
   const current=(state.memberships||[]).find(m=>m.id===r.membership_id); const who=current?.display_name||r.member_display_name||'—';
   const key=dateKey(r.ledger_date); const [y,m,d]=key.split('-');
-  return `<article class="axe-fund-ledger-row"><div class="axe-fund-ledger-date"><strong>${m}.${d}</strong><span>${y}</span></div><div class="axe-fund-ledger-person"><strong>${esc(who)}</strong><span>${esc(r.account||'—')}</span></div><div class="axe-fund-ledger-entry"><div><strong>${esc(title)}</strong><span class="axe-fund-history-kind axe-fund-history-kind--${r.request_id?'approval':'manual'}">${source}</span></div><small>${esc(sub||'—')}</small></div><div class="axe-fund-ledger-money ${amount<0?'is-expense':'is-income'}">${signedMoney(amount)}</div><div class="axe-fund-ledger-action">${r.evidence_path?`<button class="axe-fund-history-action is-evidence" data-action="open-evidence" data-evidence-path="${esc(r.evidence_path)}">증빙</button>`:'<span>—</span>'}</div><div class="axe-fund-ledger-action">${r.can_edit?`<button class="axe-fund-history-action" data-action="edit-ledger" data-entry-id="${esc(r.id)}">수정</button>`:'<span>—</span>'}</div></article>`;
+  const editControl=r.can_edit
+    ? `<button class="axe-fund-history-action" data-action="edit-ledger" data-entry-id="${esc(r.id)}">수정</button>`
+    : `<button class="axe-fund-history-action is-disabled" type="button" disabled title="현재 DB에서 직접 수정이 제한된 연동 내역입니다.">수정</button>`;
+  return `<article class="axe-fund-ledger-row"><div class="axe-fund-ledger-date"><strong>${m}.${d}</strong><span>${y}</span></div><div class="axe-fund-ledger-person"><strong>${esc(who)}</strong><span>${esc(r.account||'—')}</span></div><div class="axe-fund-ledger-entry"><div><strong>${esc(title)}</strong></div><small>${esc(sub||'—')}</small></div><div class="axe-fund-ledger-money ${amount<0?'is-expense':'is-income'}">${signedMoney(amount)}</div><div class="axe-fund-ledger-action">${r.evidence_path?`<button class="axe-fund-history-action is-evidence" data-action="open-evidence" data-evidence-path="${esc(r.evidence_path)}">증빙</button>`:'<span>—</span>'}</div><div class="axe-fund-ledger-action">${editControl}</div></article>`;
 }
 
 function renderFundWeekly(state) {

@@ -1,9 +1,9 @@
-AXE PRODUCT WEB STAGING SAFETY
+AXE PRODUCT WEB STAGING 3.17.3 SAFETY CHECK
 
-- WEB-only source package.
-- No SQL migration.
-- No raw database credential or service-role key added.
-- Existing axe_product Supabase schema lock preserved.
-- No BOT runtime RPC introduced into browser code.
-- No STAGING BOT files included.
-- No LIVE AXE BOT files or commands included.
+PASS - WEB-only source package.
+PASS - LIVE AXE paths/processes are not referenced for deployment.
+PASS - No DATABASE migration or SQL mutation included.
+PASS - No STAGING BOT files included.
+PASS - Company Settings CSS/renderer not changed.
+PASS - PRODUCT DB `can_edit` is respected; browser does not force-edit restricted rows.
+PASS - FUND-only page class scopes banner rail changes to the FUND page.

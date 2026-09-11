@@ -337,3 +337,53 @@
   .axe-fund-ledger-row{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;min-height:0;padding:9px 10px}.axe-fund-ledger-date,.axe-fund-ledger-person,.axe-fund-ledger-entry,.axe-fund-ledger-money,.axe-fund-ledger-action{grid-column:1;text-align:left;justify-content:flex-start}.axe-fund-ledger-action:last-child{grid-column:2;grid-row:1 / span 5;align-self:center}.axe-fund-ledger-money{text-align:left}.axe-fund-ledger-date{text-align:left}.axe-fund-ledger-action:first-of-type{justify-content:flex-start}
 }
 .axe-fund-ledger-list{max-height:430px;overflow:auto}
+
+
+/* AXE PRODUCT 3.17.3 · FUND left-anchor balance
+   FUND-only visual rail. Keeps Company Settings and other pages untouched.
+   The main FUND canvas is intentionally left anchored; the ledger no longer
+   floats in the middle of a much wider operations workspace. */
+@media(min-width:761px){
+  .main--fund .company-hero,
+  .main--fund .axe-fund{
+    width:min(900px,100%);
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  .main--fund .axe-fund-ledger{
+    width:636px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  .main--fund .axe-fund-ledger-columns,
+  .main--fund .axe-fund-ledger-row{
+    grid-template-columns:70px 92px minmax(0,1fr) 96px 58px 56px;
+    gap:7px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span,
+  .main--fund .axe-fund-ledger-money{
+    text-align:center;
+  }
+
+}
+
+.axe-fund-history-action.is-disabled,
+.axe-fund-history-action:disabled{
+  cursor:not-allowed;
+  color:#69717a;
+  border-color:rgba(255,255,255,.055);
+  background:rgba(255,255,255,.01);
+  opacity:.72;
+}
+.axe-fund-history-action.is-disabled:hover,
+.axe-fund-history-action:disabled:hover{
+  color:#69717a;
+  border-color:rgba(255,255,255,.055);
+  background:rgba(255,255,255,.01);
+}

@@ -1,18 +1,27 @@
-AXE PRODUCT WEB STAGING 3.17.2 · FUND COLUMN ALIGNMENT R1
+AXE PRODUCT WEB STAGING 3.17.3 · FUND LEFT-ANCHOR BALANCE R1
 
 Scope: WEB STAGING only. No DB/BOT/LIVE changes.
 
-Verified issue from 3.17.1:
-- FUND content-fit width was correct, but header labels and row values did not share the same visual column axis.
-- Name / detail remained left-aligned and amount remained right-aligned, while the visual target requires each lane to align centrally under its header.
+Verified issues from the 3.17.2 staging screenshot:
+- The 636px ledger was visually floating in the center of a much wider FUND workspace.
+- Full-width company banner / summary / tabs and a centered small ledger produced an unbalanced hierarchy.
+- The approved row duplicated state with an unnecessary `승인` badge.
+- The amount header/value axis still felt detached from the other columns.
+- The management lane showed a dash when a row was not editable, making the lane look empty rather than operational.
 
 Implementation:
-- Preserved the existing 636px FUND content-fit canvas and fixed lane widths.
-- Desktop FUND header labels are centered within all six grid lanes.
-- Desktop FUND name, detail, and amount values are centered to the same lane axes.
-- The detail title + approval/manual badge group is centered as a unit.
-- Date, evidence, and management behavior remain unchanged.
-- Mobile behavior remains unchanged.
-- Members / assets / returns / accounts content-fit rules are unchanged.
+1. Added a FUND-only 900px left-anchored visual rail.
+2. FUND company banner, header, summary, tabs, and views now share the same left origin.
+3. Kept the ledger at 636px, but left-anchored it inside the FUND rail.
+4. Rebuilt the desktop ledger tracks as:
+   70px / 92px / flexible detail / 96px amount / 58px evidence / 56px management.
+5. Centered the amount header and amount value on the same axis.
+6. Removed approval/manual source badges from ledger rows.
+7. The management lane always shows `수정`.
+   - `can_edit=true`: active edit action.
+   - `can_edit=false`: visible disabled edit action with a DB-boundary tooltip.
 
-Company Settings: untouched.
+Safety:
+- No attempt is made to override DB `can_edit` for approval-linked entries.
+- Company Settings is untouched.
+- LIVE AXE / PRODUCT BOT / DATABASE are untouched.
