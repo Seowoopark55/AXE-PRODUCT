@@ -1,24 +1,20 @@
-AXE PRODUCT WEB STAGING 3.17.0 — DENSE OPERATIONS ROOT REDESIGN
+AXE PRODUCT WEB STAGING 3.17.1 · CONTENT-FIT DENSITY R1
 
-Scope: WEB STAGING only. DB/BOT/LIVE untouched.
+Scope: WEB STAGING only. No DB/BOT/LIVE changes.
 
-Root causes removed:
-- Management pages had accumulated three different layout contracts: old grid rows,
-  compact refinements, and semantic table overrides.
-- Per-page workspaces used different width assumptions, so the same information
-  density produced different visual rhythm.
-- table-layout:fixed solved axis alignment but introduced squeezed text and did not
-  reproduce the compact Company Settings visual language.
-- repeated secondary labels increased row height and made sparse data feel emptier.
+Change requested:
+- Do only the density/width correction shown by the user example.
+- Do not redesign company settings.
+- Do not add account admin-direct registration or other pending features.
 
-New design:
-- Company Settings is the reference visual grammar and is not changed.
-- Members / Assets / Accounts use one 680px operational workspace.
-- All boards use the same toolbar / meta / lane header / 54px row rhythm.
-- Header and data rows share the exact same CSS grid template per category.
-- Standard 700/800 font weights replace interpolated 780/860/880 weights.
-- Fund ledger keeps its existing functionality but switches from a stretched table
-  to a compact 760px fixed-lane board; the entry lane receives the flexible width.
-- Mobile collapses lane rows without relying on table display overrides.
+Implementation:
+- Members board: 520px content-fit canvas with fixed useful lane widths.
+- Assets board: 570px content-fit canvas; returns 540px.
+- Accounts board: 540px content-fit canvas.
+- Fund ledger: 636px content-fit canvas.
+- Removed fr-based desktop expansion for these operational rows.
+- Header and data rows share the exact same fixed lane templates.
+- Reduced row/header/toolbar vertical density slightly.
+- Mobile behavior remains full-width/card-like.
 
-No functional API/RPC changes.
+Company Settings: untouched.

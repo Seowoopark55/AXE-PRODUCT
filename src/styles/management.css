@@ -72,6 +72,45 @@
 /* Used from Cooking settings as a shared compact action. */
 .ops-mgmt-action.is-assign:hover{background:rgba(228,178,75,.09);color:#f2cf82}
 
+
+/* AXE PRODUCT 3.17.1 · Content-Fit Density
+   Do not stretch operational boards to a shared canvas. Each board is sized
+   from its real information lanes so unused width does not become visual air. */
+@media(min-width:761px){
+  .ops-mgmt-page--members .ops-mgmt-workspace{width:520px;max-width:100%}
+  .ops-mgmt-page--members .ops-mgmt-board{width:520px;max-width:100%}
+  .ops-mgmt-page--members .ops-lane-head--member,
+  .ops-mgmt-page--members .ops-lane-row--member{grid-template-columns:172px 72px 88px 68px 56px;gap:7px;padding-left:9px;padding-right:9px}
+
+  .ops-mgmt-page--assets .ops-mgmt-tabs-row{width:570px;max-width:100%}
+  .ops-mgmt-page--assets .ops-mgmt-board{width:570px;max-width:100%}
+  .ops-mgmt-page--assets .ops-lane-head--asset,
+  .ops-mgmt-page--assets .ops-lane-row--asset{grid-template-columns:158px 174px 74px 68px 56px;gap:7px;padding-left:9px;padding-right:9px}
+  .ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:540px}
+  .ops-mgmt-page--assets .ops-lane-head--return,
+  .ops-mgmt-page--assets .ops-lane-row--return{grid-template-columns:210px 150px 120px;gap:8px;padding-left:9px;padding-right:9px}
+
+  .ops-mgmt-page--accounts .ops-mgmt-workspace{width:540px;max-width:100%}
+  .ops-mgmt-page--accounts .ops-mgmt-board,
+  .ops-mgmt-page--accounts .ops-account-review{width:540px;max-width:100%}
+  .ops-mgmt-page--accounts .ops-lane-head--account,
+  .ops-mgmt-page--accounts .ops-lane-row--account{grid-template-columns:150px 184px 72px 56px;gap:7px;padding-left:9px;padding-right:9px}
+
+  .ops-mgmt-page--members .ops-lane-head,
+  .ops-mgmt-page--assets .ops-lane-head,
+  .ops-mgmt-page--accounts .ops-lane-head{height:28px}
+  .ops-mgmt-page--members .ops-lane-row,
+  .ops-mgmt-page--assets .ops-lane-row,
+  .ops-mgmt-page--accounts .ops-lane-row{min-height:48px}
+
+  .ops-mgmt-page--members .ops-mgmt-toolbar,
+  .ops-mgmt-page--assets .ops-mgmt-toolbar,
+  .ops-mgmt-page--accounts .ops-mgmt-toolbar{min-height:40px;padding:5px 7px}
+  .ops-mgmt-page--members .ops-mgmt-meta,
+  .ops-mgmt-page--assets .ops-mgmt-meta,
+  .ops-mgmt-page--accounts .ops-mgmt-meta{min-height:27px;padding-left:8px;padding-right:8px}
+}
+
 @media(max-height:940px) and (min-width:761px){
   .ops-mgmt-page .page-header{min-height:70px;margin-bottom:10px}.ops-mgmt-summary{margin-bottom:9px}.ops-mgmt-summary article{padding-top:10px;padding-bottom:10px}
 }
