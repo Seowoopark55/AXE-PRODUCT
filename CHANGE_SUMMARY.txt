@@ -36,3 +36,11 @@ R2 COOKING UX
 - Company-editable Discord cooking guide: schedule / SET guide / extra guide.
 - Menu add action moved into menu section header.
 - Cooking settings compacted to match other settings boards.
+
+
+R4 COOKING SETTINGS COMPACT FIX
+- cooking_order_types.detail is always saved as non-null text
+- cooking settings constrained to same 680px operational width as feature settings
+- 3 settings tabs stay in one row when cooking is available
+- guide inputs share one compact row on desktop
+- menu rows/header/footer tightened; redundant hint row removed

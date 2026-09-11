@@ -137,7 +137,7 @@ export async function saveCookingOrderType(companyId, payload) {
   if (!label) throw new Error('메뉴 이름을 입력해 주세요.');
   const result = await supabase
     .from('cooking_order_types')
-    .upsert({ company_id: companyId, type_key: typeKey, label, short_label: shortLabel || label, detail: detail || null, price_per_set: pricePerSet, sort_order: sortOrder, enabled: payload?.enabled !== false }, { onConflict: 'company_id,type_key' })
+    .upsert({ company_id: companyId, type_key: typeKey, label, short_label: shortLabel || label, detail, price_per_set: pricePerSet, sort_order: sortOrder, enabled: payload?.enabled !== false }, { onConflict: 'company_id,type_key' })
     .select('company_id,type_key,label,short_label,detail,price_per_set,sort_order,enabled')
     .single();
   return unwrap(result, '요리 주문 메뉴를 저장하지 못했습니다.');
