@@ -12,3 +12,11 @@ AXE PRODUCT WEB STAGING · Operations UX Redesign R1
 - Existing DB auto-unassign-on-left flow is preserved; WEB exposes smooth reassignment.
 
 STAGING WEB ONLY. Deploy through GitHub STAGING -> commit/push -> Vercel Ready.
+
+
+3.16.1 MEMBER IDENTITY / CLEAN SIDEBAR
+- 회사 멤버 기본 이름을 Discord 서버 표시명 + 선택형 별칭 구조로 분리.
+- 멤버 상세에서 Discord 숫자 ID 대신 서버 표시명과 별칭을 관리.
+- 입력/검색 필드의 브라우저 폼 자동완성 기록 노출을 억제.
+- 좌측 하단 PRODUCT STAGING 배지와 수동 새로고침 버튼 제거.
+- 고객 UI의 STAGING 표기 제거, 브라우저 타이틀 AXE PRODUCT로 정리.

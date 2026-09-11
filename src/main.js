@@ -2,7 +2,7 @@ import './styles.css';
 import { envReady } from './lib/supabase.js';
 import {
   getSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipEmploymentDate, updateCompanyName,
+  listCompanies, createCompany, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings, getCompanyBannerPublicUrl, uploadCompanyBanner, removeCompanyBanner,
@@ -69,7 +69,16 @@ let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
 
-function render() { renderShell(root, state); }
+function suppressBrowserFormHistory() {
+  root.querySelectorAll('form').forEach(form => form.setAttribute('autocomplete','off'));
+  root.querySelectorAll('input, textarea').forEach(field => {
+    if (!field.hasAttribute('autocomplete')) field.setAttribute('autocomplete','off');
+    field.setAttribute('autocorrect','off');
+    field.setAttribute('autocapitalize','off');
+    field.setAttribute('spellcheck','false');
+  });
+}
+function render() { renderShell(root, state); suppressBrowserFormHistory(); }
 function setNotice(message) {
   state.notice = String(message || ''); state.error = ''; render();
   if (noticeTimer) clearTimeout(noticeTimer);
@@ -454,7 +463,7 @@ root.addEventListener('submit', async event => {
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='feedback'){const result=await submitProductFeedback(state.companyId,String(data.get('category')),String(data.get('title')||'').trim(),String(data.get('detail')||'').trim(),String(data.get('contact')||'').trim());state.modal=null;setNotice(`피드백을 보냈습니다. 접수번호 ${result?.reference||''}`);return;}
     if(type==='ledger'){await saveFundLedgerEntry(state.companyId,{entryId:String(data.get('entry_id')||'')||null,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')});state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 저장했습니다.');return;}
-    if(type==='member'){const id=String(data.get('membership_id'));const row=state.memberships.find(m=>m.id===id);const role=String(data.get('role'));const status=String(data.get('status'));const employmentStartedOn=String(data.get('employment_started_on')||'');if(row.role!==role)await updateMembershipRole(id,role);if(row.status!==status)await updateMembershipStatus(id,status);if(String(row.employment_started_on||'')!==employmentStartedOn)await updateMembershipEmploymentDate(id,employmentStartedOn);state.modal=null;await loadCompanyData();setNotice('멤버 정보를 저장했습니다.');return;}
+    if(type==='member'){const id=String(data.get('membership_id'));const row=state.memberships.find(m=>m.id===id);const role=String(data.get('role'));const status=String(data.get('status'));const aliasName=String(data.get('alias_name')||'').trim();const employmentStartedOn=String(data.get('employment_started_on')||'');if(String(row.alias_name||'')!==aliasName)await updateMembershipAlias(id,aliasName);if(row.role!==role)await updateMembershipRole(id,role);if(row.status!==status)await updateMembershipStatus(id,status);if(String(row.employment_started_on||'')!==employmentStartedOn)await updateMembershipEmploymentDate(id,employmentStartedOn);state.modal=null;await loadCompanyData();setNotice('멤버 정보를 저장했습니다.');return;}
     if(type==='asset'){let membershipId=String(data.get('membership_id')||'')||null;let status=String(data.get('status')||'').trim()||(membershipId?'보유':'미배정');if(status==='미배정')membershipId=null;if(membershipId)status='보유';const holder=membershipId?(state.assetsSnapshot?.members||[]).find(m=>m.id===membershipId):null;const assetId=String(data.get('asset_id')||'')||null;const existing=assetId?(state.assetsSnapshot?.assets||[]).find(a=>a.id===assetId):null;await saveWebAsset(state.companyId,{assetId,legacyNo:existing?.legacy_no||null,membershipId,ownerName:holder?.display_name||'미배정',category:String(data.get('asset_category')||'기타').trim(),name:String(data.get('asset_name')||'').trim(),acquisitionMethod:String(data.get('acquisition_method')||'').trim()||null,status,note:String(data.get('note')||'').trim()||null});state.modal=null;await loadAssetsAndAccounts();setNotice(membershipId?'자산을 저장하고 보유자를 배정했습니다.':'자산을 미배정 상태로 저장했습니다.');return;}
     if(type==='account-request'){await submitWebAccountRequest(state.companyId,String(data.get('account')||''),String(data.get('note')||''));state.modal=null;await loadAssetsAndAccounts();setNotice('계좌 등록·변경 신청을 제출했습니다.');return;}
     if(type==='invite'){const result=await createCompanyInvite(state.companyId,Number(data.get('max_uses')||1),Number(data.get('expires_in_hours')||168));state.modal={type:'invite',code:result?.invite_code||''};render();return;}

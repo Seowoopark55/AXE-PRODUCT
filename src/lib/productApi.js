@@ -63,7 +63,7 @@ export async function getMemberships(companyId) {
   assertClient();
   const result = await supabase
     .from('company_memberships')
-    .select('id,company_id,user_id,role,status,display_name,discord_user_id,employment_started_on,joined_at,created_at,updated_at')
+    .select('id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name,alias_name,employment_started_on,joined_at,created_at,updated_at')
     .eq('company_id', companyId)
     .order('created_at', { ascending: true });
   return unwrap(result, '멤버 목록을 불러오지 못했습니다.') || [];
@@ -78,6 +78,19 @@ export async function updateMembershipRole(membershipId, role) {
     .select('id,role')
     .single();
   return unwrap(result, '멤버 역할을 변경하지 못했습니다.');
+}
+
+
+export async function updateMembershipAlias(membershipId, aliasName) {
+  assertClient();
+  const value = String(aliasName || '').trim() || null;
+  const result = await supabase
+    .from('company_memberships')
+    .update({ alias_name: value, updated_at: new Date().toISOString() })
+    .eq('id', membershipId)
+    .select('id,display_name,discord_display_name,alias_name')
+    .single();
+  return unwrap(result, '멤버 별칭을 저장하지 못했습니다.');
 }
 
 

@@ -19,5 +19,5 @@ check(main.includes('updateCompanyName(state.companyId,companyName)'),'canonical
 check(main.includes('uploadCompanyBanner')&&main.includes('removeCompanyBanner'),'company banner mutation wiring exists');
 check(api.includes("web_company_admin_update_name"),'company name admin RPC binding exists');
 check(api.includes("axe-product-company-branding"),'branding storage binding exists');
-check(render.includes('global-account')&&render.includes('runtime-sidebar-tools'),'account/header and runtime/sidebar layout moved');
+check(render.includes('global-account')&&render.includes('sidebar-footer')&&render.includes('connection-status'),'account/header and clean Discord-only sidebar footer layout present');
 if(!process.exitCode)console.log(`AXE PRODUCT OPERATIONS UX CHECK: PASS · ${sql}`);
