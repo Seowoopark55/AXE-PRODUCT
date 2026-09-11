@@ -34,6 +34,3 @@ Current STAGING web source consolidated from the user-uploaded repository snapsh
 
 ## Company cooking menu
 Company Settings includes a company-scoped cooking menu manager backed directly by `axe_product.cooking_order_types` and existing authenticated RLS. The UI intentionally uses enable/disable instead of hard delete so historical order type keys remain stable.
-
-## STAGING 3.16.6 semantic table layout
-Desktop operational lists (members, fund ledger, assets/returns, accounts) use real HTML tables with fixed colgroups so header/body alignment cannot drift. Mobile converts the same tables into labeled card rows.

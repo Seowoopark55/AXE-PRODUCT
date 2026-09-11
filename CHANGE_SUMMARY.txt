@@ -1,24 +1,10 @@
-AXE PRODUCT WEB STAGING 3.16.7
-COMPACT SEMANTIC TABLE R2
+AXE PRODUCT WEB STAGING 3.16.8 · CLEAN OPERATIONS TABLE R3
 
-Source basis
-- Rebuilt from the 3.16.6 semantic-table source, with the functional account regression repaired.
-- No DB / BOT changes.
-
-Root cause repaired
-- 3.16.6 accidentally removed the accountBadge() helper while renderAccounts() still called it.
-  Opening Accounts could therefore throw ReferenceError and stop rendering.
-- Fund semantic table was forced to width:100% / max-width:none, so a sparse row stretched across
-  the full workspace and created the exact 'empty / collapsed' visual reported in testing.
-
-R2 design
-- Keep real HTML tables for deterministic header/body alignment.
-- Constrain operational boards to content-sized max widths.
-- Fund ledger max width 780px and centered.
-- Members 650px, assets 660px, accounts 700px.
-- Standard font weights (700/800) and slightly larger cell text to avoid synthesized / squeezed feel.
-- Stable 34px headers, 60px rows, 9-14px cell padding.
-- Name/detail remain readable; status/action stay centered; fund amount remains right aligned.
-- Mobile falls back to the existing labeled-card table presentation.
-
-STAGING WEB ONLY. LIVE BOT / PM2 / DB untouched.
+- Rebased the management/table work on the last stable 3.16.5 source instead of stacking more CSS over 3.16.7.
+- One 860px operational workspace shared by members, assets, returns, and accounts.
+- Same left edge across management tabs; removed per-tab centred widths that made each screen drift.
+- Kept real semantic tables, but removed repeated in-cell labels already present in the header.
+- Text columns are left aligned; status/actions stay centred.
+- Fund keeps its compact table; the item/details column is wider and header alignment matches the body.
+- Mobile remains card-like.
+- No DB or BOT changes.

@@ -16,7 +16,7 @@ check(render.includes('name="category"')&&render.includes('autocomplete="off"'),
 check(html.includes('<title>AXE PRODUCT</title>')&&!html.includes('<title>AXE PRODUCT STAGING</title>'),'browser title is customer-facing');
 
 check(render.includes('member-profile-inline')&&render.includes('name="member_note"'),'member detail uses aligned 3-column role/status/hire row plus memo');
-check(render.includes('ops-member-table')&&render.includes('<th>이름</th><th>역할</th><th>입사일</th><th>상태</th><th>관리</th>'),'member list uses semantic name/role/hire/status/manage table');
+check(render.includes('ops-member-table')&&render.includes('<th>이름</th><th>역할</th><th>입사일</th><th>상태</th><th>관리</th>'),'member list uses balanced name/role/hire/status/manage columns');
 check(api.includes('member_note')&&api.includes('updateMembershipNote'),'member memo is loaded and writable');
 check(main.includes('updateMembershipNote(id,memberNote)'),'member form persists memo');
 if(!process.exitCode) console.log('AXE PRODUCT MEMBER IDENTITY UX CHECK: PASS');

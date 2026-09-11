@@ -24,11 +24,11 @@
 .ops-mgmt-summary .is-negative{color:var(--red)}
 
 /* The operational workspace, not the page shell, is content-adaptive. */
-.ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board{width:min(570px,100%);margin-inline:auto}
-.ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-assets .ops-mgmt-board{width:min(620px,100%);margin-left:auto;margin-right:auto}
-.ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,.ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:min(590px,100%);margin-left:auto;margin-right:auto}
+/* One operational column: same left edge and width across members/assets/accounts. */
+.ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board,
+.ops-mgmt-page--assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets .ops-mgmt-board,
 .ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,
-.ops-mgmt-page--accounts .ops-mgmt-board{width:min(620px,100%);margin-left:auto;margin-right:auto}
+.ops-mgmt-page--accounts .ops-mgmt-board{width:min(860px,100%);margin-left:0;margin-right:0}
 
 /* Contextual action discovery: actions live beside the data they affect. */
 .ops-mgmt-section-head{min-height:45px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;padding:0 2px}
@@ -133,298 +133,52 @@
 .ops-mgmt-page--assets .ops-mgmt-filters,.ops-mgmt-page--accounts .ops-mgmt-filters{width:100%}
 .ops-mgmt-page--assets .ops-mgmt-search,.ops-mgmt-page--accounts .ops-mgmt-search{width:168px}
 
-/* 3.16.5 balanced row grid --------------------------------------------------
-   Rows use the full card width as a deliberate column system. The cells are
-   centred on their own tracks so unused space is distributed evenly instead
-   of collecting as a single blank block between left-aligned items.
+/* 3.16.8 clean semantic table system ----------------------------------------
+   Rebuilt from the last stable grid source. One table contract only: no
+   stacked override blocks, no per-tab centering drift, no repeated labels.
 ---------------------------------------------------------------------------- */
-.ops-mgmt-column-head{
-  min-height:26px;
-  display:grid;
-  align-items:center;
-  column-gap:12px;
-  padding:0 12px;
-  border-bottom:1px solid rgba(255,255,255,.045);
-  color:#66717c;
-  background:rgba(255,255,255,.006);
-  font-size:8.8px;
-  font-weight:820;
-  letter-spacing:.01em;
-}
-.ops-mgmt-column-head>span{text-align:center;white-space:nowrap}
+.ops-data-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;border-top:1px solid rgba(255,255,255,.045);scrollbar-width:thin}
+.ops-data-table{width:100%;border-collapse:collapse;table-layout:fixed;color:var(--ops-copy);letter-spacing:0}
+.ops-data-table thead th{height:34px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.007);color:#6e7882;font-size:10px;font-weight:700;line-height:1;white-space:nowrap}
+.ops-data-table tbody tr{height:58px;border-bottom:1px solid rgba(255,255,255,.052);transition:background .14s ease}
+.ops-data-table tbody tr:last-child{border-bottom:0}.ops-data-table tbody tr:not(.is-empty):hover{background:rgba(255,255,255,.014)}.ops-data-table tbody tr.is-attention{background:rgba(255,181,46,.018)}
+.ops-data-table td{min-width:0;padding:10px 16px;vertical-align:middle;overflow:hidden;color:var(--ops-copy);font-size:12px;line-height:1.3}
+.ops-data-table td strong,.ops-data-table td small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ops-data-table td strong{color:var(--ops-title);font-size:12.3px;font-weight:780;line-height:1.3;letter-spacing:0}.ops-data-table td small{margin-top:3px;color:var(--ops-sub);font-size:9.8px;font-weight:500;line-height:1.25}
+.ops-data-table .ops-mgmt-badge{min-width:48px;height:26px;margin-inline:auto;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:760}
+.ops-data-table .ops-mgmt-action{min-width:52px;height:30px;margin-inline:auto;padding:0 10px;font-size:10px;font-weight:700}
+.ops-data-table tr.is-empty{height:auto}.ops-data-table tr.is-empty td{padding:0;text-align:center}.ops-data-table tr.is-empty .ops-mgmt-empty{padding:28px 12px}
 
-.ops-member-column-head,
-.ops-member-row{grid-template-columns:minmax(0,1.35fr) minmax(78px,.9fr) minmax(86px,.92fr) 68px 58px}
-.ops-member-row{column-gap:12px;padding:8px 12px}
-.ops-member-main,.ops-member-role,.ops-member-hire{justify-items:center;text-align:center}
-.ops-member-state{display:flex;align-items:center;justify-content:center}
-.ops-member-row .ops-mgmt-action{justify-self:center;min-width:50px}
+/* Text columns read from the left; status/actions keep a stable centre axis. */
+.ops-member-table th:nth-child(-n+3),.ops-member-table td:nth-child(-n+3),
+.ops-asset-table th:nth-child(-n+3),.ops-asset-table td:nth-child(-n+3),
+.ops-account-table th:nth-child(-n+2),.ops-account-table td:nth-child(-n+2),
+.ops-return-table th,.ops-return-table td{text-align:left}
+.ops-member-table th:nth-child(n+4),.ops-member-table td:nth-child(n+4),
+.ops-asset-table th:nth-child(n+4),.ops-asset-table td:nth-child(n+4),
+.ops-account-table th:nth-child(n+3),.ops-account-table td:nth-child(n+3){text-align:center}
 
-.ops-asset-column-head,
-.ops-asset-row{grid-template-columns:minmax(96px,1.05fr) minmax(0,1.35fr) minmax(72px,.75fr) 72px 58px}
-.ops-asset-row{column-gap:12px;padding:8px 12px}
-.ops-asset-holder,.ops-asset-main,.ops-asset-category{display:grid;gap:2px;min-width:0;justify-items:center;text-align:center}
-.ops-asset-category strong{max-width:100%;overflow:hidden;color:var(--ops-copy);font-size:11.4px;text-overflow:ellipsis;white-space:nowrap}
-.ops-asset-category span{color:var(--ops-sub);font-size:9.8px}
-.ops-asset-state{display:flex;align-items:center;justify-content:center}
-.ops-asset-row .ops-mgmt-action{justify-self:center;min-width:50px}
+/* Column widths are chosen per data type, but every board uses the same 860px workspace. */
+.ops-member-table col.is-name{width:32%}.ops-member-table col.is-role{width:20%}.ops-member-table col.is-hire{width:20%}.ops-member-table col.is-status{width:14%}.ops-member-table col.is-manage{width:14%}
+.ops-asset-table col.is-holder{width:24%}.ops-asset-table col.is-asset{width:32%}.ops-asset-table col.is-category{width:18%}.ops-asset-table col.is-status{width:13%}.ops-asset-table col.is-manage{width:13%}
+.ops-account-table col.is-name{width:29%}.ops-account-table col.is-account{width:41%}.ops-account-table col.is-status{width:15%}.ops-account-table col.is-manage{width:15%}
+.ops-return-table col.is-asset{width:42%}.ops-return-table col.is-process{width:34%}.ops-return-table col.is-checker{width:24%}
 
-.ops-account-column-head,
-.ops-account-row{grid-template-columns:minmax(100px,1.05fr) minmax(145px,1.45fr) 82px 58px}
-.ops-account-row{column-gap:12px;padding:8px 12px}
-.ops-account-main,.ops-account-number{justify-content:center;text-align:center}
-.ops-account-main>div,.ops-account-number{justify-items:center;text-align:center}
-.ops-account-state{justify-content:center}
-.ops-account-row .ops-mgmt-action{justify-self:center;min-width:50px}
+/* Clean toolbar/meta rhythm across management tabs. */
+.ops-mgmt-board .ops-mgmt-toolbar{min-height:48px;padding:7px 10px}.ops-mgmt-board .ops-mgmt-meta{height:32px;padding:0 12px}.ops-mgmt-board .ops-mgmt-meta>span:last-child:not(:first-child){color:#69747f}
+.ops-mgmt-page--members .ops-mgmt-search{width:205px}.ops-mgmt-page--assets .ops-mgmt-search,.ops-mgmt-page--accounts .ops-mgmt-search{width:210px}
 
-/* return rows also use evenly distributed tracks */
-.ops-return-row{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(96px,.78fr);column-gap:12px;padding-inline:12px}
-.ops-return-main,.ops-return-reason,.ops-return-actor{justify-items:center;text-align:center}
-
-@media(max-width:720px){
-  .ops-mgmt-column-head{display:none}
-  .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
-  .ops-member-main,.ops-member-role,.ops-member-hire,.ops-asset-holder,.ops-asset-main,.ops-asset-category,.ops-account-main,.ops-account-number{justify-items:start;text-align:left}
-  .ops-member-state,.ops-asset-state,.ops-account-state{justify-content:flex-start}
-  .ops-member-role,.ops-member-hire,.ops-asset-holder,.ops-asset-category,.ops-account-number{grid-column:1}
-  .ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}
-  .ops-mgmt-action{grid-column:2;grid-row:1 / span 5}
+@media(max-width:900px){
+  .ops-mgmt-page--members .ops-mgmt-section-head,.ops-mgmt-page--members .ops-mgmt-board,
+  .ops-mgmt-page--assets .ops-mgmt-tabs-row,.ops-mgmt-page--assets .ops-mgmt-board,
+  .ops-mgmt-page--accounts .ops-mgmt-section-head,.ops-mgmt-page--accounts .ops-account-review,.ops-mgmt-page--accounts .ops-mgmt-board{width:100%}
 }
-
-/* 3.16.6 semantic table layout ---------------------------------------------
-   Desktop list views use a real table with a shared column model. This keeps
-   headers and row cells on exactly the same axis and prevents fractional-grid
-   compression from making labels look uneven or squeezed.
----------------------------------------------------------------------------- */
-.ops-data-table-wrap{
-  width:100%;
-  overflow:hidden;
-  border-top:1px solid rgba(255,255,255,.045);
-}
-.ops-data-table{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  color:var(--ops-copy);
-}
-.ops-data-table col{width:auto}
-.ops-member-table col.is-name{width:30%}
-.ops-member-table col.is-role{width:18%}
-.ops-member-table col.is-hire{width:20%}
-.ops-member-table col.is-status{width:17%}
-.ops-member-table col.is-manage{width:15%}
-.ops-asset-table col.is-holder{width:22%}
-.ops-asset-table col.is-asset{width:29%}
-.ops-asset-table col.is-category{width:19%}
-.ops-asset-table col.is-status{width:15%}
-.ops-asset-table col.is-manage{width:15%}
-.ops-account-table col.is-name{width:28%}
-.ops-account-table col.is-account{width:36%}
-.ops-account-table col.is-status{width:18%}
-.ops-account-table col.is-manage{width:18%}
-.ops-return-table col.is-asset{width:40%}
-.ops-return-table col.is-process{width:34%}
-.ops-return-table col.is-checker{width:26%}
-.ops-data-table thead th{
-  height:31px;
-  padding:0 14px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  color:#68717a;
-  background:rgba(255,255,255,.008);
-  font-size:9.4px;
-  font-weight:840;
-  line-height:1;
-  text-align:center;
-  white-space:nowrap;
-}
-.ops-data-table tbody tr{
-  height:58px;
-  border-bottom:1px solid rgba(255,255,255,.052);
-  transition:background .14s ease;
-}
-.ops-data-table tbody tr:last-child{border-bottom:0}
-.ops-data-table tbody tr:not(.is-empty):hover{background:rgba(255,255,255,.014)}
-.ops-data-table tbody tr.is-attention{background:rgba(255,181,46,.018)}
-.ops-data-table td{
-  min-width:0;
-  padding:8px 14px;
-  vertical-align:middle;
-  text-align:center;
-  overflow:hidden;
-}
-.ops-data-table td strong,
-.ops-data-table td small{
-  display:block;
-  max-width:100%;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.ops-data-table td strong{
-  color:var(--ops-title);
-  font-size:11.7px;
-  font-weight:850;
-  line-height:1.25;
-}
-.ops-data-table td small{
-  margin-top:3px;
-  color:var(--ops-sub);
-  font-size:9.6px;
-  font-weight:650;
-  line-height:1.2;
-}
-.ops-data-table td.ops-table-primary{text-align:left}
-.ops-data-table td.ops-table-primary strong,
-.ops-data-table td.ops-table-primary small{text-align:left}
-.ops-data-table td>.ops-mgmt-badge,
-.ops-data-table td>.ops-mgmt-action{margin-inline:auto}
-.ops-data-table .ops-mgmt-action{
-  min-width:50px;
-  height:29px;
-  padding:0 10px;
-  font-size:10px;
-}
-.ops-data-table tr.is-empty{height:auto}
-.ops-data-table tr.is-empty td{padding:0;text-align:center}
-.ops-data-table tr.is-empty .ops-mgmt-empty{padding:28px 12px}
-
 @media(max-width:720px){
   .ops-data-table-wrap{overflow:visible;border-top:0}
-  .ops-data-table,.ops-data-table tbody,.ops-data-table tr,.ops-data-table td{display:block;width:100%}
-  .ops-data-table colgroup,.ops-data-table thead{display:none}
-  .ops-data-table tbody tr{
-    height:auto;
-    margin:8px 0;
-    padding:7px 10px;
-    border:1px solid rgba(255,255,255,.065);
-    border-radius:9px;
-    background:rgba(255,255,255,.012);
-  }
+  .ops-data-table,.ops-data-table tbody,.ops-data-table tr,.ops-data-table td{display:block;width:100%}.ops-data-table colgroup,.ops-data-table thead{display:none}
+  .ops-data-table tbody tr{height:auto;margin:8px 0;padding:7px 10px;border:1px solid rgba(255,255,255,.065);border-radius:9px;background:rgba(255,255,255,.012)}
   .ops-data-table tbody tr.is-empty{padding:0;border:0;background:transparent}
-  .ops-data-table td{
-    display:grid;
-    grid-template-columns:72px minmax(0,1fr);
-    align-items:center;
-    gap:10px;
-    min-height:35px;
-    padding:5px 2px;
-    border-bottom:1px solid rgba(255,255,255,.038);
-    text-align:left;
-    overflow:visible;
-  }
-  .ops-data-table td:last-child{border-bottom:0}
-  .ops-data-table td::before{
-    content:attr(data-label);
-    color:#6e757c;
-    font-size:9.4px;
-    font-weight:800;
-    text-align:left;
-    white-space:nowrap;
-  }
-  .ops-data-table td strong,.ops-data-table td small{text-align:left}
-  .ops-data-table td>.ops-mgmt-badge,
-  .ops-data-table td>.ops-mgmt-action{margin:0;justify-self:start}
-  .ops-data-table tr.is-empty td{display:block;padding:0}
-  .ops-data-table tr.is-empty td::before{display:none}
-}
-
-
-/* 3.16.7 compact semantic table R2 -----------------------------------------
-   Keep the semantic table model, but do not stretch sparse operational data
-   across the whole workspace. Each board gets a content-sized maximum width,
-   stable typography, and predictable cell spacing.
----------------------------------------------------------------------------- */
-.ops-mgmt-page--members .ops-mgmt-section-head,
-.ops-mgmt-page--members .ops-mgmt-board{width:min(650px,100%);margin-inline:auto}
-.ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,
-.ops-mgmt-page--assets.is-assets .ops-mgmt-board{width:min(660px,100%);margin-inline:auto}
-.ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,
-.ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:min(660px,100%);margin-inline:auto}
-.ops-mgmt-page--accounts .ops-mgmt-section-head,
-.ops-mgmt-page--accounts .ops-account-review,
-.ops-mgmt-page--accounts .ops-mgmt-board{width:min(700px,100%);margin-inline:auto}
-
-.ops-data-table-wrap{
-  overflow-x:auto;
-  overflow-y:hidden;
-  scrollbar-width:thin;
-}
-.ops-data-table{
-  table-layout:fixed;
-  border-spacing:0;
-  letter-spacing:0;
-}
-.ops-member-table col.is-name{width:29%}
-.ops-member-table col.is-role{width:20%}
-.ops-member-table col.is-hire{width:21%}
-.ops-member-table col.is-status{width:15%}
-.ops-member-table col.is-manage{width:15%}
-
-.ops-asset-table col.is-holder{width:23%}
-.ops-asset-table col.is-asset{width:30%}
-.ops-asset-table col.is-category{width:17%}
-.ops-asset-table col.is-status{width:15%}
-.ops-asset-table col.is-manage{width:15%}
-
-.ops-account-table col.is-name{width:26%}
-.ops-account-table col.is-account{width:38%}
-.ops-account-table col.is-status{width:18%}
-.ops-account-table col.is-manage{width:18%}
-
-.ops-return-table col.is-asset{width:39%}
-.ops-return-table col.is-process{width:35%}
-.ops-return-table col.is-checker{width:26%}
-
-.ops-data-table thead th{
-  height:34px;
-  padding:0 10px;
-  font-size:10px;
-  font-weight:700;
-  line-height:1;
-  letter-spacing:0;
-}
-.ops-data-table tbody tr{height:60px}
-.ops-data-table td{
-  padding:9px 10px;
-  line-height:1.3;
-}
-.ops-data-table td strong{
-  font-size:12px;
-  font-weight:800;
-  line-height:1.3;
-  letter-spacing:0;
-}
-.ops-data-table td small{
-  margin-top:4px;
-  font-size:9.8px;
-  font-weight:500;
-  line-height:1.25;
-  letter-spacing:0;
-}
-.ops-data-table td.ops-table-primary{padding-left:14px}
-.ops-data-table .ops-mgmt-badge{
-  min-width:46px;
-  height:25px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-.ops-data-table .ops-mgmt-action{
-  min-width:50px;
-  height:29px;
-  padding:0 10px;
-  font-size:10px;
-  font-weight:700;
-}
-
-@media(max-width:720px){
-  .ops-mgmt-page--members .ops-mgmt-section-head,
-  .ops-mgmt-page--members .ops-mgmt-board,
-  .ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,
-  .ops-mgmt-page--assets.is-assets .ops-mgmt-board,
-  .ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,
-  .ops-mgmt-page--assets.is-returns .ops-mgmt-board,
-  .ops-mgmt-page--accounts .ops-mgmt-section-head,
-  .ops-mgmt-page--accounts .ops-account-review,
-  .ops-mgmt-page--accounts .ops-mgmt-board{width:100%}
+  .ops-data-table td{display:grid;grid-template-columns:74px minmax(0,1fr);align-items:center;gap:10px;min-height:35px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.038);text-align:left!important;overflow:visible}
+  .ops-data-table td:last-child{border-bottom:0}.ops-data-table td::before{content:attr(data-label);color:#6e757c;font-size:9.4px;font-weight:700;text-align:left;white-space:nowrap}
+  .ops-data-table td strong,.ops-data-table td small{text-align:left}.ops-data-table td>.ops-mgmt-badge,.ops-data-table td>.ops-mgmt-action{margin:0;justify-self:start}.ops-data-table tr.is-empty td{display:block;padding:0}.ops-data-table tr.is-empty td::before{display:none}
 }

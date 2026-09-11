@@ -11,9 +11,9 @@ const checks=[
   ['member semantic table exists', render.includes('ops-member-table')],
   ['asset semantic table exists', render.includes('ops-asset-table')],
   ['fund semantic table exists', render.includes('axe-fund-table')],
-  ['fund is constrained, not full workspace width', fund.includes('width:min(780px,100%)') && fund.includes('max-width:780px')],
-  ['management boards are content-sized', mgmt.includes('width:min(650px,100%)') && mgmt.includes('width:min(700px,100%)')],
-  ['table typography uses stable standard weights', mgmt.includes('font-weight:800') && fund.includes('font-weight:800')],
+  ['fund is constrained, not full workspace width', fund.includes('width:min(800px,100%)')],
+  ['management boards share one operational width', mgmt.includes('width:min(860px,100%)') && mgmt.includes('margin-left:0;margin-right:0')],
+  ['table typography uses stable standard weights', mgmt.includes('font-weight:780') && fund.includes('font-weight:780')],
 ];
 let failed=0;
 for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${name}`);if(!ok)failed++;}
