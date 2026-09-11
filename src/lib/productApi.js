@@ -155,6 +155,37 @@ export async function setCookingOrderTypeEnabled(companyId, typeKey, enabled) {
   return unwrap(result, '요리 주문 메뉴 상태를 변경하지 못했습니다.');
 }
 
+export async function getCookingDiscordConfig(companyId) {
+  assertClient();
+  const result = await supabase
+    .from('cooking_discord_config')
+    .select('company_id,channel_id,help_message_id,dashboard_message_id,is_open,enabled,schedule_text,set_guide,extra_guide,max_active_orders,updated_by_membership_id,updated_at')
+    .eq('company_id', companyId)
+    .maybeSingle();
+  return unwrap(result, '요리 주문 안내 설정을 불러오지 못했습니다.');
+}
+
+export async function saveCookingDiscordGuide(companyId, payload, membershipId) {
+  assertClient();
+  const scheduleText = String(payload?.scheduleText || '').trim().slice(0, 200);
+  const setGuide = String(payload?.setGuide || '').trim().slice(0, 500);
+  const extraGuide = String(payload?.extraGuide || '').trim().slice(0, 1000);
+  const result = await supabase
+    .from('cooking_discord_config')
+    .update({
+      schedule_text: scheduleText || null,
+      set_guide: setGuide || null,
+      extra_guide: extraGuide || null,
+      updated_by_membership_id: membershipId || null,
+    })
+    .eq('company_id', companyId)
+    .select('company_id,channel_id,help_message_id,dashboard_message_id,is_open,enabled,schedule_text,set_guide,extra_guide,max_active_orders,updated_by_membership_id,updated_at')
+    .maybeSingle();
+  const data = unwrap(result, '요리 주문 안내 설정을 저장하지 못했습니다.');
+  if (!data) throw new Error('Discord 요리 주문 채널 설정을 먼저 완료해 주세요.');
+  return data;
+}
+
 export async function getCompanySettings(companyId) {
   assertClient();
   const result = await supabase

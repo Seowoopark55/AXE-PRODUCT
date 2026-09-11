@@ -31,3 +31,8 @@ COOKING CUSTOM MENU
 - Company Settings now includes a company-scoped 요리 메뉴 manager.
 - Uses existing axe_product.cooking_order_types with authenticated RLS CRUD; no DB schema/RPC change required.
 - Menu add/edit/enable/disable supported. Hard delete is intentionally not exposed so historical orders keep stable type keys.
+
+R2 COOKING UX
+- Company-editable Discord cooking guide: schedule / SET guide / extra guide.
+- Menu add action moved into menu section header.
+- Cooking settings compacted to match other settings boards.

@@ -72,6 +72,9 @@ expect('Cooking menu modal', render.includes('cookingMenuModal') && render.inclu
 expect('Cooking menu direct RLS CRUD API', api.includes("from('cooking_order_types')") && api.includes('saveCookingOrderType') && api.includes('setCookingOrderTypeEnabled'));
 expect('Cooking menu state wiring', main.includes('cookingOrderTypes') && main.includes('getCookingOrderTypes') && main.includes("action==='toggle-cooking-menu'"));
 expect('Cooking menu avoids hard delete', !api.includes(".from('cooking_order_types').delete") && !main.includes('deleteCookingOrderType'));
+expect('Cooking Discord guide direct RLS config API', api.includes("from('cooking_discord_config')") && api.includes('getCookingDiscordConfig') && api.includes('saveCookingDiscordGuide'));
+expect('Cooking Discord guide state wiring', main.includes('cookingDiscordConfig') && main.includes("type==='cooking-guide'"));
+expect('Cooking compact settings UX', render.includes('ops-cooking-guide-card') && render.includes('ops-cooking-menu-tools') && render.includes('안내 저장'));
 
 if(failures.length){
   console.error('AXE PRODUCT INTEGRATED UI CHECK: FAIL');
