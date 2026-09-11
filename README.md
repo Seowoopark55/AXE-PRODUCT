@@ -1,6 +1,6 @@
 # AXE PRODUCT WEB STAGING
 
-Current STAGING web source consolidated from the user-uploaded repository snapshot on 2026-09-11.
+Current STAGING web source for WEB 3.17.2 FUND COLUMN ALIGNMENT R1, based on the verified 3.17.1 content-fit source.
 
 ## Runtime scope
 - WEB STAGING only.
@@ -9,6 +9,13 @@ Current STAGING web source consolidated from the user-uploaded repository snapsh
 - No DATABASE patch is included.
 - No STAGING BOT patch is included.
 - LIVE AXE BOT is not touched.
+
+
+## 3.17.2 FUND column alignment
+- Keeps the verified 636px content-fit ledger width from 3.17.1.
+- Centers all six desktop ledger headers on their lane axes.
+- Centers member, detail, and amount row values under the same axes; detail badges stay grouped with the title.
+- Company Settings, DB, BOT, and LIVE AXE are untouched.
 
 ## Included fixes
 1. FUND weekly payment status refresh

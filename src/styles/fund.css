@@ -324,7 +324,10 @@
     padding-right:8px;
   }
   .axe-fund-ledger-columns{height:28px}
+  .axe-fund-ledger-columns>span{text-align:center}
   .axe-fund-ledger-row{min-height:48px}
+  .axe-fund-ledger-person,.axe-fund-ledger-entry,.axe-fund-ledger-money{text-align:center}
+  .axe-fund-ledger-entry>div{justify-content:center}
   .axe-fund-ledger-toolbar{min-height:40px;padding:5px 7px}
   .axe-fund-ledger-head{min-height:40px}
 }

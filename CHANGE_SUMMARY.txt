@@ -1,20 +1,18 @@
-AXE PRODUCT WEB STAGING 3.17.1 · CONTENT-FIT DENSITY R1
+AXE PRODUCT WEB STAGING 3.17.2 · FUND COLUMN ALIGNMENT R1
 
 Scope: WEB STAGING only. No DB/BOT/LIVE changes.
 
-Change requested:
-- Do only the density/width correction shown by the user example.
-- Do not redesign company settings.
-- Do not add account admin-direct registration or other pending features.
+Verified issue from 3.17.1:
+- FUND content-fit width was correct, but header labels and row values did not share the same visual column axis.
+- Name / detail remained left-aligned and amount remained right-aligned, while the visual target requires each lane to align centrally under its header.
 
 Implementation:
-- Members board: 520px content-fit canvas with fixed useful lane widths.
-- Assets board: 570px content-fit canvas; returns 540px.
-- Accounts board: 540px content-fit canvas.
-- Fund ledger: 636px content-fit canvas.
-- Removed fr-based desktop expansion for these operational rows.
-- Header and data rows share the exact same fixed lane templates.
-- Reduced row/header/toolbar vertical density slightly.
-- Mobile behavior remains full-width/card-like.
+- Preserved the existing 636px FUND content-fit canvas and fixed lane widths.
+- Desktop FUND header labels are centered within all six grid lanes.
+- Desktop FUND name, detail, and amount values are centered to the same lane axes.
+- The detail title + approval/manual badge group is centered as a unit.
+- Date, evidence, and management behavior remain unchanged.
+- Mobile behavior remains unchanged.
+- Members / assets / returns / accounts content-fit rules are unchanged.
 
 Company Settings: untouched.
