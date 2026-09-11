@@ -28,3 +28,10 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - Discord OAuth/connect flow is untouched.
 - FUND data RPC bindings are unchanged.
 - Mobile FUND fallback is unchanged.
+
+
+## 3.17.4 · FUND APP SHELL BALANCE R1
+- FUND page: top company banner removed
+- FUND page: refresh button removed
+- Sidebar no longer stretches with a large empty footer gap
+- FUND summary/ledger aligned to a tighter app shell rail

@@ -35,7 +35,7 @@
 .icon-button:hover{border-color:#36414d;color:#d5dbe1}
 
 .workspace-shell{
-  margin-top:22px;
+  margin-top:14px;
   display:grid;
   grid-template-columns:var(--sidebar-width) minmax(0,1fr);
   gap:var(--shell-gap);
@@ -44,8 +44,8 @@
 
 /* SIDEBAR --------------------------------------------------------------- */
 .sidebar{
-  position:sticky;top:92px;
-  min-height:calc(100vh - 114px);
+  position:sticky;top:84px;
+  min-height:0;
   display:flex;flex-direction:column;
   padding:15px;
   border:1px solid var(--line);
@@ -79,7 +79,7 @@
 .nav-item__icon{display:grid;place-items:center;color:#697583}
 .nav-item.is-active .nav-item__icon{color:#dba845}
 .nav-item__icon svg{width:18px;height:18px}
-.sidebar-footer{margin-top:auto;display:grid;gap:5px;padding-top:16px;border-top:1px solid var(--line-soft)}
+.sidebar-footer{margin-top:14px;display:grid;gap:5px;padding-top:16px;border-top:1px solid var(--line-soft)}
 .connection-status,.account-summary{display:flex;align-items:center;gap:9px;min-height:44px;padding:0 5px}.account-summary{padding-left:15px;border-left:2px solid rgba(228,178,75,.28)}
 .connection-status>i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(120,211,155,.25)}
 .connection-status>div,.account-summary>div{display:grid;gap:2px;min-width:0}
@@ -90,7 +90,7 @@
 .mini-icon svg{width:15px}
 
 /* MAIN ------------------------------------------------------------------ */
-.main{min-width:0;padding:3px 0 80px}
+.main{min-width:0;padding:0 0 80px}
 .page-header{min-height:78px;display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:18px}
 .page-header h1{margin:5px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.035em}
 .page-header p{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.5}

@@ -387,3 +387,20 @@
   border-color:rgba(255,255,255,.055);
   background:rgba(255,255,255,.01);
 }
+
+
+/* AXE PRODUCT 3.17.4 · app-shell fund balance
+   Removes the top banner on FUND, tightens the sidebar silhouette, and
+   scales the FUND summary to the PRODUCT app shell. */
+@media(min-width:761px){
+  .main--fund .company-hero{display:none}
+  .main--fund .axe-fund{width:min(860px,100%);margin-left:0;margin-right:auto}
+  .main--fund .axe-fund-header{min-height:0;margin-bottom:12px}
+  .main--fund .axe-fund-header-copy h1{font-size:32px}
+  .main--fund .axe-fund-header-copy p{margin-top:7px}
+  .main--fund .axe-fund-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px}
+  .main--fund .axe-fund-metric{padding:12px 14px}
+  .main--fund .axe-fund-metric>strong{font-size:17px}
+  .main--fund .axe-fund-tabs{margin-bottom:10px}
+  .main--fund .axe-fund-ledger{width:636px;max-width:100%;margin-left:0;margin-right:auto}
+}

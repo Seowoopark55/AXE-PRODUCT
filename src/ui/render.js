@@ -136,7 +136,7 @@ function renderAuthed(state) {
         </nav>
         <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div></footer>
       </aside>
-      <main class="main main--${esc(state.page||'fund')}">${renderCompanyBanner(state)}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
+      <main class="main main--${esc(state.page||'fund')}">${state.page==='fund'?'':renderCompanyBanner(state)}${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
   </div>`;
@@ -164,7 +164,7 @@ function renderFund(state) {
   const balance = Number(snap.balance?.public || 0);
   const pending = Number(snap.pending_review_count || 0);
   return `<section class="axe-fund">
-    <header class="axe-fund-header"><div class="axe-fund-header-copy"><span>FUND</span><h1>공금 관리</h1><p>회사 자금의 수입·지출·납부·잔액을 한곳에서 관리합니다.</p></div><div class="axe-fund-header-actions"><button class="axe-fund-tool-button" data-action="refresh-fund">${icon('refresh')}<span>새로고침</span></button></div></header>
+    <header class="axe-fund-header"><div class="axe-fund-header-copy"><span>FUND</span><h1>공금 관리</h1><p>회사 자금의 수입·지출·납부·잔액을 한곳에서 관리합니다.</p></div></header>
     <section class="axe-fund-summary"><article class="axe-fund-metric"><span>현재 계산 잔액</span><strong>${money(balance)}</strong><small>공용계좌 기준</small></article><article class="axe-fund-metric"><span>이번 달 수입</span><strong class="is-income">+${money(snap.month_income)}</strong><small>승인 + 직접 등록</small></article><article class="axe-fund-metric"><span>이번 달 지출</span><strong class="is-expense">-${money(snap.month_expense)}</strong><small>회사 운영 지출</small></article><article class="axe-fund-metric"><span>검수 필요</span><strong class="is-warning">${pending}건</strong><small>대기 · 보류 포함</small></article></section>
     <nav class="axe-fund-tabs">${[['ledger','공금 내역'],['weekly','납부 현황'],['review','납부 검수'],['balance','잔액 점검'],['settings','공금 설정']].map(([k,l])=>`<button class="${state.fundTab===k?'is-active':''}" data-fund-tab="${k}"><span>${l}</span>${k==='review'&&pending?`<em>${pending}</em>`:''}</button>`).join('')}</nav>
     <div class="axe-fund-view">${state.fundTab==='weekly'?renderFundWeekly(state):state.fundTab==='review'?renderFundReview(state):state.fundTab==='balance'?renderFundBalance(state):state.fundTab==='settings'?renderFundSettings(state):renderFundLedger(state)}</div>
