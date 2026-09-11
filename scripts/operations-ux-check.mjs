@@ -6,7 +6,7 @@ const sql='DATABASE 1.7.48 is a separate apply prerequisite';
 function check(c,l){if(!c){console.error(`FAIL ${l}`);process.exitCode=1;}else console.log(`PASS ${l}`)}
 check(render.includes("function companyDisplayName(state) { return currentCompany(state)?.name || '회사'; }"),'canonical company name comes from companies.name');
 check(!render.includes('Discord ${esc(m.discord_user_id)}'),'member list hides Discord numeric ID');
-check(render.includes('employment_started_on')&&render.includes('ops-member-hire'),'actual employment date UX exists');
+check(render.includes('employment_started_on')&&render.includes('data-label="입사일"'),'actual employment date UX exists');
 check(render.includes('name="company_name"')&&!render.includes('name="brand_name"'),'company settings edits canonical company name only');
 check(render.includes('name="company_banner"')&&render.includes('company-hero'),'company banner upload and hero exist');
 check(render.includes('등록자')&&!render.includes('관련자<select'),'fund ledger uses automatic registrant UX');

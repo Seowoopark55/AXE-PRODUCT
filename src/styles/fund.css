@@ -349,3 +349,135 @@
   .axe-fund-history-manage{grid-column:4;grid-row:2}
   .axe-fund-history-date-cell{grid-column:1;grid-row:1 / span 2}
 }
+
+/* 3.16.6 semantic ledger table ---------------------------------------------
+   The fund history now uses a real table / colgroup on desktop. Header and
+   body share the same column widths, so spacing cannot drift row by row.
+---------------------------------------------------------------------------- */
+.axe-fund-history{width:100%;max-width:none}
+.axe-fund-table-wrap{width:100%;overflow:hidden;border-top:1px solid rgba(255,255,255,.045)}
+.axe-fund-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.axe-fund-table col.is-date{width:12%}
+.axe-fund-table col.is-name{width:17%}
+.axe-fund-table col.is-entry{width:32%}
+.axe-fund-table col.is-money{width:16%}
+.axe-fund-table col.is-evidence{width:11%}
+.axe-fund-table col.is-manage{width:12%}
+.axe-fund-table thead th{
+  height:31px;
+  padding:0 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  color:#68717a;
+  background:rgba(255,255,255,.008);
+  font-size:9.4px;
+  font-weight:840;
+  line-height:1;
+  text-align:center;
+  white-space:nowrap;
+}
+.axe-fund-table tbody tr{
+  height:60px;
+  border-bottom:1px solid rgba(255,255,255,.052);
+  transition:background .14s ease;
+}
+.axe-fund-table tbody tr:last-child{border-bottom:0}
+.axe-fund-table tbody tr:not(.is-empty):hover{background:rgba(255,255,255,.014)}
+.axe-fund-table td{
+  min-width:0;
+  padding:8px 12px;
+  vertical-align:middle;
+  overflow:hidden;
+  text-align:center;
+}
+.axe-fund-table-date strong,.axe-fund-table-date span,
+.axe-fund-table-who strong,.axe-fund-table-who span{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.axe-fund-table-date strong{color:#cdbd9f;font-size:11.4px;font-weight:860;font-variant-numeric:tabular-nums}
+.axe-fund-table-date span{margin-top:3px;color:#5f666d;font-size:9.3px;font-weight:720}
+.axe-fund-table-who{text-align:left}
+.axe-fund-table-who strong{color:var(--ops-title);font-size:11.6px;font-weight:850;text-align:left}
+.axe-fund-table-who span{margin-top:3px;color:var(--ops-sub);font-size:9.4px;text-align:left}
+.axe-fund-table-entry{text-align:left}
+.axe-fund-table-entry>div{display:flex;align-items:center;gap:6px;min-width:0}
+.axe-fund-table-entry>div>strong{
+  min-width:0;
+  overflow:hidden;
+  color:var(--ops-title);
+  font-size:11.7px;
+  font-weight:850;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.axe-fund-table-entry>small{
+  display:block;
+  max-width:100%;
+  margin-top:4px;
+  overflow:hidden;
+  color:var(--ops-sub);
+  font-size:9.5px;
+  font-weight:650;
+  line-height:1.2;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.axe-fund-table-money{
+  font-size:11.7px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  text-align:right!important;
+  white-space:nowrap;
+}
+.axe-fund-table-money.is-income{color:var(--green)}
+.axe-fund-table-money.is-expense{color:var(--red)}
+.axe-fund-table-action{text-align:center}
+.axe-fund-table-action .axe-fund-history-action{min-width:45px;margin:0 auto}
+.axe-fund-table .is-empty{height:auto}
+.axe-fund-table .is-empty td{padding:0}
+
+@media(max-width:720px){
+  .axe-fund-table-wrap{overflow:visible;border-top:0}
+  .axe-fund-table,.axe-fund-table tbody,.axe-fund-table tr,.axe-fund-table td{display:block;width:100%}
+  .axe-fund-table colgroup,.axe-fund-table thead{display:none}
+  .axe-fund-table tbody tr{
+    height:auto;
+    margin:8px 0;
+    padding:7px 10px;
+    border:1px solid rgba(255,255,255,.065);
+    border-radius:9px;
+    background:rgba(255,255,255,.012);
+  }
+  .axe-fund-table tbody tr.is-empty{padding:0;border:0;background:transparent}
+  .axe-fund-table td{
+    display:grid;
+    grid-template-columns:70px minmax(0,1fr);
+    align-items:center;
+    gap:10px;
+    min-height:35px;
+    padding:5px 2px;
+    border-bottom:1px solid rgba(255,255,255,.038);
+    text-align:left!important;
+    overflow:visible;
+  }
+  .axe-fund-table td:last-child{border-bottom:0}
+  .axe-fund-table td::before{
+    content:attr(data-label);
+    color:#6e757c;
+    font-size:9.4px;
+    font-weight:800;
+    white-space:nowrap;
+  }
+  .axe-fund-table-date strong,.axe-fund-table-date span,
+  .axe-fund-table-who strong,.axe-fund-table-who span{text-align:left}
+  .axe-fund-table-action .axe-fund-history-action{margin:0}
+  .axe-fund-table .is-empty td{display:block;padding:0}
+  .axe-fund-table .is-empty td::before{display:none}
+}

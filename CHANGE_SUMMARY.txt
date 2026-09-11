@@ -1,12 +1,33 @@
-AXE PRODUCT WEB STAGING 3.16.5
-Balanced Column Grid R1
+AXE PRODUCT WEB STAGING 3.16.6
+SEMANTIC TABLE LAYOUT R1
 
-- 멤버 현황: 이름 / 역할 / 입사일 / 상태 / 관리의 5열 균형 그리드
-- 공금내역: 날짜 / 이름 / 내역 / 금액 / 증빙 / 관리의 6열 균형 그리드
-- 공금 표시명: membership_id 기준 현재 멤버 표시명 우선 사용
-- 자산 현황: 보유자 / 자산 / 분류 / 상태 / 관리의 5열 균형 그리드
-- 계좌 현황: 이름 / 계좌번호 / 상태 / 관리의 4열 균형 그리드
-- 각 행의 셀을 컬럼 중앙축에 맞춰 죽은 공간이 한쪽에 몰리지 않도록 조정
-- 모바일에서는 기존처럼 읽기 쉬운 스택 형태로 전환
+Scope: WEB STAGING only. No DB / BOT changes.
 
-STAGING WEB ONLY. LIVE BOT/PM2/DB 변경 없음.
+What changed
+- Member status list converted from proportional CSS grid rows to a real HTML table.
+- Fund ledger converted to a real HTML table with fixed colgroup widths.
+- Asset list converted to a real HTML table.
+- Asset return history converted to a real HTML table.
+- Account list converted to a real HTML table.
+- Desktop tables use table-layout: fixed, shared header/body column axes, vertical centering,
+  stable cell padding, nowrap/ellipsis for short fields, and explicit colgroup widths.
+- Name/detail cells remain left aligned for readability; status/action cells remain centered;
+  fund amount is right aligned.
+- Mobile keeps a responsive card-like presentation using data-label attributes.
+
+Intent
+- Remove the subtle spacing drift and compressed-text feel caused by independent grid tracks.
+- Make header and row alignment deterministic across the whole board.
+- Keep empty space evenly distributed by the table column model instead of accumulating between blocks.
+
+Validation
+- npm run check: PASS
+- integrated UI: 72/72 PASS
+- row-density: 7/7 PASS
+- balanced-grid/table: 11/11 PASS
+- semantic-table: 10/10 PASS
+- node syntax check for render.js: PASS
+
+Note
+- npm run build was not executed in this packaging environment because node_modules/vite are not installed.
+  Source-level and project validation scripts completed successfully.

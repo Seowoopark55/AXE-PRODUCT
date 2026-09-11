@@ -190,3 +190,140 @@
   .ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}
   .ops-mgmt-action{grid-column:2;grid-row:1 / span 5}
 }
+
+/* 3.16.6 semantic table layout ---------------------------------------------
+   Desktop list views use a real table with a shared column model. This keeps
+   headers and row cells on exactly the same axis and prevents fractional-grid
+   compression from making labels look uneven or squeezed.
+---------------------------------------------------------------------------- */
+.ops-data-table-wrap{
+  width:100%;
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.045);
+}
+.ops-data-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  color:var(--ops-copy);
+}
+.ops-data-table col{width:auto}
+.ops-member-table col.is-name{width:30%}
+.ops-member-table col.is-role{width:18%}
+.ops-member-table col.is-hire{width:20%}
+.ops-member-table col.is-status{width:17%}
+.ops-member-table col.is-manage{width:15%}
+.ops-asset-table col.is-holder{width:22%}
+.ops-asset-table col.is-asset{width:29%}
+.ops-asset-table col.is-category{width:19%}
+.ops-asset-table col.is-status{width:15%}
+.ops-asset-table col.is-manage{width:15%}
+.ops-account-table col.is-name{width:28%}
+.ops-account-table col.is-account{width:36%}
+.ops-account-table col.is-status{width:18%}
+.ops-account-table col.is-manage{width:18%}
+.ops-return-table col.is-asset{width:40%}
+.ops-return-table col.is-process{width:34%}
+.ops-return-table col.is-checker{width:26%}
+.ops-data-table thead th{
+  height:31px;
+  padding:0 14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  color:#68717a;
+  background:rgba(255,255,255,.008);
+  font-size:9.4px;
+  font-weight:840;
+  line-height:1;
+  text-align:center;
+  white-space:nowrap;
+}
+.ops-data-table tbody tr{
+  height:58px;
+  border-bottom:1px solid rgba(255,255,255,.052);
+  transition:background .14s ease;
+}
+.ops-data-table tbody tr:last-child{border-bottom:0}
+.ops-data-table tbody tr:not(.is-empty):hover{background:rgba(255,255,255,.014)}
+.ops-data-table tbody tr.is-attention{background:rgba(255,181,46,.018)}
+.ops-data-table td{
+  min-width:0;
+  padding:8px 14px;
+  vertical-align:middle;
+  text-align:center;
+  overflow:hidden;
+}
+.ops-data-table td strong,
+.ops-data-table td small{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.ops-data-table td strong{
+  color:var(--ops-title);
+  font-size:11.7px;
+  font-weight:850;
+  line-height:1.25;
+}
+.ops-data-table td small{
+  margin-top:3px;
+  color:var(--ops-sub);
+  font-size:9.6px;
+  font-weight:650;
+  line-height:1.2;
+}
+.ops-data-table td.ops-table-primary{text-align:left}
+.ops-data-table td.ops-table-primary strong,
+.ops-data-table td.ops-table-primary small{text-align:left}
+.ops-data-table td>.ops-mgmt-badge,
+.ops-data-table td>.ops-mgmt-action{margin-inline:auto}
+.ops-data-table .ops-mgmt-action{
+  min-width:50px;
+  height:29px;
+  padding:0 10px;
+  font-size:10px;
+}
+.ops-data-table tr.is-empty{height:auto}
+.ops-data-table tr.is-empty td{padding:0;text-align:center}
+.ops-data-table tr.is-empty .ops-mgmt-empty{padding:28px 12px}
+
+@media(max-width:720px){
+  .ops-data-table-wrap{overflow:visible;border-top:0}
+  .ops-data-table,.ops-data-table tbody,.ops-data-table tr,.ops-data-table td{display:block;width:100%}
+  .ops-data-table colgroup,.ops-data-table thead{display:none}
+  .ops-data-table tbody tr{
+    height:auto;
+    margin:8px 0;
+    padding:7px 10px;
+    border:1px solid rgba(255,255,255,.065);
+    border-radius:9px;
+    background:rgba(255,255,255,.012);
+  }
+  .ops-data-table tbody tr.is-empty{padding:0;border:0;background:transparent}
+  .ops-data-table td{
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    align-items:center;
+    gap:10px;
+    min-height:35px;
+    padding:5px 2px;
+    border-bottom:1px solid rgba(255,255,255,.038);
+    text-align:left;
+    overflow:visible;
+  }
+  .ops-data-table td:last-child{border-bottom:0}
+  .ops-data-table td::before{
+    content:attr(data-label);
+    color:#6e757c;
+    font-size:9.4px;
+    font-weight:800;
+    text-align:left;
+    white-space:nowrap;
+  }
+  .ops-data-table td strong,.ops-data-table td small{text-align:left}
+  .ops-data-table td>.ops-mgmt-badge,
+  .ops-data-table td>.ops-mgmt-action{margin:0;justify-self:start}
+  .ops-data-table tr.is-empty td{display:block;padding:0}
+  .ops-data-table tr.is-empty td::before{display:none}
+}

@@ -45,7 +45,7 @@ expect('Fund weekly tab always reloads live status', main.includes("if(state.fun
 expect('Fund refresh reloads weekly status when active', main.includes("if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();"));
 expect('Fund weekly RPC skips nonexistent 5th week', main.includes('function fundWeekNumbersForMonth(year, month)') && main.includes('const weekNumbers=fundWeekNumbersForMonth(year,month);') && main.includes('Promise.all(weekNumbers.map(async week =>') && !main.includes('Promise.all([1,2,3,4,5].map(async week =>'));
 expect('Approved weekly payment renders as weekly fund, never manual extra income', render.includes("const isWeeklyPayment=r.entry_type==='payment'") && render.includes("const title=isWeeklyPayment?'주간공금':(r.category||'기타')") && !render.includes("'추가입금'"));
-expect('Fund balanced ledger structure', render.includes('axe-fund-history-list') && render.includes('axe-fund-history-columns') && render.includes('renderLedgerRow(r,state)'));
+expect('Fund semantic table structure', render.includes('axe-fund-table') && render.includes('<colgroup>') && render.includes('renderLedgerRow(r,state)'));
 expect('Settings basic/module tabs', render.includes("ops-settings-nav-row") && render.includes("ops-settings-tabs") && render.includes("data-settings-tab=\"basic\"") && render.includes("data-settings-tab=\"modules\""));
 expect('Power-style module controls', render.includes('runtime-power') && render.includes("icon('power')") && render.includes('ops-settings-module--channels-${ui.channels.length}'));
 expect('No onboarding flash while company list loads', render.includes('!state.ready ? renderStartupLoading()'));
