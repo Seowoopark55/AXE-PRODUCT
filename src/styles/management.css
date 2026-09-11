@@ -327,3 +327,104 @@
   .ops-data-table tr.is-empty td{display:block;padding:0}
   .ops-data-table tr.is-empty td::before{display:none}
 }
+
+
+/* 3.16.7 compact semantic table R2 -----------------------------------------
+   Keep the semantic table model, but do not stretch sparse operational data
+   across the whole workspace. Each board gets a content-sized maximum width,
+   stable typography, and predictable cell spacing.
+---------------------------------------------------------------------------- */
+.ops-mgmt-page--members .ops-mgmt-section-head,
+.ops-mgmt-page--members .ops-mgmt-board{width:min(650px,100%);margin-inline:auto}
+.ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,
+.ops-mgmt-page--assets.is-assets .ops-mgmt-board{width:min(660px,100%);margin-inline:auto}
+.ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,
+.ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:min(660px,100%);margin-inline:auto}
+.ops-mgmt-page--accounts .ops-mgmt-section-head,
+.ops-mgmt-page--accounts .ops-account-review,
+.ops-mgmt-page--accounts .ops-mgmt-board{width:min(700px,100%);margin-inline:auto}
+
+.ops-data-table-wrap{
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+}
+.ops-data-table{
+  table-layout:fixed;
+  border-spacing:0;
+  letter-spacing:0;
+}
+.ops-member-table col.is-name{width:29%}
+.ops-member-table col.is-role{width:20%}
+.ops-member-table col.is-hire{width:21%}
+.ops-member-table col.is-status{width:15%}
+.ops-member-table col.is-manage{width:15%}
+
+.ops-asset-table col.is-holder{width:23%}
+.ops-asset-table col.is-asset{width:30%}
+.ops-asset-table col.is-category{width:17%}
+.ops-asset-table col.is-status{width:15%}
+.ops-asset-table col.is-manage{width:15%}
+
+.ops-account-table col.is-name{width:26%}
+.ops-account-table col.is-account{width:38%}
+.ops-account-table col.is-status{width:18%}
+.ops-account-table col.is-manage{width:18%}
+
+.ops-return-table col.is-asset{width:39%}
+.ops-return-table col.is-process{width:35%}
+.ops-return-table col.is-checker{width:26%}
+
+.ops-data-table thead th{
+  height:34px;
+  padding:0 10px;
+  font-size:10px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:0;
+}
+.ops-data-table tbody tr{height:60px}
+.ops-data-table td{
+  padding:9px 10px;
+  line-height:1.3;
+}
+.ops-data-table td strong{
+  font-size:12px;
+  font-weight:800;
+  line-height:1.3;
+  letter-spacing:0;
+}
+.ops-data-table td small{
+  margin-top:4px;
+  font-size:9.8px;
+  font-weight:500;
+  line-height:1.25;
+  letter-spacing:0;
+}
+.ops-data-table td.ops-table-primary{padding-left:14px}
+.ops-data-table .ops-mgmt-badge{
+  min-width:46px;
+  height:25px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.ops-data-table .ops-mgmt-action{
+  min-width:50px;
+  height:29px;
+  padding:0 10px;
+  font-size:10px;
+  font-weight:700;
+}
+
+@media(max-width:720px){
+  .ops-mgmt-page--members .ops-mgmt-section-head,
+  .ops-mgmt-page--members .ops-mgmt-board,
+  .ops-mgmt-page--assets.is-assets .ops-mgmt-tabs-row,
+  .ops-mgmt-page--assets.is-assets .ops-mgmt-board,
+  .ops-mgmt-page--assets.is-returns .ops-mgmt-tabs-row,
+  .ops-mgmt-page--assets.is-returns .ops-mgmt-board,
+  .ops-mgmt-page--accounts .ops-mgmt-section-head,
+  .ops-mgmt-page--accounts .ops-account-review,
+  .ops-mgmt-page--accounts .ops-mgmt-board{width:100%}
+}

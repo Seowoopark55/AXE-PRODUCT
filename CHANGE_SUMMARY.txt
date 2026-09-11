@@ -1,33 +1,24 @@
-AXE PRODUCT WEB STAGING 3.16.6
-SEMANTIC TABLE LAYOUT R1
+AXE PRODUCT WEB STAGING 3.16.7
+COMPACT SEMANTIC TABLE R2
 
-Scope: WEB STAGING only. No DB / BOT changes.
+Source basis
+- Rebuilt from the 3.16.6 semantic-table source, with the functional account regression repaired.
+- No DB / BOT changes.
 
-What changed
-- Member status list converted from proportional CSS grid rows to a real HTML table.
-- Fund ledger converted to a real HTML table with fixed colgroup widths.
-- Asset list converted to a real HTML table.
-- Asset return history converted to a real HTML table.
-- Account list converted to a real HTML table.
-- Desktop tables use table-layout: fixed, shared header/body column axes, vertical centering,
-  stable cell padding, nowrap/ellipsis for short fields, and explicit colgroup widths.
-- Name/detail cells remain left aligned for readability; status/action cells remain centered;
-  fund amount is right aligned.
-- Mobile keeps a responsive card-like presentation using data-label attributes.
+Root cause repaired
+- 3.16.6 accidentally removed the accountBadge() helper while renderAccounts() still called it.
+  Opening Accounts could therefore throw ReferenceError and stop rendering.
+- Fund semantic table was forced to width:100% / max-width:none, so a sparse row stretched across
+  the full workspace and created the exact 'empty / collapsed' visual reported in testing.
 
-Intent
-- Remove the subtle spacing drift and compressed-text feel caused by independent grid tracks.
-- Make header and row alignment deterministic across the whole board.
-- Keep empty space evenly distributed by the table column model instead of accumulating between blocks.
+R2 design
+- Keep real HTML tables for deterministic header/body alignment.
+- Constrain operational boards to content-sized max widths.
+- Fund ledger max width 780px and centered.
+- Members 650px, assets 660px, accounts 700px.
+- Standard font weights (700/800) and slightly larger cell text to avoid synthesized / squeezed feel.
+- Stable 34px headers, 60px rows, 9-14px cell padding.
+- Name/detail remain readable; status/action stay centered; fund amount remains right aligned.
+- Mobile falls back to the existing labeled-card table presentation.
 
-Validation
-- npm run check: PASS
-- integrated UI: 72/72 PASS
-- row-density: 7/7 PASS
-- balanced-grid/table: 11/11 PASS
-- semantic-table: 10/10 PASS
-- node syntax check for render.js: PASS
-
-Note
-- npm run build was not executed in this packaging environment because node_modules/vite are not installed.
-  Source-level and project validation scripts completed successfully.
+STAGING WEB ONLY. LIVE BOT / PM2 / DB untouched.
