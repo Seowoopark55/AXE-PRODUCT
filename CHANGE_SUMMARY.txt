@@ -1,9 +1,7 @@
-AXE PRODUCT WEB STAGING 3.16.2 — MEMBER PROFILE COMPACT LAYOUT
+AXE PRODUCT WEB STAGING 3.16.3
 
-- Member detail: Discord display name + alias aligned at the same vertical baseline.
-- Role / status / employment date moved into one compact 3-column row.
-- Added full-width internal member memo field.
-- Member list: balanced columns for name / hire date / role / status / detail.
-- Removed large dead space between name and role by making hire date an explicit column.
-- Discord numeric ID remains hidden.
-- STAGING only. LIVE bot is not touched.
+- Remove obsolete member External Invite button from member management.
+- Compact member/assets/accounts workspaces to remove low-density blank columns.
+- Compact Fund ledger width and fixed columns.
+- Align Discord display name and alias fields to the same vertical baseline.
+- Preserve Discord context-menu member onboarding as the primary registration flow.
