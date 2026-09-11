@@ -132,3 +132,61 @@
 .ops-mgmt-page--assets .ops-mgmt-toolbar,.ops-mgmt-page--accounts .ops-mgmt-toolbar{justify-content:flex-start}
 .ops-mgmt-page--assets .ops-mgmt-filters,.ops-mgmt-page--accounts .ops-mgmt-filters{width:100%}
 .ops-mgmt-page--assets .ops-mgmt-search,.ops-mgmt-page--accounts .ops-mgmt-search{width:168px}
+
+/* 3.16.5 balanced row grid --------------------------------------------------
+   Rows use the full card width as a deliberate column system. The cells are
+   centred on their own tracks so unused space is distributed evenly instead
+   of collecting as a single blank block between left-aligned items.
+---------------------------------------------------------------------------- */
+.ops-mgmt-column-head{
+  min-height:26px;
+  display:grid;
+  align-items:center;
+  column-gap:12px;
+  padding:0 12px;
+  border-bottom:1px solid rgba(255,255,255,.045);
+  color:#66717c;
+  background:rgba(255,255,255,.006);
+  font-size:8.8px;
+  font-weight:820;
+  letter-spacing:.01em;
+}
+.ops-mgmt-column-head>span{text-align:center;white-space:nowrap}
+
+.ops-member-column-head,
+.ops-member-row{grid-template-columns:minmax(0,1.35fr) minmax(78px,.9fr) minmax(86px,.92fr) 68px 58px}
+.ops-member-row{column-gap:12px;padding:8px 12px}
+.ops-member-main,.ops-member-role,.ops-member-hire{justify-items:center;text-align:center}
+.ops-member-state{display:flex;align-items:center;justify-content:center}
+.ops-member-row .ops-mgmt-action{justify-self:center;min-width:50px}
+
+.ops-asset-column-head,
+.ops-asset-row{grid-template-columns:minmax(96px,1.05fr) minmax(0,1.35fr) minmax(72px,.75fr) 72px 58px}
+.ops-asset-row{column-gap:12px;padding:8px 12px}
+.ops-asset-holder,.ops-asset-main,.ops-asset-category{display:grid;gap:2px;min-width:0;justify-items:center;text-align:center}
+.ops-asset-category strong{max-width:100%;overflow:hidden;color:var(--ops-copy);font-size:11.4px;text-overflow:ellipsis;white-space:nowrap}
+.ops-asset-category span{color:var(--ops-sub);font-size:9.8px}
+.ops-asset-state{display:flex;align-items:center;justify-content:center}
+.ops-asset-row .ops-mgmt-action{justify-self:center;min-width:50px}
+
+.ops-account-column-head,
+.ops-account-row{grid-template-columns:minmax(100px,1.05fr) minmax(145px,1.45fr) 82px 58px}
+.ops-account-row{column-gap:12px;padding:8px 12px}
+.ops-account-main,.ops-account-number{justify-content:center;text-align:center}
+.ops-account-main>div,.ops-account-number{justify-items:center;text-align:center}
+.ops-account-state{justify-content:center}
+.ops-account-row .ops-mgmt-action{justify-self:center;min-width:50px}
+
+/* return rows also use evenly distributed tracks */
+.ops-return-row{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(96px,.78fr);column-gap:12px;padding-inline:12px}
+.ops-return-main,.ops-return-reason,.ops-return-actor{justify-items:center;text-align:center}
+
+@media(max-width:720px){
+  .ops-mgmt-column-head{display:none}
+  .ops-member-row,.ops-asset-row,.ops-account-row{grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
+  .ops-member-main,.ops-member-role,.ops-member-hire,.ops-asset-holder,.ops-asset-main,.ops-asset-category,.ops-account-main,.ops-account-number{justify-items:start;text-align:left}
+  .ops-member-state,.ops-asset-state,.ops-account-state{justify-content:flex-start}
+  .ops-member-role,.ops-member-hire,.ops-asset-holder,.ops-asset-category,.ops-account-number{grid-column:1}
+  .ops-member-state,.ops-asset-state,.ops-account-state{grid-column:1}
+  .ops-mgmt-action{grid-column:2;grid-row:1 / span 5}
+}

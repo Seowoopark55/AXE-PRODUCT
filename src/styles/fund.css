@@ -296,3 +296,56 @@
   .axe-fund-tabs{margin-bottom:8px}
   .axe-fund-history-head{margin-bottom:7px}
 }
+
+/* 3.16.5 balanced ledger grid ----------------------------------------------
+   Date / member / item / amount / evidence / manage occupy explicit tracks.
+   This removes the large dead gap created by left-anchored content blocks.
+---------------------------------------------------------------------------- */
+.axe-fund-history{width:min(720px,100%)}
+.axe-fund-history-columns,
+.axe-fund-history-row{
+  display:grid;
+  grid-template-columns:72px minmax(92px,.95fr) minmax(0,1.55fr) 104px 62px 62px;
+  align-items:center;
+  column-gap:12px;
+  padding-left:12px;
+  padding-right:12px;
+}
+.axe-fund-history-columns{
+  min-height:27px;
+  border-bottom:1px solid rgba(255,255,255,.045);
+  color:#62686f;
+  background:rgba(255,255,255,.006);
+  font-size:8.8px;
+  font-weight:820;
+}
+.axe-fund-history-columns>span{text-align:center;white-space:nowrap}
+.axe-fund-history-row{min-height:58px;padding-top:8px;padding-bottom:8px}
+.axe-fund-history-date-cell,.axe-fund-history-who,.axe-fund-history-entry{min-width:0;text-align:center}
+.axe-fund-history-date-cell strong{display:block;color:#cdbd9f;font-size:11.3px;font-weight:860;font-variant-numeric:tabular-nums}
+.axe-fund-history-date-cell span{display:block;margin-top:2px;color:#5e646b;font-size:9.3px;font-weight:740}
+.axe-fund-history-who strong,.axe-fund-history-who span{display:block;text-align:center}
+.axe-fund-history-title{justify-content:center}
+.axe-fund-history-entry>span{text-align:center}
+.axe-fund-history-money{text-align:center}
+.axe-fund-history-evidence,.axe-fund-history-manage{display:flex;align-items:center;justify-content:center}
+.axe-fund-history-no-evidence{width:auto;min-width:32px}
+.axe-fund-history-action{min-width:44px}
+/* Legacy grouped-date selectors are retained only for old markup fallbacks. */
+.axe-fund-history-day{display:block;border-bottom:1px solid rgba(255,255,255,.09)}
+.axe-fund-history-date{display:none}
+
+@media(max-width:760px){
+  .axe-fund-history{width:100%}
+  .axe-fund-history-columns{display:none}
+  .axe-fund-history-row{grid-template-columns:62px minmax(82px,.9fr) minmax(0,1.4fr) 92px 52px 52px;column-gap:7px;padding-inline:8px}
+}
+@media(max-width:620px){
+  .axe-fund-history-row{grid-template-columns:58px minmax(0,1fr) 88px 48px}
+  .axe-fund-history-entry{grid-column:2;grid-row:2}
+  .axe-fund-history-who{grid-column:2;grid-row:1}
+  .axe-fund-history-money{grid-column:3;grid-row:1 / span 2}
+  .axe-fund-history-evidence{grid-column:4;grid-row:1}
+  .axe-fund-history-manage{grid-column:4;grid-row:2}
+  .axe-fund-history-date-cell{grid-column:1;grid-row:1 / span 2}
+}
