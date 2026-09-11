@@ -4,12 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#0a0c10" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a0c10'/%3E%3Cpath d='M14 49 28 15h8l14 34h-9l-3-8H26l-3 8zm15-16h6l-3-8z' fill='%23d6a538'/%3E%3C/svg%3E" />
+    <meta name="theme-color" content="#0a0d11" />
+    <meta name="application-name" content="AXE PRODUCT" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AXE PRODUCT" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <style>
+      html,body,#app{min-height:100%;margin:0;background:#090b0f;color:#f1f4f7}
+      .pwa-boot{min-height:100vh;display:grid;place-items:center;font-family:Inter,Pretendard,"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif}
+      .pwa-boot__mark{display:grid;justify-items:center;gap:10px;color:#f1f4f7}
+      .pwa-boot__icon{width:48px;height:48px;border:1px solid #27313c;border-radius:12px;background:#0f141a;display:grid;place-items:center;color:#e4b24b;font-weight:950;font-size:21px;letter-spacing:-.04em}
+      .pwa-boot__copy{display:grid;justify-items:center;gap:2px}.pwa-boot__copy strong{font-size:13px;letter-spacing:.045em}.pwa-boot__copy small{color:#687481;font-size:8px;font-weight:800;letter-spacing:.15em}
+    </style>
     <title>AXE PRODUCT</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app"><section class="pwa-boot" aria-label="AXE PRODUCT 시작 중"><div class="pwa-boot__mark"><div class="pwa-boot__icon">A</div><div class="pwa-boot__copy"><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div></section></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

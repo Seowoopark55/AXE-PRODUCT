@@ -70,12 +70,16 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : !state.companies?.length ? renderOnboarding(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready && state.pwa?.online===false ? renderOfflineLoading() : !state.ready ? renderStartupLoading() : !state.companies?.length ? renderOnboarding(state) : renderAuthed(state)}
   `;
 }
 
 function renderStartupLoading() {
   return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card"><span class="runtime-startup-spinner" aria-hidden="true"></span><div><strong>AXE PRODUCT</strong><p>회사 정보를 불러오는 중입니다.</p></div></div></section>`;
+}
+
+function renderOfflineLoading() {
+  return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card runtime-startup-card--offline"><span class="runtime-offline-dot" aria-hidden="true"></span><div><strong>AXE PRODUCT</strong><p>네트워크 연결이 없습니다. 운영 데이터는 오프라인에 저장하지 않습니다.</p></div><button class="runtime-btn-ghost" data-action="refresh">다시 연결</button></div></section>`;
 }
 
 function renderEnvironmentMissing() {
@@ -87,6 +91,7 @@ function renderLogin(state) {
     <div class="product-brand product-brand--login"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
     <h1>회사 운영을 한곳에서.</h1><p>Discord 계정으로 로그인해 소속 회사의 운영 콘솔에 접속합니다.</p>
     <button class="runtime-login-button" data-action="discord-login" ${state.loading ? 'disabled' : ''}>Discord로 로그인</button>
+    ${state.pwa?.installAvailable&&!state.pwa?.installed?'<button class="runtime-login-install" data-action="install-app">AXE PRODUCT 앱 설치</button>':''}
   </div></section>`;
 }
 
@@ -116,7 +121,7 @@ function renderAuthed(state) {
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
       <div class="product-brand"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
-      <div class="global-account"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
+      <div class="global-account">${state.pwa?.online===false?'<span class="pwa-offline-chip">OFFLINE</span>':''}<div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
     </div></header>
     <div class="workspace-shell">
       <aside class="sidebar">
@@ -134,7 +139,11 @@ function renderAuthed(state) {
           <span class="sidebar-nav__label spaced">설정</span>${navItem(state,'settings','회사 설정')}
           <span class="sidebar-nav__label spaced">지원</span><button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
         </nav>
-        <footer class="sidebar-footer"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div></footer>
+        <footer class="sidebar-footer">
+          ${state.pwa?.updateAvailable?'<button class="pwa-side-action is-update" data-action="apply-app-update"><span>새 버전 적용</span><small>AXE PRODUCT 업데이트</small></button>':''}
+          ${state.pwa?.installAvailable&&!state.pwa?.installed?'<button class="pwa-side-action" data-action="install-app"><span>앱으로 설치</span><small>독립 창에서 실행</small></button>':''}
+          <div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div>
+        </footer>
       </aside>
       <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>

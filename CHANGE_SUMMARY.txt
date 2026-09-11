@@ -1,11 +1,14 @@
-AXE PRODUCT WEB 3.17.7 - FUND VISUAL STANDARD PROPAGATION R1
+AXE PRODUCT WEB 3.18.0 - PWA APP EXPERIENCE R1
 
 Scope: PRODUCT WEB STAGING only.
 
-- Standardized Members / Assets / Accounts on the FUND 636px frame.
-- Matched operational page header spacing/typography to FUND.
-- Matched operational summary density to FUND.
-- Reworked Assets tab row to FUND-style underline navigation.
-- Moved global account identity into the content rail.
-- Restored Company Settings visual gold baseline and banner; excluded from this propagation.
-- No LIVE AXE, BOT, schema, SQL, policy or trigger changes.
+- Added installable PWA manifest and AXE PRODUCT app icons.
+- Added standalone launch support and critical boot splash.
+- Added service worker for static app shell/assets only.
+- Operational API, Supabase and OAuth responses are NOT cached by the service worker.
+- Added offline fallback state that does not expose stale operational data.
+- Added in-app install affordance and explicit new-version apply flow.
+- Added online/offline status handling.
+- Last company remains localStorage-backed; last page/fund/settings tab now persist across installed-app restarts.
+- Added subtle content transition to reinforce a stable app shell.
+- No LIVE AXE, PRODUCT BOT, schema, SQL, policy or trigger changes.

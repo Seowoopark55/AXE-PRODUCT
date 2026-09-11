@@ -1,13 +1,13 @@
 {
   "name": "axe-product-staging",
   "private": true,
-  "version": "1.7.41-web-ui.16",
+  "version": "1.7.41-web-ui.17",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "node scripts/source-check.mjs && node scripts/integrated-ui-check.mjs && node scripts/onboarding-catalog-check.mjs && node scripts/operations-ux-check.mjs && node scripts/member-identity-ux-check.mjs && node scripts/dense-ops-system-check.mjs && node scripts/content-fit-density-check.mjs",
+    "check": "node scripts/source-check.mjs && node scripts/integrated-ui-check.mjs && node scripts/onboarding-catalog-check.mjs && node scripts/operations-ux-check.mjs && node scripts/member-identity-ux-check.mjs && node scripts/dense-ops-system-check.mjs && node scripts/content-fit-density-check.mjs && node scripts/pwa-app-experience-check.mjs",
     "check:stage5c": "node scripts/stage5c-check.mjs",
     "check:stage5d": "node scripts/stage5d-check.mjs",
     "check:legacy": "node scripts/stage4d-check.mjs && node scripts/stage4d1-check.mjs && node scripts/stage4i-check.mjs && node scripts/stage5d-check.mjs"

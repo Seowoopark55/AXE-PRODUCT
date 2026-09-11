@@ -1,12 +1,15 @@
-AXE PRODUCT WEB STAGING ONLY
+AXE PRODUCT WEB 3.18.0 - STAGING ONLY
 
-1. Extract this ZIP locally.
-2. Copy/overwrite the complete contents into the current GitHub STAGING web project.
-3. Commit and push the STAGING project.
-4. Wait until the Vercel STAGING deployment is Ready.
-5. Test only the STAGING URL.
+Deploy only through the PRODUCT WEB STAGING GitHub/Vercel flow.
+Do NOT use apply-axe-upload.sh.
+Do NOT deploy to LIVE AXE.
+Do NOT modify PRODUCT BOT or database for this package.
 
-DO NOT:
-- run apply-axe-product.sh for this WEB package
-- deploy to Production/LIVE
-- modify or restart /home/pyipsw001/axe-bot
+After Vercel reports Ready, verify:
+1. Normal browser login.
+2. PWA install prompt / installed standalone launch.
+3. Discord user login OAuth returns to the app.
+4. Company Discord connect OAuth returns to Settings.
+5. Fund/Members/Assets/Accounts live data still loads from network.
+6. Offline launch shows the AXE offline state and does not show stale operational data.
+7. Reconnect refreshes current data.

@@ -39,8 +39,8 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: validPages.includes(sessionStorage.getItem('axe_product_page')) ? sessionStorage.getItem('axe_product_page') : 'fund',
-  fundTab: sessionStorage.getItem('axe_product_fund_tab') || 'ledger',
+  page: validPages.includes(localStorage.getItem('axe_product_page')) ? localStorage.getItem('axe_product_page') : 'fund',
+  fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
   currentMonth,
@@ -53,13 +53,19 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'',
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountsSnapshot:null,
-  settingsTab: sessionStorage.getItem('axe_product_settings_tab') || 'basic',
+  settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   companyMenuOpen: false,
   modal: null,
   loading: false,
   ready: false,
   error: '',
   notice: '',
+  pwa: {
+    online: navigator.onLine,
+    installed: window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true,
+    installAvailable: false,
+    updateAvailable: false,
+  },
 };
 
 let noticeTimer = null;
@@ -68,6 +74,77 @@ let reconnectPollTimer = null;
 let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
+let deferredInstallPrompt = null;
+let serviceWorkerRegistration = null;
+let serviceWorkerReloading = false;
+
+function renderPwaState() { render(); }
+
+function isStandaloneDisplay() {
+  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+async function setupPwaExperience() {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    state.pwa.installAvailable = !state.pwa.installed;
+    renderPwaState();
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    state.pwa.installed = true;
+    state.pwa.installAvailable = false;
+    renderPwaState();
+  });
+  window.addEventListener('offline', () => {
+    state.pwa.online = false;
+    renderPwaState();
+  });
+  window.addEventListener('online', async () => {
+    const wasOffline = !state.pwa.online;
+    state.pwa.online = true;
+    renderPwaState();
+    if (wasOffline && state.session?.user) {
+      await refreshAll();
+      setNotice('연결이 복구되어 최신 데이터를 불러왔습니다.');
+    }
+  });
+
+  const displayMode = window.matchMedia?.('(display-mode: standalone)');
+  displayMode?.addEventListener?.('change', () => {
+    state.pwa.installed = isStandaloneDisplay();
+    if (state.pwa.installed) state.pwa.installAvailable = false;
+    renderPwaState();
+  });
+
+  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    serviceWorkerRegistration = registration;
+    if (registration.waiting && navigator.serviceWorker.controller) {
+      state.pwa.updateAvailable = true;
+      renderPwaState();
+    }
+    registration.addEventListener('updatefound', () => {
+      const worker = registration.installing;
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          state.pwa.updateAvailable = true;
+          renderPwaState();
+        }
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (serviceWorkerReloading) return;
+      serviceWorkerReloading = true;
+      window.location.reload();
+    });
+  } catch (error) {
+    console.warn('AXE PRODUCT PWA registration failed', error);
+  }
+}
 
 function suppressBrowserFormHistory() {
   root.querySelectorAll('form').forEach(form => form.setAttribute('autocomplete','off'));
@@ -254,7 +331,7 @@ function startReconnectStatusPoll() {
         clearReconnectPoll();
         await loadBaseCompanyData();
         state.settingsTab='basic';
-        sessionStorage.setItem('axe_product_settings_tab','basic');
+        localStorage.setItem('axe_product_settings_tab','basic');
         setNotice('기존 Discord 연결 정리가 완료됐습니다. 다시 연결할 수 있습니다.');
         return;
       }
@@ -282,7 +359,7 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(null,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; sessionStorage.setItem('axe_product_page','settings'); sessionStorage.setItem('axe_product_settings_tab','basic');
+  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
   if(discordCatalogPending()){setNotice(`Discord 서버 ${connection.guild_name||''} 연결 완료 · 역할·채널 정보를 불러오는 중입니다.`);startCatalogStatusPoll();}
   else setNotice(`Discord 서버 ${connection.guild_name||''} 연결이 완료됐습니다.`);
 }
@@ -344,9 +421,9 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.page=pageBtn.dataset.page; sessionStorage.setItem('axe_product_page',state.page); if(state.page==='fund'&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); render(); return; }
+  if(pageBtn){ state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(state.page==='fund'&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
-  if(fundTab){state.fundTab=fundTab.dataset.fundTab;sessionStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
+  if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
   const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;render();return;}
   const settingsTab=event.target.closest('[data-settings-tab]');
@@ -361,7 +438,7 @@ root.addEventListener('click', async event => {
         await saveBasicSettingsData(activeData,{requireOnboardingRoles:true});
         await loadBaseCompanyData();
         state.settingsTab='modules';
-        sessionStorage.setItem('axe_product_settings_tab','modules');
+        localStorage.setItem('axe_product_settings_tab','modules');
         setNotice('역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.');
       });
       return;
@@ -370,11 +447,27 @@ root.addEventListener('click', async event => {
       setError('먼저 Discord 서버를 연결해 주세요.');
       return;
     }
-    state.settingsTab=nextTab;sessionStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
+    state.settingsTab=nextTab;localStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
   }
   if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(action==='install-app'){
+    if(!deferredInstallPrompt){setNotice('현재 브라우저에서는 설치 안내를 바로 열 수 없습니다. 브라우저 메뉴의 앱 설치 기능을 이용해 주세요.');return;}
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    state.pwa.installAvailable=false;
+    if(choice?.outcome==='accepted') state.pwa.installed=true;
+    render();
+    return;
+  }
+  if(action==='apply-app-update'){
+    const waiting=serviceWorkerRegistration?.waiting;
+    if(!waiting){state.pwa.updateAvailable=false;render();return;}
+    waiting.postMessage({type:'SKIP_WAITING'});
+    return;
+  }
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.companyBannerUrl='';state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
@@ -458,7 +551,7 @@ document.addEventListener('click', event => {
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
-    if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;state.page='settings';state.settingsTab='basic';sessionStorage.setItem('axe_product_page','settings');sessionStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;setNotice('새 회사가 생성됐습니다. Discord 연결부터 설정해 주세요.');return;}
+    if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;state.page='settings';state.settingsTab='basic';localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;setNotice('새 회사가 생성됐습니다. Discord 연결부터 설정해 주세요.');return;}
     if(type==='redeem-invite'){const joined=await redeemCompanyInvite(String(data.get('invite_code')||'').trim());if(!joined?.company_id)throw new Error('가입된 회사 정보를 받지 못했습니다.');state.companyId=joined.company_id;localStorage.setItem('axe_product_company_id',state.companyId);state.modal=null;await loadCompanies();await loadCompanyData();setNotice('회사에 참가했습니다.');return;}
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='feedback'){const result=await submitProductFeedback(state.companyId,String(data.get('category')),String(data.get('title')||'').trim(),String(data.get('detail')||'').trim(),String(data.get('contact')||'').trim());state.modal=null;setNotice(`피드백을 보냈습니다. 접수번호 ${result?.reference||''}`);return;}
@@ -497,7 +590,7 @@ root.addEventListener('submit', async event => {
       await loadBaseCompanyData();
       if(wasRoleStep || state.onboardingStatus?.current_step==='modules'){
         state.settingsTab='modules';
-        sessionStorage.setItem('axe_product_settings_tab','modules');
+        localStorage.setItem('axe_product_settings_tab','modules');
       }
       setNotice(wasRoleStep?'역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.':'기본 정보를 저장했습니다.');return;
     }
@@ -511,4 +604,5 @@ root.addEventListener('submit', async event => {
   });
 });
 
+setupPwaExperience();
 boot();

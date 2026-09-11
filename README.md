@@ -67,3 +67,15 @@ This WEB patch does **not** bypass the DB-provided `can_edit` flag. Approval-lin
 - Top-right identity remains inside the active content rail: 636px for operational pages and 680px for Company Settings.
 - Company banner data/upload behavior is preserved; this patch only removes the large page hero from the app shell.
 - LIVE AXE / PRODUCT BOT / DB are untouched.
+
+
+## 3.18.0 · PWA APP EXPERIENCE R1
+AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app-shell UI. The PWA service worker only handles same-origin static shell assets; operational data remains network-first and is never cached as business data.
+
+### STAGING verification
+- Install from Chrome/Edge and launch from the desktop/start menu.
+- Confirm there is no browser address bar in standalone mode.
+- Confirm Supabase Discord login and company Discord OAuth return correctly.
+- Confirm Fund/Members/Assets/Accounts remain live network data.
+- Toggle offline after one successful install: AXE should show an offline state rather than stale treasury/member/account data.
+- When a later service worker is waiting, use `새 버전 적용` from the sidebar.

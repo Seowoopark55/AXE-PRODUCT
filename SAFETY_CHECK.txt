@@ -1,9 +1,12 @@
-AXE PRODUCT WEB STAGING 3.17.3 SAFETY CHECK
+AXE PRODUCT WEB STAGING 3.18.0 SAFETY CHECK
 
 PASS - WEB-only source package.
 PASS - LIVE AXE paths/processes are not referenced for deployment.
 PASS - No DATABASE migration or SQL mutation included.
 PASS - No STAGING BOT files included.
-PASS - Company Settings CSS/renderer not changed.
-PASS - PRODUCT DB `can_edit` is respected; browser does not force-edit restricted rows.
-PASS - FUND-only page class scopes banner rail changes to the FUND page.
+PASS - Service worker caches same-origin static shell/assets only.
+PASS - /api/* requests are not intercepted or cached.
+PASS - External Supabase / Discord / OAuth traffic is not intercepted or cached.
+PASS - Offline fallback explicitly avoids claiming stale operational data.
+PASS - Service worker update activation requires explicit user action.
+PASS - PRODUCT STAGING deployment flow remains GitHub -> Vercel only.
