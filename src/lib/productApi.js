@@ -63,7 +63,7 @@ export async function getMemberships(companyId) {
   assertClient();
   const result = await supabase
     .from('company_memberships')
-    .select('id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name,alias_name,employment_started_on,joined_at,created_at,updated_at')
+    .select('id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name,alias_name,employment_started_on,member_note,joined_at,created_at,updated_at')
     .eq('company_id', companyId)
     .order('created_at', { ascending: true });
   return unwrap(result, '멤버 목록을 불러오지 못했습니다.') || [];
@@ -104,6 +104,18 @@ export async function updateMembershipEmploymentDate(membershipId, employmentSta
     .select('id,employment_started_on')
     .single();
   return unwrap(result, '입사일을 저장하지 못했습니다.');
+}
+
+export async function updateMembershipNote(membershipId, memberNote) {
+  assertClient();
+  const value = String(memberNote || '').trim() || null;
+  const result = await supabase
+    .from('company_memberships')
+    .update({ member_note: value, updated_at: new Date().toISOString() })
+    .eq('id', membershipId)
+    .select('id,member_note')
+    .single();
+  return unwrap(result, '멤버 메모를 저장하지 못했습니다.');
 }
 
 export async function updateCompanyName(companyId, name) {

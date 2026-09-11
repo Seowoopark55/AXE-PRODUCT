@@ -1,22 +1,9 @@
-AXE PRODUCT WEB STAGING · Operations UX Redesign R1
+AXE PRODUCT WEB STAGING 3.16.2 — MEMBER PROFILE COMPACT LAYOUT
 
-- Canonical company name: companies.name everywhere; brand_name is no longer a separate customer-facing name.
-- Company banner hero area + Company Settings banner upload/remove.
-- Current account/role/logout moved to top-right header.
-- PRODUCT STAGING + refresh moved to sidebar footer with Discord status.
-- Member list hides Discord numeric IDs and shows an explicit actual employment date only.
-- Member detail can edit actual employment date independently from AXE PRODUCT registration timestamps.
-- Fund income/expense modal replaces selectable related-person field with automatic readonly registrant.
-- Asset list/modal hides legacy/internal IDs; status is a dropdown; unassigned assets surface a direct Assign action.
-- Existing legacy_no is preserved internally during edits.
-- Existing DB auto-unassign-on-left flow is preserved; WEB exposes smooth reassignment.
-
-STAGING WEB ONLY. Deploy through GitHub STAGING -> commit/push -> Vercel Ready.
-
-
-3.16.1 MEMBER IDENTITY / CLEAN SIDEBAR
-- 회사 멤버 기본 이름을 Discord 서버 표시명 + 선택형 별칭 구조로 분리.
-- 멤버 상세에서 Discord 숫자 ID 대신 서버 표시명과 별칭을 관리.
-- 입력/검색 필드의 브라우저 폼 자동완성 기록 노출을 억제.
-- 좌측 하단 PRODUCT STAGING 배지와 수동 새로고침 버튼 제거.
-- 고객 UI의 STAGING 표기 제거, 브라우저 타이틀 AXE PRODUCT로 정리.
+- Member detail: Discord display name + alias aligned at the same vertical baseline.
+- Role / status / employment date moved into one compact 3-column row.
+- Added full-width internal member memo field.
+- Member list: balanced columns for name / hire date / role / status / detail.
+- Removed large dead space between name and role by making hire date an explicit column.
+- Discord numeric ID remains hidden.
+- STAGING only. LIVE bot is not touched.

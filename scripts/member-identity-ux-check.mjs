@@ -14,4 +14,9 @@ check(main.includes('updateMembershipAlias(id,aliasName)'),'member form persists
 check(main.includes('suppressBrowserFormHistory'),'browser form history suppression is applied');
 check(render.includes('name="category"')&&render.includes('autocomplete="off"'),'fund free-text category disables browser autocomplete');
 check(html.includes('<title>AXE PRODUCT</title>')&&!html.includes('<title>AXE PRODUCT STAGING</title>'),'browser title is customer-facing');
+
+check(render.includes('member-profile-inline')&&render.includes('name="member_note"'),'member detail uses aligned 3-column role/status/hire row plus memo');
+check(render.includes('ops-member-hire')&&render.includes('이름 · 입사일 · 역할 · 상태'),'member list uses balanced name/hire/role/status columns');
+check(api.includes('member_note')&&api.includes('updateMembershipNote'),'member memo is loaded and writable');
+check(main.includes('updateMembershipNote(id,memberNote)'),'member form persists memo');
 if(!process.exitCode) console.log('AXE PRODUCT MEMBER IDENTITY UX CHECK: PASS');

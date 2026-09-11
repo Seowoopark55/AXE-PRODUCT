@@ -45,3 +45,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .runtime-modal-form input.is-readonly,.runtime-modal-form input[readonly]{background:#0a0f14;color:#9aa4ad;cursor:default}
 .runtime-modal-form label small{font-size:8.5px;color:#697581;font-weight:600;line-height:1.35}
 .runtime-modal-hint{grid-column:1/-1;padding:9px 10px;border:1px solid rgba(228,178,75,.12);border-radius:8px;background:rgba(228,178,75,.035);color:#8f8170;font-size:9px;line-height:1.5}
+
+/* Member profile modal compact alignment */
+.member-profile-form>label{align-self:start}.member-profile-form .member-profile-inline.is-full{grid-column:1/-1}.member-profile-form .member-profile-inline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}.member-profile-form .member-profile-inline label{display:grid;gap:6px;min-width:0;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-form textarea[name="member_note"]{min-height:82px;max-height:160px}.member-profile-form>label:nth-of-type(1),.member-profile-form>label:nth-of-type(2){grid-template-rows:auto 38px minmax(24px,auto)}
+@media(max-width:700px){.member-profile-form .member-profile-inline{grid-template-columns:1fr}.member-profile-form>label:nth-of-type(1),.member-profile-form>label:nth-of-type(2){grid-template-rows:auto 38px auto}}
