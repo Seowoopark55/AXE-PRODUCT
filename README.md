@@ -240,3 +240,11 @@ Apply `SUPABASE_MIGRATION_3_21_0_PLATFORM_SUBSCRIPTIONS_FUND_EVIDENCE.sql` to PR
 - Includes the PLATFORM OWNER bootstrap UID directly.
 - Migration is idempotent and includes compatibility handling for the earlier 3.20.2 subscription draft shape.
 - WEB runtime behavior is unchanged from 3.21.0; this patch fixes the database deployment contract.
+
+
+## 3.21.2 · PLATFORM SHELL BALANCE R1
+- PLATFORM OWNER operational company switcher now hides companies whose subscription is paused or expired; stopped companies remain visible in Service Management for reactivation.
+- Platform plan labels are Korean and duration-oriented: 7일 체험 / 30일 이용 / 90일 이용 / 내부용·무제한 / 기존 계약.
+- AXE PRODUCT branding is centered in the top rail and the signed-in identity is moved to the far-right edge.
+- Compact operational content is shifted slightly right on desktop to reduce unused right-side workspace while preserving responsive fallbacks.
+- No database migration is required for this patch.

@@ -87,3 +87,11 @@ AXE PRODUCT WEB STAGING 3.21.0 - PLATFORM SUBSCRIPTIONS + FUND EVIDENCE R1
 - Photo input supports file upload, drag/drop, and clipboard screenshot paste (Ctrl+V), max 5 images, JPG/PNG/WEBP, 10MB each.
 - Reuses axe-fund-evidence private storage bucket and adds fund_ledger_attachments metadata table/RPCs.
 - No LIVE AXE or PRODUCT BOT modifications.
+
+
+AXE PRODUCT WEB STAGING 3.21.2 - PLATFORM SHELL BALANCE R1
+- Hide paused/expired companies from PLATFORM OWNER company picker.
+- Korean duration-oriented plan labels.
+- Center AXE PRODUCT in top header; move account identity to far-right.
+- Shift compact operational content slightly right to reduce empty workspace.
+- WEB-only patch; no DB migration.

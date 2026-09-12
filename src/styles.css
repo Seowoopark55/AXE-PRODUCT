@@ -192,3 +192,63 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-demo-preview-badge.is-live i{background:#d5a343;box-shadow:0 0 12px rgba(213,163,67,.24)}
 .setup-demo-preview-badge.is-live span{color:#d9bd82}
 .setup-demo-preview-badge.is-live small{color:#8c7a58}
+
+
+/* AXE PRODUCT 3.21.2 · PLATFORM SHELL BALANCE R1
+   Center the product identity in the top rail, push the signed-in identity to
+   the far-right edge, and shift compact operational boards slightly right so
+   the main workspace no longer feels left-heavy. */
+@media(min-width:981px){
+  .runtime-app .global-header__inner{
+    position:relative;
+    display:flex!important;
+    align-items:center;
+    justify-content:flex-end!important;
+    gap:0!important;
+  }
+  .runtime-app .product-brand{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    grid-column:auto!important;
+    z-index:1;
+    text-align:center;
+  }
+  .runtime-app .product-brand>div{justify-items:center}
+  .runtime-app .global-account,
+  .runtime-app--fund .global-account,
+  .runtime-app--members .global-account,
+  .runtime-app--assets .global-account,
+  .runtime-app--accounts .global-account,
+  .runtime-app--settings .global-account{
+    position:relative;
+    z-index:2;
+    width:auto!important;
+    max-width:none!important;
+    margin-left:auto!important;
+    padding-left:0!important;
+    padding-right:0!important;
+    justify-self:auto!important;
+    justify-content:flex-end!important;
+  }
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{
+    margin-left:32px!important;
+    margin-right:auto!important;
+  }
+}
+@media(min-width:761px) and (max-width:1280px){
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:16px!important}
+}
+@media(min-width:761px) and (max-width:980px){
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:0!important}
+}
