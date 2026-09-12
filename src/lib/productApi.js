@@ -19,14 +19,20 @@ export async function getSession() {
   return result.data.session;
 }
 
+export async function refreshSession() {
+  assertClient();
+  const result = await supabase.auth.refreshSession();
+  if (result.error) throw result.error;
+  return result.data.session;
+}
+
 export async function signInWithDiscord() {
   assertClient();
-  const result = await supabase.auth.signInWithOAuth({
-    provider: 'discord',
-    options: {
-      redirectTo: `${window.location.origin}/`,
-    },
-  });
+  const configuredProvider = String(import.meta.env.VITE_SUPABASE_DISCORD_AUTH_PROVIDER || 'discord').trim();
+  const provider = configuredProvider || 'discord';
+  const options = { redirectTo: `${window.location.origin}/` };
+  if (provider.startsWith('custom:')) options.scopes = 'identify';
+  const result = await supabase.auth.signInWithOAuth({ provider, options });
   if (result.error) throw result.error;
 }
 
@@ -649,6 +655,38 @@ export async function completeDiscordConnection(linkToken) {
   }
 
   return data.connection;
+}
+
+
+export async function createGuidedSetupChannels(companyId, categoryName, channels = []) {
+  return authenticatedProductApi('/api/discord/setup/channels', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId, category_name: categoryName, channels }),
+  });
+}
+
+export async function listGuidedSetupMembers(companyId, roleId) {
+  const data = await authenticatedProductApi('/api/discord/setup/members', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId, role_id: roleId }),
+  });
+  return data || { members: [] };
+}
+
+export async function bulkRegisterDiscordMembers(companyId, roleId, discordUserIds = [], role = 'member') {
+  const ids = [...new Set((Array.isArray(discordUserIds) ? discordUserIds : [])
+    .map((value) => String(value || '').trim())
+    .filter((value) => /^\d{15,22}$/.test(value)))];
+  if (!ids.length) return { inserted: [], skipped: [], rejected_count: 0 };
+  return authenticatedProductApi('/api/discord/setup/register-members', {
+    method: 'POST',
+    body: JSON.stringify({
+      company_id: companyId,
+      role_id: String(roleId || ''),
+      discord_user_ids: ids,
+      target_role: role === 'admin' ? 'admin' : 'member',
+    }),
+  });
 }
 
 export async function getCompanyOnboardingStatus(companyId) {

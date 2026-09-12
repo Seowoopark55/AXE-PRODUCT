@@ -22,6 +22,10 @@ export function getDiscordConfig() {
   };
 }
 
+export function getDiscordBotToken() {
+  return requiredEnv('DISCORD_BOT_TOKEN');
+}
+
 function encodePayload(payload) {
   return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
 }

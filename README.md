@@ -192,3 +192,18 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Users can filter Discord members by a selected role (member/admin/guest), select visible users, and preview bulk AXE role assignment.
 - Individual Discord right-click registration remains available as a later fallback.
 - No Discord, DB, BOT, or LIVE AXE mutations are performed by this preview.
+
+
+## 3.20.0 · LIVE GUIDED SETUP + SESSION RESILIENCE R1
+- Guided Setup is now the real company setup flow instead of a preview-only experience.
+- Real Discord channel creation supports editable category/channel names and duplicate-name guards.
+- Role-filtered member import now revalidates selected Discord IDs on the server before writing memberships.
+- Session recovery was hardened for tab return/focus/network return and visible-session health checks.
+- Minimal Discord login privacy path is code-ready through a custom Supabase OAuth provider; hosted provider configuration remains a required STAGING step before the email permission disappears.
+
+
+## 3.20.1 · OPERATIONS ROW ALIGNMENT + MANAGEMENT ACTIONS R1
+- Center-aligned status/management headers with their actual row controls in Members, Assets and Accounts.
+- Fund manual rows keep direct edit; linked rows now open a real correction workflow that preserves the source row and posts a delta adjustment through the existing ledger RPC.
+- Account rows now expose real per-row management: pending requests can be reviewed, the current administrator can submit an account edit request from the row, and other members expose a detail view.
+- No DB schema or PRODUCT BOT changes.

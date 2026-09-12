@@ -1,0 +1,25 @@
+AXE PRODUCT WEB 3.20.0 VALIDATION
+
+Static/source validation:
+- node --check edited JS: PASS
+- npm run check: PASS
+- Source Check: PASS (24 source files)
+- Integrated UI: 72/72 PASS
+- Onboarding catalog readiness: PASS
+- Operations UX: PASS
+- Member Identity UX: PASS
+- Dense Operations: 12/12 PASS
+- Content-fit: 18/18 PASS
+- Generated Ambient Shell: 10/10 PASS
+- Guided Setup Typography: 10/10 PASS
+- Live Guided Setup: 15/15 PASS
+- Session/Auth Privacy: 10/10 PASS
+
+Not validated from this container:
+- npm run build (vite dependencies are not installed in this runtime; prior dependency install timed out)
+- Hosted Supabase Auth session policy values
+- Hosted Supabase Custom OAuth provider configuration
+- Actual PRODUCT STAGING RLS/constraints for company_memberships insert
+- Live Discord Manage Channels / Server Members Intent behavior
+
+These must be verified on PRODUCT STAGING before production rollout.

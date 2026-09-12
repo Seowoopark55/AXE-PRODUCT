@@ -62,3 +62,18 @@ AXE PRODUCT WEB STAGING 3.19.3 - GUIDED MEMBER IMPORT + FIXED FOOTER R1
 - Added preview-only role-filtered bulk member registration and AXE role assignment.
 - Keeps individual Discord context-menu member registration as fallback.
 - No actual member writes or Discord mutations.
+
+AXE PRODUCT WEB STAGING 3.20.0 - LIVE GUIDED SETUP + SESSION RESILIENCE R1
+- Preview UX promoted to live guided company setup.
+- Real Discord channel creation + direct channel binding.
+- Server-verified role-filter member bulk registration.
+- Duplicate channel-name guard.
+- Session resume/health recovery hardened.
+- Custom OAuth minimal-scope login path prepared; hosted Supabase provider configuration still required to remove Discord email permission.
+
+AXE PRODUCT WEB STAGING 3.20.1 - OPERATIONS ROW ALIGNMENT + MANAGEMENT ACTIONS R1
+
+- Fixed header/content axis mismatches in member, asset and account tables.
+- Activated Fund management for linked rows with audit-safe correction adjustments.
+- Added functional account row management for own edit request, pending review and member detail.
+- LIVE AXE / PRODUCT BOT / DB schema untouched.

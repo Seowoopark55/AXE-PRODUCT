@@ -333,3 +333,22 @@
     padding-right:9px;
   }
 }
+
+
+/* AXE PRODUCT 3.20.1 · OPERATIONS COLUMN ALIGNMENT R1 */
+@media(min-width:761px){
+  .main--members .ops-lane-head--member>span:nth-child(4),
+  .main--members .ops-lane-head--member>span:nth-child(5),
+  .main--assets .ops-lane-head--asset>span:nth-child(4),
+  .main--assets .ops-lane-head--asset>span:nth-child(5),
+  .main--accounts .ops-lane-head--account>span:nth-child(3),
+  .main--accounts .ops-lane-head--account>span:nth-child(4){text-align:center}
+
+  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(4),
+  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(5),
+  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(4),
+  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(5),
+  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(3),
+  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(4){justify-content:center;text-align:center}
+}
+.runtime-account-detail{padding:16px 18px 18px}.runtime-account-detail dl{margin:0 0 14px;display:grid;border:1px solid var(--line-soft);border-radius:10px;overflow:hidden}.runtime-account-detail dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:center;min-height:42px;padding:0 12px;border-bottom:1px solid var(--line-soft)}.runtime-account-detail dl>div:last-child{border-bottom:0}.runtime-account-detail dt{color:#7f8b97;font-size:10px;font-weight:800}.runtime-account-detail dd{margin:0;color:#e7edf3;font-size:11px;font-weight:800}.runtime-account-detail .runtime-modal-hint{margin-bottom:14px}.ops-mgmt-action.is-review{border-color:rgba(228,178,75,.22);color:#d7b365}.axe-fund-history-action.is-correction{border-color:rgba(228,178,75,.18);color:#caa45d}

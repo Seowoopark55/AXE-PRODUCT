@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       scope: 'bot applications.commands',
       state,
       redirect_uri: config.redirectUri,
-      permissions: '0',
+      permissions: '16',
       integration_type: '0',
       prompt: 'consent',
     });

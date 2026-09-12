@@ -91,6 +91,100 @@ export async function requireCompanyAdmin(token, userId, companyId) {
   return data[0];
 }
 
+
+export async function getCompanyDiscordConnection(token, companyId) {
+  const { url, key } = config();
+  const params = new URLSearchParams({
+    company_id: `eq.${companyId}`,
+    status: 'eq.connected',
+    select: 'company_id,guild_id,guild_name,status',
+    limit: '1',
+  });
+
+  const response = await fetch(
+    `${url}/rest/v1/discord_connections?${params.toString()}`,
+    {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+        'Accept-Profile': 'axe_product',
+      },
+    }
+  );
+
+  const data = await readJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error('Discord 연결 정보를 확인하지 못했습니다.');
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const row = Array.isArray(data) ? data[0] : null;
+  if (!row?.guild_id) {
+    const error = new Error('연결된 Discord 서버가 없습니다.');
+    error.statusCode = 409;
+    throw error;
+  }
+  return row;
+}
+
+
+export async function getCompanyMembershipsByDiscordIds(token, companyId, discordIds = []) {
+  const { url, key } = config();
+  const ids = [...new Set((Array.isArray(discordIds) ? discordIds : []).map((value) => String(value || '').trim()).filter(Boolean))];
+  if (!ids.length) return [];
+
+  const rows = [];
+  for (let offset = 0; offset < ids.length; offset += 100) {
+    const chunk = ids.slice(offset, offset + 100);
+    const params = new URLSearchParams({
+      company_id: `eq.${companyId}`,
+      discord_user_id: `in.(${chunk.join(',')})`,
+      select: 'id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name',
+    });
+    const response = await fetch(`${url}/rest/v1/company_memberships?${params.toString()}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+        'Accept-Profile': 'axe_product',
+      },
+    });
+    const data = await readJsonSafe(response);
+    if (!response.ok) {
+      const error = new Error(data?.message || '기존 멤버 정보를 확인하지 못했습니다.');
+      error.statusCode = response.status;
+      throw error;
+    }
+    if (Array.isArray(data)) rows.push(...data);
+  }
+  return rows;
+}
+
+export async function insertCompanyMembershipRows(token, rows = []) {
+  const { url, key } = config();
+  const payload = Array.isArray(rows) ? rows : [];
+  if (!payload.length) return [];
+  const response = await fetch(`${url}/rest/v1/company_memberships?select=id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Content-Profile': 'axe_product',
+      'Accept-Profile': 'axe_product',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await readJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error(data?.message || '선택한 Discord 멤버를 등록하지 못했습니다.');
+    error.statusCode = response.status;
+    throw error;
+  }
+  return Array.isArray(data) ? data : [];
+}
+
 export async function upsertDiscordConnection({
   token,
   userId,
