@@ -89,3 +89,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Header identity remains aligned to the active content rail inside the expanded frame.
 - Service Worker cache bumped to `axe-product-pwa-3.18.1-r1`.
 - LIVE AXE / PRODUCT BOT / DB unchanged.
+
+
+## 3.18.2 · CONTEXT UTILITY RAIL R1
+- Uses the wide desktop workspace as an intentional context zone instead of stretching operational tables.
+- Adds a page-aware utility rail for Fund / Members / Assets / Accounts / Settings.
+- Rail shows current company + Discord/role context, page status metrics, and existing safe quick actions.
+- Core operation rails remain 636px (Settings 680px); Utility Rail appears only at desktop widths >= 1280px.
+- Service Worker cache bumped to `axe-product-pwa-3.18.2-r1`.

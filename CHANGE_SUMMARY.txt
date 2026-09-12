@@ -1,8 +1,6 @@
-AXE PRODUCT WEB STAGING 3.18.1 - DESKTOP APP FRAME R1
+AXE PRODUCT WEB STAGING 3.18.2 - CONTEXT UTILITY RAIL R1
 
-- Expanded outer PRODUCT frame to near-window width.
-- Preserved compact operation content rails.
-- Added intentional full-height workspace surface around the compact rail.
-- PWA standalone mode uses tighter 6px outer gutter.
-- Header account identity remains inside page content axis.
-- Bumped Service Worker cache version for installed-app delivery.
+- Added desktop-only context utility rail inside the APP workspace.
+- Core management tables remain compact; right-side whitespace becomes a deliberate status/action zone.
+- Page-aware status and quick actions for Fund, Members, Assets, Accounts, Settings.
+- No DB, BOT, or LIVE AXE changes.

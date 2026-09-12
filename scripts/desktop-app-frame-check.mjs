@@ -12,7 +12,7 @@ const checks = [
   ['header account content rail', css.includes('width:668px')],
   ['settings account content rail', css.includes('width:712px')],
   ['mobile frame reset', css.includes('@media(max-width:760px)') && css.includes('border-radius:0')],
-  ['service worker cache bumped', sw.includes("axe-product-pwa-3.18.1-r1")],
+  ['service worker cache bumped', sw.includes("axe-product-pwa-3.18.2-r1")],
 ];
 let pass = 0;
 for (const [name, ok] of checks) {
