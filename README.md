@@ -150,3 +150,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Replaced the previous square/check look with a faint diamond lattice.
 - Small repeated AXE logo tiles remain only in the side margins, now slightly more visible.
 - Central console width and layout remain unchanged.
+
+
+## 3.18.10 · DIAMOND STAGGERED LOGO SIDES R1
+- Side branding no longer uses logos in literal rows.
+- The repeated AXE marks are arranged diagonally inside a larger tile so the pattern reads as staggered rather than lined up.
+- The diamond lattice remains subtle and quieter than the logos.
+- Central shared-console layout remains unchanged.

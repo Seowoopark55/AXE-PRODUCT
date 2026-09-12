@@ -5,7 +5,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const check=(ok,label)=>{if(!ok){console.error(`FAIL ${label}`);process.exitCode=1;}else console.log(`PASS ${label}`);};
 
-check(pkg.version==='1.7.41-web-ui.26','web patch version');
+check(pkg.version==='1.7.41-web-ui.27','web patch version');
 check(main.includes('startCatalogStatusPoll'),'catalog readiness polling exists');
 check(main.includes('status?.catalog_ready === true'),'poll waits for DB catalog readiness');
 check(main.includes('discordCatalogPending()'),'role flow guards catalog readiness');
