@@ -55,3 +55,10 @@ AXE PRODUCT WEB STAGING 3.19.2 - GUIDED CHANNEL BUILDER PREVIEW R1
 - Fund recommendation corrected to a single #공금현황판 channel.
 - Added a non-destructive channel creation simulation and auto-link result preview.
 - No Discord, BOT, DB, or LIVE AXE changes.
+
+AXE PRODUCT WEB STAGING 3.19.3 - GUIDED MEMBER IMPORT + FIXED FOOTER R1
+
+- Fixed clipped Next/action footer in long Quick Setup screens.
+- Added preview-only role-filtered bulk member registration and AXE role assignment.
+- Keeps individual Discord context-menu member registration as fallback.
+- No actual member writes or Discord mutations.

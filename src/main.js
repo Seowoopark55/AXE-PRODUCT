@@ -78,7 +78,12 @@ function createSetupDemoState(){
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',cooking:'요리-주문'},
-    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'}
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'},
+    memberFilter:'member',
+    memberTargetRole:'member',
+    memberSelected:['m1','m2','m3','m4','m5','m6'],
+    memberImportDone:false,
+    memberImportSkipped:false
   };
 }
 
@@ -404,14 +409,29 @@ root.addEventListener('click', async event => {
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
   if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
-  if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(5,Number(state.setupDemo.step||0)+1);render();return;}
+  if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}
   if(action==='setup-demo-back'){if(!state.setupDemo)return;state.setupDemo.step=Math.max(0,Number(state.setupDemo.step||0)-1);render();return;}
   if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo=createSetupDemoState();render();return;}
   if(action==='setup-demo-finish'){state.setupDemo=null;state.modal=null;render();return;}
-  if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(5,target));render();}return;}
+  if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(6,target));render();}return;}
   if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];state.setupDemo.channelsGenerated=false;render();}return;}
   if(action==='setup-demo-channel-mode'){if(!state.setupDemo)return;const mode=String(actionEl.dataset.mode||'quick');state.setupDemo.channelMode=mode==='direct'?'direct':'quick';state.setupDemo.channelsGenerated=false;render();return;}
   if(action==='setup-demo-generate-channels'){if(!state.setupDemo)return;state.setupDemo.channelsGenerated=true;render();return;}
+  if(action==='setup-demo-select-visible-members'){
+    if(!state.setupDemo)return;
+    const groups={member:['m1','m2','m3','m4','m5','m6'],admin:['a1','a2'],guest:['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10']};
+    const visible=groups[state.setupDemo.memberFilter]||groups.member;
+    const selected=new Set(state.setupDemo.memberSelected||[]);
+    const allSelected=visible.every(id=>selected.has(id));
+    visible.forEach(id=>allSelected?selected.delete(id):selected.add(id));
+    state.setupDemo.memberSelected=[...selected];state.setupDemo.memberImportDone=false;state.setupDemo.memberImportSkipped=false;render();return;
+  }
+  if(action==='setup-demo-import-members'){
+    if(!state.setupDemo)return;
+    if(!(state.setupDemo.memberSelected||[]).length){setNotice('등록할 멤버를 한 명 이상 선택해 주세요.');return;}
+    state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=false;render();return;
+  }
+  if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
   if(action==='open-ledger'){state.modal={type:'ledger',entryId:null};render();return;}
   if(action==='edit-ledger'){state.modal={type:'ledger',entryId:actionEl.dataset.entryId};render();return;}
@@ -464,6 +484,18 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
+    if(event.target.matches('[data-setup-member-filter]')){
+      if(!state.setupDemo)return;
+      const filter=String(event.target.value||'member');
+      const groups={member:['m1','m2','m3','m4','m5','m6'],admin:['a1','a2'],guest:['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10']};
+      state.setupDemo.memberFilter=['member','admin','guest'].includes(filter)?filter:'member';
+      state.setupDemo.memberSelected=[...(groups[state.setupDemo.memberFilter]||groups.member)];
+      if(state.setupDemo.memberFilter==='admin')state.setupDemo.memberTargetRole='admin';
+      if(state.setupDemo.memberFilter==='member')state.setupDemo.memberTargetRole='member';
+      state.setupDemo.memberImportDone=false;state.setupDemo.memberImportSkipped=false;render();return;
+    }
+    if(event.target.matches('[data-setup-member-target-role]')){if(!state.setupDemo)return;state.setupDemo.memberTargetRole=String(event.target.value||'member')==='admin'?'admin':'member';state.setupDemo.memberImportDone=false;state.setupDemo.memberImportSkipped=false;render();return;}
+    if(event.target.matches('[data-setup-member-select]')){if(!state.setupDemo)return;const id=String(event.target.dataset.setupMemberSelect||'');const selected=new Set(state.setupDemo.memberSelected||[]);event.target.checked?selected.add(id):selected.delete(id);state.setupDemo.memberSelected=[...selected];state.setupDemo.memberImportDone=false;state.setupDemo.memberImportSkipped=false;render();return;}
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {

@@ -184,3 +184,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Before simulated creation, the company can freely edit the Discord category name and every proposed channel name.
 - `이 구성으로 생성 체험` shows the resulting category/channel creation and automatic feature linkage without changing Discord or database data.
 - Direct Connect remains available for companies that already have their own Discord channel structure.
+
+
+## 3.19.3 · GUIDED MEMBER IMPORT + FIXED FOOTER R1
+- Fixed Guided Setup footer clipping: channel/member content now scrolls inside the modal while the navigation footer stays visible.
+- Added a preview-only bulk member registration quest after channel setup.
+- Users can filter Discord members by a selected role (member/admin/guest), select visible users, and preview bulk AXE role assignment.
+- Individual Discord right-click registration remains available as a later fallback.
+- No Discord, DB, BOT, or LIVE AXE mutations are performed by this preview.
