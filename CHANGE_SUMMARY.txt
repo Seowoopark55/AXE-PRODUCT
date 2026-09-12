@@ -95,3 +95,14 @@ AXE PRODUCT WEB STAGING 3.21.2 - PLATFORM SHELL BALANCE R1
 - Center AXE PRODUCT in top header; move account identity to far-right.
 - Shift compact operational content slightly right to reduce empty workspace.
 - WEB-only patch; no DB migration.
+
+
+AXE PRODUCT 3.21.4 · DISCORD PERMISSION REAPPROVAL R1
+- Guided Setup channel-create 403 now stays inside the guide as a recovery card.
+- Added one-click "권한 다시 승인" flow locked to the already connected Discord guild.
+- Reapproval requests Manage Channels (permission bit 16) only; no Administrator permission.
+- OAuth callback rejects a different guild during permission reapproval.
+- Guided Setup resumes directly at QUEST 04 after returning from Discord.
+- Users may switch to existing-channel direct linking instead of granting channel creation permission.
+- API client preserves HTTP status so permission errors can be handled without raw global banners.
+- No DB migration. No PRODUCT BOT change. No LIVE AXE / NEW AXE NET change.

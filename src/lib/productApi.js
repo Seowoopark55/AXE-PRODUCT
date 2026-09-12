@@ -625,7 +625,10 @@ async function authenticatedProductApi(path, init = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data?.error || '서버 요청에 실패했습니다.');
+    const error = new Error(data?.error || '서버 요청에 실패했습니다.');
+    error.statusCode = response.status;
+    error.code = data?.code || null;
+    throw error;
   }
 
   return data;
@@ -639,6 +642,19 @@ export async function startDiscordConnection(companyId) {
 
   if (!data?.authorize_url) {
     throw new Error('Discord 인증 주소를 받지 못했습니다.');
+  }
+
+  return data;
+}
+
+export async function startDiscordPermissionReapproval(companyId) {
+  const data = await authenticatedProductApi('/api/discord/reapprove', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId }),
+  });
+
+  if (!data?.authorize_url) {
+    throw new Error('Discord 권한 승인 주소를 받지 못했습니다.');
   }
 
   return data;

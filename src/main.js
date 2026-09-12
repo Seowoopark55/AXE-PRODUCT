@@ -8,7 +8,7 @@ import {
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
-  startDiscordConnection, completeDiscordConnection, createGuidedSetupChannels, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
+  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
@@ -188,6 +188,8 @@ function createSetupGuideState(step = 0){
     memberListLoaded:false,
     memberImportDone:false,
     memberImportSkipped:false,
+    permissionIssue:null,
+    permissionMessage:'',
   };
 }
 
@@ -524,7 +526,7 @@ function startReconnectStatusPoll() {
 }
 
 function discordOAuthErrorMessage(code) {
-  const map={access_denied:'Discord 서버 연결이 취소됐습니다.',invalid_request:'Discord 인증 요청이 올바르지 않습니다.',temporarily_unavailable:'Discord 인증 서비스를 잠시 사용할 수 없습니다.',token_exchange_failed:'Discord 인증 코드 교환에 실패했습니다.',guild_not_returned:'선택한 Discord 서버 정보를 확인하지 못했습니다.',oauth_validation_failed:'Discord 인증 보안 검증에 실패했습니다.',missing_oauth_response:'Discord 인증 결과가 비어 있습니다.',oauth_failed:'Discord 서버 연결에 실패했습니다.'};
+  const map={access_denied:'Discord 서버 연결이 취소됐습니다.',invalid_request:'Discord 인증 요청이 올바르지 않습니다.',temporarily_unavailable:'Discord 인증 서비스를 잠시 사용할 수 없습니다.',token_exchange_failed:'Discord 인증 코드 교환에 실패했습니다.',guild_not_returned:'선택한 Discord 서버 정보를 확인하지 못했습니다.',guild_mismatch:'권한을 승인한 Discord 서버가 현재 연결된 회사 서버와 다릅니다.',oauth_validation_failed:'Discord 인증 보안 검증에 실패했습니다.',missing_oauth_response:'Discord 인증 결과가 비어 있습니다.',oauth_failed:'Discord 서버 연결에 실패했습니다.'};
   return map[code]||'Discord 서버 연결에 실패했습니다.';
 }
 async function handleDiscordOAuthReturn() {
@@ -535,9 +537,12 @@ async function handleDiscordOAuthReturn() {
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
   const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
   const resumeGuide=localStorage.getItem('axe_product_setup_resume')==='1';
+  const resumeStepRaw=Number(localStorage.getItem('axe_product_setup_resume_step'));
   localStorage.removeItem('axe_product_setup_resume');
+  localStorage.removeItem('axe_product_setup_resume_step');
   if(resumeGuide){
-    state.setupGuide=createSetupGuideState(discordCatalogPending()?1:2);
+    const resumeStep=Number.isInteger(resumeStepRaw)&&resumeStepRaw>=0&&resumeStepRaw<=6?resumeStepRaw:(discordCatalogPending()?1:2);
+    state.setupGuide=createSetupGuideState(resumeStep);
     state.modal={type:'setup-guide'};
     render();
   }
@@ -697,7 +702,16 @@ root.addEventListener('click', async event => {
   }
   if(action==='setup-guide-connect'){
     if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
-    await withMutation(async()=>{localStorage.setItem('axe_product_setup_resume','1');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);});return;
+    await withMutation(async()=>{localStorage.setItem('axe_product_setup_resume','1');localStorage.removeItem('axe_product_setup_resume_step');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);});return;
+  }
+  if(action==='setup-guide-reapprove-channels'){
+    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    await withMutation(async()=>{
+      localStorage.setItem('axe_product_setup_resume','1');
+      localStorage.setItem('axe_product_setup_resume_step','4');
+      const started=await startDiscordPermissionReapproval(state.companyId);
+      location.assign(started.authorize_url);
+    });return;
   }
   if(action==='setup-guide-save-roles'){
     if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
@@ -710,7 +724,7 @@ root.addEventListener('click', async event => {
     if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
     await withMutation(async()=>{await saveSetupGuideModules();await persistSetupGuideProgress(4);setNotice('사용 기능을 저장했습니다.');});return;
   }
-  if(action==='setup-guide-channel-mode'){if(!state.setupGuide)return;state.setupGuide.channelMode=String(actionEl.dataset.mode||'quick')==='direct'?'direct':'quick';render();return;}
+  if(action==='setup-guide-channel-mode'){if(!state.setupGuide)return;state.setupGuide.channelMode=String(actionEl.dataset.mode||'quick')==='direct'?'direct':'quick';if(state.setupGuide.channelMode==='direct'){state.setupGuide.permissionIssue=null;state.setupGuide.permissionMessage='';}render();return;}
   if(action==='setup-guide-create-channels'){
     if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
     await withMutation(async()=>{
@@ -720,7 +734,21 @@ root.addEventListener('click', async event => {
       if(plan.some(row=>!String(row.name||'').trim()))throw new Error('생성할 채널 이름을 모두 입력해 주세요.');
       const normalizedNames=plan.map(row=>String(row.name||'').trim().toLocaleLowerCase('ko-KR'));
       if(new Set(normalizedNames).size!==normalizedNames.length)throw new Error('같은 채널명을 두 번 사용할 수 없습니다. 채널명을 다르게 지정해 주세요.');
-      const result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name})));
+      let result;
+      try{
+        result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name})));
+      }catch(error){
+        const message=String(error?.message||error||'');
+        if(Number(error?.statusCode||0)===403 || /채널 관리 권한/.test(message)){
+          state.setupGuide.permissionIssue='manage_channels';
+          state.setupGuide.permissionMessage='AXE가 Discord 채널을 자동 생성하려면 현재 연결된 서버에서 채널 관리 권한 승인이 필요합니다.';
+          render();
+          return;
+        }
+        throw error;
+      }
+      state.setupGuide.permissionIssue=null;
+      state.setupGuide.permissionMessage='';
       const map={};for(const row of result?.channels||[])if(row?.key&&row?.id)map[String(row.key)]=String(row.id);
       await persistSetupGuideChannels(map);
       state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);

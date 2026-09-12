@@ -252,3 +252,42 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
   .runtime-app .main>.ops-settings-page,
   .runtime-app .main>.platform-page{margin-left:0!important}
 }
+
+
+/* AXE PRODUCT 3.21.3 · CONTENT OFFSET + PLAN CLEANUP R1
+   Nudge operational content slightly lower and further right on desktop so the
+   compact boards sit more naturally inside the wider workspace. */
+@media(min-width:981px){
+  .runtime-app .main{padding-top:26px!important}
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{
+    margin-left:72px!important;
+    margin-right:auto!important;
+  }
+}
+@media(min-width:981px) and (max-width:1280px){
+  .runtime-app .main{padding-top:24px!important}
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:48px!important}
+}
+@media(min-width:761px) and (max-width:980px){
+  .runtime-app .main{padding-top:18px!important}
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:12px!important}
+}
+
+
+/* AXE PRODUCT 3.21.4 · DISCORD PERMISSION REAPPROVAL R1
+   Keep channel-creation permission recovery inside Guided Setup instead of
+   dumping a raw 403 at the user. Reapproval is locked to the connected guild. */
+.setup-guide-permission-card{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:12px;margin:12px 0;padding:12px 13px;border:1px solid rgba(213,163,67,.22);border-radius:10px;background:linear-gradient(135deg,rgba(213,163,67,.055),rgba(213,163,67,.018));box-shadow:inset 0 1px 0 rgba(255,255,255,.015)}
+.setup-guide-permission-icon{width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(213,163,67,.25);border-radius:9px;background:rgba(213,163,67,.07);color:#d5a343;font-size:15px;font-weight:950}
+.setup-guide-permission-copy{display:grid;gap:3px;min-width:0}.setup-guide-permission-copy strong{color:#d8c39a;font-size:11.5px}.setup-guide-permission-copy span{color:#938772;font-size:9.8px;line-height:1.45}.setup-guide-permission-copy small{color:#6d685f;font-size:8.8px;line-height:1.45}
+.setup-guide-permission-actions{display:grid;gap:6px;min-width:132px}.setup-guide-permission-actions button{height:31px;padding:0 10px;border:1px solid #303945;border-radius:8px;background:#0d1319;color:#8f99a2;font-size:9px;font-weight:900;white-space:nowrap}.setup-guide-permission-actions button:hover{border-color:#46515d;color:#b8c0c7}.setup-guide-permission-actions button.is-primary{border-color:rgba(213,163,67,.30);background:rgba(213,163,67,.09);color:#d3b574}.setup-guide-permission-actions button.is-primary:hover{background:rgba(213,163,67,.14)}
+@media(max-width:760px){.setup-guide-permission-card{grid-template-columns:34px 1fr}.setup-guide-permission-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}.setup-guide-permission-actions button{width:100%}}

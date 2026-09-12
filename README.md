@@ -248,3 +248,10 @@ Apply `SUPABASE_MIGRATION_3_21_0_PLATFORM_SUBSCRIPTIONS_FUND_EVIDENCE.sql` to PR
 - AXE PRODUCT branding is centered in the top rail and the signed-in identity is moved to the far-right edge.
 - Compact operational content is shifted slightly right on desktop to reduce unused right-side workspace while preserving responsive fallbacks.
 - No database migration is required for this patch.
+
+
+## 3.21.3 · CONTENT OFFSET + PLAN CLEANUP R1
+- Operational content is nudged slightly lower and further right on desktop to reduce the empty-right-space feel.
+- Platform plan label `내부용 · 무제한` is simplified to `무제한`.
+- `기존 계약` is removed from the selectable plan list. Legacy rows are normalized to the unlimited option when opened for editing.
+- No DB migration is required for this WEB-only adjustment.

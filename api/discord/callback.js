@@ -73,6 +73,9 @@ export default async function handler(req, res) {
     if (!/^\d{15,22}$/.test(guildId)) {
       return redirectWithError(res, config.appUrl, 'guild_not_returned');
     }
+    if (state.expectedGuildId && String(state.expectedGuildId) !== guildId) {
+      return redirectWithError(res, config.appUrl, 'guild_mismatch');
+    }
 
     const now = Math.floor(Date.now() / 1000);
     const completionToken = signPayload(
