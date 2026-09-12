@@ -1,0 +1,12 @@
+AXE PRODUCT WEB 3.22.1 validation
+
+PASS node --check src/main.js
+PASS node --check src/ui/render.js
+PASS npm run check
+- Integrated UI 72/72
+- Dashboard operations 12/12
+- HOME_GUIDE 11/11
+- GUIDE_CENTER 11/11
+
+npm run build: NOT RUN in this workspace because node_modules/.bin/vite is not installed.
+This is not a source validation failure; Vercel should run the normal project build after GitHub push.

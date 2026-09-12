@@ -173,3 +173,93 @@
   .axe-guide-two,.axe-guide-steps{grid-template-columns:1fr}
   .axe-guide-note{grid-template-columns:1fr}
 }
+
+/* AXE PRODUCT 3.22.1 · Guide Center dialog
+   The guide is no longer a page replacement. It opens above the current
+   operations screen so users keep their place and always have an obvious exit. */
+.axe-guide-dialog-backdrop{
+  position:fixed;inset:0;z-index:7000;display:grid;place-items:center;padding:22px;
+  background:rgba(0,0,0,.76);backdrop-filter:blur(9px)
+}
+.axe-guide-dialog{
+  width:min(1180px,calc(100vw - 44px));height:min(790px,calc(100vh - 44px));min-height:620px;
+  display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden;
+  border:1px solid #2c3742;border-radius:17px;background:#0b1117;
+  box-shadow:0 38px 120px rgba(0,0,0,.62)
+}
+.axe-guide-dialog-rail{
+  min-width:0;display:flex;flex-direction:column;padding:21px 16px 16px;
+  border-right:1px solid #222c35;background:#090f14
+}
+.axe-guide-dialog-brand{display:grid;gap:3px;padding:3px 9px 18px;border-bottom:1px solid #202932}
+.axe-guide-dialog-brand strong{color:#eee9df;font-size:14px;letter-spacing:.025em}
+.axe-guide-dialog-brand small{color:#8b6d39;font-size:8px;font-weight:950;letter-spacing:.18em}
+.axe-guide-dialog-intro{display:grid;gap:5px;padding:18px 9px 12px}
+.axe-guide-dialog-intro>span{color:#80683e;font-size:8px;font-weight:950;letter-spacing:.16em}
+.axe-guide-dialog-intro>strong{color:#d8dde1;font-size:15px}
+.axe-guide-dialog-intro>p{margin:0;color:#65717c;font-size:10px;line-height:1.55}
+.axe-guide-dialog-rail .axe-guide-nav-list{display:grid;gap:4px;margin-top:3px;overflow:auto;padding:0 1px 10px}
+.axe-guide-dialog-exit{
+  width:100%;height:40px;margin-top:auto;border:1px solid #303b46;border-radius:9px;
+  background:#10171e;color:#aeb7bf;font-size:10px;font-weight:900;cursor:pointer
+}
+.axe-guide-dialog-exit:hover{border-color:rgba(213,163,67,.42);background:rgba(213,163,67,.07);color:#edca80}
+.axe-guide-dialog-main{min-width:0;min-height:0;display:grid;grid-template-rows:68px minmax(0,1fr);background:#0b1117}
+.axe-guide-dialog-head{
+  min-width:0;display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:0 20px 0 25px;border-bottom:1px solid #222c35;background:#0c1218
+}
+.axe-guide-dialog-head>div{min-width:0;display:flex;align-items:baseline;gap:11px}
+.axe-guide-dialog-head span{color:#8b6c39;font-size:8px;font-weight:950;letter-spacing:.14em;white-space:nowrap}
+.axe-guide-dialog-head strong{color:#ede9e2;font-size:16px;white-space:nowrap}
+.axe-guide-dialog-head small{overflow:hidden;color:#697580;font-size:9.5px;text-overflow:ellipsis;white-space:nowrap}
+.axe-guide-dialog-head>button{
+  width:38px;height:38px;display:grid;place-items:center;flex:0 0 auto;border:1px solid transparent;
+  border-radius:9px;background:transparent;color:#77838e;font-size:25px;line-height:1;cursor:pointer
+}
+.axe-guide-dialog-head>button:hover{border-color:#303a44;background:#111820;color:#f0d49b}
+.axe-guide-dialog-scroll{min-width:0;min-height:0;overflow:auto;padding:26px 29px 32px}
+.axe-guide-dialog-scroll .axe-guide-content{gap:17px}
+.axe-guide-dialog-scroll .axe-guide-intro,
+.axe-guide-dialog-scroll .axe-guide-feature-head{min-height:138px;padding:23px 25px}
+.axe-guide-dialog-scroll .axe-guide-intro h2,
+.axe-guide-dialog-scroll .axe-guide-feature-head h2{font-size:29px}
+.axe-guide-dialog-scroll .axe-guide-intro p,
+.axe-guide-dialog-scroll .axe-guide-feature-head p{font-size:13px;line-height:1.68}
+.axe-guide-dialog-scroll .axe-guide-step{min-height:100px;padding:16px 17px}
+.axe-guide-dialog-scroll .axe-guide-step strong{font-size:12.5px}
+.axe-guide-dialog-scroll .axe-guide-step span{font-size:11px;line-height:1.58}
+.axe-guide-dialog-scroll .axe-guide-card,
+.axe-guide-dialog-scroll .axe-guide-example{padding:20px}
+.axe-guide-dialog-scroll .axe-guide-card h3,
+.axe-guide-dialog-scroll .axe-guide-example h3{font-size:14.5px}
+.axe-guide-dialog-scroll .axe-guide-card li strong{font-size:12px}
+.axe-guide-dialog-scroll .axe-guide-card li span,
+.axe-guide-dialog-scroll .axe-guide-card>p{font-size:11px;line-height:1.62}
+.axe-guide-dialog-scroll .axe-guide-chat-line code{font-size:11.5px;padding:11px 12px}
+.axe-guide-dialog-scroll .axe-guide-note>span{font-size:11px}
+
+@media(max-width:900px){
+  .axe-guide-dialog-backdrop{padding:12px}
+  .axe-guide-dialog{width:100%;height:calc(100vh - 24px);min-height:0;grid-template-columns:210px minmax(0,1fr);border-radius:14px}
+  .axe-guide-dialog-scroll{padding:20px}
+  .axe-guide-dialog-scroll .axe-guide-two,.axe-guide-dialog-scroll .axe-guide-steps{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .axe-guide-dialog-backdrop{padding:0}
+  .axe-guide-dialog{width:100%;height:100%;grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);border:0;border-radius:0}
+  .axe-guide-dialog-rail{display:block;padding:12px 12px 10px;border-right:0;border-bottom:1px solid #222c35}
+  .axe-guide-dialog-brand,.axe-guide-dialog-intro{display:none}
+  .axe-guide-dialog-rail .axe-guide-nav-list{display:flex;gap:6px;margin:0;overflow:auto;padding:0 0 2px}
+  .axe-guide-dialog-rail .axe-guide-nav-list button{min-width:118px;min-height:48px;flex:0 0 auto}
+  .axe-guide-dialog-rail .axe-guide-nav-list small{display:none}
+  .axe-guide-dialog-exit{display:none}
+  .axe-guide-dialog-main{grid-template-rows:58px minmax(0,1fr)}
+  .axe-guide-dialog-head{padding:0 12px 0 16px}
+  .axe-guide-dialog-head>div{gap:8px}.axe-guide-dialog-head small{display:none}
+  .axe-guide-dialog-scroll{padding:17px 14px 24px}
+  .axe-guide-dialog-scroll .axe-guide-intro,.axe-guide-dialog-scroll .axe-guide-feature-head{align-items:flex-start;flex-direction:column;min-height:0;padding:18px}
+  .axe-guide-dialog-scroll .axe-guide-intro h2,.axe-guide-dialog-scroll .axe-guide-feature-head h2{font-size:24px}
+  .axe-guide-dialog-scroll .axe-guide-intro p,.axe-guide-dialog-scroll .axe-guide-feature-head p{font-size:11.5px}
+  .axe-guide-dialog-scroll .axe-guide-note{grid-template-columns:1fr}
+}

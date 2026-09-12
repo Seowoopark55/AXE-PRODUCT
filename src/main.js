@@ -20,7 +20,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','settings','guide','platform'];
+const validPages = ['dashboard','fund','members','assets','accounts','settings','platform'];
 
 const state = {
   envReady,
@@ -813,8 +813,10 @@ root.addEventListener('click', async event => {
     state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=false;render();return;
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
+  if(action==='open-guide'){state.modal={type:'guide'};render();return;}
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
   if(action==='dashboard-jump'){
+    if(state.modal?.type==='guide') state.modal=null;
     const page=String(actionEl.dataset.page||'dashboard');
     if(validPages.includes(page)){state.page=page;localStorage.setItem('axe_product_page',page);}
     if(actionEl.dataset.fundTab){state.fundTab=String(actionEl.dataset.fundTab);localStorage.setItem('axe_product_fund_tab',state.fundTab);}
