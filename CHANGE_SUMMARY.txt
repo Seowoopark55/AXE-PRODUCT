@@ -1,3 +1,13 @@
+AXE PRODUCT WEB 3.21.8 · OPERATIONS DASHBOARD R1
+
+- Added Dashboard as the default admin home.
+- Prioritizes actionable work: FUND reviews, account reviews, unassigned assets, Discord connection/catalog state.
+- Adds active member / fund balance / asset / Discord status metrics.
+- Adds quick actions that reuse existing FUND / MEMBER / ASSET / ACCOUNT / SETTINGS workflows.
+- Adds recent activity from existing fund ledger and asset return data only.
+- Guided Setup completion now lands on Dashboard.
+- No DB, PRODUCT BOT, LIVE AXE, or NEW AXE NET changes.
+
 AXE PRODUCT WEB STAGING 3.18.7 - ROOT-CAUSE BRANDED SHARED CONSOLE R1
 
 - ROOT CAUSE FIX: opaque #app boot background covered the ambient body artwork.

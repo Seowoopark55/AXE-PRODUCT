@@ -20,7 +20,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['fund','members','assets','accounts','settings','platform'];
+const validPages = ['dashboard','fund','members','assets','accounts','settings','platform'];
 
 const state = {
   envReady,
@@ -38,7 +38,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: validPages.includes(localStorage.getItem('axe_product_page')) ? localStorage.getItem('axe_product_page') : 'fund',
+  page: validPages.includes(localStorage.getItem('axe_product_page')) ? localStorage.getItem('axe_product_page') : 'dashboard',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
@@ -425,7 +425,7 @@ async function refreshAll() {
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
-    if(!state.platformAdmin && state.page==='platform'){state.page='fund';localStorage.setItem('axe_product_page','fund');}
+    if(!state.platformAdmin && state.page==='platform'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     applyPlatformCompanyVisibility();
@@ -650,7 +650,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(state.page==='fund'&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
+  if(pageBtn){ state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
@@ -783,7 +783,7 @@ root.addEventListener('click', async event => {
     });return;
   }
   if(action==='setup-guide-skip-members'){if(!state.setupGuide)return;state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=true;await withMutation(async()=>{await persistSetupGuideProgress(6);});return;}
-  if(action==='setup-guide-finish'){await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;state.page='fund';localStorage.setItem('axe_product_page','fund');setNotice('초기설정이 완료됐습니다.');});return;}
+  if(action==='setup-guide-finish'){await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
   if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}
@@ -810,6 +810,15 @@ root.addEventListener('click', async event => {
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
+  if(action==='dashboard-jump'){
+    const page=String(actionEl.dataset.page||'dashboard');
+    if(validPages.includes(page)){state.page=page;localStorage.setItem('axe_product_page',page);}
+    if(actionEl.dataset.fundTab){state.fundTab=String(actionEl.dataset.fundTab);localStorage.setItem('axe_product_fund_tab',state.fundTab);}
+    if(actionEl.dataset.settingsTab){state.settingsTab=String(actionEl.dataset.settingsTab);localStorage.setItem('axe_product_settings_tab',state.settingsTab);}
+    if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot);
+    if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
+    render();return;
+  }
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
   if(action==='edit-ledger'){clearLedgerPendingFiles();const entryId=actionEl.dataset.entryId;const row=(state.fundSnapshot?.ledger||[]).find(r=>String(r.id)===String(entryId));state.modal={type:row?.can_edit?'ledger':'ledger-correction',entryId};render();return;}
   if(action==='remove-ledger-pending'){const id=String(actionEl.dataset.pendingId||'');const item=(state.ledgerPendingFiles||[]).find(x=>x.id===id);try{if(item?.previewUrl)URL.revokeObjectURL(item.previewUrl);}catch{}state.ledgerPendingFiles=(state.ledgerPendingFiles||[]).filter(x=>x.id!==id);render();return;}

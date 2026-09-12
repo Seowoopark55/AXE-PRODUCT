@@ -12,6 +12,7 @@ function esc(value) {
 
 function icon(name) {
   const icons = {
+    dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     fund:'<path d="M7 3v18M3 7h8M4 11h7M6 7v8M3 15h8"/>',
     members:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
     assets:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2M3 10h18"/>',
@@ -125,7 +126,7 @@ function renderAuthed(state) {
           <div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>
         </section>
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
-          ${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
+          ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
           <span class="sidebar-nav__label spaced">설정</span>${navItem(state,'settings','회사 설정')}
           ${state.platformAdmin?`<span class="sidebar-nav__label spaced">플랫폼</span>${navItem(state,'platform','서비스 관리')}`:''}
           <span class="sidebar-nav__label spaced">지원</span><button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
@@ -150,6 +151,7 @@ function renderPage(state) {
   const subscriptionState=String(state.currentSubscription?.effective_status||state.currentSubscription?.status||'active');
   if(['paused','expired'].includes(subscriptionState)) return renderSubscriptionBlocked(state,subscriptionState);
   if (!canAdmin(state)) return renderPermission(state);
+  if (state.page === 'dashboard') return renderDashboard(state);
   if (state.page === 'members') return renderMembers(state);
   if (state.page === 'assets') return renderAssets(state);
   if (state.page === 'accounts') return renderAccounts(state);
@@ -158,6 +160,78 @@ function renderPage(state) {
 }
 function renderPermission(state){ return `<div class="ops-mgmt-page">${pageHeader('OPERATIONS','관리자 콘솔','OWNER 또는 ADMIN 권한이 있는 회사에서 사용할 수 있습니다.')}<section class="runtime-permission"><strong>관리 권한이 필요합니다.</strong><span>현재 역할: ${esc(ROLE_LABEL[currentMembership(state)?.role]||'-')}</span></section></div>`; }
 function renderSubscriptionBlocked(state,status){ const end=state.currentSubscription?.ends_at?fmtDate(state.currentSubscription.ends_at,true):'—'; const label=status==='paused'?'이용이 일시 정지되었습니다.':'이용 기간이 만료되었습니다.'; return `<div class="ops-mgmt-page subscription-lock-page">${pageHeader('SUBSCRIPTION','서비스 이용 상태',label)}<section class="runtime-permission subscription-lock-card"><strong>${esc(label)}</strong><span>회사: ${esc(companyDisplayName(state))}</span><span>이용 종료일: ${esc(end)}</span><small>PLATFORM OWNER가 이용 기간을 연장하거나 상태를 변경하면 다시 사용할 수 있습니다.</small></section></div>`; }
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function dashboardModuleName(key){
+  return ({fund:'공금',ammo:'총알',outlaw:'무법지대',modbook:'개조서',cooking:'요리',assets:'자산 · 계좌'})[key]||key;
+}
+function dashboardActiveMembers(state){ return (state.memberships||[]).filter(row=>String(row.status||'active')==='active'); }
+function dashboardAccountPending(state){ return accountRecords(state).filter(row=>['등록 대기','변경 대기'].includes(row.status)); }
+function dashboardFundPending(state){ return (state.fundRequests||[]).filter(row=>['pending','hold'].includes(String(row.status||''))); }
+function dashboardUnassignedAssets(state){ return (state.assetsSnapshot?.assets||[]).filter(row=>!row.membership_id); }
+function dashboardAttentionItems(state){
+  const items=[];
+  const fundPending=dashboardFundPending(state);
+  const accountPending=dashboardAccountPending(state);
+  const unassigned=dashboardUnassignedAssets(state);
+  if(fundPending.length) items.push({tone:'amber',icon:'fund',title:`공금 검수 ${fundPending.length}건`,desc:'납부 신청을 확인하고 승인 · 보류 · 반려를 처리하세요.',page:'fund',fundTab:'review',action:'검수하기'});
+  if(accountPending.length) items.push({tone:'amber',icon:'accounts',title:`계좌 검수 ${accountPending.length}건`,desc:'신규 등록 또는 변경 요청이 처리 대기 중입니다.',page:'accounts',action:'확인하기'});
+  if(unassigned.length) items.push({tone:'blue',icon:'assets',title:`미배정 자산 ${unassigned.length}개`,desc:'보유자가 없는 회사 자산을 필요한 멤버에게 배정할 수 있습니다.',page:'assets',action:'배정하기'});
+  if(state.discordConnection?.status!=='connected') items.push({tone:'red',icon:'settings',title:'Discord 연결 필요',desc:'자동 채널 구성과 Discord 운영 기능을 사용하려면 서버 연결이 필요합니다.',page:'settings',settingsTab:'basic',action:'연결하기'});
+  else if(state.onboardingStatus?.catalog_ready===false) items.push({tone:'amber',icon:'settings',title:'Discord 정보 동기화 중',desc:'역할과 채널 목록을 불러오는 중입니다. 잠시 후 다시 확인해 주세요.',page:'settings',settingsTab:'basic',action:'상태 보기'});
+  return items;
+}
+function dashboardActivity(state){
+  const rows=[];
+  for(const item of (state.fundSnapshot?.ledger||[]).slice(0,18)){
+    const when=item.created_at||item.updated_at||item.ledger_date;
+    rows.push({when,icon:'fund',title:`공금 ${item.direction||'내역'} · ${item.entry_type==='payment'?'주간공금':(item.category||'기타')}`,meta:`${item.member_display_name||'회사'} · ${signedMoney(item.amount||0)}`,page:'fund'});
+  }
+  for(const item of (state.assetsSnapshot?.returns||[]).slice(0,12)){
+    const when=item.processed_at||item.created_at;
+    rows.push({when,icon:'assets',title:`${item.asset_name||'자산'} 반납 처리`,meta:`${item.owner_name||'이전 보유자'} · ${item.checker_name||'SYSTEM'}`,page:'assets'});
+  }
+  return rows
+    .filter(row=>row.when)
+    .sort((a,b)=>Number(new Date(b.when))-Number(new Date(a.when)))
+    .slice(0,6);
+}
+function dashboardJumpButton(item){
+  return `<button type="button" class="axe-dashboard-attention axe-dashboard-attention--${esc(item.tone)}" data-action="dashboard-jump" data-page="${esc(item.page||'dashboard')}" ${item.fundTab?`data-fund-tab="${esc(item.fundTab)}"`:''} ${item.settingsTab?`data-settings-tab="${esc(item.settingsTab)}"`:''}><span class="axe-dashboard-attention__icon">${icon(item.icon||'dashboard')}</span><span class="axe-dashboard-attention__copy"><strong>${esc(item.title)}</strong><small>${esc(item.desc)}</small></span><em>${esc(item.action||'열기')} →</em></button>`;
+}
+function renderDashboard(state){
+  const members=dashboardActiveMembers(state);
+  const fundEnabled=moduleEnabled(state,'fund');
+  const assetsEnabled=moduleEnabled(state,'assets');
+  const balance=Number(state.fundSnapshot?.balance?.public||0);
+  const assets=state.assetsSnapshot?.assets||[];
+  const enabledModules=(state.modules||[]).filter(row=>Boolean(row.enabled));
+  const attention=dashboardAttentionItems(state);
+  const activity=dashboardActivity(state);
+  const connected=state.discordConnection?.status==='connected';
+  const greeting=userDisplayName(state);
+  const attentionCount=dashboardFundPending(state).length+dashboardAccountPending(state).length+dashboardUnassignedAssets(state).length+(connected?0:1);
+  const statusCopy=attentionCount?`확인이 필요한 운영 항목이 ${attentionCount}건 있습니다.`:'현재 바로 처리해야 할 운영 항목이 없습니다.';
+  const metrics=[
+    ['활동 멤버',`${members.length}명`,'현재 재직 기준','members'],
+    ['공용계좌 잔액',fundEnabled?money(balance):'OFF',fundEnabled?'공금 원장 기준':'공금 기능 꺼짐','fund'],
+    ['회사 자산',assetsEnabled?`${assets.length}개`:'OFF',assetsEnabled?`${dashboardUnassignedAssets(state).length}개 미배정`:'자산 기능 꺼짐','assets'],
+    ['Discord',connected?'연결됨':'미연결',connected?(state.discordConnection?.guild_name||'서버 연결 정상'):'초기 설정 필요','settings'],
+  ];
+  const moduleTags=enabledModules.length?enabledModules.map(row=>`<span>${esc(dashboardModuleName(row.module_key))}</span>`).join(''):'<span class="is-muted">사용 중인 기능 없음</span>';
+  return `<div class="axe-dashboard">
+    <header class="axe-dashboard-hero"><div><span class="axe-dashboard-kicker">DASHBOARD</span><h1>좋은 하루입니다, ${esc(greeting)}.</h1><p>${esc(statusCopy)}</p></div><button type="button" class="axe-dashboard-refresh" data-action="refresh">${icon('refresh')}<span>새로고침</span></button></header>
+    <section class="axe-dashboard-metrics">${metrics.map(([label,value,sub,page])=>`<button type="button" data-action="dashboard-jump" data-page="${page}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(sub)}</small></button>`).join('')}</section>
+    <div class="axe-dashboard-grid">
+      <section class="axe-dashboard-panel axe-dashboard-panel--attention"><header><div><span>NOW</span><h2>지금 확인할 것</h2></div><em>${attention.length?`${attention.length}개 영역`:'ALL CLEAR'}</em></header><div class="axe-dashboard-attention-list">${attention.length?attention.map(dashboardJumpButton).join(''):`<div class="axe-dashboard-clear"><i>✓</i><div><strong>급한 운영 항목이 없습니다.</strong><span>필요한 작업이 생기면 이곳에 먼저 표시됩니다.</span></div></div>`}</div></section>
+      <section class="axe-dashboard-panel axe-dashboard-panel--quick"><header><div><span>QUICK ACTION</span><h2>빠른 실행</h2></div></header><div class="axe-dashboard-quick-grid">${fundEnabled?`<button data-action="open-ledger">${icon('fund')}<span><strong>공금 등록</strong><small>수입 · 지출 추가</small></span></button>`:''}<button data-action="dashboard-jump" data-page="members">${icon('members')}<span><strong>멤버 관리</strong><small>권한 · 재직 상태</small></span></button>${assetsEnabled?`<button data-action="open-asset">${icon('assets')}<span><strong>자산 추가</strong><small>배정 · 반납 관리</small></span></button>`:''}<button data-action="dashboard-jump" data-page="accounts">${icon('accounts')}<span><strong>계좌 관리</strong><small>등록 · 변경 검수</small></span></button><button data-action="dashboard-jump" data-page="settings">${icon('settings')}<span><strong>회사 설정</strong><small>Discord · 기능 구성</small></span></button></div></section>
+      <section class="axe-dashboard-panel axe-dashboard-panel--activity"><header><div><span>ACTIVITY</span><h2>최근 활동</h2></div><button type="button" data-action="dashboard-jump" data-page="fund">전체 내역 →</button></header><div class="axe-dashboard-activity-list">${activity.length?activity.map(row=>`<button type="button" data-action="dashboard-jump" data-page="${esc(row.page)}"><span class="axe-dashboard-activity-icon">${icon(row.icon)}</span><span><strong>${esc(row.title)}</strong><small>${esc(row.meta)}</small></span><time>${esc(fmtDate(row.when,true))}</time></button>`).join(''):`<div class="axe-dashboard-empty">아직 표시할 최근 활동이 없습니다.</div>`}</div></section>
+      <section class="axe-dashboard-panel axe-dashboard-panel--system"><header><div><span>OPERATIONS</span><h2>운영 연결 상태</h2></div><em class="${connected?'is-ok':'is-off'}">${connected?'정상':'확인 필요'}</em></header><div class="axe-dashboard-system-line"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name||'서버 연결 필요')}</small></div></div><button data-action="dashboard-jump" data-page="settings">설정 열기 →</button></div><div class="axe-dashboard-module-tags"><strong>사용 중인 기능</strong><div>${moduleTags}</div></div></section>
+    </div>
+  </div>`;
+}
 
 // ============================================================
 // FUND

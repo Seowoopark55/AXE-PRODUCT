@@ -1,3 +1,11 @@
+## 3.21.8 · OPERATIONS DASHBOARD R1
+- Added a real operations dashboard as the default post-login home for company admins.
+- Dashboard surfaces fund reviews, account reviews, unassigned assets and Discord connection issues before vanity metrics.
+- Uses existing FUND / ASSET / ACCOUNT / membership snapshots only; no new DB schema or BOT runtime dependency.
+- Includes quick actions, recent activity, enabled-module status and direct jumps into the relevant management page.
+- Guided Setup completion now lands on Dashboard instead of FUND.
+- No DB or PRODUCT BOT changes.
+
 
 ## 3.21.7 · DISCORD UPFRONT PERMISSIONS R1
 - First Discord server connection now clearly explains and requests AXE's baseline bot permissions in one approval flow.

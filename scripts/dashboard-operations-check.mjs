@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
+const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
+expect('3.21.8 web package version',pkg.version==='1.7.41-web-ui.44');
+expect('dashboard is a valid route',main.includes("const validPages = ['dashboard','fund','members','assets','accounts','settings','platform']"));
+expect('dashboard is default route',main.includes(": 'dashboard',"));
+expect('setup completion lands on dashboard',main.includes("state.page='dashboard';localStorage.setItem('axe_product_page','dashboard')"));
+expect('sidebar dashboard entry',render.includes("navItem(state,'dashboard','대시보드')"));
+expect('dashboard renderer wired',render.includes("if (state.page === 'dashboard') return renderDashboard(state);"));
+expect('attention queue uses live snapshots',render.includes('dashboardFundPending(state)')&&render.includes('dashboardAccountPending(state)')&&render.includes('dashboardUnassignedAssets(state)'));
+expect('dashboard does not invent BOT runtime data',!render.includes('production_round')&&!render.includes('ammo_round'));
+expect('quick actions reuse existing operations',render.includes('data-action="open-ledger"')&&render.includes('data-action="open-asset"'));
+expect('dashboard jump controller',main.includes("if(action==='dashboard-jump')"));
+expect('dashboard refresh reuses refreshAll',render.includes('data-action="refresh"'));
+expect('dashboard responsive styling',css.includes('.axe-dashboard-grid')&&css.includes('.runtime-app--dashboard .global-account'));
+let failed=0; for(const [label,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${label}`); if(!ok) failed++;}
+console.log(`Dashboard operations: ${checks.length-failed}/${checks.length} PASS`); if(failed) process.exit(1);
