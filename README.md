@@ -207,3 +207,36 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Fund manual rows keep direct edit; linked rows now open a real correction workflow that preserves the source row and posts a delta adjustment through the existing ledger RPC.
 - Account rows now expose real per-row management: pending requests can be reviewed, the current administrator can submit an account edit request from the row, and other members expose a detail view.
 - No DB schema or PRODUCT BOT changes.
+
+## 3.21.0 · PLATFORM SUBSCRIPTIONS + FUND EVIDENCE R1
+
+### PLATFORM OWNER
+- Adds a `플랫폼 > 서비스 관리` page that is rendered only when `platform_is_admin()` returns true.
+- Subscription fields: plan, status, start date, end date, grace date, internal memo.
+- New companies receive a 7-day trial after the SQL migration is applied.
+- Existing companies are migrated as active with no end date to avoid an accidental lockout.
+- Paused / expired companies are locked in the WEB UI.
+- PLATFORM OWNER authority is enforced by DB RPC checks, not just hidden frontend UI.
+
+### Fund ledger evidence
+- Manual fund income/expense create/edit can attach up to 5 JPG/PNG/WEBP images.
+- Supports file picker, drag & drop, and clipboard screenshot paste (`Ctrl+V`).
+- Uses the existing private `axe-fund-evidence` storage bucket.
+- Attachment metadata is stored in `fund_ledger_attachments` and linked to the ledger entry.
+- Linked payment rows keep their original evidence and correction entries can add extra photos.
+
+### DB prerequisite
+Apply `SUPABASE_MIGRATION_3_21_0_PLATFORM_SUBSCRIPTIONS_FUND_EVIDENCE.sql` to PRODUCT STAGING before testing the new features. Then follow `PLATFORM_OWNER_SETUP.md` once to register the PLATFORM OWNER user UUID.
+
+### Scope safety
+- PRODUCT WEB only.
+- LIVE AXE untouched.
+- PRODUCT BOT untouched.
+- Subscription enforcement currently locks the WEB UI; PRODUCT BOT enforcement is a separate follow-up.
+
+
+## 3.21.1 · SCHEMA HOTFIX R1
+- Corrected the 3.21.0 migration from the wrong `public.*` references to the actual PRODUCT schema `axe_product.*`.
+- Includes the PLATFORM OWNER bootstrap UID directly.
+- Migration is idempotent and includes compatibility handling for the earlier 3.20.2 subscription draft shape.
+- WEB runtime behavior is unchanged from 3.21.0; this patch fixes the database deployment contract.

@@ -77,3 +77,13 @@ AXE PRODUCT WEB STAGING 3.20.1 - OPERATIONS ROW ALIGNMENT + MANAGEMENT ACTIONS R
 - Activated Fund management for linked rows with audit-safe correction adjustments.
 - Added functional account row management for own edit request, pending review and member detail.
 - LIVE AXE / PRODUCT BOT / DB schema untouched.
+
+AXE PRODUCT WEB STAGING 3.21.0 - PLATFORM SUBSCRIPTIONS + FUND EVIDENCE R1
+
+- Added PLATFORM OWNER-only service management page for per-company subscription periods/status/plans.
+- Added DB-backed platform_admins and company_subscriptions migration with 7-day trial for newly created companies.
+- Added paused/expired company WEB lock screen.
+- Added fund ledger photo attachments for create/edit/correction flows.
+- Photo input supports file upload, drag/drop, and clipboard screenshot paste (Ctrl+V), max 5 images, JPG/PNG/WEBP, 10MB each.
+- Reuses axe-fund-evidence private storage bucket and adds fund_ledger_attachments metadata table/RPCs.
+- No LIVE AXE or PRODUCT BOT modifications.

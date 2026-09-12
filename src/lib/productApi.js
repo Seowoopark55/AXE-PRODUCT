@@ -1006,3 +1006,61 @@ export async function updateCompanyModuleSettings(companyId, moduleKey, settings
     .single();
   return unwrap(result, '기능 설정을 저장하지 못했습니다.');
 }
+
+// ============================================================
+// AXE PRODUCT 3.21.0 — PLATFORM OWNER + LEDGER EVIDENCE
+// ============================================================
+export async function isPlatformAdmin() {
+  assertClient();
+  const result = await supabase.rpc('platform_is_admin');
+  return Boolean(unwrap(result, '플랫폼 관리자 권한을 확인하지 못했습니다.'));
+}
+
+export async function getPlatformCompanies() {
+  assertClient();
+  const result = await supabase.rpc('platform_admin_list_companies');
+  return unwrap(result, '플랫폼 회사 목록을 불러오지 못했습니다.') || [];
+}
+
+export async function getCompanySubscription(companyId) {
+  assertClient();
+  const result = await supabase.rpc('platform_get_company_subscription', { p_company_id: companyId });
+  const rows = unwrap(result, '구독 상태를 불러오지 못했습니다.') || [];
+  return Array.isArray(rows) ? (rows[0] || null) : rows;
+}
+
+export async function updatePlatformSubscription(companyId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('platform_admin_update_subscription', {
+    p_company_id: companyId,
+    p_plan: payload.plan || 'standard',
+    p_status: payload.status || 'active',
+    p_starts_at: payload.startsAt || null,
+    p_ends_at: payload.endsAt || null,
+    p_grace_until: payload.graceUntil || null,
+    p_memo: payload.memo || null,
+  });
+  return unwrap(result, '구독 정보를 저장하지 못했습니다.');
+}
+
+export async function getFundLedgerAttachments(companyId, entryId = null) {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_list_ledger_attachments', {
+    p_company_id: companyId,
+    p_entry_id: entryId || null,
+  });
+  return unwrap(result, '공금 첨부파일을 불러오지 못했습니다.') || [];
+}
+
+export async function attachFundLedgerEvidence(companyId, entryId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('fund_admin_attach_ledger_evidence', {
+    p_company_id: companyId,
+    p_entry_id: entryId,
+    p_storage_path: payload.storagePath,
+    p_file_name: payload.fileName || null,
+    p_mime_type: payload.mimeType || null,
+    p_size_bytes: payload.sizeBytes == null ? null : Number(payload.sizeBytes),
+  });
+  return unwrap(result, '공금 첨부파일을 연결하지 못했습니다.');
+}
