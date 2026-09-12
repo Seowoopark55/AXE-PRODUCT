@@ -112,7 +112,10 @@ function renderAuthed(state) {
   const connected = state.discordConnection?.status === 'connected';
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
-      <button type="button" class="product-brand product-brand--home" data-action="go-dashboard" aria-label="대시보드로 이동" title="대시보드로 이동"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></button>
+      <button type="button" class="global-home-zone" data-action="go-dashboard" aria-label="대시보드로 이동" title="대시보드로 이동">
+        <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></span></span>
+        <span class="global-home-zone__hint">DASHBOARD</span>
+      </button>
       <div class="global-account"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
     </div></header>
     <div class="workspace-shell">
@@ -304,7 +307,23 @@ function renderGuideDiscord(state){const connected=state.discordConnection?.stat
   <div class="axe-guide-two"><section class="axe-guide-card"><h3>처음 승인하는 권한</h3><div class="axe-guide-chips"><span>채널 보기</span><span>메시지 전송</span><span>임베드 표시</span><span>메시지 기록 보기</span><span>메시지 관리</span><span>채널 관리</span></div><p>Administrator 전체 권한은 요청하지 않습니다.</p></section><section class="axe-guide-card"><h3>채널 구성 방식</h3><ul>${guideBullet('빠른 설정','기능에 필요한 채널을 AXE가 자동으로 생성합니다.')}${guideBullet('직접 연결','이미 사용 중인 Discord 채널을 기능에 연결할 수도 있습니다.')}${guideBullet('권한 다시 승인','나중에 봇 권한이 제거된 경우 회사 설정에서 다시 승인할 수 있습니다.')}</ul></section></div>
 </div>`;}
 function renderGuideBody(state,key){return ({start:renderGuideStart,fund:renderGuideFund,ammo:renderGuideAmmo,modbook:renderGuideModbook,members:renderGuideMembers,assets:renderGuideAssets,outlaw:renderGuideOutlaw,cooking:renderGuideCooking,discord:renderGuideDiscord}[key]||renderGuideStart)(state);}
-function renderGuide(state){const current=guideSection(state);return `<div class="axe-guide-page">${pageHeader('GUIDE','사용 가이드','AXE PRODUCT와 Discord 채널을 실제 운영에서 어떻게 쓰는지 기능별로 확인하세요.')}<div class="axe-guide-layout"><aside class="axe-guide-nav">${GUIDE_SECTIONS.map(([key,label,desc])=>`<button type="button" class="${current===key?'is-active':''}" data-guide-section="${esc(key)}"><strong>${esc(label)}</strong><span>${esc(desc)}</span></button>`).join('')}</aside><main class="axe-guide-main">${renderGuideBody(state,current)}</main></div></div>`;}
+function renderGuide(state){
+  const current=guideSection(state);
+  const currentMeta=GUIDE_SECTIONS.find(([key])=>key===current)||GUIDE_SECTIONS[0];
+  return `<section class="axe-guide-page">
+    <header class="axe-guide-shell-head">
+      <div class="axe-guide-shell-copy"><span>AXE PRODUCT GUIDE</span><h1>운영 가이드</h1><p>웹 콘솔과 Discord 채널을 실제 회사 운영에서 어떻게 쓰는지 기능별로 크게 확인하세요.</p></div>
+      <div class="axe-guide-shell-actions"><span><b>${esc(currentMeta[1])}</b>${esc(currentMeta[2])}</span><button type="button" data-action="go-dashboard">대시보드로 돌아가기</button></div>
+    </header>
+    <div class="axe-guide-layout">
+      <aside class="axe-guide-nav">
+        <div class="axe-guide-nav-head"><span>TUTORIAL</span><strong>기능 선택</strong><p>궁금한 기능을 선택하면 사용 순서와 Discord 입력 예시를 확인할 수 있습니다.</p></div>
+        <div class="axe-guide-nav-list">${GUIDE_SECTIONS.map(([key,label,desc],index)=>`<button type="button" class="${current===key?'is-active':''}" data-guide-section="${esc(key)}"><b>${String(index+1).padStart(2,'0')}</b><span><strong>${esc(label)}</strong><small>${esc(desc)}</small></span></button>`).join('')}</div>
+      </aside>
+      <main class="axe-guide-main">${renderGuideBody(state,current)}</main>
+    </div>
+  </section>`;
+}
 
 // ============================================================
 // FUND

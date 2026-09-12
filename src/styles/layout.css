@@ -141,3 +141,35 @@
   .runtime-app--accounts .global-account{width:636px}
   .runtime-app--settings .global-account{width:680px}
 }
+
+/* AXE PRODUCT 3.22.0 · full-header home target
+   The whole product banner is a dashboard target. Account identity / logout
+   remain independent controls layered above it. */
+.global-header__inner{position:relative}
+.global-home-zone{
+  min-width:0;height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;
+}
+.global-home-zone:hover .product-brand strong{color:#f4dca8}
+.global-home-zone:focus-visible{outline:1px solid rgba(213,163,67,.48);outline-offset:-8px;border-radius:10px}
+.product-brand__copy{display:grid;gap:2px}
+.global-home-zone__hint{
+  color:#4f5963;font-size:7.5px;font-weight:950;letter-spacing:.17em;opacity:0;
+  transform:translateX(-4px);transition:opacity .16s ease,transform .16s ease,color .16s ease
+}
+.global-home-zone:hover .global-home-zone__hint{opacity:1;transform:none;color:#8e774d}
+.global-account{position:relative;z-index:2;pointer-events:none}
+.global-account>div,.global-account>.icon-button{pointer-events:auto}
+
+@media(min-width:761px){
+  .global-home-zone{grid-column:1 / 3;grid-row:1;width:100%;align-self:stretch}
+  .global-account{grid-column:2;grid-row:1}
+  .runtime-app--guide .global-header__inner,
+  .runtime-app--guide .workspace-shell{width:min(1180px,calc(100% - (var(--shell-gutter) * 2)))}
+  .runtime-app--guide .global-account{width:auto;justify-self:end}
+}
+
+@media(max-width:760px){
+  .global-home-zone{flex:1}
+  .global-home-zone__hint{display:none}
+}

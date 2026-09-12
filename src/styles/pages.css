@@ -48,3 +48,128 @@
 @media(min-width:761px){.runtime-app--guide .global-account{width:760px}}
 @media(max-width:900px){.axe-guide-layout{grid-template-columns:1fr}.axe-guide-nav{position:static;grid-template-columns:repeat(3,minmax(0,1fr))}.axe-guide-two,.axe-guide-steps{grid-template-columns:1fr}.axe-guide-nav button{min-height:44px}}
 @media(max-width:600px){.axe-guide-nav{grid-template-columns:1fr 1fr}.axe-guide-intro,.axe-guide-feature-head{align-items:flex-start;flex-direction:column}.axe-guide-note{grid-template-columns:1fr}.axe-guide-flow{align-items:stretch;flex-direction:column}.axe-guide-flow i{transform:rotate(90deg);text-align:center}}
+
+/* AXE PRODUCT 3.22.0 · dedicated guide center
+   Guide mode intentionally leaves the dense operations rail and opens its own
+   large learning workspace, mirroring the visual separation of initial setup. */
+.runtime-app--guide .workspace-shell{display:block;margin-top:14px}
+.runtime-app--guide .sidebar{display:none}
+.runtime-app--guide .main{width:100%;padding:0 0 44px}
+.axe-guide-page{
+  width:100%;max-width:none;margin:0;overflow:hidden;
+  border:1px solid #252f39;border-radius:16px;
+  background:linear-gradient(180deg,#0b1117 0,#090e13 100%);
+  box-shadow:0 22px 70px rgba(0,0,0,.20)
+}
+.axe-guide-shell-head{
+  min-height:132px;display:flex;align-items:center;justify-content:space-between;gap:28px;
+  padding:26px 30px;border-bottom:1px solid #222c35;
+  background:radial-gradient(circle at 10% 0,rgba(213,163,67,.085),transparent 35%),#0c1218
+}
+.axe-guide-shell-copy{min-width:0}
+.axe-guide-shell-copy>span{display:block;color:#ad8743;font-size:9px;font-weight:950;letter-spacing:.18em}
+.axe-guide-shell-copy h1{margin:8px 0 0;color:#f0ece4;font-size:34px;line-height:1;letter-spacing:-.035em}
+.axe-guide-shell-copy p{max-width:650px;margin:11px 0 0;color:#8a959f;font-size:13px;line-height:1.6}
+.axe-guide-shell-actions{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.axe-guide-shell-actions>span{display:grid;gap:3px;text-align:right;color:#67737e;font-size:9px}
+.axe-guide-shell-actions>span b{color:#c9ced2;font-size:11px}
+.axe-guide-shell-actions>button{
+  height:38px;padding:0 13px;border:1px solid rgba(213,163,67,.24);border-radius:9px;
+  background:rgba(213,163,67,.055);color:#d6b66e;font-size:10px;font-weight:900;cursor:pointer
+}
+.axe-guide-shell-actions>button:hover{border-color:rgba(213,163,67,.42);background:rgba(213,163,67,.09);color:#f0cf84}
+
+.axe-guide-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;align-items:stretch;min-height:660px}
+.axe-guide-nav{
+  position:static;display:block;padding:22px 16px;border:0;border-right:1px solid #222c35;border-radius:0;
+  background:#0a1016
+}
+.axe-guide-nav-head{padding:2px 8px 17px;border-bottom:1px solid #1f2831}
+.axe-guide-nav-head>span{display:block;color:#80683e;font-size:8px;font-weight:950;letter-spacing:.16em}
+.axe-guide-nav-head>strong{display:block;margin-top:5px;color:#d8dde1;font-size:15px}
+.axe-guide-nav-head>p{margin:7px 0 0;color:#66727d;font-size:10px;line-height:1.55}
+.axe-guide-nav-list{display:grid;gap:4px;margin-top:13px}
+.axe-guide-nav-list button{
+  min-height:58px;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:10px;
+  padding:9px 10px;border:1px solid transparent;border-radius:9px;background:transparent;color:#89949e;text-align:left;cursor:pointer
+}
+.axe-guide-nav-list button:hover{background:#111921;color:#d0d5da}
+.axe-guide-nav-list button.is-active{border-color:rgba(213,163,67,.20);background:rgba(213,163,67,.06);box-shadow:inset 3px 0 #c99c4c}
+.axe-guide-nav-list button>b{color:#4d5862;font-size:8px;letter-spacing:.08em}
+.axe-guide-nav-list button.is-active>b{color:#b58c48}
+.axe-guide-nav-list button>span{display:grid;gap:3px;min-width:0}
+.axe-guide-nav-list strong{color:#c9d0d5;font-size:12px}
+.axe-guide-nav-list small{overflow:hidden;color:#66717b;font-size:9px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.axe-guide-nav-list button.is-active strong{color:#f0d69f}
+.axe-guide-nav-list button.is-active small{color:#917d58}
+
+.axe-guide-main{min-width:0;padding:28px 30px 34px;background:linear-gradient(180deg,#0c1218,#0a0f14)}
+.axe-guide-content{display:grid;gap:16px}
+.axe-guide-intro,.axe-guide-feature-head{
+  min-height:132px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px 24px;
+  border:1px solid #27323c;border-radius:13px;background:linear-gradient(135deg,rgba(213,163,67,.055),transparent 48%),#0f161d
+}
+.axe-guide-intro>div,.axe-guide-feature-head>div{display:grid;gap:6px;min-width:0}
+.axe-guide-intro>div>span,.axe-guide-feature-head>div>span{color:#a88342;font-size:9px;font-weight:950;letter-spacing:.16em}
+.axe-guide-intro h2,.axe-guide-feature-head h2{margin:0;color:#efebe4;font-size:27px;line-height:1.08;letter-spacing:-.025em}
+.axe-guide-intro p,.axe-guide-feature-head p{max-width:650px;margin:0;color:#89949e;font-size:12.5px;line-height:1.65}
+.axe-guide-intro>em{padding:8px 11px;font-size:9.5px}
+.axe-guide-module-state{margin-left:8px;padding:4px 8px;font-size:8px}
+
+.axe-guide-steps{grid-template-columns:1fr 1fr;gap:11px}
+.axe-guide-step{min-height:96px;grid-template-columns:42px minmax(0,1fr);gap:13px;padding:15px 16px;border-radius:11px;background:#0f161d}
+.axe-guide-step>b{width:36px;height:36px;border-radius:9px;font-size:9px}
+.axe-guide-step>div{gap:5px}
+.axe-guide-step strong{font-size:12px}
+.axe-guide-step span{font-size:10.5px;line-height:1.55}
+
+.axe-guide-two{gap:12px}
+.axe-guide-card,.axe-guide-example{padding:19px;border-radius:12px;background:#0f161d}
+.axe-guide-card h3,.axe-guide-example h3{margin:0 0 13px;font-size:14px}
+.axe-guide-card>p{margin:11px 0 0;font-size:10.5px;line-height:1.65}
+.axe-guide-card ul{gap:12px}
+.axe-guide-card li{gap:4px;padding-left:14px}
+.axe-guide-card li:before{top:8px;width:5px;height:5px}
+.axe-guide-card li strong{font-size:11.5px}
+.axe-guide-card li span{font-size:10.5px;line-height:1.55}
+.axe-guide-chat{gap:8px}
+.axe-guide-chat-line{grid-template-columns:54px minmax(0,1fr);gap:9px}
+.axe-guide-chat-line>span{font-size:9px}
+.axe-guide-chat-line code{padding:10px 11px;border-radius:8px;font-size:11px;line-height:1.45}
+.axe-guide-flow{gap:9px}
+.axe-guide-flow span{padding:10px 12px;border-radius:8px;font-size:10.5px}
+.axe-guide-flow i{font-size:12px}
+.axe-guide-numbered{gap:10px}
+.axe-guide-numbered li{grid-template-columns:31px minmax(0,1fr);gap:10px}
+.axe-guide-numbered b{width:29px;height:29px;font-size:9px}
+.axe-guide-numbered span{font-size:10.5px!important}
+.axe-guide-status{min-height:72px;padding:13px 15px;border-radius:10px}
+.axe-guide-status strong{font-size:11.5px}.axe-guide-status span{font-size:10px}
+.axe-guide-chips{gap:7px}.axe-guide-chips span{padding:7px 9px;font-size:9.5px}
+.axe-guide-note{grid-template-columns:auto minmax(0,1fr) auto;gap:14px;padding:14px 16px;border-radius:10px}
+.axe-guide-note strong{font-size:10.5px}.axe-guide-note>span{font-size:10.5px;line-height:1.6}
+.axe-guide-jump{height:36px;padding:0 11px;border-radius:8px;font-size:9.5px}
+
+@media(max-width:900px){
+  .runtime-app--guide .workspace-shell{display:block}
+  .axe-guide-page{border-radius:13px}
+  .axe-guide-shell-head{align-items:flex-start;flex-direction:column;padding:22px}
+  .axe-guide-shell-actions{width:100%;justify-content:space-between}
+  .axe-guide-shell-actions>span{text-align:left}
+  .axe-guide-layout{grid-template-columns:1fr}
+  .axe-guide-nav{border-right:0;border-bottom:1px solid #222c35;padding:14px}
+  .axe-guide-nav-head{display:none}
+  .axe-guide-nav-list{grid-template-columns:repeat(3,minmax(0,1fr));margin:0}
+  .axe-guide-nav-list button{min-height:52px}
+  .axe-guide-nav-list small{display:none}
+  .axe-guide-main{padding:20px}
+}
+@media(max-width:600px){
+  .axe-guide-shell-copy h1{font-size:28px}.axe-guide-shell-copy p{font-size:11.5px}
+  .axe-guide-shell-actions>span{display:none}
+  .axe-guide-nav-list{grid-template-columns:1fr 1fr}
+  .axe-guide-intro,.axe-guide-feature-head{align-items:flex-start;flex-direction:column;padding:18px}
+  .axe-guide-intro h2,.axe-guide-feature-head h2{font-size:23px}
+  .axe-guide-two,.axe-guide-steps{grid-template-columns:1fr}
+  .axe-guide-note{grid-template-columns:1fr}
+}

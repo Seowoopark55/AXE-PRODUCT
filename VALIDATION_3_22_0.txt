@@ -1,0 +1,18 @@
+AXE PRODUCT WEB 3.22.0 · HOME BANNER + DEDICATED GUIDE CENTER
+
+Validation
+- node --check src/ui/render.js: PASS
+- node --check src/main.js: PASS
+- npm run check: PASS
+  - Integrated UI: 72/72 PASS
+  - Dashboard operations: 12/12 PASS
+  - Home + Guide: 11/11 PASS
+  - Dedicated Guide Center: 10/10 PASS
+  - Existing Discord / onboarding / modbook / permissions checks: PASS
+- npm run build: NOT RUN TO COMPLETION (vite executable is not installed in this working environment)
+
+Scope
+- WEB STAGING only
+- No DB migration
+- No PRODUCT BOT change
+- No LIVE AXE change
