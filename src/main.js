@@ -60,12 +60,6 @@ const state = {
   ready: false,
   error: '',
   notice: '',
-  pwa: {
-    online: navigator.onLine,
-    installed: window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true,
-    installAvailable: false,
-    updateAvailable: false,
-  },
 };
 
 let noticeTimer = null;
@@ -74,75 +68,18 @@ let reconnectPollTimer = null;
 let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
-let deferredInstallPrompt = null;
-let serviceWorkerRegistration = null;
-let serviceWorkerReloading = false;
-
-function renderPwaState() { render(); }
-
-function isStandaloneDisplay() {
-  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-
-async function setupPwaExperience() {
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    state.pwa.installAvailable = !state.pwa.installed;
-    renderPwaState();
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    state.pwa.installed = true;
-    state.pwa.installAvailable = false;
-    renderPwaState();
-  });
-  window.addEventListener('offline', () => {
-    state.pwa.online = false;
-    renderPwaState();
-  });
-  window.addEventListener('online', async () => {
-    const wasOffline = !state.pwa.online;
-    state.pwa.online = true;
-    renderPwaState();
-    if (wasOffline && state.session?.user) {
-      await refreshAll();
-      setNotice('연결이 복구되어 최신 데이터를 불러왔습니다.');
-    }
-  });
-
-  const displayMode = window.matchMedia?.('(display-mode: standalone)');
-  displayMode?.addEventListener?.('change', () => {
-    state.pwa.installed = isStandaloneDisplay();
-    if (state.pwa.installed) state.pwa.installAvailable = false;
-    renderPwaState();
-  });
-
-  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
+async function cleanupLegacyPwa() {
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    serviceWorkerRegistration = registration;
-    if (registration.waiting && navigator.serviceWorker.controller) {
-      state.pwa.updateAvailable = true;
-      renderPwaState();
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
     }
-    registration.addEventListener('updatefound', () => {
-      const worker = registration.installing;
-      if (!worker) return;
-      worker.addEventListener('statechange', () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-          state.pwa.updateAvailable = true;
-          renderPwaState();
-        }
-      });
-    });
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (serviceWorkerReloading) return;
-      serviceWorkerReloading = true;
-      window.location.reload();
-    });
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.startsWith('axe-product-pwa-')).map((key) => caches.delete(key)));
+    }
   } catch (error) {
-    console.warn('AXE PRODUCT PWA registration failed', error);
+    console.warn('AXE PRODUCT legacy PWA cleanup failed', error);
   }
 }
 
@@ -452,22 +389,6 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
-  if(action==='install-app'){
-    if(!deferredInstallPrompt){setNotice('현재 브라우저에서는 설치 안내를 바로 열 수 없습니다. 브라우저 메뉴의 앱 설치 기능을 이용해 주세요.');return;}
-    deferredInstallPrompt.prompt();
-    const choice=await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    state.pwa.installAvailable=false;
-    if(choice?.outcome==='accepted') state.pwa.installed=true;
-    render();
-    return;
-  }
-  if(action==='apply-app-update'){
-    const waiting=serviceWorkerRegistration?.waiting;
-    if(!waiting){state.pwa.updateAvailable=false;render();return;}
-    waiting.postMessage({type:'SKIP_WAITING'});
-    return;
-  }
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.companyBannerUrl='';state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
@@ -604,5 +525,5 @@ root.addEventListener('submit', async event => {
   });
 });
 
-setupPwaExperience();
+cleanupLegacyPwa();
 boot();

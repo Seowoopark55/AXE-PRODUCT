@@ -1,16 +1,8 @@
-AXE PRODUCT WEB STAGING 3.18.3 - QUIET WORKSPACE R1
+AXE PRODUCT WEB STAGING 3.18.5 - CENTERED AMBIENT WEB SHELL R1
 
-- Removed the Context Utility Rail and all duplicate quick actions/status cards.
-- Preserved the wide desktop app frame from 3.18.1.
-- Replaced the right-side rail with a passive ambient workspace field only.
-- Added a faint, non-interactive AXE PRODUCT workspace signature.
-- Core 636/680px operational rails remain unchanged.
-- No LIVE AXE, PRODUCT BOT, or DB changes.
-
-AXE PRODUCT WEB STAGING 3.18.4 - AXE AMBIENT BRAND SHELL R1
-
-- App frame is centered again with intentional side breathing room.
-- Outer desktop margins now show a subtle black-and-gold AXE ambient brand background.
-- No duplicate utility rail or right-side internal filler remains.
-- Existing compact operation rails remain unchanged.
+- PWA mode removed: no install CTA, no update CTA, no manifest registration.
+- Legacy AXE PWA registrations/caches are cleaned up automatically.
+- Desktop app frame reduced to a centered 1120px maximum frame with equal left/right margins.
+- AXE ambient brand artwork is brighter and lives only in the outer page background.
+- Existing compact operational layouts remain unchanged.
 - LIVE AXE / PRODUCT BOT / DB untouched.

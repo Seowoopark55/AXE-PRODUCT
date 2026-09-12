@@ -112,3 +112,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Removed the 3.18.3 internal quiet-workspace overlay so the decorative treatment lives outside the app, not inside the operational canvas.
 - Desktop browser keeps larger side margins; standalone PWA keeps smaller but still visible side margins.
 - Added `/public/brand/axe-ambient-shell-wide.png` and pre-cached it in the PWA service worker.
+
+
+## 3.18.5 · CENTERED AMBIENT WEB SHELL R1
+- PWA install/update experience removed. AXE PRODUCT is WEB-only again.
+- Existing AXE PWA service workers/caches are actively unregistered/cleared once by the web client.
+- The app frame is narrowed and exactly centered so left/right outside margins are equal.
+- Ambient AXE artwork is now intentionally visible in the outer margins instead of being hidden behind an oversized app frame.
+- The operational content rails and existing management functionality are unchanged.
