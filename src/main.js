@@ -67,6 +67,21 @@ let reconnectPollTimer = null;
 let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
+function createSetupDemoState(){
+  return {
+    step:0,
+    connected:false,
+    adminRole:'대표',
+    memberRole:'회사원',
+    modules:{fund:true,ammo:true,outlaw:false,cooking:false,assets:true},
+    channelMode:'quick',
+    categoryName:'AXE PRODUCT',
+    channelsGenerated:false,
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',cooking:'요리-주문'},
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'}
+  };
+}
+
 async function cleanupLegacyPwa() {
   try {
     if ('serviceWorker' in navigator) {
@@ -387,14 +402,16 @@ root.addEventListener('click', async event => {
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
-  if(action==='open-setup-demo'){state.setupDemo={step:0,connected:false,adminRole:'대표',memberRole:'회사원',modules:{fund:true,ammo:true,outlaw:false,cooking:false,assets:true},channels:{fund:'#공금-현황',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'}};state.modal={type:'setup-demo'};render();return;}
+  if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(5,Number(state.setupDemo.step||0)+1);render();return;}
   if(action==='setup-demo-back'){if(!state.setupDemo)return;state.setupDemo.step=Math.max(0,Number(state.setupDemo.step||0)-1);render();return;}
-  if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo={step:0,connected:false,adminRole:'대표',memberRole:'회사원',modules:{fund:true,ammo:true,outlaw:false,cooking:false,assets:true},channels:{fund:'#공금-현황',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'}};render();return;}
+  if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo=createSetupDemoState();render();return;}
   if(action==='setup-demo-finish'){state.setupDemo=null;state.modal=null;render();return;}
   if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(5,target));render();}return;}
-  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];render();}return;}
+  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];state.setupDemo.channelsGenerated=false;render();}return;}
+  if(action==='setup-demo-channel-mode'){if(!state.setupDemo)return;const mode=String(actionEl.dataset.mode||'quick');state.setupDemo.channelMode=mode==='direct'?'direct':'quick';state.setupDemo.channelsGenerated=false;render();return;}
+  if(action==='setup-demo-generate-channels'){if(!state.setupDemo)return;state.setupDemo.channelsGenerated=true;render();return;}
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
   if(action==='open-ledger'){state.modal={type:'ledger',entryId:null};render();return;}
   if(action==='edit-ledger'){state.modal={type:'ledger',entryId:actionEl.dataset.entryId};render();return;}
@@ -444,7 +461,9 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-asset-holder]')){const status=root.querySelector('[data-asset-modal-status]');if(status)status.value=event.target.value?'보유':'미배정';return;}
     if(event.target.matches('[data-asset-modal-status]')){const holder=root.querySelector('[data-asset-holder]');if(event.target.value==='미배정'&&holder)holder.value='';return;}
     if(event.target.matches('[data-setup-role]')){if(!state.setupDemo)return;state.setupDemo[event.target.dataset.setupRole]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금-현황':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
+    if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {

@@ -176,3 +176,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 ## 3.19.1 · GUIDED SETUP TYPOGRAPHY R1
 - Increased text sizes throughout Guided Setup preview only.
 - Layout, interactions, preview-only behavior, and real settings remain unchanged.
+
+
+## 3.19.2 · GUIDED CHANNEL BUILDER PREVIEW R1
+- Expanded the non-destructive Guided Setup preview with a channel configuration choice: Quick Setup or Direct Connect.
+- Quick Setup proposes only the channels required by enabled features. Fund uses a single `공금현황판` channel because payment is handled from the same board.
+- Before simulated creation, the company can freely edit the Discord category name and every proposed channel name.
+- `이 구성으로 생성 체험` shows the resulting category/channel creation and automatic feature linkage without changing Discord or database data.
+- Direct Connect remains available for companies that already have their own Discord channel structure.

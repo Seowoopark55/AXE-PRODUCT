@@ -47,3 +47,11 @@ AXE PRODUCT WEB STAGING 3.19.1 - GUIDED SETUP TYPOGRAPHY R1
 
 - Increased Guided Setup preview typography for easier reading.
 - No structural or functional changes.
+
+AXE PRODUCT WEB STAGING 3.19.2 - GUIDED CHANNEL BUILDER PREVIEW R1
+
+- Guided Setup channel step now offers Quick Setup vs Direct Connect.
+- Quick Setup supports editable category and channel names before creation.
+- Fund recommendation corrected to a single #공금현황판 channel.
+- Added a non-destructive channel creation simulation and auto-link result preview.
+- No Discord, BOT, DB, or LIVE AXE changes.
