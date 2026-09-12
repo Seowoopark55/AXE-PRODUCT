@@ -14,6 +14,7 @@ const render = read('src/ui/render.js');
 const css = read('src/styles.css');
 
 ok('reapproval endpoint exists', reapprove.includes("permission-reapproval"));
+ok('reapproval accepts canonical UUID company ids', reapprove.includes("[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
 ok('reapproval requests manage channels only', reapprove.includes("permissions: '16'"));
 ok('reapproval locks connected guild', reapprove.includes("disable_guild_select: 'true'") && reapprove.includes('guild_id: guildId'));
 ok('callback rejects guild mismatch', callback.includes('guild_mismatch') && callback.includes('expectedGuildId'));

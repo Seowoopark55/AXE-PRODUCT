@@ -106,3 +106,12 @@ AXE PRODUCT 3.21.4 · DISCORD PERMISSION REAPPROVAL R1
 - Users may switch to existing-channel direct linking instead of granting channel creation permission.
 - API client preserves HTTP status so permission errors can be handled without raw global banners.
 - No DB migration. No PRODUCT BOT change. No LIVE AXE / NEW AXE NET change.
+
+AXE PRODUCT WEB STAGING 3.21.5 - DISCORD REAPPROVAL UUID FIX R1
+
+- Fixed a typo in the new /api/discord/reapprove company UUID validator.
+- 3.21.4 rejected valid company UUIDs before Discord OAuth could open.
+- The validator now matches the same canonical UUID format used by /api/discord/start and Guided Setup channel APIs.
+- Added regression coverage for the UUID shape.
+- WEB-only hotfix. No DB, PRODUCT BOT, LIVE AXE, or NEW AXE NET changes.
+
