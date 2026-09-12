@@ -142,12 +142,12 @@ function createSetupDemoState(){
     connected:false,
     adminRole:'대표',
     memberRole:'회사원',
-    modules:{fund:true,ammo:true,outlaw:false,cooking:false,assets:true},
+    modules:{fund:true,ammo:true,outlaw:false,modbook:true,cooking:false,assets:true},
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',cooking:'요리-주문'},
-    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',cooking:'#요리-주문'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문'},
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문'},
     memberFilter:'member',
     memberTargetRole:'member',
     memberSelected:['m1','m2','m3','m4','m5','m6'],
@@ -171,12 +171,13 @@ function createSetupGuideState(step = 0){
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',cooking:'요리-주문'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
       ammo3:String(settingsByKey.ammo?.three_channel_id||''),
       ammo10:String(settingsByKey.ammo?.ten_channel_id||''),
       outlaw:String(settingsByKey.outlaw?.record_channel_id||''),
+      modbook:String(settingsByKey.modbook?.channel_id||''),
       cooking:String(settingsByKey.cooking?.order_channel_id||''),
     },
     createdChannelIds:{},
@@ -220,6 +221,7 @@ function setupGuideChannelPlan(){
     rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알'});
   }
   if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록'});
+  if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서'});
   if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문'});
   return rows;
 }
@@ -274,6 +276,7 @@ function setupGuideChannelBinding(key){
     ammo3:['ammo','three_channel_id'],
     ammo10:['ammo','ten_channel_id'],
     outlaw:['outlaw','record_channel_id'],
+    modbook:['modbook','channel_id'],
     cooking:['cooking','order_channel_id'],
   };
   return map[key]||null;
@@ -638,7 +641,7 @@ async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
 async function saveModuleSettingsData(form,data){
   for(const mod of state.modules){
     const settings={...(mod.settings||{})};
-    for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','order_channel_id']){
+    for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','channel_id','order_channel_id']){
       const field=`module_${mod.module_key}_${key}`; if(form.elements[field])settings[key]=String(data.get(field)||'')||null;
     }
     await updateCompanyModuleSettings(state.companyId,mod.module_key,settings,state.session.user.id);
@@ -871,7 +874,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');render();return;}
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
-    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){

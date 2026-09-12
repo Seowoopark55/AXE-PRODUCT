@@ -355,7 +355,7 @@ const MODULE_UI = {
   fund:{name:'공금',desc:'납부 현황 · 검수 · 공금 관리',channels:[['status_channel_id','공금 현황 채널']]},
   ammo:{name:'총알',desc:'3시 · 10시 주문 / 제작 / 배분',channels:[['three_channel_id','3시 채널'],['ten_channel_id','10시 채널']]},
   outlaw:{name:'무법지대 전적',desc:'스크린샷 OCR · 랭킹 · 기록',channels:[['record_channel_id','전적 등록 채널']]},
-  modbook:{name:'개조서',desc:'조회 · 등록 신청 · 검수',channels:[]},
+  modbook:{name:'개조서',desc:'이름 조회 · 최근 거래가 갱신 · 등록 신청 · 검수',channels:[['channel_id','개조서 채널']]},
   cooking:{name:'요리 주문',desc:'주문 · 변경 · 영업 관리',channels:[['order_channel_id','요리 주문 채널']]},
   assets:{name:'자산 · 계좌 관리',desc:'회사 자산 · 반납 · 멤버 계좌 관리',channels:[]},
 };
@@ -472,6 +472,7 @@ function setupGuidePreview(state){
   if(modules.fund)channelPlan.push(['fund','공금 관리','공금현황판',generated.fund||'공금현황판','공금현황판']);
   if(modules.ammo){channelPlan.push(['ammo3','총알 관리 · 3시','3시-총알',generated.ammo3||'3시-총알','3시']);channelPlan.push(['ammo10','총알 관리 · 10시','10시-총알',generated.ammo10||'10시-총알','10시']);}
   if(modules.outlaw)channelPlan.push(['outlaw','무법지대 전적','전적-등록',generated.outlaw||'전적-등록','전적 등록']);
+  if(modules.modbook)channelPlan.push(['modbook','개조서 조회 · 가격','개조서',generated.modbook||'개조서','개조서']);
   if(modules.cooking)channelPlan.push(['cooking','요리 주문','요리-주문',generated.cooking||'요리-주문','요리 주문']);
   const generatedRow=([key,label,placeholder,value,linkLabel])=>`<label class="setup-demo-create-row"><span class="setup-demo-create-copy"><strong>${label}</strong><small>생성 후 ${linkLabel} 기능에 자동 연결</small></span><span class="setup-demo-channel-input"><b>#</b><input type="text" maxlength="90" value="${esc(value)}" placeholder="${esc(placeholder)}" data-setup-generated-channel="${key}"></span><em>AUTO</em></label>`;
 
@@ -498,7 +499,7 @@ function setupGuidePreview(state){
       const builder=channelPlan.length?`<div class="setup-demo-builder"><div class="setup-demo-builder-head"><div><strong>추천 구성</strong><span>생성 전에 이름을 자유롭게 바꿀 수 있습니다.</span></div><em>${channelPlan.length}개 채널</em></div><label class="setup-demo-category-row"><span><strong>카테고리</strong><small>채널을 묶어둘 Discord 카테고리</small></span><input type="text" maxlength="90" value="${esc(category)}" data-setup-category-name></label><div class="setup-demo-create-list">${channelPlan.map(generatedRow).join('')}</div>${demo.channelsGenerated?`<div class="setup-demo-generation-result"><div class="setup-demo-generation-title"><i>✓</i><span><strong>생성 체험 완료</strong><small>실제 Discord에는 아무것도 생성되지 않았습니다.</small></span></div><ul><li><b>✓</b><span><strong>${esc(category)}</strong><small>카테고리 생성</small></span></li>${channelPlan.map(([,label,,value])=>`<li><b>✓</b><span><strong>#${esc(value)}</strong><small>${esc(label)}에 자동 연결</small></span></li>`).join('')}</ul></div>`:`<div class="setup-demo-builder-note"><b>PREVIEW</b><span>아래 <strong>이 구성으로 생성 체험</strong>을 누르면 생성 과정을 미리 볼 수 있습니다.</span></div>`}</div>`:`<div class="setup-demo-empty"><strong>자동 생성이 필요한 채널이 없습니다.</strong><span>자산 · 계좌 기능은 별도 Discord 채널이 필요하지 않습니다.</span></div>`;
       body=`<div class="setup-demo-quest setup-demo-quest--channels"><span class="setup-demo-quest-no">QUEST 04</span><h2>채널도 AXE가 준비할 수 있습니다.</h2><p>추천 구성을 그대로 사용하거나, 카테고리와 채널명을 회사 스타일에 맞게 바꾼 뒤 생성합니다.</p>${modePicker}${builder}</div>`;
     }else{
-      const rows=[]; if(modules.fund)rows.push(channelSelect('공금현황판','공금 현황판',demo.channels?.fund)); if(modules.ammo){rows.push(channelSelect('3시-총알','3시 총알 채널',demo.channels?.ammo3));rows.push(channelSelect('10시-총알','10시 총알 채널',demo.channels?.ammo10));} if(modules.outlaw)rows.push(channelSelect('전적-등록','무법 전적 등록 채널',demo.channels?.outlaw)); if(modules.cooking)rows.push(channelSelect('요리-주문','요리 주문 채널',demo.channels?.cooking));
+      const rows=[]; if(modules.fund)rows.push(channelSelect('공금현황판','공금 현황판',demo.channels?.fund)); if(modules.ammo){rows.push(channelSelect('3시-총알','3시 총알 채널',demo.channels?.ammo3));rows.push(channelSelect('10시-총알','10시 총알 채널',demo.channels?.ammo10));} if(modules.outlaw)rows.push(channelSelect('전적-등록','무법 전적 등록 채널',demo.channels?.outlaw)); if(modules.modbook)rows.push(channelSelect('개조서','개조서 채널',demo.channels?.modbook)); if(modules.cooking)rows.push(channelSelect('요리-주문','요리 주문 채널',demo.channels?.cooking));
       body=`<div class="setup-demo-quest setup-demo-quest--channels"><span class="setup-demo-quest-no">QUEST 04</span><h2>기존 채널을 그대로 연결할 수도 있습니다.</h2><p>이미 서버 구조가 잡혀 있다면 새 채널을 만들지 않고 기존 채널을 기능에 연결합니다.</p>${modePicker}<div class="setup-demo-channel-list">${rows.length?rows.join(''):`<div class="setup-demo-empty"><strong>채널 설정이 필요한 기능이 없습니다.</strong><span>바로 다음 단계로 진행할 수 있습니다.</span></div>`}</div><div class="setup-demo-tip"><strong>직접 연결</strong><span>기존 서버 구조는 그대로 유지하고 AXE 기능만 연결합니다.</span></div></div>`;
     }
   }
@@ -532,6 +533,7 @@ function setupGuideLive(state){
   if(modules.fund)plan.push({key:'fund',label:'공금 관리',placeholder:'공금현황판',value:guide.generatedChannels?.fund||'공금현황판'});
   if(modules.ammo){plan.push({key:'ammo3',label:'총알 관리 · 3시',placeholder:'3시-총알',value:guide.generatedChannels?.ammo3||'3시-총알'});plan.push({key:'ammo10',label:'총알 관리 · 10시',placeholder:'10시-총알',value:guide.generatedChannels?.ammo10||'10시-총알'});}
   if(modules.outlaw)plan.push({key:'outlaw',label:'무법지대 전적',placeholder:'전적-등록',value:guide.generatedChannels?.outlaw||'전적-등록'});
+  if(modules.modbook)plan.push({key:'modbook',label:'개조서 조회 · 가격',placeholder:'개조서',value:guide.generatedChannels?.modbook||'개조서'});
   if(modules.cooking)plan.push({key:'cooking',label:'요리 주문',placeholder:'요리-주문',value:guide.generatedChannels?.cooking||'요리-주문'});
   const generatedRow=(row)=>`<label class="setup-demo-create-row"><span class="setup-demo-create-copy"><strong>${esc(row.label)}</strong><small>생성 후 해당 기능에 자동 연결</small></span><span class="setup-demo-channel-input"><b>#</b><input type="text" maxlength="90" value="${esc(row.value)}" placeholder="${esc(row.placeholder)}" data-guide-generated-channel="${esc(row.key)}"></span><em>AUTO</em></label>`;
   const directRows=plan.map(row=>`<label class="setup-demo-field"><span>${esc(row.label)}</span><select data-guide-direct-channel="${esc(row.key)}">${channelOptions(guide.directChannels?.[row.key]||'')}</select></label>`).join('');
