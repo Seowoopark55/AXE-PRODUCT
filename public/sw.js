@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'axe-product-pwa-3.18.3-r1';
+const CACHE_VERSION = 'axe-product-pwa-3.18.4-r1';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const CORE = [
@@ -8,7 +8,8 @@ const CORE = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/icon-maskable-512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/apple-touch-icon.png',
+  '/brand/axe-ambient-shell-wide.png'
 ];
 
 async function primeBuiltAssets(cache) {

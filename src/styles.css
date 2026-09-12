@@ -172,70 +172,141 @@ button:disabled{cursor:not-allowed;opacity:.45}
 }
 
 
-/* AXE PRODUCT 3.18.3 · QUIET WORKSPACE R1
-   The right side remains part of the app, but carries no duplicate controls
-   or repeated operational data. It is a passive workspace field only. */
-@media(min-width:1280px){
+/* AXE PRODUCT 3.18.4 · AXE AMBIENT BRAND SHELL R1
+   Restore intentional side breathing room and use those margins as a subtle
+   branded environment rather than as empty dead space or duplicate UI. */
+body{position:relative;background:#040608}
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+}
+body::before{
+  z-index:0;
+  background:
+    linear-gradient(90deg,rgba(4,6,8,.88) 0,rgba(4,6,8,.58) 12%,rgba(4,6,8,.16) 30%,rgba(4,6,8,.12) 70%,rgba(4,6,8,.58) 88%,rgba(4,6,8,.88) 100%),
+    url('/brand/axe-ambient-shell-wide.png') center center / cover no-repeat;
+  opacity:.92;
+}
+body::after{
+  z-index:0;
+  background:
+    radial-gradient(circle at center, rgba(0,0,0,0) 0, rgba(0,0,0,.08) 55%, rgba(0,0,0,.22) 100%),
+    linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.18));
+}
+#app,.runtime-app{position:relative;z-index:1}
+
+@media(min-width:761px){
+  .runtime-app{
+    width:min(1480px,calc(100vw - 160px));
+    max-width:1480px;
+    min-height:calc(100vh - 48px);
+    margin:24px auto;
+    border:1px solid rgba(255,255,255,.078);
+    border-radius:18px;
+    background:rgba(8,11,15,.92);
+    box-shadow:0 22px 70px rgba(0,0,0,.34);
+    overflow:hidden;
+    backdrop-filter:blur(2px);
+  }
+
+  .runtime-app .global-header{
+    height:66px;
+    border-radius:18px 18px 0 0;
+    background:rgba(9,12,16,.88);
+    border-bottom:1px solid rgba(255,255,255,.05);
+  }
+
+  .runtime-app .global-header__inner,
+  .runtime-app .workspace-shell{
+    width:calc(100% - 40px);
+    max-width:none;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .runtime-app .workspace-shell{
+    margin-top:12px;
+  }
+
+  .runtime-app .sidebar{
+    top:102px;
+  }
+
   .runtime-app .main{
-    display:block;
-  }
-
-  .runtime-app .main::before{
-    content:"";
-    position:absolute;
-    top:18px;
-    right:18px;
-    bottom:18px;
-    width:min(38%,520px);
-    pointer-events:none;
-    border-left:1px solid rgba(255,255,255,.022);
-    background:
-      linear-gradient(90deg,rgba(255,255,255,.004),transparent 22%),
-      repeating-linear-gradient(
-        0deg,
-        rgba(255,255,255,.010) 0,
-        rgba(255,255,255,.010) 1px,
-        transparent 1px,
-        transparent 52px
-      );
-    opacity:.72;
-    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 82%,transparent 100%);
-    mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 82%,transparent 100%);
-  }
-
-  .runtime-app .main::after{
-    content:"AXE PRODUCT\A OPERATIONS WORKSPACE";
-    white-space:pre;
-    position:absolute;
-    right:28px;
-    bottom:26px;
-    pointer-events:none;
-    text-align:right;
-    color:#7e6b49;
-    font-size:8px;
-    font-weight:900;
-    line-height:1.65;
-    letter-spacing:.18em;
-    opacity:.16;
-  }
-
-  .runtime-app .main>.axe-fund,
-  .runtime-app .main>.ops-mgmt-page,
-  .runtime-app .main>.ops-settings-page{
     position:relative;
-    z-index:1;
+    min-height:calc(100vh - 136px);
+    padding:12px 16px 72px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.045);
+    border-radius:14px;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.008),rgba(255,255,255,.002) 52%,rgba(0,0,0,.025)),
+      linear-gradient(90deg,rgba(8,11,15,.94),rgba(8,11,15,.84));
   }
-}
 
-@media(min-width:1280px) and (max-width:1500px){
-  .runtime-app .main::before{
-    width:min(32%,380px);
-  }
-}
-
-@media(max-width:1279px){
   .runtime-app .main::before,
   .runtime-app .main::after{
+    display:none !important;
+    content:none !important;
+  }
+
+  .runtime-app .global-account{
+    box-sizing:border-box;
+    width:668px;
+    max-width:100%;
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .runtime-app--settings .global-account{
+    width:712px;
+  }
+}
+
+@media(display-mode:standalone) and (min-width:761px){
+  body{
+    background:#030508;
+  }
+  .runtime-app{
+    width:min(1560px,calc(100vw - 56px));
+    max-width:1560px;
+    min-height:calc(100vh - 28px);
+    margin:14px auto;
+    border-radius:16px;
+  }
+  .runtime-app .global-header{
+    border-radius:16px 16px 0 0;
+  }
+  .runtime-app .global-header__inner,
+  .runtime-app .workspace-shell{
+    width:calc(100% - 32px);
+  }
+  .runtime-app .main{
+    min-height:calc(100vh - 118px);
+  }
+}
+
+@media(max-width:1180px){
+  body::before{opacity:.82;background-position:center center}
+  .runtime-app{
+    width:min(1380px,calc(100vw - 72px));
+  }
+}
+
+@media(max-width:760px){
+  body::before,
+  body::after{
     display:none;
+  }
+  .runtime-app{
+    width:100%;
+    min-height:100vh;
+    margin:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    backdrop-filter:none;
   }
 }

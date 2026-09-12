@@ -6,3 +6,11 @@ AXE PRODUCT WEB STAGING 3.18.3 - QUIET WORKSPACE R1
 - Added a faint, non-interactive AXE PRODUCT workspace signature.
 - Core 636/680px operational rails remain unchanged.
 - No LIVE AXE, PRODUCT BOT, or DB changes.
+
+AXE PRODUCT WEB STAGING 3.18.4 - AXE AMBIENT BRAND SHELL R1
+
+- App frame is centered again with intentional side breathing room.
+- Outer desktop margins now show a subtle black-and-gold AXE ambient brand background.
+- No duplicate utility rail or right-side internal filler remains.
+- Existing compact operation rails remain unchanged.
+- LIVE AXE / PRODUCT BOT / DB untouched.

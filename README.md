@@ -104,3 +104,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Right-side open area is now a passive workspace field with only subtle structural lines and a low-contrast AXE PRODUCT signature.
 - No clickable controls, operational counts, or duplicate navigation are rendered in the right-side field.
 - Service Worker cache bumped to `axe-product-pwa-3.18.3-r1`.
+
+
+## 3.18.4 · AXE AMBIENT BRAND SHELL R1
+- Restored intentional left/right breathing room around the centered AXE PRODUCT app frame.
+- Replaced empty outer margins with a subtle AXE ambient brand background built from newly synthesized black-and-gold emblem artwork.
+- Removed the 3.18.3 internal quiet-workspace overlay so the decorative treatment lives outside the app, not inside the operational canvas.
+- Desktop browser keeps larger side margins; standalone PWA keeps smaller but still visible side margins.
+- Added `/public/brand/axe-ambient-shell-wide.png` and pre-cached it in the PWA service worker.
