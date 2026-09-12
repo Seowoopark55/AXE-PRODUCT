@@ -1,14 +1,8 @@
-AXE PRODUCT WEB 3.18.0 - PWA APP EXPERIENCE R1
+AXE PRODUCT WEB STAGING 3.18.1 - DESKTOP APP FRAME R1
 
-Scope: PRODUCT WEB STAGING only.
-
-- Added installable PWA manifest and AXE PRODUCT app icons.
-- Added standalone launch support and critical boot splash.
-- Added service worker for static app shell/assets only.
-- Operational API, Supabase and OAuth responses are NOT cached by the service worker.
-- Added offline fallback state that does not expose stale operational data.
-- Added in-app install affordance and explicit new-version apply flow.
-- Added online/offline status handling.
-- Last company remains localStorage-backed; last page/fund/settings tab now persist across installed-app restarts.
-- Added subtle content transition to reinforce a stable app shell.
-- No LIVE AXE, PRODUCT BOT, schema, SQL, policy or trigger changes.
+- Expanded outer PRODUCT frame to near-window width.
+- Preserved compact operation content rails.
+- Added intentional full-height workspace surface around the compact rail.
+- PWA standalone mode uses tighter 6px outer gutter.
+- Header account identity remains inside page content axis.
+- Bumped Service Worker cache version for installed-app delivery.

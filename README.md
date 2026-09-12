@@ -79,3 +79,13 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Confirm Fund/Members/Assets/Accounts remain live network data.
 - Toggle offline after one successful install: AXE should show an offline state rather than stale treasury/member/account data.
 - When a later service worker is waiting, use `새 버전 적용` from the sidebar.
+
+
+## 3.18.1 · DESKTOP APP FRAME R1
+- Desktop browser: AXE PRODUCT now occupies nearly the whole window inside a visible application frame.
+- Installed PWA: outer gutter contracts further so standalone mode reads like a native desktop console.
+- Compact 636px/680px operation rails are preserved; only the surrounding application canvas expands.
+- Main workspace receives a subtle full-height surface so unused right-side space belongs to the app instead of reading as an empty webpage.
+- Header identity remains aligned to the active content rail inside the expanded frame.
+- Service Worker cache bumped to `axe-product-pwa-3.18.1-r1`.
+- LIVE AXE / PRODUCT BOT / DB unchanged.

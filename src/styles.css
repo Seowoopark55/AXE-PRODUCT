@@ -59,3 +59,114 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .main>.axe-fund,.main>.ops-mgmt-page,.main>.ops-settings-page{animation:axe-view-in .14s ease-out}@keyframes axe-view-in{from{opacity:.72;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
 @media(display-mode:standalone){html,body{overscroll-behavior:none}.global-header{user-select:none}.runtime-app{min-height:100vh}}
 @media(max-width:760px){.pwa-side-action{display:none}.pwa-offline-chip{display:none}.runtime-startup-card--offline{grid-template-columns:auto 1fr}.runtime-startup-card--offline .runtime-btn-ghost{grid-column:1/-1}}
+
+
+/* AXE PRODUCT 3.18.1 · DESKTOP APP FRAME R1
+   Keep the compact 636/680px work rails, but make the PRODUCT itself occupy
+   the desktop window. Empty pixels become intentional workspace, not webpage
+   margins. Browser mode keeps a slim outer gutter; standalone PWA is tighter. */
+@media(min-width:761px){
+  body{
+    background:#05070a;
+  }
+
+  .runtime-app{
+    width:calc(100vw - 24px);
+    max-width:1800px;
+    min-height:calc(100vh - 24px);
+    margin:12px auto;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:16px;
+    background:#080b0f;
+    box-shadow:0 24px 80px rgba(0,0,0,.26);
+  }
+
+  .runtime-app .global-header{
+    height:66px;
+    border-radius:16px 16px 0 0;
+    background:#090c10;
+  }
+
+  .runtime-app .global-header__inner,
+  .runtime-app .workspace-shell{
+    width:calc(100% - 32px);
+    max-width:none;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .runtime-app .workspace-shell{
+    margin-top:12px;
+  }
+
+  .runtime-app .sidebar{
+    top:90px;
+  }
+
+  .runtime-app .main{
+    position:relative;
+    min-height:calc(100vh - 112px);
+    padding:12px 16px 72px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.045);
+    border-radius:14px;
+    background:
+      radial-gradient(circle at 88% 16%,rgba(228,178,75,.028),transparent 30%),
+      linear-gradient(180deg,rgba(255,255,255,.007),rgba(255,255,255,.002) 52%,rgba(0,0,0,.025));
+  }
+
+  /* Header identity belongs to the same inner content rail as the page. */
+  .runtime-app .global-account{
+    box-sizing:border-box;
+    width:668px;
+    max-width:100%;
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .runtime-app--settings .global-account{
+    width:712px;
+  }
+
+  /* Keep the left edge of every operational rail aligned after main inset. */
+  .main>.axe-fund,
+  .main>.ops-mgmt-page,
+  .main>.ops-settings-page{
+    margin-left:0;
+    margin-right:auto;
+  }
+}
+
+@media(display-mode:standalone) and (min-width:761px){
+  body{
+    background:#040609;
+  }
+  .runtime-app{
+    width:calc(100vw - 12px);
+    max-width:none;
+    min-height:calc(100vh - 12px);
+    margin:6px auto;
+    border-radius:14px;
+    box-shadow:none;
+  }
+  .runtime-app .global-header{
+    border-radius:14px 14px 0 0;
+  }
+  .runtime-app .global-header__inner,
+  .runtime-app .workspace-shell{
+    width:calc(100% - 24px);
+  }
+  .runtime-app .main{
+    min-height:calc(100vh - 98px);
+  }
+}
+
+@media(max-width:760px){
+  .runtime-app{
+    width:100%;
+    min-height:100vh;
+    margin:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+}
