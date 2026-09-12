@@ -15,7 +15,7 @@ check(main.includes("action==='setup-guide-save-modules'")&&main.includes('setCo
 check(main.includes("action==='setup-guide-create-channels'")&&api.includes('createGuidedSetupChannels'),'quick channel creation wired');
 check(channels.includes('requireCompanyAdmin')&&channels.includes('getCompanyDiscordConnection'),'channel API rechecks company admin and guild');
 check(channels.includes('new Set(normalizedNames)')&&main.includes('같은 채널명을 두 번 사용할 수 없습니다'),'duplicate channel names blocked before creation');
-check(start.includes("permissions: '16'"),'Discord invite requests Manage Channels only');
+check(start.includes('DISCORD_BOT_BASE_PERMISSIONS'),'Discord invite requests shared least-privilege baseline');
 check(main.includes("action==='setup-guide-load-members'")&&api.includes('listGuidedSetupMembers'),'role-filter member loading wired');
 check(main.includes("action==='setup-guide-import-members'")&&api.includes('/api/discord/setup/register-members'),'bulk member registration uses server endpoint');
 check(register.includes('requireCompanyAdmin')&&register.includes('getCompanyDiscordConnection'),'member register endpoint rechecks company admin and guild');

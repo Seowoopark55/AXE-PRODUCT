@@ -1,3 +1,11 @@
+
+## 3.21.7 · DISCORD UPFRONT PERMISSIONS R1
+- First Discord server connection now clearly explains and requests AXE's baseline bot permissions in one approval flow.
+- Baseline permissions: Manage Channels, View Channel, Send Messages, Manage Messages, Embed Links, Read Message History.
+- Administrator permission is intentionally excluded.
+- The existing permission reapproval flow remains as recovery if server permissions are later removed.
+- No DB or PRODUCT BOT changes.
+
 # AXE PRODUCT WEB STAGING
 
 Current STAGING web source for **WEB 3.17.3 FUND LEFT-ANCHOR BALANCE R1**, based on the verified 3.17.2 source.

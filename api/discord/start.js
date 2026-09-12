@@ -1,4 +1,5 @@
 import {
+  DISCORD_BOT_BASE_PERMISSIONS,
   getDiscordConfig,
   randomNonce,
   signPayload,
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
       scope: 'bot applications.commands',
       state,
       redirect_uri: config.redirectUri,
-      permissions: '16',
+      permissions: DISCORD_BOT_BASE_PERMISSIONS,
       integration_type: '0',
       prompt: 'consent',
     });

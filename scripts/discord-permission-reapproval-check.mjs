@@ -6,6 +6,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const ok = (name, pass) => { checks.push([name, Boolean(pass)]); };
 
+const security = read('server/discordSecurity.js');
 const reapprove = read('api/discord/reapprove.js');
 const callback = read('api/discord/callback.js');
 const api = read('src/lib/productApi.js');
@@ -15,7 +16,7 @@ const css = read('src/styles.css');
 
 ok('reapproval endpoint exists', reapprove.includes("permission-reapproval"));
 ok('reapproval accepts canonical UUID company ids', reapprove.includes("[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
-ok('reapproval requests manage channels only', reapprove.includes("permissions: '16'"));
+ok('reapproval uses shared least-privilege baseline', reapprove.includes('DISCORD_BOT_BASE_PERMISSIONS') && security.includes("DISCORD_BOT_BASE_PERMISSIONS = '93200'"));
 ok('reapproval locks connected guild', reapprove.includes("disable_guild_select: 'true'") && reapprove.includes('guild_id: guildId'));
 ok('callback rejects guild mismatch', callback.includes('guild_mismatch') && callback.includes('expectedGuildId'));
 ok('client preserves API status', api.includes('error.statusCode = response.status'));

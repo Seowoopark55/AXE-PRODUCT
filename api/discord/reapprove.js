@@ -1,4 +1,5 @@
 import {
+  DISCORD_BOT_BASE_PERMISSIONS,
   getDiscordConfig,
   randomNonce,
   signPayload,
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
       scope: 'bot applications.commands',
       state,
       redirect_uri: config.redirectUri,
-      permissions: '16',
+      permissions: DISCORD_BOT_BASE_PERMISSIONS,
       integration_type: '0',
       guild_id: guildId,
       disable_guild_select: 'true',
@@ -62,7 +63,8 @@ export default async function handler(req, res) {
       authorize_url: `https://discord.com/oauth2/authorize?${params.toString()}`,
       guild_id: guildId,
       guild_name: connection.guild_name || null,
-      permission: 'MANAGE_CHANNELS',
+      permission: 'AXE_BASELINE',
+      permissions: ['MANAGE_CHANNELS','VIEW_CHANNEL','SEND_MESSAGES','MANAGE_MESSAGES','EMBED_LINKS','READ_MESSAGE_HISTORY'],
     });
   } catch (error) {
     const status = Number(error?.statusCode || 500);

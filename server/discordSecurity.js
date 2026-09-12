@@ -1,5 +1,20 @@
 import crypto from 'node:crypto';
 
+// Least-privilege baseline used when AXE PRODUCT is installed into a Discord server.
+// Manage Channels + View Channel + Send Messages + Manage Messages + Embed Links + Read Message History.
+// Administrator (8) is intentionally not included.
+export const DISCORD_BOT_BASE_PERMISSIONS = '93200';
+
+export const DISCORD_BOT_BASE_PERMISSION_LABELS = Object.freeze([
+  'MANAGE_CHANNELS',
+  'VIEW_CHANNEL',
+  'SEND_MESSAGES',
+  'MANAGE_MESSAGES',
+  'EMBED_LINKS',
+  'READ_MESSAGE_HISTORY',
+]);
+
+
 function requiredEnv(name) {
   const value = String(process.env[name] || '').trim();
   if (!value) throw new Error(`Missing server environment variable: ${name}`);

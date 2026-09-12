@@ -291,3 +291,15 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-guide-permission-copy{display:grid;gap:3px;min-width:0}.setup-guide-permission-copy strong{color:#d8c39a;font-size:11.5px}.setup-guide-permission-copy span{color:#938772;font-size:9.8px;line-height:1.45}.setup-guide-permission-copy small{color:#6d685f;font-size:8.8px;line-height:1.45}
 .setup-guide-permission-actions{display:grid;gap:6px;min-width:132px}.setup-guide-permission-actions button{height:31px;padding:0 10px;border:1px solid #303945;border-radius:8px;background:#0d1319;color:#8f99a2;font-size:9px;font-weight:900;white-space:nowrap}.setup-guide-permission-actions button:hover{border-color:#46515d;color:#b8c0c7}.setup-guide-permission-actions button.is-primary{border-color:rgba(213,163,67,.30);background:rgba(213,163,67,.09);color:#d3b574}.setup-guide-permission-actions button.is-primary:hover{background:rgba(213,163,67,.14)}
 @media(max-width:760px){.setup-guide-permission-card{grid-template-columns:34px 1fr}.setup-guide-permission-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}.setup-guide-permission-actions button{width:100%}}
+
+
+/* 3.21.7 · Discord upfront permission disclosure */
+.setup-guide-connect-permissions{width:min(520px,100%);margin-top:18px;padding:13px 14px;border:1px solid rgba(114,137,218,.18);border-radius:11px;background:linear-gradient(135deg,rgba(114,137,218,.055),rgba(114,137,218,.018));display:grid;gap:10px}
+.setup-guide-connect-permissions-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.setup-guide-connect-permissions-head strong{color:#dce2ee;font-size:11px}
+.setup-guide-connect-permissions-head span{padding:3px 7px;border:1px solid rgba(107,191,142,.18);border-radius:999px;color:#83b597;background:rgba(107,191,142,.045);font-size:8px;font-weight:800}
+.setup-guide-connect-permission-chips{display:flex;flex-wrap:wrap;gap:6px}
+.setup-guide-connect-permission-chips span{padding:5px 8px;border:1px solid rgba(255,255,255,.055);border-radius:7px;background:rgba(255,255,255,.022);color:#8792a5;font-size:8.5px}
+.setup-guide-connect-permissions>small{color:#6f7a8b;font-size:8.5px;line-height:1.55}
+.setup-guide-connect-permissions>small b{color:#aeb8c8;font-weight:800}
+@media(max-width:640px){.setup-guide-connect-permissions-head{align-items:flex-start}.setup-guide-connect-permission-chips{gap:5px}.setup-guide-connect-permission-chips span{font-size:8px}}
