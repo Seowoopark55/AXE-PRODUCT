@@ -50,17 +50,15 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .member-profile-form>label{align-self:start}.member-profile-form .member-profile-inline.is-full{grid-column:1/-1}.member-profile-form .member-profile-inline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}.member-profile-form .member-profile-inline label{display:grid;gap:6px;min-width:0;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-form textarea[name="member_note"]{min-height:82px;max-height:160px}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px 28px;gap:6px}.member-profile-label{height:16px;display:flex;align-items:center;gap:5px;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-label em{color:#697581;font-size:8.5px;font-style:normal;font-weight:600}
 @media(max-width:700px){.member-profile-form .member-profile-inline{grid-template-columns:1fr}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px auto}}
 
-/* AXE PRODUCT 3.18.7 · ROOT-CAUSE BRANDED SHARED CONSOLE R1
-   The ambient image was already loaded, but the inline boot stylesheet gave
-   #app an opaque background. That full-page root layer physically covered the
-   body artwork. #app is transparent on desktop now; only the centered console
-   remains opaque. */
+/* AXE PRODUCT 3.18.8 · SUBTLE TILED BRAND SIDES R1
+   The previous dramatic emblem wallpaper was intentionally reduced.
+   Side margins now use small repeated AXE logos plus a faint grid/check field
+   so the shared console feels branded without looking like a poster. */
 html{min-height:100%;background:#030507}
 body{position:relative;min-height:100vh;background:#030507;color:var(--text)}
 #app{min-height:100%;background:transparent!important;position:relative;z-index:1}
-body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:url('/brand/axe-ambient-shell-wide-v2.png') center center / cover no-repeat;filter:brightness(1.18) saturate(1.24) contrast(1.05)}
-body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(2,3,4,.02) 0%,rgba(2,3,4,0) 22%,rgba(2,3,4,.15) 34%,rgba(2,3,4,.32) 43%,rgba(2,3,4,.32) 57%,rgba(2,3,4,.15) 66%,rgba(2,3,4,0) 78%,rgba(2,3,4,.02) 100%)}
-
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,5,7,.92) 0%,rgba(3,5,7,.72) 10%,rgba(3,5,7,.14) 20%,rgba(3,5,7,0) 34%,rgba(3,5,7,0) 66%,rgba(3,5,7,.14) 80%,rgba(3,5,7,.72) 90%,rgba(3,5,7,.92) 100%),#05070a}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:url('/brand/axe-side-tile.png') left top / 210px 210px repeat,url('/brand/axe-side-tile.png') right top / 210px 210px repeat,repeating-linear-gradient(0deg,rgba(212,164,68,.017) 0 1px,transparent 1px 54px),repeating-linear-gradient(90deg,rgba(212,164,68,.017) 0 1px,transparent 1px 54px);opacity:.36;-webkit-mask-image:linear-gradient(90deg,#000 0 19%,transparent 33%,transparent 67%,#000 81% 100%);mask-image:linear-gradient(90deg,#000 0 19%,transparent 33%,transparent 67%,#000 81% 100%)}
 @media(min-width:761px){
   .runtime-app{box-sizing:border-box;width:min(1120px,calc(100vw - 240px));min-width:940px;min-height:calc(100vh - 36px);margin:18px auto;border:1px solid rgba(213,163,67,.16);border-radius:18px;background:#080b0f;box-shadow:0 26px 78px rgba(0,0,0,.48),0 0 0 1px rgba(213,163,67,.025);overflow:hidden}
   .runtime-app .global-header{height:66px;border-radius:18px 18px 0 0;background:#090c10;border-bottom:1px solid rgba(213,163,67,.10)}
@@ -75,6 +73,6 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
   .nav-item.is-active{background:rgba(213,163,67,.070)!important;color:#f0d59e!important;box-shadow:inset 2px 0 rgba(213,163,67,.92)!important}
   .nav-item.is-active .nav-item__icon{color:#e0ad4b!important}
 }
-@media(min-width:761px) and (max-width:1280px){.runtime-app{width:calc(100vw - 96px);min-width:0;margin:16px auto}body::before{background-size:auto 100%}}
+@media(min-width:761px) and (max-width:1280px){.runtime-app{width:calc(100vw - 96px);min-width:0;margin:16px auto}body::after{background-size:180px 180px,180px 180px,auto,auto;opacity:.30}}
 @media(max-width:980px) and (min-width:761px){.runtime-app{width:calc(100vw - 40px);margin:12px auto}}
 @media(max-width:760px){body{background:#040608}body::before,body::after{display:none}#app{background:#040608!important}.runtime-app{width:100%;min-height:100vh;margin:0;border:0;border-radius:0;box-shadow:none}}

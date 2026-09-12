@@ -136,3 +136,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Equal 1120px centered console geometry remains unchanged.
 - Company banner upload/registration is removed from Company Settings and from WEB runtime mutation wiring. Legacy storage/API support is not destructively deleted.
 - PWA stays disabled; only legacy service-worker/cache cleanup remains.
+
+
+## 3.18.8 · SUBTLE TILED BRAND SIDES R1
+- Replaced the oversized dramatic emblem wallpaper with a subtle side-only branded shell.
+- Side margins now show small repeated AXE logo tiles plus a faint grid/check overlay.
+- The central app frame remains centered and unchanged in width.
+- Company banner upload UI remains removed for the shared-console direction.
