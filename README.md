@@ -157,3 +157,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - The repeated AXE marks are arranged diagonally inside a larger tile so the pattern reads as staggered rather than lined up.
 - The diamond lattice remains subtle and quieter than the logos.
 - Central shared-console layout remains unchanged.
+
+
+## 3.18.11 · GENERATED AMBIENT SHELL R1
+- Applied the newly generated high-quality AXE side-shell artwork directly to the desktop web shell.
+- Removed the previous repeated-logo pattern block from the active background.
+- Preserved the centered 1120px shared-console app frame and existing content-fit layout.
+- Company banner upload UI remains removed.

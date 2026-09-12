@@ -28,3 +28,9 @@ AXE PRODUCT WEB STAGING 3.18.10 - DIAMOND STAGGERED LOGO SIDES R1
 - Fixed the row-like logo placement.
 - Fixed overlap artifacts by using a single staggered repeated pattern tile.
 - Kept the side-only diamond brand shell and centered app frame.
+
+AXE PRODUCT WEB STAGING 3.18.11 - GENERATED AMBIENT SHELL R1
+
+- Applied the newly generated AXE ambient background image to the desktop shell.
+- Replaced the previous staggered logo/diamond pattern in the active background.
+- Central app frame unchanged. No PWA. Company banner upload remains removed.
