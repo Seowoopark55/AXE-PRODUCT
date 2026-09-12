@@ -143,3 +143,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Side margins now show small repeated AXE logo tiles plus a faint grid/check overlay.
 - The central app frame remains centered and unchanged in width.
 - Company banner upload UI remains removed for the shared-console direction.
+
+
+## 3.18.9 · DIAMOND BRAND SIDES R1
+- Increased side-brand visibility while keeping the shared console tasteful.
+- Replaced the previous square/check look with a faint diamond lattice.
+- Small repeated AXE logo tiles remain only in the side margins, now slightly more visible.
+- Central console width and layout remain unchanged.

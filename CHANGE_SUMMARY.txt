@@ -15,3 +15,10 @@ AXE PRODUCT WEB STAGING 3.18.8 - SUBTLE TILED BRAND SIDES R1
 - No more oversized poster-like emblem background.
 - Central app stays centered with balanced side spacing.
 - Company banner upload remains removed.
+
+AXE PRODUCT WEB STAGING 3.18.9 - DIAMOND BRAND SIDES R1
+
+- Side branding is now more visible.
+- Pattern changed from square/check to a faint diamond lattice.
+- Small AXE logo tiles remain in the side margins only.
+- Central app frame and shared-console direction remain unchanged.
