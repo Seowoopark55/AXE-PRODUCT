@@ -171,3 +171,8 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Removed invite-code join entry points from the WEB UI; member onboarding points to Discord user context menu registration.
 - Added a non-destructive Guided Setup preview in Company Settings. The preview simulates Discord connect → roles → modules → channels → completion and never writes company settings.
 - Existing real onboarding/backend APIs remain intact; this release is for UX validation before replacing the live onboarding flow.
+
+
+## 3.19.1 · GUIDED SETUP TYPOGRAPHY R1
+- Increased text sizes throughout Guided Setup preview only.
+- Layout, interactions, preview-only behavior, and real settings remain unchanged.

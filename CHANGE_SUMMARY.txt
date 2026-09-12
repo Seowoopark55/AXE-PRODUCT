@@ -42,3 +42,8 @@ AXE PRODUCT WEB STAGING 3.19.0 - GUIDED SETUP PREVIEW R1
 - Added temporary ‘초기설정 체험’ Guided Setup preview with no DB writes.
 - Demo flow: start → Discord → roles → modules → channels → complete.
 - Real current settings/onboarding behavior is not replaced yet.
+
+AXE PRODUCT WEB STAGING 3.19.1 - GUIDED SETUP TYPOGRAPHY R1
+
+- Increased Guided Setup preview typography for easier reading.
+- No structural or functional changes.

@@ -91,3 +91,51 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-demo-module-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}.setup-demo-module{min-height:67px;display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:10px;padding:0 13px;border:1px solid #222c35;border-radius:10px;background:#0b1015;color:#7b8690;text-align:left}.setup-demo-module.is-on{border-color:rgba(213,163,67,.18);background:rgba(213,163,67,.035)}.setup-demo-check{width:24px;height:24px;display:grid;place-items:center;border:1px solid #2b3540;border-radius:7px;color:#d8b362;font-size:9px}.setup-demo-module.is-on .setup-demo-check{border-color:rgba(213,163,67,.25);background:rgba(213,163,67,.07)}.setup-demo-module div{display:grid;gap:3px}.setup-demo-module strong{color:#c8ced4;font-size:10px}.setup-demo-module small{color:#65707a;font-size:7.5px}.setup-demo-module em{color:#59636d;font-size:7px;font-style:normal;font-weight:950}.setup-demo-module.is-on em{color:#b28e4d}
 .setup-demo-channel-list{display:grid;grid-template-columns:1fr 1fr;gap:13px 10px;margin-top:22px}.setup-demo-empty{grid-column:1/-1;min-height:92px;display:grid;place-items:center;align-content:center;gap:4px;border:1px dashed #29333d;border-radius:10px;color:#7d8791}.setup-demo-empty strong{font-size:10px}.setup-demo-empty span{font-size:8px}.setup-demo-complete{text-align:center}.setup-demo-complete-mark{width:58px;height:58px;margin:0 auto 16px;display:grid;place-items:center;border:1px solid rgba(111,193,145,.24);border-radius:18px;background:rgba(111,193,145,.055);color:#80c19a;font-size:22px}.setup-demo-next-task{margin:25px auto 0;width:min(490px,100%);min-height:72px;display:grid;grid-template-columns:58px 1fr;align-items:center;text-align:left;border:1px solid rgba(213,163,67,.13);border-radius:11px;background:rgba(213,163,67,.025)}.setup-demo-next-task>span{height:100%;display:grid;place-items:center;border-right:1px solid rgba(213,163,67,.09);color:#9b7b43;font-size:7px;font-weight:950;letter-spacing:.13em}.setup-demo-next-task>div{display:grid;gap:3px;padding:0 14px}.setup-demo-next-task strong{color:#d9dee2;font-size:10px}.setup-demo-next-task small{color:#737d86;font-size:8.5px}.setup-demo-safe{margin:13px auto 0;width:min(490px,100%);display:flex;justify-content:center;gap:6px;color:#68736d;font-size:7.8px}.setup-demo-safe b{color:#80a18d}
 @media(max-width:760px){.setup-demo-backdrop{padding:0}.setup-demo-shell{width:100%;height:100%;min-height:0;border:0;border-radius:0;grid-template-columns:1fr}.setup-demo-rail{display:none}.setup-demo-main{grid-template-rows:58px 1fr 68px}.setup-demo-content{padding:22px 18px}.setup-demo-hero h2,.setup-demo-quest h2,.setup-demo-complete h2{font-size:23px}.setup-demo-facts{grid-template-columns:1fr}.setup-demo-role-grid,.setup-demo-module-grid,.setup-demo-channel-list{grid-template-columns:1fr}}
+
+
+/* AXE PRODUCT 3.19.1 · GUIDED SETUP TYPOGRAPHY R1
+   Guided Setup only: improve readability without changing structure, spacing,
+   interactions, or real settings behavior. */
+.ops-setup-demo-launch span{font-size:8px}
+.ops-setup-demo-launch strong{font-size:11px}
+.setup-demo-brand strong{font-size:14px}
+.setup-demo-brand small{font-size:8px}
+.setup-demo-preview-badge span{font-size:10.5px}
+.setup-demo-preview-badge small{font-size:9px}
+.setup-demo-step b{font-size:9.5px}
+.setup-demo-step small{font-size:7.5px}
+.setup-demo-step strong{font-size:11px}
+.setup-demo-exit{font-size:10.5px}
+.setup-demo-main>header span{font-size:11px}
+.setup-demo-main>header strong{font-size:9.5px}
+.setup-demo-back,.setup-demo-restart,.setup-demo-primary{font-size:11px}
+.setup-demo-kicker,.setup-demo-quest-no{font-size:9px}
+.setup-demo-hero h2,.setup-demo-quest h2,.setup-demo-complete h2{font-size:29px}
+.setup-demo-hero p,.setup-demo-quest>p,.setup-demo-complete>p{font-size:13px;line-height:1.72}
+.setup-demo-facts span{font-size:10px;line-height:1.45}
+.setup-demo-facts b{font-size:15px}
+.setup-demo-discord-connect>span{font-size:10.5px}
+.setup-demo-discord-connect strong{font-size:13px}
+.setup-demo-discord-connect small{font-size:10px}
+.setup-demo-discord-card strong{font-size:13px}
+.setup-demo-discord-card span{font-size:10px}
+.setup-demo-discord-card>b{font-size:10px}
+.setup-demo-tip strong{font-size:10px}
+.setup-demo-tip span{font-size:10.5px;line-height:1.5}
+.setup-demo-field>span{font-size:11px}
+.setup-demo-field select{font-size:12.5px}
+.setup-demo-field small{font-size:9.5px;line-height:1.5}
+.setup-demo-check{font-size:10.5px}
+.setup-demo-module strong{font-size:12px}
+.setup-demo-module small{font-size:9.5px}
+.setup-demo-module em{font-size:8.5px}
+.setup-demo-empty strong{font-size:12px}
+.setup-demo-empty span{font-size:10px}
+.setup-demo-next-task>span{font-size:8.5px}
+.setup-demo-next-task strong{font-size:12px}
+.setup-demo-next-task small{font-size:10.5px}
+.setup-demo-safe{font-size:9.5px;line-height:1.45}
+@media(max-width:760px){
+  .setup-demo-hero h2,.setup-demo-quest h2,.setup-demo-complete h2{font-size:25px}
+  .setup-demo-hero p,.setup-demo-quest>p,.setup-demo-complete>p{font-size:12.5px}
+}
