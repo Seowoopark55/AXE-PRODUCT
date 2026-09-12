@@ -6,7 +6,7 @@ const css=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url
 const sql=fs.readFileSync(new URL('../SUPABASE_MIGRATION_3_21_1_SCHEMA_HOTFIX_WITH_PLATFORM_OWNER.sql',import.meta.url),'utf8');
 const checks=[
  ['platform admin RPC exists',api.includes("supabase.rpc('platform_is_admin')")],
- ['platform page admin-only nav',render.includes("state.platformAdmin?`<span class=\"sidebar-nav__label spaced\">플랫폼")],
+ ['platform owner entry is account-menu only',!render.includes('<span class="sidebar-nav__label spaced">플랫폼</span>') && render.includes('state.platformAdmin?`<button type="button" data-action="open-platform-admin"')],
  ['subscription management modal exists',render.includes("data-form=\"platform-subscription\"")],
  ['subscription update wired',main.includes("updatePlatformSubscription(companyId")],
  ['expired/paused company lock rendered',render.includes('renderSubscriptionBlocked')&&render.includes("['paused','expired']")],

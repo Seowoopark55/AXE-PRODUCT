@@ -57,6 +57,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   guideSection: 'start',
   companyMenuOpen: false,
+  accountMenuOpen: false,
   modal: null,
   setupDemo: null,
   setupGuide: null,
@@ -147,8 +148,8 @@ function createSetupDemoState(){
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문'},
-    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
     memberFilter:'member',
     memberTargetRole:'member',
     memberSelected:['m1','m2','m3','m4','m5','m6'],
@@ -172,7 +173,7 @@ function createSetupGuideState(step = 0){
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
       ammo3:String(settingsByKey.ammo?.three_channel_id||''),
@@ -180,6 +181,7 @@ function createSetupGuideState(step = 0){
       outlaw:String(settingsByKey.outlaw?.record_channel_id||''),
       modbook:String(settingsByKey.modbook?.channel_id||''),
       cooking:String(settingsByKey.cooking?.order_channel_id||''),
+      accountLookup:String(settingsByKey.assets?.account_lookup_channel_id||''),
     },
     createdChannelIds:{},
     memberFilterRoleId,
@@ -224,6 +226,7 @@ function setupGuideChannelPlan(){
   if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록'});
   if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서'});
   if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문'});
+  if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회'});
   return rows;
 }
 
@@ -279,6 +282,7 @@ function setupGuideChannelBinding(key){
     outlaw:['outlaw','record_channel_id'],
     modbook:['modbook','channel_id'],
     cooking:['cooking','order_channel_id'],
+    accountLookup:['assets','account_lookup_channel_id'],
   };
   return map[key]||null;
 }
@@ -642,7 +646,7 @@ async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
 async function saveModuleSettingsData(form,data){
   for(const mod of state.modules){
     const settings={...(mod.settings||{})};
-    for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','channel_id','order_channel_id']){
+    for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','channel_id','order_channel_id','account_lookup_channel_id']){
       const field=`module_${mod.module_key}_${key}`; if(form.elements[field])settings[key]=String(data.get(field)||'')||null;
     }
     await updateCompanyModuleSettings(state.companyId,mod.module_key,settings,state.session.user.id);
@@ -653,7 +657,7 @@ root.addEventListener('click', async event => {
   const guideBtn=event.target.closest('[data-guide-section]');
   if(guideBtn){state.guideSection=String(guideBtn.dataset.guideSection||'start');render();return;}
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
+  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
@@ -684,12 +688,14 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
-  if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
+  if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
+  if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);render();return;}
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
-  if(action==='go-dashboard'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
+  if(action==='go-dashboard'){state.accountMenuOpen=false;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
     if(!canAdmin(state)){setError('초기설정은 OWNER 또는 관리자만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
@@ -914,7 +920,10 @@ root.addEventListener('input', event => {
 });
 
 document.addEventListener('click', event => {
-  if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;render();}
+  let changed=false;
+  if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;changed=true;}
+  if(state.accountMenuOpen && !event.target.closest('.runtime-account-picker')){state.accountMenuOpen=false;changed=true;}
+  if(changed)render();
 });
 
 root.addEventListener('paste', event=>{

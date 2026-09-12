@@ -1,3 +1,7 @@
+## 3.22.2 — ACCOUNT LOOKUP + OWNER SHELL
+
+계좌조회 채널 설정/초기설정, 배너 hover 힌트 제거, PLATFORM OWNER 전용 서비스 관리 메뉴 분리를 추가했습니다.
+
 # AXE PRODUCT WEB 3.22.1
 
 - 사용 가이드를 일반 페이지가 아닌 Guided Setup형 전용 다이얼로그로 변경
@@ -38,7 +42,7 @@
 
 # AXE PRODUCT WEB STAGING
 
-Current STAGING web source for **WEB 3.17.3 FUND LEFT-ANCHOR BALANCE R1**, based on the verified 3.17.2 source.
+Current STAGING web source for **WEB 3.22.2 ACCOUNT LOOKUP + OWNER SHELL R1**, based on the verified 3.22.1 Guide Dialog source.
 
 ## Runtime scope
 - WEB STAGING only.

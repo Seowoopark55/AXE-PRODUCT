@@ -1,0 +1,18 @@
+AXE PRODUCT WEB 3.22.2 validation
+
+PASS npm run check
+- existing integrated UI: 72/72
+- dashboard operations: 12/12
+- home + guide: 11/11
+- guide center: 11/11
+- account lookup + owner shell: 10/10
+
+PASS node --check
+- src/main.js
+- src/ui/render.js
+- scripts/account-lookup-owner-shell-check.mjs
+
+BUILD NOTE
+- npm run build was attempted in the artifact environment.
+- It could not start because the local artifact environment does not have the vite executable installed (`vite: not found`).
+- This is not reported as a build PASS.

@@ -112,11 +112,15 @@ function renderAuthed(state) {
   const connected = state.discordConnection?.status === 'connected';
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
-      <button type="button" class="global-home-zone" data-action="go-dashboard" aria-label="대시보드로 이동" title="대시보드로 이동">
+      <button type="button" class="global-home-zone" data-action="go-dashboard" aria-label="홈으로 이동">
         <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></span></span>
-        <span class="global-home-zone__hint">DASHBOARD</span>
       </button>
-      <div class="global-account"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
+      <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">
+        <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
+          <span><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></span><b>⌄</b>
+        </button>
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+      </div>
     </div></header>
     <div class="workspace-shell">
       <aside class="sidebar">
@@ -132,7 +136,6 @@ function renderAuthed(state) {
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
           <span class="sidebar-nav__label spaced">설정</span>${navItem(state,'settings','회사 설정')}
-          ${state.platformAdmin?`<span class="sidebar-nav__label spaced">플랫폼</span>${navItem(state,'platform','서비스 관리')}`:''}
           <span class="sidebar-nav__label spaced">지원</span><button class="nav-item nav-item--support" data-action="open-guide"><span class="nav-item__icon">${icon('guide')}</span><span>사용 가이드</span></button><button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
         </nav>
         <footer class="sidebar-footer">
@@ -290,7 +293,8 @@ function renderGuideMembers(state){return `<div class="axe-guide-content">
 </div>`;}
 function renderGuideAssets(state){return `<div class="axe-guide-content">
   <section class="axe-guide-feature-head"><div><span>ASSETS & ACCOUNTS</span><h2>자산 · 계좌 ${guideModuleBadge(state,'assets')}</h2><p>차량·무기·장비의 보유 상태와 멤버 계좌를 웹에서 통합 관리합니다.</p></div>${canAdmin(state)?guideJump('assets','자산 관리 열기'):''}</section>
-  <div class="axe-guide-two"><section class="axe-guide-card"><h3>자산</h3><ul>${guideBullet('자산 등록','차량·무기·장비 등 회사 소유 자산을 등록합니다.')}${guideBullet('멤버 배정','현재 보유자를 지정하고 미배정 자산을 빠르게 찾습니다.')}${guideBullet('반납','반납 사유와 처리자를 기록해 이력을 유지합니다.')}</ul></section><section class="axe-guide-card"><h3>계좌</h3><ul>${guideBullet('등록 · 변경 신청','멤버의 계좌 등록 또는 변경 요청을 받습니다.')}${guideBullet('관리자 검수','대기 중인 계좌를 확인하고 승인 · 반려합니다.')}${guideBullet('Discord 채널','자산·계좌는 별도 Discord 채널 없이 웹 콘솔 중심으로 운영합니다.')}</ul></section></div>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>자산</h3><ul>${guideBullet('자산 등록','차량·무기·장비 등 회사 소유 자산을 등록합니다.')}${guideBullet('멤버 배정','현재 보유자를 지정하고 미배정 자산을 빠르게 찾습니다.')}${guideBullet('반납','반납 사유와 처리자를 기록해 이력을 유지합니다.')}</ul></section><section class="axe-guide-card"><h3>계좌</h3><ul>${guideBullet('등록 · 변경 신청','멤버의 계좌 등록 또는 변경 요청을 받습니다.')}${guideBullet('관리자 검수','대기 중인 계좌를 확인하고 승인 · 반려합니다.')}${guideBullet('계좌조회 채널','초기설정에서 연결한 전용 채널에 멤버 이름만 입력하면 승인된 계좌번호를 바로 조회합니다.')}</ul></section></div>
+  <section class="axe-guide-example"><h3>#계좌조회 사용 예시</h3>${guideChat([['멤버','영포티'],['AXE','영포티 계좌번호 · 복사 가능한 코드 블록으로 표시','bot']])}<p>정확한 이름이 없으면 비슷한 멤버 이름을 안내하며, 승인되지 않은 계좌는 노출하지 않습니다.</p></section>
 </div>`;}
 function renderGuideOutlaw(state){return `<div class="axe-guide-content">
   <section class="axe-guide-feature-head"><div><span>OUTLAW</span><h2>무법지대 전적 ${guideModuleBadge(state,'outlaw')}</h2><p>전적 등록 채널을 통해 결과 기록을 모으고 회사 단위 전적 관리 흐름을 만듭니다.</p></div>${canAdmin(state)?guideJump('settings','전적 채널 설정','modules'):''}</section>
@@ -523,7 +527,7 @@ const MODULE_UI = {
   outlaw:{name:'무법지대 전적',desc:'스크린샷 OCR · 랭킹 · 기록',channels:[['record_channel_id','전적 등록 채널']]},
   modbook:{name:'개조서',desc:'이름 조회 · 최근 거래가 갱신 · 등록 신청 · 검수',channels:[['channel_id','개조서 채널']]},
   cooking:{name:'요리 주문',desc:'주문 · 변경 · 영업 관리',channels:[['order_channel_id','요리 주문 채널']]},
-  assets:{name:'자산 · 계좌 관리',desc:'회사 자산 · 반납 · 멤버 계좌 관리',channels:[]},
+  assets:{name:'자산 · 계좌 관리',desc:'회사 자산 · 반납 · 멤버 계좌 관리',channels:[['account_lookup_channel_id','계좌조회 채널']]},
 };
 function settingsSaveLabel(state,resetBusy,catalogPending=false){
   if(resetBusy)return '정리 중';
@@ -640,6 +644,7 @@ function setupGuidePreview(state){
   if(modules.outlaw)channelPlan.push(['outlaw','무법지대 전적','전적-등록',generated.outlaw||'전적-등록','전적 등록']);
   if(modules.modbook)channelPlan.push(['modbook','개조서 조회 · 가격','개조서',generated.modbook||'개조서','개조서']);
   if(modules.cooking)channelPlan.push(['cooking','요리 주문','요리-주문',generated.cooking||'요리-주문','요리 주문']);
+  if(modules.assets)channelPlan.push(['accountLookup','계좌 조회','계좌조회',generated.accountLookup||'계좌조회','계좌 조회']);
   const generatedRow=([key,label,placeholder,value,linkLabel])=>`<label class="setup-demo-create-row"><span class="setup-demo-create-copy"><strong>${label}</strong><small>생성 후 ${linkLabel} 기능에 자동 연결</small></span><span class="setup-demo-channel-input"><b>#</b><input type="text" maxlength="90" value="${esc(value)}" placeholder="${esc(placeholder)}" data-setup-generated-channel="${key}"></span><em>AUTO</em></label>`;
 
   const memberRole=demo.memberRole||'회사원'; const adminRole=demo.adminRole||'대표';
@@ -662,7 +667,7 @@ function setupGuidePreview(state){
     const modePicker=`<div class="setup-demo-channel-mode"><button type="button" class="${mode==='quick'?'is-active':''}" data-action="setup-demo-channel-mode" data-mode="quick"><b>⚡</b><span><strong>빠른 설정</strong><small>필요한 채널을 추천하고 AXE가 만들어줍니다.</small></span></button><button type="button" class="${mode==='direct'?'is-active':''}" data-action="setup-demo-channel-mode" data-mode="direct"><b>↗</b><span><strong>직접 연결</strong><small>이미 사용 중인 Discord 채널을 선택합니다.</small></span></button></div>`;
     if(mode==='quick'){
       const category=demo.categoryName||'AXE PRODUCT';
-      const builder=channelPlan.length?`<div class="setup-demo-builder"><div class="setup-demo-builder-head"><div><strong>추천 구성</strong><span>생성 전에 이름을 자유롭게 바꿀 수 있습니다.</span></div><em>${channelPlan.length}개 채널</em></div><label class="setup-demo-category-row"><span><strong>카테고리</strong><small>채널을 묶어둘 Discord 카테고리</small></span><input type="text" maxlength="90" value="${esc(category)}" data-setup-category-name></label><div class="setup-demo-create-list">${channelPlan.map(generatedRow).join('')}</div>${demo.channelsGenerated?`<div class="setup-demo-generation-result"><div class="setup-demo-generation-title"><i>✓</i><span><strong>생성 체험 완료</strong><small>실제 Discord에는 아무것도 생성되지 않았습니다.</small></span></div><ul><li><b>✓</b><span><strong>${esc(category)}</strong><small>카테고리 생성</small></span></li>${channelPlan.map(([,label,,value])=>`<li><b>✓</b><span><strong>#${esc(value)}</strong><small>${esc(label)}에 자동 연결</small></span></li>`).join('')}</ul></div>`:`<div class="setup-demo-builder-note"><b>PREVIEW</b><span>아래 <strong>이 구성으로 생성 체험</strong>을 누르면 생성 과정을 미리 볼 수 있습니다.</span></div>`}</div>`:`<div class="setup-demo-empty"><strong>자동 생성이 필요한 채널이 없습니다.</strong><span>자산 · 계좌 기능은 별도 Discord 채널이 필요하지 않습니다.</span></div>`;
+      const builder=channelPlan.length?`<div class="setup-demo-builder"><div class="setup-demo-builder-head"><div><strong>추천 구성</strong><span>생성 전에 이름을 자유롭게 바꿀 수 있습니다.</span></div><em>${channelPlan.length}개 채널</em></div><label class="setup-demo-category-row"><span><strong>카테고리</strong><small>채널을 묶어둘 Discord 카테고리</small></span><input type="text" maxlength="90" value="${esc(category)}" data-setup-category-name></label><div class="setup-demo-create-list">${channelPlan.map(generatedRow).join('')}</div>${demo.channelsGenerated?`<div class="setup-demo-generation-result"><div class="setup-demo-generation-title"><i>✓</i><span><strong>생성 체험 완료</strong><small>실제 Discord에는 아무것도 생성되지 않았습니다.</small></span></div><ul><li><b>✓</b><span><strong>${esc(category)}</strong><small>카테고리 생성</small></span></li>${channelPlan.map(([,label,,value])=>`<li><b>✓</b><span><strong>#${esc(value)}</strong><small>${esc(label)}에 자동 연결</small></span></li>`).join('')}</ul></div>`:`<div class="setup-demo-builder-note"><b>PREVIEW</b><span>아래 <strong>이 구성으로 생성 체험</strong>을 누르면 생성 과정을 미리 볼 수 있습니다.</span></div>`}</div>`:`<div class="setup-demo-empty"><strong>자동 생성이 필요한 채널이 없습니다.</strong><span>선택한 기능은 별도 Discord 채널이 필요하지 않습니다.</span></div>`;
       body=`<div class="setup-demo-quest setup-demo-quest--channels"><span class="setup-demo-quest-no">QUEST 04</span><h2>채널도 AXE가 준비할 수 있습니다.</h2><p>추천 구성을 그대로 사용하거나, 카테고리와 채널명을 회사 스타일에 맞게 바꾼 뒤 생성합니다.</p>${modePicker}${builder}</div>`;
     }else{
       const rows=[]; if(modules.fund)rows.push(channelSelect('공금현황판','공금 현황판',demo.channels?.fund)); if(modules.ammo){rows.push(channelSelect('3시-총알','3시 총알 채널',demo.channels?.ammo3));rows.push(channelSelect('10시-총알','10시 총알 채널',demo.channels?.ammo10));} if(modules.outlaw)rows.push(channelSelect('전적-등록','무법 전적 등록 채널',demo.channels?.outlaw)); if(modules.modbook)rows.push(channelSelect('개조서','개조서 채널',demo.channels?.modbook)); if(modules.cooking)rows.push(channelSelect('요리-주문','요리 주문 채널',demo.channels?.cooking));
