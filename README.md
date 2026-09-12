@@ -1,3 +1,10 @@
+# AXE PRODUCT WEB 3.21.9
+
+- 기본 홈: 대시보드
+- 상단 AXE PRODUCT 브랜드 클릭 → 대시보드
+- 기능별 사용 가이드/튜토리얼 추가
+- Discord 채널 사용법 + 웹 콘솔 관리법 통합 안내
+
 ## 3.21.8 · OPERATIONS DASHBOARD R1
 - Added a real operations dashboard as the default post-login home for company admins.
 - Dashboard surfaces fund reviews, account reviews, unassigned assets and Discord connection issues before vanity metrics.

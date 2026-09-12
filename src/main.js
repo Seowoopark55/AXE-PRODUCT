@@ -20,7 +20,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','settings','platform'];
+const validPages = ['dashboard','fund','members','assets','accounts','settings','guide','platform'];
 
 const state = {
   envReady,
@@ -38,7 +38,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: validPages.includes(localStorage.getItem('axe_product_page')) ? localStorage.getItem('axe_product_page') : 'dashboard',
+  page: 'dashboard',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
@@ -55,6 +55,7 @@ const state = {
   platformAdmin:false, platformSnapshot:[], platformQuery:'', platformStatus:'all', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
+  guideSection: 'start',
   companyMenuOpen: false,
   modal: null,
   setupDemo: null,
@@ -649,6 +650,8 @@ async function saveModuleSettingsData(form,data){
 }
 
 root.addEventListener('click', async event => {
+  const guideBtn=event.target.closest('[data-guide-section]');
+  if(guideBtn){state.guideSection=String(guideBtn.dataset.guideSection||'start');render();return;}
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
@@ -686,6 +689,7 @@ root.addEventListener('click', async event => {
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
+  if(action==='go-dashboard'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
     if(!canAdmin(state)){setError('초기설정은 OWNER 또는 관리자만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();

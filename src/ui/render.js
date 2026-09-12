@@ -20,6 +20,7 @@ function icon(name) {
     settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2v-4h.1A1.7 1.7 0 0 0 3.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8 3.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 15 3.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 20.4 8a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7 1.6z"/>',
     platform:'<path d="M12 3l8 4v5c0 4.8-3.1 7.9-8 9-4.9-1.1-8-4.2-8-9V7z"/><path d="M9 12l2 2 4-4"/>',
     feedback:'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/>',
+    guide:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22z"/>',
     refresh:'<path d="M20 11a8 8 0 1 0 2 5"/><path d="M20 4v7h-7"/>',
     more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
     plus:'<path d="M12 5v14M5 12h14"/>',
@@ -111,7 +112,7 @@ function renderAuthed(state) {
   const connected = state.discordConnection?.status === 'connected';
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
-      <div class="product-brand"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></div>
+      <button type="button" class="product-brand product-brand--home" data-action="go-dashboard" aria-label="대시보드로 이동" title="대시보드로 이동"><div><strong>AXE PRODUCT</strong><small>OPERATIONS CONSOLE</small></div></button>
       <div class="global-account"><div><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></div><button class="icon-button" data-action="logout" aria-label="로그아웃" title="로그아웃">${icon('logout')}</button></div>
     </div></header>
     <div class="workspace-shell">
@@ -129,7 +130,7 @@ function renderAuthed(state) {
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
           <span class="sidebar-nav__label spaced">설정</span>${navItem(state,'settings','회사 설정')}
           ${state.platformAdmin?`<span class="sidebar-nav__label spaced">플랫폼</span>${navItem(state,'platform','서비스 관리')}`:''}
-          <span class="sidebar-nav__label spaced">지원</span><button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
+          <span class="sidebar-nav__label spaced">지원</span>${navItem(state,'guide','사용 가이드')}<button class="nav-item nav-item--support" data-action="open-feedback"><span class="nav-item__icon">${icon('feedback')}</span><span>피드백 · 제보</span></button>
         </nav>
         <footer class="sidebar-footer">
           <div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div>
@@ -150,6 +151,7 @@ function renderPage(state) {
   if (state.page === 'platform') return state.platformAdmin ? renderPlatform(state) : renderPermission(state);
   const subscriptionState=String(state.currentSubscription?.effective_status||state.currentSubscription?.status||'active');
   if(['paused','expired'].includes(subscriptionState)) return renderSubscriptionBlocked(state,subscriptionState);
+  if (state.page === 'guide') return renderGuide(state);
   if (!canAdmin(state)) return renderPermission(state);
   if (state.page === 'dashboard') return renderDashboard(state);
   if (state.page === 'members') return renderMembers(state);
@@ -226,12 +228,83 @@ function renderDashboard(state){
     <section class="axe-dashboard-metrics">${metrics.map(([label,value,sub,page])=>`<button type="button" data-action="dashboard-jump" data-page="${page}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(sub)}</small></button>`).join('')}</section>
     <div class="axe-dashboard-grid">
       <section class="axe-dashboard-panel axe-dashboard-panel--attention"><header><div><span>NOW</span><h2>지금 확인할 것</h2></div><em>${attention.length?`${attention.length}개 영역`:'ALL CLEAR'}</em></header><div class="axe-dashboard-attention-list">${attention.length?attention.map(dashboardJumpButton).join(''):`<div class="axe-dashboard-clear"><i>✓</i><div><strong>급한 운영 항목이 없습니다.</strong><span>필요한 작업이 생기면 이곳에 먼저 표시됩니다.</span></div></div>`}</div></section>
-      <section class="axe-dashboard-panel axe-dashboard-panel--quick"><header><div><span>QUICK ACTION</span><h2>빠른 실행</h2></div></header><div class="axe-dashboard-quick-grid">${fundEnabled?`<button data-action="open-ledger">${icon('fund')}<span><strong>공금 등록</strong><small>수입 · 지출 추가</small></span></button>`:''}<button data-action="dashboard-jump" data-page="members">${icon('members')}<span><strong>멤버 관리</strong><small>권한 · 재직 상태</small></span></button>${assetsEnabled?`<button data-action="open-asset">${icon('assets')}<span><strong>자산 추가</strong><small>배정 · 반납 관리</small></span></button>`:''}<button data-action="dashboard-jump" data-page="accounts">${icon('accounts')}<span><strong>계좌 관리</strong><small>등록 · 변경 검수</small></span></button><button data-action="dashboard-jump" data-page="settings">${icon('settings')}<span><strong>회사 설정</strong><small>Discord · 기능 구성</small></span></button></div></section>
+      <section class="axe-dashboard-panel axe-dashboard-panel--quick"><header><div><span>QUICK ACTION</span><h2>빠른 실행</h2></div></header><div class="axe-dashboard-quick-grid">${fundEnabled?`<button data-action="open-ledger">${icon('fund')}<span><strong>공금 등록</strong><small>수입 · 지출 추가</small></span></button>`:''}<button data-action="dashboard-jump" data-page="members">${icon('members')}<span><strong>멤버 관리</strong><small>권한 · 재직 상태</small></span></button>${assetsEnabled?`<button data-action="open-asset">${icon('assets')}<span><strong>자산 추가</strong><small>배정 · 반납 관리</small></span></button>`:''}<button data-action="dashboard-jump" data-page="accounts">${icon('accounts')}<span><strong>계좌 관리</strong><small>등록 · 변경 검수</small></span></button><button data-action="dashboard-jump" data-page="settings">${icon('settings')}<span><strong>회사 설정</strong><small>Discord · 기능 구성</small></span></button><button data-action="dashboard-jump" data-page="guide">${icon('guide')}<span><strong>사용 가이드</strong><small>Discord · 기능별 사용법</small></span></button></div></section>
       <section class="axe-dashboard-panel axe-dashboard-panel--activity"><header><div><span>ACTIVITY</span><h2>최근 활동</h2></div><button type="button" data-action="dashboard-jump" data-page="fund">전체 내역 →</button></header><div class="axe-dashboard-activity-list">${activity.length?activity.map(row=>`<button type="button" data-action="dashboard-jump" data-page="${esc(row.page)}"><span class="axe-dashboard-activity-icon">${icon(row.icon)}</span><span><strong>${esc(row.title)}</strong><small>${esc(row.meta)}</small></span><time>${esc(fmtDate(row.when,true))}</time></button>`).join(''):`<div class="axe-dashboard-empty">아직 표시할 최근 활동이 없습니다.</div>`}</div></section>
       <section class="axe-dashboard-panel axe-dashboard-panel--system"><header><div><span>OPERATIONS</span><h2>운영 연결 상태</h2></div><em class="${connected?'is-ok':'is-off'}">${connected?'정상':'확인 필요'}</em></header><div class="axe-dashboard-system-line"><div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name||'서버 연결 필요')}</small></div></div><button data-action="dashboard-jump" data-page="settings">설정 열기 →</button></div><div class="axe-dashboard-module-tags"><strong>사용 중인 기능</strong><div>${moduleTags}</div></div></section>
     </div>
   </div>`;
 }
+
+
+// ============================================================
+// GUIDE / TUTORIAL
+// ============================================================
+const GUIDE_SECTIONS = [
+  ['start','처음 시작하기','5분 설정 순서'],
+  ['fund','공금','납부 · 검수 · 원장'],
+  ['ammo','총알','3시 · 10시 신청'],
+  ['modbook','개조서','조회 · 가격 갱신'],
+  ['members','멤버','Discord 등록 · 권한'],
+  ['assets','자산 · 계좌','배정 · 반납 · 계좌'],
+  ['outlaw','무법지대','전적 등록 · 기록'],
+  ['cooking','요리','주문 · 변경 · 마감'],
+  ['discord','Discord 연결','권한 · 채널 구성'],
+];
+function guideSection(state){
+  const key=String(state.guideSection||'start');
+  return GUIDE_SECTIONS.some(([id])=>id===key)?key:'start';
+}
+function guideStep(number,title,desc){return `<article class="axe-guide-step"><b>${esc(number)}</b><div><strong>${esc(title)}</strong><span>${esc(desc)}</span></div></article>`;}
+function guideChat(lines){return `<div class="axe-guide-chat">${lines.map(([who,text,tone=''])=>`<div class="axe-guide-chat-line ${tone?'is-'+tone:''}"><span>${esc(who)}</span><code>${esc(text)}</code></div>`).join('')}</div>`;}
+function guideBullet(title,desc){return `<li><strong>${esc(title)}</strong><span>${esc(desc)}</span></li>`;}
+function guideJump(page,label,settingsTab=''){return `<button type="button" class="axe-guide-jump" data-action="dashboard-jump" data-page="${esc(page)}" ${settingsTab?`data-settings-tab="${esc(settingsTab)}"`:''}>${esc(label)} →</button>`;}
+function guideModuleState(state,key){const row=moduleRow(state,key);return row?Boolean(row.enabled):false;}
+function guideModuleBadge(state,key){const row=moduleRow(state,key);if(!row)return '';return `<span class="axe-guide-module-state ${row.enabled?'is-on':'is-off'}">${row.enabled?'현재 ON':'현재 OFF'}</span>`;}
+function renderGuideStart(state){
+  const connected=state.discordConnection?.status==='connected';
+  return `<div class="axe-guide-content">
+    <section class="axe-guide-intro"><div><span>QUICK START</span><h2>처음 5분만 따라오면 됩니다.</h2><p>Discord 연결부터 역할·기능·채널·멤버 등록까지 실제 운영 시작 순서입니다.</p></div><em class="${connected?'is-ok':'is-warn'}">${connected?'Discord 연결 완료':'Discord 연결 필요'}</em></section>
+    <div class="axe-guide-steps">${guideStep('01','Discord 연결','회사 서버를 선택하고 AXE Bot이 필요한 최소 권한을 승인합니다.')}${guideStep('02','관리 역할 지정','대표·관리자 역할과 일반 멤버 역할을 선택합니다.')}${guideStep('03','사용 기능 선택','공금·총알·개조서·무법·요리·자산 중 회사가 사용할 기능만 켭니다.')}${guideStep('04','채널 구성','빠른 설정으로 필요한 Discord 채널을 자동 생성하거나 기존 채널을 연결합니다.')}${guideStep('05','멤버 등록','Discord 역할에서 불러오거나 사용자 우클릭 → 앱 → AXE 멤버 등록으로 추가합니다.')}${guideStep('06','운영 시작','대시보드에서 처리할 항목을 확인하고 Discord 채널을 실제 업무 창구로 사용합니다.')}</div>
+    <section class="axe-guide-note"><strong>중요</strong><span>AXE는 Discord 명령어를 외우는 것보다, 기능별 채널 자체를 업무 도구처럼 쓰는 방향으로 설계되어 있습니다.</span>${canAdmin(state)?guideJump('settings','초기설정 확인','basic'):''}</section>
+  </div>`;
+}
+function renderGuideFund(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>FUND</span><h2>공금 관리 ${guideModuleBadge(state,'fund')}</h2><p>납부 신청 → 관리자 검수 → 공금 원장 반영 → 잔액 점검까지 한 흐름으로 관리합니다.</p></div>${canAdmin(state)?guideJump('fund','공금 관리 열기'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>Discord에서</h3><ul>${guideBullet('공금 채널','초기설정에서 연결한 공금 채널이 멤버의 납부 창구가 됩니다.')}${guideBullet('납부 신청','채널 안내에 따라 주차와 납부 정보를 제출하면 관리자 검수 대기 상태가 됩니다.')}${guideBullet('증빙','필요한 경우 납부 증빙을 함께 제출하고 처리 결과를 확인합니다.')}</ul></section><section class="axe-guide-card"><h3>웹 콘솔에서</h3><ul>${guideBullet('납부 검수','대기 · 보류 신청을 승인하거나 반려합니다.')}${guideBullet('원장','수입·지출을 직접 등록하고 증빙 사진을 붙일 수 있습니다.')}${guideBullet('주간 현황','멤버별 주차 납부 상태와 과거 월 기록을 확인합니다.')}${guideBullet('잔액 점검','웹 계산 잔액과 게임 내 실제 공용계좌 잔액을 비교합니다.')}</ul></section></div>
+  <section class="axe-guide-example"><h3>운영 흐름 예시</h3><div class="axe-guide-flow"><span>멤버 납부</span><i>→</i><span>검수 대기</span><i>→</i><span>관리자 승인</span><i>→</i><span>공금 원장 반영</span></div></section>
+</div>`;}
+function renderGuideAmmo(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>AMMO</span><h2>총알 신청 ${guideModuleBadge(state,'ammo')}</h2><p>3시와 10시 채널 각각에서 신청과 제작 현황을 한눈에 처리합니다.</p></div>${canAdmin(state)?guideJump('settings','총알 채널 설정','modules'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>#3시-총알 / #10시-총알</h3><p>해당 시간대 채널에 수량만 입력하면 그 회차 신청으로 처리됩니다.</p>${guideChat([['멤버','1줄'],['멤버','1줄 3세트'],['멤버','반'],['멤버','취소']])}</section><section class="axe-guide-card"><h3>현황판 사용</h3><ul>${guideBullet('신청 현황','신청 메시지 아래 같은 채널의 현황판이 자동으로 갱신됩니다.')}${guideBullet('제작 참여','제작자는 현황판의 제작 참여 기능으로 참여 상태를 표시합니다.')}${guideBullet('배분 처리','제작 참여자가 신청자별 배분 완료 상태를 처리합니다.')}${guideBullet('시간대 분리','3시 신청은 3시 현황만, 10시는 10시 현황만 갱신됩니다.')}</ul></section></div>
+</div>`;}
+function renderGuideModbook(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>MODBOOK</span><h2>개조서 ${guideModuleBadge(state,'modbook')}</h2><p>전용 채널에서는 명령어 없이 개조서 이름 자체가 조회 명령이 됩니다.</p></div>${canAdmin(state)?guideJump('settings','개조서 채널 설정','modules'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>이름만 입력 → 조회</h3>${guideChat([['멤버','신속한'],['AXE','신속한 · 분류/부위/옵션/성공률/최근 거래가 표시','bot']])}<p>정확한 이름이 없으면 비슷한 개조서 후보를 안내합니다.</p></section><section class="axe-guide-card"><h3>이름 + 가격 → 최근 거래가 갱신</h3>${guideChat([['멤버','신속한 30000'],['AXE','신속한 최근 거래가 30,000으로 갱신','bot']])}<p>실제 개조서명이 정확히 일치할 때만 가격 갱신으로 처리됩니다.</p></section></div>
+  <section class="axe-guide-note"><strong>가격 수정 권한</strong><span>조회는 채널 이용자가 사용할 수 있고, 가격 갱신은 회사 멤버로 확인된 사용자만 허용됩니다.</span></section>
+</div>`;}
+function renderGuideMembers(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>MEMBERS</span><h2>멤버 등록과 권한</h2><p>Discord 계정을 회사 멤버와 연결한 뒤 웹에서 역할·재직 정보를 관리합니다.</p></div>${canAdmin(state)?guideJump('members','멤버 관리 열기'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>Discord에서 등록</h3><ol class="axe-guide-numbered"><li><b>1</b><span>등록할 사용자를 우클릭합니다.</span></li><li><b>2</b><span><strong>앱</strong> 메뉴를 엽니다.</span></li><li><b>3</b><span><strong>AXE 멤버 등록</strong>을 선택합니다.</span></li><li><b>4</b><span>등록 후 사용자가 다시 로그인하면 회사가 자동 표시됩니다.</span></li></ol></section><section class="axe-guide-card"><h3>웹에서 관리</h3><ul>${guideBullet('역할','대표 · 관리자 · 매니저 · 멤버 역할을 관리합니다.')}${guideBullet('활동 상태','재직 · 퇴사 상태를 바꿔 과거 기록은 유지하면서 현재 멤버를 구분합니다.')}${guideBullet('회사 별칭','Discord 표시명과 별도로 회사에서 사용할 이름을 지정할 수 있습니다.')}${guideBullet('입사일 · 메모','운영에 필요한 멤버 정보를 한곳에서 관리합니다.')}</ul></section></div>
+</div>`;}
+function renderGuideAssets(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>ASSETS & ACCOUNTS</span><h2>자산 · 계좌 ${guideModuleBadge(state,'assets')}</h2><p>차량·무기·장비의 보유 상태와 멤버 계좌를 웹에서 통합 관리합니다.</p></div>${canAdmin(state)?guideJump('assets','자산 관리 열기'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>자산</h3><ul>${guideBullet('자산 등록','차량·무기·장비 등 회사 소유 자산을 등록합니다.')}${guideBullet('멤버 배정','현재 보유자를 지정하고 미배정 자산을 빠르게 찾습니다.')}${guideBullet('반납','반납 사유와 처리자를 기록해 이력을 유지합니다.')}</ul></section><section class="axe-guide-card"><h3>계좌</h3><ul>${guideBullet('등록 · 변경 신청','멤버의 계좌 등록 또는 변경 요청을 받습니다.')}${guideBullet('관리자 검수','대기 중인 계좌를 확인하고 승인 · 반려합니다.')}${guideBullet('Discord 채널','자산·계좌는 별도 Discord 채널 없이 웹 콘솔 중심으로 운영합니다.')}</ul></section></div>
+</div>`;}
+function renderGuideOutlaw(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>OUTLAW</span><h2>무법지대 전적 ${guideModuleBadge(state,'outlaw')}</h2><p>전적 등록 채널을 통해 결과 기록을 모으고 회사 단위 전적 관리 흐름을 만듭니다.</p></div>${canAdmin(state)?guideJump('settings','전적 채널 설정','modules'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>Discord에서</h3><ul>${guideBullet('전적 등록 채널','초기설정에서 지정한 채널을 무법지대 기록 창구로 사용합니다.')}${guideBullet('결과 등록','전적 자료를 채널에 제출하면 AXE가 기록 흐름에 맞게 처리합니다.')}${guideBullet('전용 채널 사용','일반 대화와 섞지 않고 전적 관련 입력만 사용하는 것을 권장합니다.')}</ul></section><section class="axe-guide-card"><h3>운영 팁</h3><ul>${guideBullet('역할 분리','기록 등록자와 검수 권한을 회사 운영 기준에 맞게 나눕니다.')}${guideBullet('일관된 입력','같은 전적 채널을 계속 사용하면 기록 추적이 쉬워집니다.')}${guideBullet('기능 OFF','무법지대를 사용하지 않는 회사는 기능을 꺼 채널 자체를 만들지 않아도 됩니다.')}</ul></section></div>
+</div>`;}
+function renderGuideCooking(state){return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>COOKING</span><h2>요리 주문 ${guideModuleBadge(state,'cooking')}</h2><p>Discord 주문 채널을 주문 접수 창구로 두고 메뉴·수량·처리 상태를 관리합니다.</p></div>${canAdmin(state)?guideJump('settings','요리 설정 열기','modules'):''}</section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>Discord 주문 채널</h3><ul>${guideBullet('주문판','채널의 주문 안내에서 원하는 메뉴와 수량을 선택합니다.')}${guideBullet('내 주문','등록한 주문의 상태를 확인하고 지원되는 범위에서 변경·취소합니다.')}${guideBullet('영업 상태','운영자가 영업 상태에 따라 주문 접수를 열거나 마감합니다.')}</ul></section><section class="axe-guide-card"><h3>웹 설정</h3><ul>${guideBullet('메뉴 관리','실제로 받을 주문 종류와 활성 상태를 구성합니다.')}${guideBullet('안내 문구','Discord 주문판의 일정·SET 안내·추가 안내를 회사에 맞게 설정합니다.')}${guideBullet('채널 연결','자동 생성 또는 기존 주문 채널 연결을 사용할 수 있습니다.')}</ul></section></div>
+</div>`;}
+function renderGuideDiscord(state){const connected=state.discordConnection?.status==='connected';return `<div class="axe-guide-content">
+  <section class="axe-guide-feature-head"><div><span>DISCORD</span><h2>연결 · 권한 · 채널</h2><p>AXE의 Discord 기능은 처음 연결할 때 필요한 권한을 한 번 승인한 뒤 동작합니다.</p></div>${canAdmin(state)?guideJump('settings','Discord 설정 열기','basic'):''}</section>
+  <section class="axe-guide-status ${connected?'is-ok':'is-warn'}"><i></i><div><strong>${connected?'현재 Discord가 연결되어 있습니다.':'Discord 연결이 필요합니다.'}</strong><span>${esc(state.discordConnection?.guild_name||'회사 설정에서 서버를 연결해 주세요.')}</span></div></section>
+  <div class="axe-guide-two"><section class="axe-guide-card"><h3>처음 승인하는 권한</h3><div class="axe-guide-chips"><span>채널 보기</span><span>메시지 전송</span><span>임베드 표시</span><span>메시지 기록 보기</span><span>메시지 관리</span><span>채널 관리</span></div><p>Administrator 전체 권한은 요청하지 않습니다.</p></section><section class="axe-guide-card"><h3>채널 구성 방식</h3><ul>${guideBullet('빠른 설정','기능에 필요한 채널을 AXE가 자동으로 생성합니다.')}${guideBullet('직접 연결','이미 사용 중인 Discord 채널을 기능에 연결할 수도 있습니다.')}${guideBullet('권한 다시 승인','나중에 봇 권한이 제거된 경우 회사 설정에서 다시 승인할 수 있습니다.')}</ul></section></div>
+</div>`;}
+function renderGuideBody(state,key){return ({start:renderGuideStart,fund:renderGuideFund,ammo:renderGuideAmmo,modbook:renderGuideModbook,members:renderGuideMembers,assets:renderGuideAssets,outlaw:renderGuideOutlaw,cooking:renderGuideCooking,discord:renderGuideDiscord}[key]||renderGuideStart)(state);}
+function renderGuide(state){const current=guideSection(state);return `<div class="axe-guide-page">${pageHeader('GUIDE','사용 가이드','AXE PRODUCT와 Discord 채널을 실제 운영에서 어떻게 쓰는지 기능별로 확인하세요.')}<div class="axe-guide-layout"><aside class="axe-guide-nav">${GUIDE_SECTIONS.map(([key,label,desc])=>`<button type="button" class="${current===key?'is-active':''}" data-guide-section="${esc(key)}"><strong>${esc(label)}</strong><span>${esc(desc)}</span></button>`).join('')}</aside><main class="axe-guide-main">${renderGuideBody(state,current)}</main></div></div>`;}
 
 // ============================================================
 // FUND
