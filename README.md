@@ -164,3 +164,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Removed the previous repeated-logo pattern block from the active background.
 - Preserved the centered 1120px shared-console app frame and existing content-fit layout.
 - Company banner upload UI remains removed.
+
+
+## 3.19.0 · GUIDED SETUP PREVIEW R1
+- Login copy changed to ‘회사를 움직이는 하나의 콘솔.’ / ‘Discord 기반의 회사 운영을 더 간결하고 체계적으로.’
+- Removed invite-code join entry points from the WEB UI; member onboarding points to Discord user context menu registration.
+- Added a non-destructive Guided Setup preview in Company Settings. The preview simulates Discord connect → roles → modules → channels → completion and never writes company settings.
+- Existing real onboarding/backend APIs remain intact; this release is for UX validation before replacing the live onboarding flow.

@@ -34,3 +34,11 @@ AXE PRODUCT WEB STAGING 3.18.11 - GENERATED AMBIENT SHELL R1
 - Applied the newly generated AXE ambient background image to the desktop shell.
 - Replaced the previous staggered logo/diamond pattern in the active background.
 - Central app frame unchanged. No PWA. Company banner upload remains removed.
+
+AXE PRODUCT WEB STAGING 3.19.0 - GUIDED SETUP PREVIEW R1
+
+- New login brand copy.
+- WEB invite-code join UI removed.
+- Added temporary ‘초기설정 체험’ Guided Setup preview with no DB writes.
+- Demo flow: start → Discord → roles → modules → channels → complete.
+- Real current settings/onboarding behavior is not replaced yet.
