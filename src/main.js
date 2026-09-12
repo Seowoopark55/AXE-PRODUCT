@@ -5,7 +5,7 @@ import {
   listCompanies, createCompany, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
-  getCompanySettings, updateCompanySettings, getCompanyBannerPublicUrl, uploadCompanyBanner, removeCompanyBanner,
+  getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   createCompanyInvite, redeemCompanyInvite,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl,
@@ -33,7 +33,6 @@ const state = {
   cookingOrderTypes: [],
   cookingDiscordConfig: null,
   companySettings: null,
-  companyBannerUrl: '',
   discordConnection: null,
   discordChannels: [],
   discordRoles: [],
@@ -106,7 +105,7 @@ function setNotice(message) {
 }
 function setError(error) { state.error = String(error?.message || error || '오류가 발생했습니다.'); render(); }
 function clearCompanyData() {
-  state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null; state.companyBannerUrl='';
+  state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.assetsSnapshot=null; state.accountsSnapshot=null;
 }
@@ -128,7 +127,6 @@ async function loadBaseCompanyData() {
     getCompanyOnboardingStatus(state.companyId),
   ]);
   state.moduleCatalog=catalog||[]; state.modules=modules||[]; state.cookingOrderTypes=cookingTypes||[]; state.cookingDiscordConfig=cookingConfig||null; state.companySettings=settings||null;
-  const bannerStamp=state.companySettings?.settings?.company_banner_updated_at||''; state.companyBannerUrl=bannerStamp?getCompanyBannerPublicUrl(state.companyId,bannerStamp):'';
   state.discordConnection=discord||null; state.discordChannels=channels||[]; state.discordRoles=roles||[]; state.discordCompanyConfig=config||null; state.onboardingStatus=onboarding||null;
 }
 
@@ -337,11 +335,6 @@ async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
   if(!companyName) throw new Error('회사 이름을 입력해 주세요.');
   if(companyName!==(state.companies.find(c=>c.id===state.companyId)?.name||'')) await updateCompanyName(state.companyId,companyName);
   let settings={...(state.companySettings?.settings||{})};
-  const banner=data.get('company_banner');
-  if(banner instanceof File && banner.size){
-    const uploaded=await uploadCompanyBanner(state.companyId,banner);
-    settings={...settings,company_banner_updated_at:uploaded.updatedAt};
-  }
   await updateCompanySettings(state.companyId,{locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul',settings},state.session.user.id);
   await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);
 }
@@ -390,7 +383,7 @@ root.addEventListener('click', async event => {
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='toggle-company-menu'){state.companyMenuOpen=!state.companyMenuOpen;render();return;}
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.companyBannerUrl='';state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
@@ -406,18 +399,6 @@ root.addEventListener('click', async event => {
   if(action==='copy-invite'){await navigator.clipboard.writeText(actionEl.dataset.inviteCode||'');setNotice('초대코드를 복사했습니다.');return;}
   if(action==='reset-fund-filter'){state.fundFilters={person:'all',type:'all',account:'all'};render();return;}
   if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
-  if(action==='remove-company-banner'){
-    if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
-    if(!window.confirm('회사 배너를 제거할까요?'))return;
-    await withMutation(async()=>{
-      await removeCompanyBanner(state.companyId);
-      const settings={...(state.companySettings?.settings||{})}; delete settings.company_banner_updated_at;
-      await updateCompanySettings(state.companyId,{settings},state.session.user.id);
-      state.companySettings=await getCompanySettings(state.companyId); state.companyBannerUrl=''; setNotice('회사 배너를 제거했습니다.');
-    });
-    return;
-  }
-
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){clearReconnectPoll();await signOut();state.modal=null;return;}

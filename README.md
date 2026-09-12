@@ -128,3 +128,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - The brand artwork is now the actual body background rather than an opacity-filtered pseudo layer.
 - Kept the centered 1120px app shell and equal left/right gutters from 3.18.5.
 - PWA remains removed; no install/update UI is restored.
+
+
+## 3.18.7 · ROOT-CAUSE BRANDED SHARED CONSOLE R1
+- Root cause fixed: `index.html` applied an opaque background to `#app`, covering the body-level AXE artwork in the side gutters. `#app` is now transparent on desktop; the centered console remains opaque.
+- AXE black/gold side artwork is deliberately stronger for a shared branded management console while operational surfaces stay readable.
+- Equal 1120px centered console geometry remains unchanged.
+- Company banner upload/registration is removed from Company Settings and from WEB runtime mutation wiring. Legacy storage/API support is not destructively deleted.
+- PWA stays disabled; only legacy service-worker/cache cleanup remains.

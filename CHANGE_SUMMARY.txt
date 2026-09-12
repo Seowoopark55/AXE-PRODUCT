@@ -1,15 +1,10 @@
-AXE PRODUCT WEB STAGING 3.18.5 - CENTERED AMBIENT WEB SHELL R1
+AXE PRODUCT WEB STAGING 3.18.7 - ROOT-CAUSE BRANDED SHARED CONSOLE R1
 
-- PWA mode removed: no install CTA, no update CTA, no manifest registration.
-- Legacy AXE PWA registrations/caches are cleaned up automatically.
-- Desktop app frame reduced to a centered 1120px maximum frame with equal left/right margins.
-- AXE ambient brand artwork is brighter and lives only in the outer page background.
-- Existing compact operational layouts remain unchanged.
-- LIVE AXE / PRODUCT BOT / DB untouched.
-
-AXE PRODUCT WEB STAGING 3.18.6 - VISIBLE AMBIENT SIDES R1
-- Ambient artwork visibility corrected.
-- Brighter side-focused background asset added.
-- Centered/equal app shell retained.
-- PWA remains disabled.
+- ROOT CAUSE FIX: opaque #app boot background covered the ambient body artwork.
+- #app is transparent; centered app frame remains opaque.
+- AXE black/gold side brand artwork is more visible.
+- App frame remains evenly centered at the 1120px contract.
+- Company banner registration/upload removed from WEB settings/runtime.
+- Legacy banner backend/storage is untouched; no DB migration.
+- PWA remains disabled; legacy cleanup only.
 - LIVE AXE / PRODUCT BOT / DB untouched.
