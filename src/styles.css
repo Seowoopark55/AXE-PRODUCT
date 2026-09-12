@@ -172,92 +172,70 @@ button:disabled{cursor:not-allowed;opacity:.45}
 }
 
 
-/* AXE PRODUCT 3.18.2 · CONTEXT UTILITY RAIL R1
-   The desktop workspace now uses the open right side as an intentional context
-   zone. Operational density stays compact; the rail adds status and shortcuts
-   without stretching the core tables. */
-.app-utility-zone{display:none}
-
+/* AXE PRODUCT 3.18.3 · QUIET WORKSPACE R1
+   The right side remains part of the app, but carries no duplicate controls
+   or repeated operational data. It is a passive workspace field only. */
 @media(min-width:1280px){
   .runtime-app .main{
-    display:grid;
-    grid-template-columns:636px minmax(280px,1fr);
-    align-content:start;
-    column-gap:20px;
+    display:block;
   }
-  .runtime-app--settings .main{
-    grid-template-columns:680px minmax(280px,1fr);
+
+  .runtime-app .main::before{
+    content:"";
+    position:absolute;
+    top:18px;
+    right:18px;
+    bottom:18px;
+    width:min(38%,520px);
+    pointer-events:none;
+    border-left:1px solid rgba(255,255,255,.022);
+    background:
+      linear-gradient(90deg,rgba(255,255,255,.004),transparent 22%),
+      repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,.010) 0,
+        rgba(255,255,255,.010) 1px,
+        transparent 1px,
+        transparent 52px
+      );
+    opacity:.72;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 82%,transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 82%,transparent 100%);
+  }
+
+  .runtime-app .main::after{
+    content:"AXE PRODUCT\A OPERATIONS WORKSPACE";
+    white-space:pre;
+    position:absolute;
+    right:28px;
+    bottom:26px;
+    pointer-events:none;
+    text-align:right;
+    color:#7e6b49;
+    font-size:8px;
+    font-weight:900;
+    line-height:1.65;
+    letter-spacing:.18em;
+    opacity:.16;
   }
 
   .runtime-app .main>.axe-fund,
   .runtime-app .main>.ops-mgmt-page,
   .runtime-app .main>.ops-settings-page{
-    grid-column:1;
-    min-width:0;
+    position:relative;
+    z-index:1;
   }
-
-  .app-utility-zone{
-    grid-column:2;
-    display:block;
-    min-width:0;
-    min-height:calc(100vh - 150px);
-    padding-left:20px;
-    border-left:1px solid rgba(255,255,255,.045);
-    background:
-      radial-gradient(circle at 16% 8%,rgba(228,178,75,.028),transparent 26%),
-      linear-gradient(90deg,rgba(255,255,255,.005),transparent 46%);
-  }
-
-  .app-utility-rail{
-    position:sticky;
-    top:92px;
-    width:min(292px,100%);
-    display:grid;
-    gap:10px;
-    padding-top:2px;
-  }
-
-  .app-utility-card{
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.065);
-    border-radius:12px;
-    background:rgba(10,14,19,.76);
-    box-shadow:inset 0 1px rgba(255,255,255,.018);
-  }
-  .app-utility-current{display:grid;gap:3px;padding:13px 14px}
-  .app-utility-current>strong{color:#ece8df;font-size:14px;letter-spacing:-.015em}
-  .app-utility-current>small{display:flex;align-items:center;gap:6px;color:#747f89;font-size:8.7px}
-  .app-utility-current i{width:6px;height:6px;border-radius:50%;background:#59636d}
-  .app-utility-current i.is-online{background:var(--green);box-shadow:0 0 10px rgba(120,211,155,.22)}
-
-  .app-utility-kicker{display:block;color:#9d8148;font-size:7.8px;font-weight:950;letter-spacing:.16em}
-  .app-utility-card>h3{margin:5px 0 0;padding:0 14px;color:#ddd9d1;font-size:12px;letter-spacing:-.01em}
-  .app-utility-card>h3:first-of-type{padding-top:0}
-  .app-utility-card>.app-utility-kicker:not(.app-utility-current .app-utility-kicker){padding:13px 14px 0}
-
-  .app-utility-stats{display:grid;margin-top:9px;border-top:1px solid rgba(255,255,255,.045)}
-  .app-utility-stats>div{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.038)}
-  .app-utility-stats>div:last-child{border-bottom:0}
-  .app-utility-stats span{color:#737d86;font-size:8.9px}
-  .app-utility-stats strong{color:#d9d5cc;font-size:10.8px;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .app-utility-stats strong.is-positive{color:var(--green)}
-  .app-utility-stats strong.is-warning{color:var(--amber)}
-  .app-utility-stats strong.is-negative{color:var(--red)}
-
-  .app-utility-actions{padding-bottom:10px}
-  .app-utility-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 10px 0}
-  .app-utility-actions button{height:32px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:#0d1319;color:#959fa8;font-size:9px;font-weight:800;cursor:pointer}
-  .app-utility-actions button:hover{border-color:rgba(228,178,75,.22);color:#dec488;background:#11181f}
-  .app-utility-actions button.is-primary{border-color:rgba(228,178,75,.24);background:rgba(228,178,75,.06);color:#e7c26d}
-
-  .app-utility-signature{margin-top:4px;padding:12px 2px;border-top:1px solid rgba(255,255,255,.04);display:grid;gap:2px;opacity:.38}
-  .app-utility-signature span{color:#a18b5d;font-size:8px;font-weight:900;letter-spacing:.18em}
-  .app-utility-signature small{color:#59626b;font-size:7px;letter-spacing:.15em}
 }
 
 @media(min-width:1280px) and (max-width:1500px){
-  .runtime-app .main{grid-template-columns:636px minmax(240px,1fr);column-gap:16px}
-  .runtime-app--settings .main{grid-template-columns:680px minmax(240px,1fr)}
-  .app-utility-zone{padding-left:16px}
-  .app-utility-rail{width:min(260px,100%)}
+  .runtime-app .main::before{
+    width:min(32%,380px);
+  }
+}
+
+@media(max-width:1279px){
+  .runtime-app .main::before,
+  .runtime-app .main::after{
+    display:none;
+  }
 }

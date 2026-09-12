@@ -97,3 +97,10 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - Rail shows current company + Discord/role context, page status metrics, and existing safe quick actions.
 - Core operation rails remain 636px (Settings 680px); Utility Rail appears only at desktop widths >= 1280px.
 - Service Worker cache bumped to `axe-product-pwa-3.18.2-r1`.
+
+## 3.18.3 · QUIET WORKSPACE R1
+- Context Utility Rail removed to avoid duplicate controls and duplicate status information.
+- Wide desktop APP frame remains.
+- Right-side open area is now a passive workspace field with only subtle structural lines and a low-contrast AXE PRODUCT signature.
+- No clickable controls, operational counts, or duplicate navigation are rendered in the right-side field.
+- Service Worker cache bumped to `axe-product-pwa-3.18.3-r1`.

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'axe-product-pwa-3.18.2-r1';
+const CACHE_VERSION = 'axe-product-pwa-3.18.3-r1';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const CORE = [

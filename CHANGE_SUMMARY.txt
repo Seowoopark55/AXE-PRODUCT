@@ -1,6 +1,8 @@
-AXE PRODUCT WEB STAGING 3.18.2 - CONTEXT UTILITY RAIL R1
+AXE PRODUCT WEB STAGING 3.18.3 - QUIET WORKSPACE R1
 
-- Added desktop-only context utility rail inside the APP workspace.
-- Core management tables remain compact; right-side whitespace becomes a deliberate status/action zone.
-- Page-aware status and quick actions for Fund, Members, Assets, Accounts, Settings.
-- No DB, BOT, or LIVE AXE changes.
+- Removed the Context Utility Rail and all duplicate quick actions/status cards.
+- Preserved the wide desktop app frame from 3.18.1.
+- Replaced the right-side rail with a passive ambient workspace field only.
+- Added a faint, non-interactive AXE PRODUCT workspace signature.
+- Core 636/680px operational rails remain unchanged.
+- No LIVE AXE, PRODUCT BOT, or DB changes.

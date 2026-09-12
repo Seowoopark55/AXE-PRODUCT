@@ -145,61 +145,10 @@ function renderAuthed(state) {
           <div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div>
         </footer>
       </aside>
-      <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}${state.loading && !state.ready ? '' : renderUtilityRail(state)}</main>
+      <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
   </div>`;
-}
-
-function renderUtilityRail(state) {
-  if (!canAdmin(state)) return '';
-  const page = state.page || 'fund';
-  const connected = state.discordConnection?.status === 'connected';
-  const company = companyDisplayName(state);
-  const member = currentMembership(state);
-  let kicker='WORKSPACE', title='운영 상태', rows=[], actions=[];
-
-  if (page === 'fund') {
-    const snap=state.fundSnapshot||{};
-    kicker='FUND'; title='공금 바로보기';
-    rows=[
-      ['현재 잔액', money(snap.balance?.public||0), ''],
-      ['검수 대기', `${Number(snap.pending_review_count||0)}건`, Number(snap.pending_review_count||0)>0?'is-warning':''],
-      ['이번 달 수입', `+${money(snap.month_income||0)}`, 'is-positive']
-    ];
-    actions=[
-      ['수입·지출 등록','data-action="open-ledger"','is-primary'],
-      ['납부 검수','data-fund-tab="review"','']
-    ];
-  } else if (page === 'members') {
-    const all=state.memberships||[]; const active=all.filter(m=>m.status==='active'); const admins=active.filter(m=>['owner','admin'].includes(m.role));
-    kicker='MEMBERS'; title='멤버 바로보기';
-    rows=[['활동 멤버',`${active.length}명`,'is-positive'],['관리 권한',`${admins.length}명`,''],['퇴사 기록',`${all.filter(m=>m.status==='left').length}명`,'']];
-    actions=[['자산 관리','data-page="assets"','is-primary'],['계좌 관리','data-page="accounts"','']];
-  } else if (page === 'assets') {
-    const snap=state.assetsSnapshot||{}; const assets=snap.assets||[]; const assigned=assets.filter(a=>a.membership_id).length; const unassigned=assets.length-assigned;
-    kicker='ASSETS'; title='자산 바로보기';
-    rows=[['사용 중',`${assigned}개`,'is-positive'],['미배정',`${unassigned}개`,unassigned>0?'is-warning':''],['반납 기록',`${(snap.returns||[]).length}건`,'']];
-    actions=[['자산 추가','data-action="open-asset"','is-primary'],['반납 내역','data-asset-tab="returns"','']];
-  } else if (page === 'accounts') {
-    const records=accountRecords(state); const pending=records.filter(r=>['변경 대기','등록 대기'].includes(r.status)); const approved=records.filter(r=>r.status==='승인').length; const missing=records.filter(r=>r.status==='미등록').length;
-    kicker='ACCOUNTS'; title='계좌 바로보기';
-    rows=[['등록 완료',`${approved}명`,'is-positive'],['검수 필요',`${pending.length}건`,pending.length?'is-warning':''],['미등록',`${missing}명`,missing?'is-negative':'']];
-    const my=records.find(r=>r.membership_id===member?.id);
-    actions=[[my?.account?'내 계좌 변경':'내 계좌 등록','data-action="open-account-request"','is-primary'],['공금 관리','data-page="fund"','']];
-  } else if (page === 'settings') {
-    const visible=(state.modules||[]).filter(m=>MODULE_UI[m.module_key]); const enabled=visible.filter(m=>m.enabled).length;
-    kicker='SETTINGS'; title='설정 바로보기';
-    rows=[['Discord',connected?'연결됨':'미연결',connected?'is-positive':'is-warning'],['사용 기능',`${enabled} / ${visible.length}`,''],['현재 역할',ROLE_LABEL[member?.role]||'-','']];
-    actions=[['기본 정보','data-settings-tab="basic"','is-primary'],['기능 설정','data-settings-tab="modules"','']];
-  }
-
-  return `<aside class="app-utility-zone" aria-label="현재 페이지 보조 정보"><div class="app-utility-rail">
-    <section class="app-utility-card app-utility-current"><span class="app-utility-kicker">CURRENT</span><strong>${esc(company)}</strong><small><i class="${connected?'is-online':''}"></i>Discord ${connected?'연결됨':'미연결'} · ${esc(ROLE_LABEL[member?.role]||'-')}</small></section>
-    <section class="app-utility-card"><span class="app-utility-kicker">${kicker}</span><h3>${title}</h3><div class="app-utility-stats">${rows.map(([label,value,tone])=>`<div><span>${label}</span><strong class="${tone||''}">${esc(value)}</strong></div>`).join('')}</div></section>
-    <section class="app-utility-card app-utility-actions"><span class="app-utility-kicker">QUICK ACTIONS</span><div>${actions.map(([label,attrs,tone])=>`<button class="${tone||''}" ${attrs}>${esc(label)}</button>`).join('')}</div></section>
-    <div class="app-utility-signature"><span>AXE PRODUCT</span><small>OPERATIONS WORKSPACE</small></div>
-  </div></aside>`;
 }
 
 function navItem(state,key,label){ return `<button class="nav-item ${state.page===key?'is-active':''}" data-page="${key}"><span class="nav-item__icon">${icon(key)}</span><span>${label}</span></button>`; }
