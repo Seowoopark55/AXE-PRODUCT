@@ -120,3 +120,11 @@ AXE PRODUCT now has an installable standalone app layer on top of the 3.17.8 app
 - The app frame is narrowed and exactly centered so left/right outside margins are equal.
 - Ambient AXE artwork is now intentionally visible in the outer margins instead of being hidden behind an oversized app frame.
 - The operational content rails and existing management functionality are unchanged.
+
+
+## 3.18.6 · VISIBLE AMBIENT SIDES R1
+- Fixed the ambient art being visually lost behind the dark overlay.
+- Added a brighter side-focused brand asset: `/public/brand/axe-ambient-shell-wide-v2.png`.
+- The brand artwork is now the actual body background rather than an opacity-filtered pseudo layer.
+- Kept the centered 1120px app shell and equal left/right gutters from 3.18.5.
+- PWA remains removed; no install/update UI is restored.

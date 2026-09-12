@@ -6,3 +6,10 @@ AXE PRODUCT WEB STAGING 3.18.5 - CENTERED AMBIENT WEB SHELL R1
 - AXE ambient brand artwork is brighter and lives only in the outer page background.
 - Existing compact operational layouts remain unchanged.
 - LIVE AXE / PRODUCT BOT / DB untouched.
+
+AXE PRODUCT WEB STAGING 3.18.6 - VISIBLE AMBIENT SIDES R1
+- Ambient artwork visibility corrected.
+- Brighter side-focused background asset added.
+- Centered/equal app shell retained.
+- PWA remains disabled.
+- LIVE AXE / PRODUCT BOT / DB untouched.
