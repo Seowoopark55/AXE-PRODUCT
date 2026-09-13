@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
+const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
+expect('current web package version',pkg.version==='1.7.41-web-ui.62');
+expect('dashboard hero description is readable',css.includes('.axe-dashboard-hero p{margin:6px 0 0;color:#929ca5;font-size:11.5px}'));
+expect('dashboard refresh is at least 10px',css.includes('color:#a7b0b8;font-size:10.5px;font-weight:850'));
+expect('metric labels increased',css.includes('.axe-dashboard-metrics span{color:#8a959f;font-size:10px'));
+expect('metric values increased',css.includes('.axe-dashboard-metrics strong{color:#f0ece4;font-size:18px'));
+expect('metric helper text increased',css.includes('color:#747f89;font-size:9.5px'));
+expect('panel titles increased to 14px',css.includes('.axe-dashboard-panel>header h2{margin:0;color:#ece8e1;font-size:14px}'));
+expect('panel eyebrow increased',css.includes('font-size:9.2px;font-weight:950;letter-spacing:.11em'));
+expect('attention title increased',css.includes('color:#e5e8eb;font-size:11.5px'));
+expect('attention metadata increased',css.includes('color:#7f8a94;font-size:9.5px'));
+expect('quick action title increased',css.includes('color:#e4e7ea;font-size:11.5px'));
+expect('quick action metadata increased',css.includes('color:#7a858f;font-size:9.5px'));
+expect('activity title increased',css.includes('color:#e0e4e7;font-size:11px'));
+expect('activity metadata increased',css.includes('color:#79848e;font-size:9.5px'));
+expect('activity timestamp increased',css.includes('color:#707a83;font-size:9px'));
+expect('snapshot labels increased',css.includes('color:#76818b;font-size:9.2px'));
+expect('system connection title increased',css.includes('.axe-dashboard-system-line .connection-status strong{font-size:11.5px'));
+expect('system connection helper increased',css.includes('.axe-dashboard-system-line .connection-status small{font-size:9.5px'));
+expect('module labels increased',css.includes('.axe-dashboard-module-tags>strong{color:#89949e;font-size:9.5px}'));
+expect('module chips increased',css.includes('color:#abb4bc;font-size:9.2px'));
+expect('desktop one-glance grid retained',css.includes("grid-template-areas:'attention quick' 'activity system'")&&css.includes('height:clamp(400px,calc(100dvh - 345px),640px)'));
+expect('dashboard still has no nested list scrollbar',!css.includes('.axe-dashboard-activity-list{overflow:auto')&&!css.includes('.axe-dashboard-attention-list{overflow:auto'));
+let failed=0; for(const [label,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${label}`); if(!ok) failed++;}
+console.log(`Dashboard readability: ${checks.length-failed}/${checks.length} PASS`); if(failed) process.exit(1);
