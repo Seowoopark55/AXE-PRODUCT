@@ -1,0 +1,25 @@
+AXE PRODUCT WEB 3.25.1 · ONE-GLANCE DASHBOARD VALIDATION
+================================================================
+Package: 1.7.41-web-ui.59
+
+RESULT
+- npm run check: PASS
+- Integrated UI: 73/73 PASS
+- Dashboard operations: 17/17 PASS
+- Native Question Board: 31/31 PASS
+- Scale-safe lists: 16/16 PASS
+- PINBALL MODULE: 20/20 PASS
+- PRIVATE SUGGESTION BOARD: 23/23 PASS
+- node --check: ALL src/api/server/scripts JS/MJS PASS
+
+DASHBOARD-SPECIFIC ASSERTIONS
+- Support boards removed from quick-action card grid: PASS
+- Company settings moved to compact header link: PASS
+- Recent activity bounded to 4 rows: PASS
+- Attention queue uses compact 2-column desktop grid: PASS
+- Dashboard-only bottom padding compacted: PASS
+- Existing live snapshot sources retained: PASS
+
+BUILD NOTE
+node_modules is intentionally not included in the delivery source, so local Vite build was not run.
+Final build verification is Vercel STAGING status = Ready.

@@ -1,13 +1,10 @@
-AXE PRODUCT WEB 3.25.0 · STAGING ONLY
+AXE PRODUCT WEB 3.25.1 · STAGING ONLY
 
-1. Production/LIVE WEB에 바로 배포하지 않습니다.
-2. PRODUCT STAGING Supabase SQL Editor에서 SUPABASE_MIGRATION_3_25_0_PRIVATE_SUGGESTION_BOARD.sql을 먼저 적용합니다.
-3. WEB ZIP은 GitHub AXE PRODUCT WEB STAGING 프로젝트에 전체 덮어쓰기합니다.
-4. commit / push 후 Vercel STAGING이 Ready인지 확인합니다.
-5. 기존 질문게시판은 회사 공유형 지원 공간이고, 건의게시판은 작성자 + PLATFORM OWNER만 보는 1:1 비공개 공간입니다.
-6. 건의게시판 답변은 PLATFORM OWNER만 등록합니다.
-7. Discord는 연결된 작성자에게 답변완료 DM을 보내는 보조 알림 수단입니다.
-8. DM 실패/미연동은 건의 저장·답변완료를 실패시키지 않습니다.
-9. 이번 버전에는 BOT 배포가 없습니다.
-10. LIVE BOT /home/pyipsw001/axe-bot 및 PM2 axe-bot은 건드리지 않습니다.
-11. WEB ZIP을 apply-axe-product.sh로 배포하지 않습니다.
+1. 이번 패치는 대시보드 UI 정돈용 WEB 전용 패치입니다.
+2. 추가 Supabase SQL 적용은 없습니다.
+3. BOT 배포도 없습니다.
+4. WEB ZIP을 GitHub AXE PRODUCT WEB STAGING 프로젝트에 전체 덮어쓰기합니다.
+5. commit / push 후 Vercel STAGING이 Ready인지 확인합니다.
+6. 빠른 실행은 실제 운영 액션 중심으로 축소되고, 질문/건의는 좌측 지원 메뉴와 알림 영역에서 확인합니다.
+7. LIVE BOT /home/pyipsw001/axe-bot 및 PM2 axe-bot은 건드리지 않습니다.
+8. WEB ZIP을 apply-axe-product.sh로 배포하지 않습니다.

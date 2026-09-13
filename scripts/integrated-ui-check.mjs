@@ -38,7 +38,7 @@ expect('Accepted sidebar group label', render.includes('회사 운영'));
 for (const label of ['공금 관리','멤버 관리','자산 관리','계좌 관리','회사 설정','질문게시판','건의게시판']) expect(`Sidebar/page label: ${label}`, render.includes(label));
 expect('Boxed AXE header mark removed', !render.includes('brand-mark'));
 expect('Legacy feedback modal removed', !render.includes('feedbackModal') && !main.includes("type==='feedback'"));
-expect('Suggestion board first-class route', main.includes("'suggestions'") && render.includes("data-page=\"suggestions\""));
+expect('Suggestion board first-class route', main.includes("'suggestions'") && render.includes("navItem(state,'suggestions','건의게시판')") && render.includes("if (state.page === 'suggestions') return renderSuggestions(state);"));
 expect('Mandatory ledger cancellation reason', main.includes('취소 사유를 입력해 주세요.') && api.includes('normalizedReason'));
 expect('Fund monthly selector', render.includes('data-fund-weekly-month'));
 expect('Fund weekly tab always reloads live status', main.includes("if(state.fundTab==='weekly') await loadFundWeeklyMonth();") && !main.includes("state.fundTab==='weekly'&&!state.fundMonthlyRows.length"));

@@ -4,7 +4,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current web package version',pkg.version==='1.7.41-web-ui.58');
+expect('current web package version',pkg.version==='1.7.41-web-ui.59');
 expect('dashboard is a valid route',main.includes("const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform']"));
 expect('dashboard is default route',main.includes(": 'dashboard',"));
 expect('setup completion lands on dashboard',main.includes("state.page='dashboard';localStorage.setItem('axe_product_page','dashboard')"));
@@ -16,5 +16,10 @@ expect('quick actions reuse existing operations',render.includes('data-action="o
 expect('dashboard jump controller',main.includes("if(action==='dashboard-jump')"));
 expect('dashboard refresh reuses refreshAll',render.includes('data-action="refresh"'));
 expect('dashboard responsive styling',css.includes('.axe-dashboard-grid')&&css.includes('.runtime-app--dashboard .global-account'));
+expect('one-glance dashboard removes support boards from quick-action cards',!render.match(/axe-dashboard-panel--quick[\s\S]*?data-page=\"questions\"[\s\S]*?<\/section>/)&&!render.match(/axe-dashboard-panel--quick[\s\S]*?data-page=\"suggestions\"[\s\S]*?<\/section>/));
+expect('quick action settings is compact header link',render.includes('axe-dashboard-panel--quick')&&render.includes('회사 설정 →'));
+expect('recent activity is bounded to four rows',render.includes('.slice(0,4);'));
+expect('attention uses compact two-column desktop grid',css.includes('.axe-dashboard-attention-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'));
+expect('dashboard desktop padding is compact',css.includes('.runtime-app--dashboard .main{padding-bottom:20px}'));
 let failed=0; for(const [label,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${label}`); if(!ok) failed++;}
 console.log(`Dashboard operations: ${checks.length-failed}/${checks.length} PASS`); if(failed) process.exit(1);
