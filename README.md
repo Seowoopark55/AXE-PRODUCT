@@ -1,64 +1,65 @@
-# AXE PRODUCT STAGING · 3.23.5
+# AXE PRODUCT STAGING · 3.23.6
 
-현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다. 첨부사진은 새 탭 대신 사이트 내부 이미지 뷰어에서 열리며, 질문 상세창보다 항상 위에 표시됩니다.
+질문게시판은 AXE PRODUCT 자체 기능이며 Discord 포럼을 사용하지 않습니다. 3.23.6은 질문 목록의 범위/페이지 구조와 전체 데이터 증가 대응을 다시 점검한 버전입니다.
 
-이번 버전은 데이터 증가 대응 UI를 추가했습니다. 공금·멤버·자산·계좌·요리·질문 목록은 검색/필터 + 제한된 페이지 단위로 표시되어 데이터가 늘어나도 운영 화면의 기본 높이와 구조가 유지됩니다.
+## 이번 버전 핵심
 
-DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
+- 질문 목록: 한 화면 최대 6건 + 페이지 이동
+- `전체 질문 / 내 질문` 필터
+- 질문 등록 후 상세창 재오픈 제거 → 작성창이 닫히고 `내 질문` 목록으로 복귀
+- 답변은 PLATFORM OWNER만 등록
+- 질문 작성자는 자기 글에 추가 질문만 가능
+- 공금 검수와 PLATFORM OWNER 회사 목록도 페이지 단위로 제한
+- 월별 공금 납부표는 고정 높이 내부 스크롤로 전환
 
-# AXE PRODUCT WEB · STAGING
+## DB 적용
 
-현재 STAGING WEB 전체 소스입니다. Production/LIVE와 분리해서 사용합니다.
+기존 3.23.2 질문게시판 DB가 적용되어 있다는 전제에서 아래 SQL을 추가 적용합니다.
 
-## 배포 순서
+`SUPABASE_MIGRATION_3_23_6_SUPPORT_MINE_SCOPE.sql`
 
-1. 질문게시판 DB가 아직 설치되지 않았다면 `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`을 먼저 적용합니다. 이미 3.23.2를 적용했다면 추가 SQL은 없습니다.
-2. 이 프로젝트 전체를 GitHub의 AXE PRODUCT WEB STAGING 프로젝트에 덮어씁니다.
+아직 질문게시판 DB를 한 번도 적용하지 않은 환경은 먼저 `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`을 적용한 뒤 3.23.6 SQL을 적용합니다.
+
+## WEB 배포
+
+1. 필요한 SQL을 Supabase STAGING에 적용합니다.
+2. 이 프로젝트 전체를 GitHub AXE PRODUCT WEB STAGING에 덮어씁니다.
 3. commit / push 합니다.
-4. Vercel STAGING 배포가 `Ready`인지 확인합니다.
-5. STAGING에서 공금/멤버/계좌/요리/질문 목록의 검색·필터·페이지 이동과 기존 질문/답변 흐름을 함께 확인합니다.
+4. Vercel STAGING이 `Ready`인지 확인합니다.
+5. 질문게시판 `내 질문`, 페이지 이동, 질문 등록 후 자동 닫힘을 확인합니다.
 
 > WEB 파일은 SSH의 `apply-axe-product.sh`로 배포하지 않습니다.
 
-## 현재 지원 구조
+## 데이터 증가 대응 기준
 
-- 운영 대시보드
-- 공금 · 멤버 · 자산 · 계좌 관리
-- Discord Guided Setup
-- 공금 / 총알 / 무법지대 / 개조서 / 요리 / 계좌조회 채널 연결
-- AXE PRODUCT 자체 질문게시판
-  - 답변대기 / 확인중 / 답변완료
-  - 사이트 내부 질문·답변 저장
-  - PLATFORM OWNER 전역 미답변 큐
-  - 작성자에게 새 답변 배지 표시
-  - Discord 계정이 연결된 작성자는 답변완료 시 DM 알림 시도
-- Platform Owner 전용 서비스 관리
+- 공금 내역 8건/페이지
+- 공금 납부 검수 6건/페이지
+- 월별 공금 납부표 고정 높이 스크롤
+- 멤버 8명/페이지
+- 자산 8개/페이지
+- 반납 8건/페이지
+- 계좌 8명/페이지
+- 요리 메뉴 9개/페이지
+- 질문 6건/페이지
+- PLATFORM OWNER 회사 목록 8개/페이지
+- 대시보드 최근 활동 최대 6건
+- 플랫폼 질문 응답 큐 최대 8건
 
-## 질문게시판
-
-질문게시판은 Discord 포럼을 사용하지 않습니다. 질문과 답변의 원본 데이터는 `axe_product.support_questions`, `axe_product.support_question_messages`에 저장됩니다.
-
-기존 긴 `사용 가이드`는 제거했습니다. 각 Discord 기능 패널이 기본 사용법을 안내하고, 해결되지 않는 내용만 사이트의 `질문게시판`에 남깁니다.
-
-회사 멤버는 같은 회사의 기존 질문과 답변을 열람할 수 있어 기존 답변이 자연스럽게 FAQ 역할을 합니다. 추가 질문은 최초 질문 작성자만 해당 스레드에 남길 수 있고, 다른 멤버는 새 질문을 등록합니다.
-
-PLATFORM OWNER가 답변을 등록하면 자동으로 `답변완료`가 되고 작성자에게 사이트 `NEW` 표시가 생깁니다. 작성자의 Discord User ID가 연결되어 있으면 DM도 시도하지만, DM 실패나 Discord 미연동 때문에 질문게시판 자체가 실패하지는 않습니다.
-
-질문게시판 때문에 Discord 서버나 포럼 채널을 별도로 연결할 필요가 없습니다. Guided Setup에도 질문게시판 채널은 생성하지 않습니다.
-
-## 개발 검증
+## 검증
 
 ```bash
 npm run check
 npm run build
 ```
 
+현재 소스 ZIP에는 `node_modules`를 포함하지 않습니다. 최종 Vite build는 Vercel STAGING `Ready`로 확인합니다.
+
 ## 보존 파일
 
-- `SUPABASE_MIGRATION_*.sql`: 현재 프로젝트 DB 설치/복구 및 이번 기능 migration
-- `PATCH_3_23_5.md`: 이번 변경사항
-- `VALIDATION_3_23_5.txt`: 정적 검증 결과
+- `SUPABASE_MIGRATION_*.sql`: DB 설치/업그레이드 migration
+- `PATCH_3_23_6.md`: 이번 변경사항
+- `VALIDATION_3_23_6.txt`: 정적 검증 결과
 - `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
-- `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 배포 참고
+- `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 참고
 - `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정
 - `PLATFORM_OWNER_SETUP.md`: Platform Owner 설정

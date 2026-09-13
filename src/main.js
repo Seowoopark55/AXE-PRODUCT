@@ -48,14 +48,14 @@ const state = {
   fundMonthlyRows: [],
   fundWeeklyFee: 0,
   fundWeeklyLoading: false,
-  fundFilters: { person:'all', type:'all', account:'all' }, fundLedgerPage:1,
+  fundFilters: { person:'all', type:'all', account:'all' }, fundLedgerPage:1, fundReviewPage:1,
   memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
-  platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', currentSubscription:null,
+  platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
-  questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionPage:1,
+  questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   supportImageViewer: null,
@@ -414,8 +414,8 @@ function clearCompanyData() {
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
-  state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
-  state.fundLedgerPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;
+  state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,mine:0,total:0},items:[],error:''};
+  state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;state.platformPage=1;
   clearQuestionPendingFiles();
 }
 
@@ -490,12 +490,12 @@ async function loadAssetsAndAccounts() {
 
 async function loadQuestionBoard() {
   if (!state.companyId) {
-    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
+    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,mine:0,total:0},items:[],error:''};
     return;
   }
   try {
     const board=await getQuestionBoard(state.companyId);
-    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:'',...(board||{})};
+    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,mine:0,total:0},items:[],error:'',...(board||{})};
   } catch (error) {
     state.questionBoard={...(state.questionBoard||{}),error:String(error?.message||error||'질문게시판을 불러오지 못했습니다.')};
   }
@@ -804,15 +804,16 @@ root.addEventListener('click', async event => {
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='list-page'){
     const key=String(actionEl.dataset.listKey||''); const page=Math.max(1,Number(actionEl.dataset.listPage||1));
-    const map={fundLedger:'fundLedgerPage',members:'memberPage',assets:'assetPage',returns:'returnPage',accounts:'accountPage',cooking:'cookingPage',questions:'questionPage'};
+    const map={fundLedger:'fundLedgerPage',fundReview:'fundReviewPage',members:'memberPage',assets:'assetPage',returns:'returnPage',accounts:'accountPage',cooking:'cookingPage',questions:'questionPage',platform:'platformPage'};
     if(map[key]){state[map[key]]=page;render();}
     return;
   }
   if(action==='question-filter'){state.questionStatus=String(actionEl.dataset.questionStatus||'all');state.questionPage=1;render();return;}
+  if(action==='question-scope'){state.questionScope=String(actionEl.dataset.questionScope||'all')==='mine'?'mine':'all';state.questionPage=1;render();return;}
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();render();return;}
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
@@ -1064,7 +1065,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-guide-member-target-role]')){if(!state.setupGuide)return;state.setupGuide.memberTargetRole=String(event.target.value||'')==='admin'?'admin':'member';render();return;}
     if(event.target.matches('[data-guide-member-select]')){if(!state.setupGuide)return;const id=String(event.target.dataset.guideMemberSelect||'');const selected=new Set((state.setupGuide.memberSelected||[]).map(String));event.target.checked?selected.add(id):selected.delete(id);state.setupGuide.memberSelected=[...selected];render();return;}
     if(event.target.matches('[data-setup-role]')){if(!state.setupDemo)return;state.setupDemo[event.target.dataset.setupRole]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');render();return;}
+    if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');state.platformPage=1;render();return;}
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
@@ -1090,7 +1091,7 @@ root.addEventListener('input', event => {
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;state.accountPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-cooking-query]')){state.cookingQuery=event.target.value;state.cookingPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-cooking-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
-  if(event.target.matches('[data-platform-query]')){state.platformQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-platform-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-platform-query]')){state.platformQuery=event.target.value;state.platformPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-platform-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
 });
 
 document.addEventListener('click', event => {
@@ -1133,9 +1134,9 @@ root.addEventListener('submit', async event => {
       const questionId=await createSupportQuestion(state.companyId,title,body);
       const attachmentResult=questionId?await uploadQuestionPendingAttachments(questionId,null):{uploaded:0,failed:0};
       clearQuestionPendingFiles();
-      state.modal=null; await loadQuestionBoard(); if(state.platformAdmin)await loadPlatformSupport();
-      setNotice(attachmentResult.failed?`질문은 등록됐지만 사진 ${attachmentResult.failed}장은 첨부하지 못했습니다.`:'질문을 등록했습니다. 답변이 달리면 질문게시판에 표시됩니다.');
-      if(questionId) await openSupportQuestion(questionId);
+      state.modal=null; state.questionScope='mine'; state.questionStatus='all'; state.questionPage=1;
+      await loadQuestionBoard(); if(state.platformAdmin)await loadPlatformSupport();
+      setNotice(attachmentResult.failed?`질문은 등록됐지만 사진 ${attachmentResult.failed}장은 첨부하지 못했습니다.`:'질문을 등록했습니다. 내 질문 목록에서 바로 확인할 수 있습니다.');
       return;
     }
     if(type==='support-question-reply'){

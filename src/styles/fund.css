@@ -460,3 +460,7 @@
     margin-right:auto;
   }
 }
+
+/* AXE PRODUCT 3.23.6 · Large-company bounds */
+.axe-fund-week-scroll{max-height:min(52vh,420px);overflow:auto}
+.axe-fund-week-row--head{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 rgba(255,255,255,.045)}

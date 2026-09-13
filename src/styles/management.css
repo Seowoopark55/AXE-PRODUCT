@@ -391,3 +391,7 @@
 @media(max-width:760px){.ops-data-pager{align-items:flex-start;flex-direction:column}.ops-data-pager__buttons{width:100%;justify-content:space-between}.ops-data-pager__buttons>span{flex:1}}
 /* Paginated lists should not create a second internal scrollbar. */
 .ops-mgmt-list,.axe-fund-ledger-list{max-height:none;overflow:visible}
+
+/* AXE PRODUCT 3.23.6 · Remaining growth-safe queues */
+.axe-fund-subview--review .ops-data-pager,.platform-board .ops-data-pager{border-top:1px solid var(--line-soft)}
+.platform-company-list{overflow:hidden}

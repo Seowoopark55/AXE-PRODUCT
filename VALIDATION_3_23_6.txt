@@ -1,0 +1,27 @@
+AXE PRODUCT WEB STAGING 3.23.6 · QUESTION SCOPE + SCALE GUARD R1
+
+STATIC QA
+- npm run check: PASS
+- Integrated UI: 72/72 PASS
+- Native Question Board: 31/31 PASS
+- Scale-safe lists: 16/16 PASS
+- node --check src/main.js: PASS
+- node --check src/ui/render.js: PASS
+- node --check src/lib/productApi.js: PASS
+
+DATA-GROWTH AUDIT
+- Fund ledger: paged
+- Fund review queue: paged
+- Fund weekly status: bounded scroll viewport
+- Members: paged
+- Assets: paged
+- Returns: paged
+- Accounts: paged + review preview capped
+- Cooking menu: paged
+- Question board: paged + scope/status filters
+- Platform company list: paged
+- Platform support queue: capped
+- Dashboard recent activity: capped
+
+BUILD
+- node_modules is not included in the source ZIP, so Vite build is verified by Vercel STAGING Ready after push.

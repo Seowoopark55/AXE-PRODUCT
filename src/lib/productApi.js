@@ -690,7 +690,7 @@ export async function getQuestionBoard(companyId, limit = 100) {
   });
   return unwrap(result, '질문게시판을 불러오지 못했습니다.') || {
     configured: true,
-    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, mine: 0, total: 0 },
     items: [],
   };
 }
@@ -745,7 +745,7 @@ export async function getPlatformSupportQuestions(limit = 100) {
     p_limit: Number(limit || 100),
   });
   return unwrap(result, '전체 질문 현황을 불러오지 못했습니다.') || {
-    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, mine: 0, total: 0 },
     items: [],
   };
 }
