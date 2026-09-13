@@ -1,10 +1,11 @@
-AXE PRODUCT WEB 3.25.1 · STAGING ONLY
+AXE PRODUCT WEB 3.25.2 · STAGING ONLY
 
-1. 이번 패치는 대시보드 UI 정돈용 WEB 전용 패치입니다.
-2. 추가 Supabase SQL 적용은 없습니다.
-3. BOT 배포도 없습니다.
-4. WEB ZIP을 GitHub AXE PRODUCT WEB STAGING 프로젝트에 전체 덮어쓰기합니다.
-5. commit / push 후 Vercel STAGING이 Ready인지 확인합니다.
-6. 빠른 실행은 실제 운영 액션 중심으로 축소되고, 질문/건의는 좌측 지원 메뉴와 알림 영역에서 확인합니다.
-7. LIVE BOT /home/pyipsw001/axe-bot 및 PM2 axe-bot은 건드리지 않습니다.
-8. WEB ZIP을 apply-axe-product.sh로 배포하지 않습니다.
+1. ZIP 압축 해제
+2. GitHub WEB STAGING 저장소에 전체 덮어쓰기
+3. commit / push
+4. Vercel 배포 상태가 Ready인지 확인
+
+추가 SQL 없음
+BOT 배포 없음
+apply-axe-product.sh 사용하지 않음
+LIVE 대상 아님

@@ -4,7 +4,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current web package version',pkg.version==='1.7.41-web-ui.59');
+expect('current web package version',pkg.version==='1.7.41-web-ui.60');
 expect('dashboard is a valid route',main.includes("const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform']"));
 expect('dashboard is default route',main.includes(": 'dashboard',"));
 expect('setup completion lands on dashboard',main.includes("state.page='dashboard';localStorage.setItem('axe_product_page','dashboard')"));
@@ -19,7 +19,13 @@ expect('dashboard responsive styling',css.includes('.axe-dashboard-grid')&&css.i
 expect('one-glance dashboard removes support boards from quick-action cards',!render.match(/axe-dashboard-panel--quick[\s\S]*?data-page=\"questions\"[\s\S]*?<\/section>/)&&!render.match(/axe-dashboard-panel--quick[\s\S]*?data-page=\"suggestions\"[\s\S]*?<\/section>/));
 expect('quick action settings is compact header link',render.includes('axe-dashboard-panel--quick')&&render.includes('회사 설정 →'));
 expect('recent activity is bounded to four rows',render.includes('.slice(0,4);'));
-expect('attention uses compact two-column desktop grid',css.includes('.axe-dashboard-attention-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'));
-expect('dashboard desktop padding is compact',css.includes('.runtime-app--dashboard .main{padding-bottom:20px}'));
+expect('attention uses compact two-column desktop grid',css.includes('grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(54px,1fr)'));
+expect('dashboard desktop padding stays compact',css.includes('.runtime-app--dashboard .main{padding-bottom:18px}'));
+expect('desktop dashboard uses one aligned two-column matrix',css.includes("grid-template-areas:'attention quick' 'activity system'")&&css.includes('grid-template-rows:188px 202px'));
+expect('dashboard panels stretch to the same row height',css.includes('.axe-dashboard-panel{min-width:0;height:100%;display:flex;flex-direction:column'));
+expect('attention queue is bounded to four visible cards',render.includes('const attentionVisible=attention.slice(0,4);')&&render.includes('attentionOverflow'));
+expect('all-clear state uses compact operational summary',render.includes('axe-dashboard-clear__stats')&&render.includes("['지원 응답',supportPending]"));
+expect('quick action panel has no redundant support footer',!render.includes('axe-dashboard-quick-note'));
+expect('dashboard expands across the active content rail',css.includes('.axe-dashboard{width:100%;max-width:860px')&&css.includes('.runtime-app--dashboard .global-account{width:100%;max-width:860px}'));
 let failed=0; for(const [label,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${label}`); if(!ok) failed++;}
 console.log(`Dashboard operations: ${checks.length-failed}/${checks.length} PASS`); if(failed) process.exit(1);
