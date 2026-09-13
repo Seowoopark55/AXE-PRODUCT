@@ -4,7 +4,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current web package version',pkg.version==='1.7.41-web-ui.60');
+expect('current web package version',pkg.version==='1.7.41-web-ui.61');
 expect('dashboard is a valid route',main.includes("const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform']"));
 expect('dashboard is default route',main.includes(": 'dashboard',"));
 expect('setup completion lands on dashboard',main.includes("state.page='dashboard';localStorage.setItem('axe_product_page','dashboard')"));
@@ -21,7 +21,9 @@ expect('quick action settings is compact header link',render.includes('axe-dashb
 expect('recent activity is bounded to four rows',render.includes('.slice(0,4);'));
 expect('attention uses compact two-column desktop grid',css.includes('grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(54px,1fr)'));
 expect('dashboard desktop padding stays compact',css.includes('.runtime-app--dashboard .main{padding-bottom:18px}'));
-expect('desktop dashboard uses one aligned two-column matrix',css.includes("grid-template-areas:'attention quick' 'activity system'")&&css.includes('grid-template-rows:188px 202px'));
+expect('desktop dashboard uses one aligned two-column matrix',css.includes("grid-template-areas:'attention quick' 'activity system'")&&css.includes('grid-template-rows:minmax(188px,.9fr) minmax(202px,1.1fr)'));
+expect('dashboard fills the available command-center canvas',css.includes('height:clamp(400px,calc(100dvh - 345px),640px)'));
+expect('sparse recent activity gains a compact operational digest',render.includes('activity.length<3')&&render.includes('axe-dashboard-activity-digest')&&render.includes('운영 스냅샷'));
 expect('dashboard panels stretch to the same row height',css.includes('.axe-dashboard-panel{min-width:0;height:100%;display:flex;flex-direction:column'));
 expect('attention queue is bounded to four visible cards',render.includes('const attentionVisible=attention.slice(0,4);')&&render.includes('attentionOverflow'));
 expect('all-clear state uses compact operational summary',render.includes('axe-dashboard-clear__stats')&&render.includes("['지원 응답',supportPending]"));
