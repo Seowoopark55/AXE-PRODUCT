@@ -1,6 +1,6 @@
-# AXE PRODUCT STAGING · 3.23.3
+# AXE PRODUCT STAGING · 3.23.4
 
-현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다. 첨부사진은 새 탭 대신 사이트 내부 이미지 뷰어에서 열립니다.
+현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다. 첨부사진은 새 탭 대신 사이트 내부 이미지 뷰어에서 열리며, 질문 상세창보다 항상 위에 표시됩니다.
 
 DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
 
@@ -54,8 +54,8 @@ npm run build
 ## 보존 파일
 
 - `SUPABASE_MIGRATION_*.sql`: 현재 프로젝트 DB 설치/복구 및 이번 기능 migration
-- `PATCH_3_23_3.md`: 이번 변경사항
-- `VALIDATION_3_23_3.txt`: 정적 검증 결과
+- `PATCH_3_23_4.md`: 이번 변경사항
+- `VALIDATION_3_23_4.txt`: 정적 검증 결과
 - `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
 - `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 배포 참고
 - `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정

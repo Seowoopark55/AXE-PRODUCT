@@ -42,6 +42,7 @@ ok('question drag and drop exists', main.includes("data-support-attachment-drop"
 ok('support attachment bucket is private and restricted', migration.includes("'axe-support-attachments'") && migration.includes('support_storage_can_read') && migration.includes('support_storage_can_write') && migration.includes('support_storage_can_delete'));
 ok('question attachment opens inside app lightbox', render.includes('data-action=\"open-support-image\"') && render.includes('support-image-lightbox') && main.includes("action==='open-support-image'"));
 ok('question lightbox has explicit close affordances', render.includes('data-action=\"close-support-image\"') && main.includes("action==='close-support-image'") && main.includes("event.key==='Escape'"));
+ok('question lightbox renders above runtime modal', pages.includes('.support-image-lightbox{position:fixed;inset:0;z-index:8000') && read('src/styles.css').includes('.runtime-modal-backdrop{position:fixed;z-index:5000'));
 ok('question attachments no longer force a new tab', !render.includes('target=\"_blank\" rel=\"noopener noreferrer\"><img src=\"${esc(item.signed_url)}'));
 
 const failed=checks.filter(([,pass])=>!pass);
