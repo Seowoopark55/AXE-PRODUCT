@@ -98,12 +98,33 @@ function renderLogin(state) {
   </div></section>`;
 }
 
+function onboardingDiscordIdentity(state) {
+  const user=state.session?.user||{};
+  const meta=user.user_metadata||{};
+  const id=String(meta.provider_id||meta.sub||user.identities?.find?.(item=>String(item?.provider||'').toLowerCase()==='discord')?.identity_data?.sub||'').trim();
+  const name=String(meta.full_name||meta.global_name||meta.name||meta.user_name||meta.preferred_username||'Discord 사용자').trim();
+  return {id,name};
+}
+
 function renderOnboarding(state) {
-  return `<section class="runtime-auth runtime-auth--onboarding"><div class="runtime-onboarding runtime-onboarding--single">
-    <div class="runtime-onboarding-card runtime-onboarding-card--primary"><span>NEW COMPANY</span><h2>새 회사 시작</h2><p>회사를 처음 등록하는 OWNER라면 여기서 운영 공간을 만듭니다.</p>
-      <form data-form="create-company"><label>회사 이름<input name="name" maxlength="80" required></label><label>Slug <small>선택</small><input name="slug" maxlength="63"></label><button class="runtime-login-button" type="submit">회사 시작하기</button></form>
+  const discord=onboardingDiscordIdentity(state);
+  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">
+    <header class="runtime-first-run__head"><span>AXE PRODUCT START</span><h1>소속 회사를 확인하지 못했습니다.</h1><p>새 회사를 등록할 대표인지, 이미 AXE PRODUCT를 이용 중인 회사의 팀원인지 선택해 주세요.</p></header>
+    <div class="runtime-first-run__grid">
+      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>아직 AXE PRODUCT를 이용 중인 회사가 없다면 새 운영 공간을 만들고 초기설정을 바로 시작합니다.</p>
+        <div class="runtime-first-run__new-flow"><span>회사 이름</span><i>→</i><span>Discord 연결</span><i>→</i><span>초기설정</span></div>
+        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="open-create-company">새 회사 등록 시작</button>
+        <small class="runtime-first-run__auto">SLUG 같은 시스템 식별값은 자동으로 생성됩니다.</small>
+        <div class="runtime-first-run__warning">이미 운영 중인 회사의 팀원이라면 새 회사를 만들지 말고 오른쪽 안내를 따라주세요.</div>
+      </article>
+      <article class="runtime-onboarding-card runtime-first-run__member"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 AXE PRODUCT에 진입할 수 없습니다.</p>
+        <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="copy-registration-info" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
+        <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사 등록이 확인될 때까지 대기</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
+        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="check-member-registration">등록 확인하기</button>
+        <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 이 버튼을 누르면 자동으로 소속 회사를 확인하고 바로 연결합니다.</small>
+      </article>
     </div>
-    <div class="runtime-onboarding-note"><strong>이미 회사 멤버인가요?</strong><span>회사 관리자가 Discord에서 대상 우클릭 → 앱 → AXE 멤버 등록을 완료하면, 다음 로그인부터 소속 회사가 자동으로 표시됩니다.</span></div>
+    <div class="runtime-onboarding-note runtime-first-run__note"><strong>팀원 등록은 회사 쪽에서 먼저 진행합니다.</strong><span>미등록 사용자가 임의로 회사를 찾아 들어가는 방식은 제공하지 않습니다.</span></div>
   </div></section>`;
 }
 
@@ -485,7 +506,7 @@ function renderMembers(state){
     const hire=m.employment_started_on?fmtDate(m.employment_started_on,true):'미설정';
     return `<article class="ops-lane-row ops-lane-row--member"><div class="ops-lane-cell ops-lane-copy"><strong>${esc(m.display_name||'멤버')}</strong><span>${m.alias_name?'회사 별칭 사용':'Discord 표시명'}</span></div><div class="ops-lane-cell"><span class="ops-lane-value">${esc(ROLE_KO[m.role]||m.role)}</span></div><div class="ops-lane-cell"><span class="ops-lane-value ${hire==='미설정'?'is-muted':''}">${esc(hire)}</span></div><div class="ops-lane-cell is-center"><span class="ops-mgmt-badge ${m.status==='active'?'is-green':m.status==='left'?'is-red':'is-amber'}">${memberStatus(m.status)}</span></div><div class="ops-lane-cell is-center"><button class="ops-mgmt-action" data-action="edit-member" data-membership-id="${esc(m.id)}">상세</button></div></article>`;
   }).join(''):empty('조건에 맞는 멤버가 없습니다.');
-  return `<div class="ops-mgmt-page ops-mgmt-page--members">${pageHeader('MEMBERS','멤버 관리','회사 구성원의 역할·활동 상태·실제 입사일을 관리합니다.','')}${summary([['전체 멤버',`${all.length}명`,'누적 등록',''],['활동 중',`${active.length}명`,'현재 회사','is-positive'],['관리 권한',`${admins.length}명`,'대표 · 관리자','is-warning'],['퇴사',`${left.length}명`,'기록 유지','']])}<div class="ops-mgmt-workspace"><div class="ops-mgmt-section-head ops-mgmt-section-head--solo"><div><strong>멤버 현황</strong><span>멤버 등록은 Discord에서 대상 우클릭 → 앱 → AXE 멤버 등록으로 처리합니다.</span></div></div><section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-segments">${segment(state,'all','전체',all.length)}${segment(state,'active','활동',active.length)}${segment(state,'left','퇴사',left.length,true)}</div><div class="ops-mgmt-filters"><select class="ops-mgmt-select" data-member-role><option value="">역할 전체</option>${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${state.memberRole===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select><label class="ops-mgmt-search">${icon('search')}<input data-member-query value="${esc(state.memberQuery||'')}" placeholder="이름 · 별칭 · 역할 검색" autocomplete="off"></label></div></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>명 검색 결과</span><span>한 화면 최대 ${OPS_PAGE_SIZE.members}명</span></div><div class="ops-lane-head ops-lane-head--member"><span>이름</span><span>역할</span><span>입사일</span><span>상태</span><span>관리</span></div><div class="ops-mgmt-list">${memberRows}</div>${renderDataPager('members',paged,'명')}</section></div></div>`;
+  return `<div class="ops-mgmt-page ops-mgmt-page--members">${pageHeader('MEMBERS','멤버 관리','회사 구성원의 역할·활동 상태·실제 입사일을 관리합니다.','')}${summary([['전체 멤버',`${all.length}명`,'누적 등록',''],['활동 중',`${active.length}명`,'현재 회사','is-positive'],['관리 권한',`${admins.length}명`,'대표 · 관리자','is-warning'],['퇴사',`${left.length}명`,'기록 유지','']])}<div class="ops-mgmt-workspace"><div class="ops-mgmt-section-head"><div><strong>멤버 현황</strong><span>등록된 Discord 멤버는 첫 로그인 때 자동 연결됩니다. 미등록 팀원은 대표·관리자가 먼저 멤버 등록을 완료해야 합니다.</span></div><div class="ops-member-registration-rule"><strong>등록 우선</strong><span>멤버 등록 → 팀원 로그인 → 자동 연결</span></div></div><section class="ops-mgmt-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-segments">${segment(state,'all','전체',all.length)}${segment(state,'active','활동',active.length)}${segment(state,'left','퇴사',left.length,true)}</div><div class="ops-mgmt-filters"><select class="ops-mgmt-select" data-member-role><option value="">역할 전체</option>${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${state.memberRole===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select><label class="ops-mgmt-search">${icon('search')}<input data-member-query value="${esc(state.memberQuery||'')}" placeholder="이름 · 별칭 · 역할 검색" autocomplete="off"></label></div></div><div class="ops-mgmt-meta"><span><strong>${rows.length}</strong>명 검색 결과</span><span>한 화면 최대 ${OPS_PAGE_SIZE.members}명</span></div><div class="ops-lane-head ops-lane-head--member"><span>이름</span><span>역할</span><span>입사일</span><span>상태</span><span>관리</span></div><div class="ops-mgmt-list">${memberRows}</div>${renderDataPager('members',paged,'명')}</section></div></div>`;
 }
 function segment(state,key,label,count,left=false){ return `<button class="${state.memberFilter===key?'is-active':''} ${left?'is-left':''}" data-member-filter="${key}">${label}<em>${count}</em></button>`; } function memberStatus(v){return ({active:'활동',left:'퇴사',suspended:'중지',invited:'초대'})[v]||v;}
 
@@ -759,7 +780,7 @@ function assetModal(state,m){ const row=(state.assetsSnapshot?.assets||[]).find(
 function accountModal(state){ const mine=accountRecords(state).find(r=>r.membership_id===currentMembership(state)?.id); return modalShell(mine?.account?'내 계좌 수정 신청':'내 계좌 등록 신청','계좌 변경은 신청 후 관리자 검수로 반영됩니다.',`<form data-form="account-request" class="runtime-modal-form"><label class="is-full">플리카 계좌<input name="account" value="${esc(mine?.account||'')}" inputmode="numeric" maxlength="20" required></label><label class="is-full">메모<textarea name="note" placeholder="변경 사유 등"></textarea></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">수정 신청</button></footer></form>`);}
 function accountDetailModal(state,m){ const row=accountRecords(state).find(r=>r.membership_id===m.membershipId); if(!row)return ''; const pending=row.pending; return modalShell('계좌 상세',row.display_name||'멤버',`<div class="runtime-account-detail"><dl><div><dt>멤버</dt><dd>${esc(row.display_name||'—')}</dd></div><div><dt>역할</dt><dd>${esc(ROLE_KO[row.role]||row.role||'—')}</dd></div><div><dt>현재 계좌</dt><dd>${esc(row.account||'미등록')}</dd></div><div><dt>상태</dt><dd>${esc(row.status||'—')}</dd></div>${pending?`<div><dt>신청 계좌</dt><dd>${esc(pending.account||'—')}</dd></div>`:''}</dl><div class="runtime-modal-hint">다른 멤버의 계좌는 본인 신청 → 관리자 검수 흐름으로 변경됩니다. 현재 관리자 화면에서는 상세 확인과 검수를 제공합니다.</div><div class="runtime-modal-simple-footer"><button type="button" class="runtime-btn-ghost" data-action="close-modal">닫기</button></div></div>`);}
 
-function companyModal(){ return modalShell('새 회사 시작','생성자는 OWNER가 됩니다.',`<form data-form="create-company" class="runtime-modal-form"><label>회사 이름<input name="name" maxlength="80" required></label><label>Slug <small>선택</small><input name="slug" maxlength="63"></label><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">회사 시작</button></footer></form>`);}
+function companyModal(){ return modalShell('새 회사 등록','회사 이름만 입력하면 시스템 식별값은 자동으로 생성됩니다.',`<form data-form="create-company" class="runtime-modal-form"><div class="runtime-modal-warning is-full"><strong>이미 이용 중인 회사의 팀원인가요?</strong><span>새 회사를 만들지 말고 대표 또는 관리자에게 멤버 등록을 요청해 주세요.</span></div><label class="is-full">회사 이름<input name="name" maxlength="80" placeholder="예: AXE" autocomplete="organization" required></label><div class="runtime-modal-hint is-full">회사를 만든 뒤 Discord 연결 → 역할 → 기능 → 채널 → 멤버 등록 순서의 초기설정이 바로 이어집니다.</div><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">돌아가기</button><button class="runtime-btn-primary" type="submit">새 회사 만들기</button></footer></form>`);}
 
 function setupGuidePreview(state){
   const demo=state.setupDemo||{}; const step=Math.max(0,Math.min(6,Number(demo.step||0))); const connected=Boolean(demo.connected);

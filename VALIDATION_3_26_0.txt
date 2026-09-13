@@ -1,0 +1,26 @@
+AXE PRODUCT WEB 3.26.0 · FIRST-RUN ONBOARDING VALIDATION
+
+Package: 1.7.41-web-ui.63
+
+PASS
+- JS/MJS node --check
+- npm run check
+- First-run onboarding 23/23
+- Dashboard operations 25/25
+- Dashboard readability 22/22
+- Native Question Board 31/31
+- Scale-safe lists 16/16
+- PINBALL MODULE 20/20
+- PRIVATE SUGGESTION BOARD 23/23
+
+3.26.0 contract
+- no customer-facing SLUG input; internal slug is generated automatically
+- no-company account sees create + join paths immediately
+- Discord pre-registered membership is claimed before company list load
+- only OWNER resumes unfinished initial setup automatically
+- registered member/admin is never forced through company creation/setup
+- unregistered teammate can redeem company invite code
+- admin can generate 7-day / 50-use join code from Members
+- no BOT change
+
+Vite production build is not claimed locally because node_modules is absent. Vercel STAGING Ready is the final build verification.

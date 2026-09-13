@@ -56,13 +56,27 @@ export async function listCompanies() {
   return unwrap(result, '회사 목록을 불러오지 못했습니다.') || [];
 }
 
+function makeInternalCompanySlug() {
+  const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+    : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+  return `company-${randomPart.toLowerCase()}`;
+}
+
 export async function createCompany(name, slug = '') {
   assertClient();
+  const internalSlug = String(slug || '').trim() || makeInternalCompanySlug();
   const result = await supabase.rpc('create_company', {
     p_name: name,
-    p_slug: slug || null,
+    p_slug: internalSlug,
   });
   return unwrap(result, '회사를 생성하지 못했습니다.');
+}
+
+export async function claimDiscordMemberships() {
+  assertClient();
+  const result = await supabase.rpc('web_claim_discord_memberships');
+  return unwrap(result, 'Discord 멤버 연결 상태를 확인하지 못했습니다.') || {};
 }
 
 export async function getMemberships(companyId) {
@@ -417,7 +431,11 @@ export async function createCompanyInvite(companyId, maxUses = 1, expiresInHours
     p_expires_in_hours: expiresInHours,
   });
   const data = unwrap(result, '초대코드를 생성하지 못했습니다.') || [];
-  return Array.isArray(data) ? (data[0] || null) : data;
+  const row = Array.isArray(data) ? (data[0] || null) : data;
+  if (typeof row === 'string') return { invite_code: row };
+  if (!row || typeof row !== 'object') return row;
+  const inviteCode = String(row.invite_code || row.code || row.raw_code || row.token || '').trim();
+  return inviteCode ? { ...row, invite_code: inviteCode } : row;
 }
 
 export async function listCompanyInvites(companyId) {
