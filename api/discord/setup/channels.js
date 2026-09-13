@@ -2,7 +2,7 @@ import { getDiscordBotToken } from '../../../server/discordSecurity.js';
 import { requireCompanyAdmin, requireUser, getCompanyDiscordConnection } from '../../../server/supabaseUser.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const MAX_CHANNELS = 7;
+const MAX_CHANNELS = 8;
 
 function cleanName(value, fallback = '') {
   const name = String(value || '').trim().replace(/\s+/g, ' ');

@@ -196,12 +196,12 @@ export async function setCompanyModule(companyId, moduleKey, enabled, userId) {
   assertClient();
   const result = await supabase
     .from('company_modules')
-    .update({
+    .upsert({
+      company_id: companyId,
+      module_key: moduleKey,
       enabled,
       updated_by: userId,
-    })
-    .eq('company_id', companyId)
-    .eq('module_key', moduleKey)
+    }, { onConflict: 'company_id,module_key' })
     .select('company_id,module_key,enabled,updated_at')
     .single();
   return unwrap(result, '모듈 설정을 변경하지 못했습니다.');
@@ -1164,9 +1164,12 @@ export async function updateCompanyModuleSettings(companyId, moduleKey, settings
   assertClient();
   const result = await supabase
     .from('company_modules')
-    .update({ settings: settings || {}, updated_by: userId })
-    .eq('company_id', companyId)
-    .eq('module_key', moduleKey)
+    .upsert({
+      company_id: companyId,
+      module_key: moduleKey,
+      settings: settings || {},
+      updated_by: userId,
+    }, { onConflict: 'company_id,module_key' })
     .select('company_id,module_key,enabled,settings,updated_at')
     .single();
   return unwrap(result, '기능 설정을 저장하지 못했습니다.');

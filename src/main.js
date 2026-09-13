@@ -215,12 +215,12 @@ function createSetupDemoState(){
     connected:false,
     adminRole:'대표',
     memberRole:'회사원',
-    modules:{fund:true,ammo:true,outlaw:false,modbook:true,cooking:false,assets:true},
+    modules:{fund:true,ammo:true,outlaw:false,modbook:true,pinball:true,cooking:false,assets:true},
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
-    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',pinball:'#핀볼-모집',cooking:'#요리-주문',accountLookup:'#계좌조회'},
     memberFilter:'member',
     memberTargetRole:'member',
     memberSelected:['m1','m2','m3','m4','m5','m6'],
@@ -244,13 +244,14 @@ function createSetupGuideState(step = 0){
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
       ammo3:String(settingsByKey.ammo?.three_channel_id||''),
       ammo10:String(settingsByKey.ammo?.ten_channel_id||''),
       outlaw:String(settingsByKey.outlaw?.record_channel_id||''),
       modbook:String(settingsByKey.modbook?.channel_id||''),
+      pinball:String(settingsByKey.pinball?.channel_id||''),
       cooking:String(settingsByKey.cooking?.order_channel_id||''),
       accountLookup:String(settingsByKey.assets?.account_lookup_channel_id||''),
     },
@@ -296,6 +297,7 @@ function setupGuideChannelPlan(){
   }
   if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록'});
   if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서'});
+  if(modules.pinball)rows.push({key:'pinball',moduleKey:'pinball',settingKey:'channel_id',label:'핀볼 모집',name:state.setupGuide.generatedChannels?.pinball||'핀볼-모집'});
   if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문'});
   if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회'});
   return rows;
@@ -352,6 +354,7 @@ function setupGuideChannelBinding(key){
     ammo10:['ammo','ten_channel_id'],
     outlaw:['outlaw','record_channel_id'],
     modbook:['modbook','channel_id'],
+    pinball:['pinball','channel_id'],
     cooking:['cooking','order_channel_id'],
     accountLookup:['assets','account_lookup_channel_id'],
   };
@@ -436,7 +439,12 @@ async function loadBaseCompanyData() {
     getCompanyOnboardingStatus(state.companyId),
     getCompanySubscription(state.companyId).catch(()=>null),
   ]);
-  state.moduleCatalog=catalog||[]; state.modules=modules||[]; state.cookingOrderTypes=cookingTypes||[]; state.cookingDiscordConfig=cookingConfig||null; state.companySettings=settings||null;
+  state.moduleCatalog=catalog||[];
+  const moduleRows=new Map((modules||[]).map(row=>[row.module_key,row]));
+  state.modules=(catalog||[]).map(item=>moduleRows.get(item.module_key)||{
+    company_id:state.companyId,module_key:item.module_key,enabled:false,settings:{},updated_at:null,
+  });
+  state.cookingOrderTypes=cookingTypes||[]; state.cookingDiscordConfig=cookingConfig||null; state.companySettings=settings||null;
   state.discordConnection=discord||null; state.discordChannels=channels||[]; state.discordRoles=roles||[]; state.discordCompanyConfig=config||null; state.onboardingStatus=onboarding||null; state.currentSubscription=subscription||null;
 }
 
@@ -1069,7 +1077,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
-    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','핀볼-모집':'pinball','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){
