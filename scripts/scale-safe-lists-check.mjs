@@ -5,7 +5,7 @@ const management=fs.readFileSync('src/styles/management.css','utf8');
 const settings=fs.readFileSync('src/styles/settings.css','utf8');
 const pages=fs.readFileSync('src/styles/pages.css','utf8');
 const checks=[
-  ['shared page-size contract',/OPS_PAGE_SIZE=\{questions:6,fund:8,fundReview:6,members:8,assets:8,returns:8,accounts:8,cooking:9,platform:8\}/.test(render)],
+  ['shared page-size contract',/OPS_PAGE_SIZE=\{questions:5,fund:8,fundReview:6,members:8,assets:8,returns:8,accounts:8,cooking:9,platform:8\}/.test(render)],
   ['shared pager renderer',render.includes('function renderDataPager')&&render.includes('data-action="list-page"')],
   ['fund ledger bounded',render.includes("renderDataPager('fundLedger'")&&main.includes('fundLedgerPage:1')],
   ['members bounded',render.includes("renderDataPager('members'")&&main.includes('memberPage:1')],

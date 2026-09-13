@@ -253,7 +253,7 @@ function renderDashboard(state){
 // ============================================================
 // DATA DENSITY · bounded operational lists
 // ============================================================
-const OPS_PAGE_SIZE={questions:6,fund:8,fundReview:6,members:8,assets:8,returns:8,accounts:8,cooking:9,platform:8};
+const OPS_PAGE_SIZE={questions:5,fund:8,fundReview:6,members:8,assets:8,returns:8,accounts:8,cooking:9,platform:8};
 function pageRows(rows,page,size){
   const list=Array.isArray(rows)?rows:[];
   const safeSize=Math.max(1,Number(size||8));

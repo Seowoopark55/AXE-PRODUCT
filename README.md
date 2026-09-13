@@ -1,10 +1,10 @@
-# AXE PRODUCT STAGING · 3.23.6
+# AXE PRODUCT STAGING · 3.23.7
 
-질문게시판은 AXE PRODUCT 자체 기능이며 Discord 포럼을 사용하지 않습니다. 3.23.6은 질문 목록의 범위/페이지 구조와 전체 데이터 증가 대응을 다시 점검한 버전입니다.
+질문게시판은 AXE PRODUCT 자체 기능이며 Discord 포럼을 사용하지 않습니다. 3.23.7은 질문게시판의 한 화면 밀도를 한 단계 더 낮춰, 스크롤 없이 핵심 목록이 더 잘 들어오도록 다듬은 버전입니다.
 
 ## 이번 버전 핵심
 
-- 질문 목록: 한 화면 최대 6건 + 페이지 이동
+- 질문 목록: 한 화면 최대 5건 + 페이지 이동
 - `전체 질문 / 내 질문` 필터
 - 질문 등록 후 상세창 재오픈 제거 → 작성창이 닫히고 `내 질문` 목록으로 복귀
 - 답변은 PLATFORM OWNER만 등록
@@ -40,7 +40,7 @@
 - 반납 8건/페이지
 - 계좌 8명/페이지
 - 요리 메뉴 9개/페이지
-- 질문 6건/페이지
+- 질문 5건/페이지
 - PLATFORM OWNER 회사 목록 8개/페이지
 - 대시보드 최근 활동 최대 6건
 - 플랫폼 질문 응답 큐 최대 8건
@@ -57,8 +57,8 @@ npm run build
 ## 보존 파일
 
 - `SUPABASE_MIGRATION_*.sql`: DB 설치/업그레이드 migration
-- `PATCH_3_23_6.md`: 이번 변경사항
-- `VALIDATION_3_23_6.txt`: 정적 검증 결과
+- `PATCH_3_23_7.md`: 이번 변경사항
+- `VALIDATION_3_23_7.txt`: 정적 검증 결과
 - `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
 - `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 참고
 - `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정

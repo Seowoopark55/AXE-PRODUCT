@@ -26,7 +26,7 @@ ok('question thread supports platform answer and author follow-up', api.includes
 ok('only platform owner path can answer', supportMigration.includes("'viewer_can_answer', v_platform") && render.includes('답변은 AXE PRODUCT 운영자만 등록할 수 있습니다.'));
 ok('my questions scope exists', supportMigration.includes("'mine', count(*) filter") && supportMigration.includes('as is_mine') && render.includes('data-action="question-scope"') && render.includes('내 질문'));
 ok('question creation closes without reopening detail', main.includes("state.modal=null; state.questionScope='mine';") && !main.includes('if(questionId) await openSupportQuestion(questionId);'));
-ok('question list is bounded and paged', render.includes('questions:6') && render.includes("renderDataPager('questions'"));
+ok('question list is bounded and paged', render.includes('questions:5') && render.includes("renderDataPager('questions'"));
 ok('other company members get read-only FAQ view', migration.includes("'viewer_can_reply'") && render.includes('다른 멤버가 작성한 질문입니다.'));
 ok('support remains available even when subscription is blocked', render.indexOf("state.page === 'questions'") < render.indexOf("['paused','expired']"));
 ok('question state is stored in axe_product DB', migration.includes('axe_product.support_questions') && migration.includes('axe_product.support_question_messages'));

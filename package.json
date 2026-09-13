@@ -1,7 +1,7 @@
 {
   "name": "axe-product-staging",
   "private": true,
-  "version": "1.7.41-web-ui.55",
+  "version": "1.7.41-web-ui.56",
   "type": "module",
   "scripts": {
     "dev": "vite",
