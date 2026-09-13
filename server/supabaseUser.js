@@ -52,6 +52,60 @@ export async function requireUser(req) {
   return { token, user: data };
 }
 
+
+export async function requireCompanyMember(token, userId, companyId) {
+  const { url, key } = config();
+  const params = new URLSearchParams({
+    company_id: `eq.${companyId}`,
+    user_id: `eq.${userId}`,
+    status: 'eq.active',
+    select: 'company_id,user_id,role,display_name,discord_user_id',
+    limit: '1',
+  });
+
+  const response = await fetch(`${url}/rest/v1/company_memberships?${params.toString()}`, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Accept-Profile': 'axe_product',
+    },
+  });
+  const data = await readJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error('회사 멤버 권한 확인에 실패했습니다.');
+    error.statusCode = response.status;
+    throw error;
+  }
+  if (!Array.isArray(data) || !data.length) {
+    const error = new Error('현재 회사의 활동 멤버만 질문게시판을 사용할 수 있습니다.');
+    error.statusCode = 403;
+    throw error;
+  }
+  return data[0];
+}
+
+export async function getCompanySettingsRow(token, companyId) {
+  const { url, key } = config();
+  const params = new URLSearchParams({
+    company_id: `eq.${companyId}`,
+    select: 'company_id,settings',
+    limit: '1',
+  });
+  const response = await fetch(`${url}/rest/v1/company_settings?${params.toString()}`, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Accept-Profile': 'axe_product',
+    },
+  });
+  const data = await readJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error('회사 지원 설정을 확인하지 못했습니다.');
+    error.statusCode = response.status;
+    throw error;
+  }
+  return Array.isArray(data) ? (data[0] || null) : null;
+}
 export async function requireCompanyAdmin(token, userId, companyId) {
   const { url, key } = config();
   const params = new URLSearchParams({

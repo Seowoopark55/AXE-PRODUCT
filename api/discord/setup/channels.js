@@ -3,10 +3,15 @@ import { requireCompanyAdmin, requireUser, getCompanyDiscordConnection } from '.
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_CHANNELS = 8;
+const QUESTION_STATUS_TAGS = ['답변대기', '확인중', '답변완료'];
 
 function cleanName(value, fallback = '') {
   const name = String(value || '').trim().replace(/\s+/g, ' ');
   return (name || fallback).slice(0, 90);
+}
+
+function normalizeChannelType(value) {
+  return String(value || '').toLowerCase() === 'forum' ? 'forum' : 'text';
 }
 
 async function discordJson(path, init = {}) {
@@ -30,6 +35,33 @@ async function discordJson(path, init = {}) {
   return data;
 }
 
+function mergeQuestionTags(existing = []) {
+  const rows = Array.isArray(existing) ? existing : [];
+  const byName = new Map(rows.map((tag) => [String(tag?.name || ''), tag]));
+  const preserved = rows.filter((tag) => !QUESTION_STATUS_TAGS.includes(String(tag?.name || '')));
+  const statuses = QUESTION_STATUS_TAGS.map((name) => {
+    const current = byName.get(name);
+    return current?.id
+      ? { id: String(current.id), name, moderated: true, emoji_id: null, emoji_name: null }
+      : { name, moderated: true, emoji_id: null, emoji_name: null };
+  });
+  return [...statuses, ...preserved].slice(0, 20);
+}
+
+async function ensureForumConfig(channel) {
+  if (!channel?.id || Number(channel.type) !== 15) return channel;
+  const availableTags = mergeQuestionTags(channel.available_tags);
+  return discordJson(`/channels/${channel.id}`, {
+    method: 'PATCH',
+    headers: { 'X-Audit-Log-Reason': encodeURIComponent('AXE PRODUCT question board setup') },
+    body: JSON.stringify({
+      topic: 'AXE PRODUCT 이용 중 궁금한 내용을 남겨주세요. 관리자가 확인 후 답변 상태를 업데이트합니다.',
+      default_auto_archive_duration: 10080,
+      available_tags: availableTags,
+    }),
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -48,7 +80,11 @@ export default async function handler(req, res) {
     const categoryName = cleanName(req.body?.category_name, 'AXE PRODUCT');
     const requested = Array.isArray(req.body?.channels) ? req.body.channels.slice(0, MAX_CHANNELS) : [];
     const channels = requested
-      .map((item) => ({ key: String(item?.key || '').trim().slice(0, 40), name: cleanName(item?.name) }))
+      .map((item) => ({
+        key: String(item?.key || '').trim().slice(0, 40),
+        name: cleanName(item?.name),
+        type: normalizeChannelType(item?.type),
+      }))
       .filter((item) => item.key && item.name);
     const normalizedKeys = channels.map((item) => item.key.toLowerCase());
     const normalizedNames = channels.map((item) => item.name.toLocaleLowerCase('ko-KR'));
@@ -75,17 +111,30 @@ export default async function handler(req, res) {
 
     const results = [];
     for (const item of channels) {
-      let row = existingRows.find((entry) => Number(entry?.type) === 0 && String(entry?.parent_id || '') === String(category.id) && String(entry?.name || '') === item.name) || null;
+      const discordType = item.type === 'forum' ? 15 : 0;
+      let row = existingRows.find((entry) => Number(entry?.type) === discordType && String(entry?.parent_id || '') === String(category.id) && String(entry?.name || '') === item.name) || null;
       let created = false;
       if (!row) {
+        const body = {
+          name: item.name,
+          type: discordType,
+          parent_id: String(category.id),
+        };
+        if (item.type === 'forum') {
+          body.topic = 'AXE PRODUCT 이용 중 궁금한 내용을 남겨주세요. 관리자가 확인 후 답변 상태를 업데이트합니다.';
+          body.default_auto_archive_duration = 10080;
+          body.available_tags = QUESTION_STATUS_TAGS.map((name) => ({ name, moderated: true }));
+        }
         row = await discordJson(`/guilds/${guildId}/channels`, {
           method: 'POST',
           headers: { 'X-Audit-Log-Reason': encodeURIComponent('AXE PRODUCT guided setup') },
-          body: JSON.stringify({ name: item.name, type: 0, parent_id: String(category.id) }),
+          body: JSON.stringify(body),
         });
         created = true;
+      } else if (item.type === 'forum') {
+        row = await ensureForumConfig(row);
       }
-      results.push({ key: item.key, id: String(row.id), name: String(row.name || item.name), created });
+      results.push({ key: item.key, id: String(row.id), name: String(row.name || item.name), type: item.type, created });
     }
 
     return res.status(200).json({

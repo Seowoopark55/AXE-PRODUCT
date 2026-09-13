@@ -1,15 +1,16 @@
-AXE PRODUCT WEB 3.18.0 - STAGING ONLY
+AXE PRODUCT WEB - STAGING ONLY
 
 Deploy only through the PRODUCT WEB STAGING GitHub/Vercel flow.
-Do NOT use apply-axe-upload.sh.
+Do NOT use apply-axe-product.sh or apply-axe-upload.sh for this WEB package.
 Do NOT deploy to LIVE AXE.
-Do NOT modify PRODUCT BOT or database for this package.
+Do NOT modify PRODUCT BOT or database when applying this WEB source unless a separate patch explicitly requires it.
 
 After Vercel reports Ready, verify:
 1. Normal browser login.
-2. PWA install prompt / installed standalone launch.
-3. Discord user login OAuth returns to the app.
-4. Company Discord connect OAuth returns to Settings.
-5. Fund/Members/Assets/Accounts live data still loads from network.
-6. Offline launch shows the AXE offline state and does not show stale operational data.
-7. Reconnect refreshes current data.
+2. Discord user login OAuth returns to the app.
+3. Company Discord connect OAuth returns to Settings.
+4. Dashboard / Fund / Members / Assets / Accounts live data still loads.
+5. Guided Setup can create or connect the Discord 질문게시판 forum.
+6. 질문게시판 page lists forum posts and statuses.
+7. OWNER/ADMIN can change question status; 답변완료 attempts a DM to the author.
+8. Existing connected servers without Manage Threads use 권한 다시 승인 once.

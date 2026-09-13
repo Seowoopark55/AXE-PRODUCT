@@ -1,9 +1,9 @@
 import crypto from 'node:crypto';
 
 // Least-privilege baseline used when AXE PRODUCT is installed into a Discord server.
-// Manage Channels + View Channel + Send Messages + Manage Messages + Embed Links + Read Message History.
+// Manage Channels + View Channel + Send Messages + Manage Messages + Embed Links + Read Message History + Manage Threads.
 // Administrator (8) is intentionally not included.
-export const DISCORD_BOT_BASE_PERMISSIONS = '93200';
+export const DISCORD_BOT_BASE_PERMISSIONS = '17179962384';
 
 export const DISCORD_BOT_BASE_PERMISSION_LABELS = Object.freeze([
   'MANAGE_CHANNELS',
@@ -12,6 +12,7 @@ export const DISCORD_BOT_BASE_PERMISSION_LABELS = Object.freeze([
   'MANAGE_MESSAGES',
   'EMBED_LINKS',
   'READ_MESSAGE_HISTORY',
+  'MANAGE_THREADS',
 ]);
 
 

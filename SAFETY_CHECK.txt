@@ -1,6 +1,0 @@
-STAGING ONLY
-- WEB-only visual/app-shell patch.
-- No LIVE AXE changes.
-- No PRODUCT BOT changes.
-- No DB/schema/RLS/function changes.
-- Operational API responses remain excluded from Service Worker caching.

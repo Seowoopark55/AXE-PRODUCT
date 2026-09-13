@@ -1,0 +1,49 @@
+AXE PRODUCT WEB 3.23.0 · QUESTION BOARD R1
+============================================================
+
+STATIC / SOURCE QA
+- npm run check: PASS
+- Current QA scripts: 21
+- Question Board checks: 15/15 PASS
+- Dashboard checks: 12/12 PASS
+- Account Lookup + Owner Shell: 10/10 PASS
+- Discord Permission Reapproval: 12/12 PASS
+- Discord Upfront Permissions: 10/10 PASS
+- All .js / .mjs node --check: PASS
+
+QUESTION BOARD
+- Sidebar: 질문게시판
+- Legacy 사용 가이드 UI: removed
+- Discord forum Guided Setup: present
+- Existing forum direct connect: present
+- Statuses: 답변대기 / 확인중 / 답변완료
+- WEB status management: OWNER / ADMIN only
+- Completed status DM attempt: present
+- Dashboard pending/checking summary: present
+- DB migration: not required
+- Forum ID storage: company_settings.settings.question_board.forum_channel_id
+
+DISCORD PERMISSIONS
+- Administrator: NOT requested
+- Manage Threads added to existing least-privilege baseline
+- Existing connections may need one-time 권한 다시 승인
+
+CLEANUP
+- Project size before cleanup: about 6.5 MB
+- Project size after cleanup: about 2.3 MB
+- File count before cleanup: 119
+- File count after cleanup: 63 (including this validation file)
+- Removed stale PWA files/icons
+- Removed five inactive legacy brand images
+- Removed obsolete Guide Center/PWA/layout validation scripts
+- Removed historical PATCH/VALIDATION/debug-note clutter
+- Kept runtime source, current background asset, favicon, DB migrations, and deployment/security docs
+- Legacy PWA unregister/cache cleanup runtime remains intentionally, so old browser registrations are still cleaned safely.
+
+BUILD NOTE
+- `npm run build` could not be executed in this sandbox because node_modules was not included in the uploaded source and dependency installation timed out in the isolated environment.
+- Vite source syntax and project-specific source QA passed. Vercel should install declared dependencies during STAGING deployment; verify the Vercel build is Ready before functional testing.
+
+LIMITATION / NEXT BOT STEP
+- A newly created Discord forum post with no status tag is treated as `답변대기` by WEB.
+- Immediate Gateway-driven auto-tagging at the exact moment of Discord post creation and auto-completion based solely on an admin reply are not part of this WEB patch. Those require a separate PRODUCT STAGING BOT event patch.

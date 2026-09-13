@@ -681,6 +681,27 @@ export async function createGuidedSetupChannels(companyId, categoryName, channel
   });
 }
 
+
+export async function getQuestionBoard(companyId) {
+  return authenticatedProductApi(`/api/discord/questions?company_id=${encodeURIComponent(companyId)}`, {
+    method: 'GET',
+  });
+}
+
+export async function configureQuestionBoard(companyId) {
+  return authenticatedProductApi('/api/discord/questions', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId, action: 'configure' }),
+  });
+}
+
+export async function updateQuestionStatus(companyId, threadId, status) {
+  return authenticatedProductApi('/api/discord/questions', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId, action: 'status', thread_id: threadId, status }),
+  });
+}
+
 export async function listGuidedSetupMembers(companyId, roleId) {
   const data = await authenticatedProductApi('/api/discord/setup/members', {
     method: 'POST',

@@ -8,7 +8,7 @@ import {
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
-  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
+  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, configureQuestionBoard, updateQuestionStatus, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
@@ -20,7 +20,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','settings','platform'];
+const validPages = ['dashboard','fund','members','assets','accounts','questions','settings','platform'];
 
 const state = {
   envReady,
@@ -55,7 +55,7 @@ const state = {
   platformAdmin:false, platformSnapshot:[], platformQuery:'', platformStatus:'all', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
-  guideSection: 'start',
+  questionBoard: { configured:false, counts:{ pending:0, checking:0, complete:0, total:0 }, items:[], forum_url:null, error:'' },
   companyMenuOpen: false,
   accountMenuOpen: false,
   modal: null,
@@ -148,8 +148,8 @@ function createSetupDemoState(){
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
-    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
+    generatedChannels:{questionForum:'질문게시판',fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    channels:{questionForum:'#질문게시판',fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
     memberFilter:'member',
     memberTargetRole:'member',
     memberSelected:['m1','m2','m3','m4','m5','m6'],
@@ -173,8 +173,9 @@ function createSetupGuideState(step = 0){
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
-    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    generatedChannels:{questionForum:'질문게시판',fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
+      questionForum:String(state.companySettings?.settings?.question_board?.forum_channel_id||''),
       fund:String(settingsByKey.fund?.status_channel_id||''),
       ammo3:String(settingsByKey.ammo?.three_channel_id||''),
       ammo10:String(settingsByKey.ammo?.ten_channel_id||''),
@@ -217,8 +218,8 @@ function openSetupGuide(step = 0){
 
 function setupGuideChannelPlan(){
   const modules=state.setupGuide?.modules||{};
-  const rows=[];
-  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판'});
+  const rows=[{key:'questionForum',moduleKey:null,settingKey:null,label:'질문게시판',name:state.setupGuide.generatedChannels?.questionForum||'질문게시판',type:'forum'}];
+  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text'});
   if(modules.ammo){
     rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알'});
     rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알'});
@@ -288,6 +289,12 @@ function setupGuideChannelBinding(key){
 }
 
 async function persistSetupGuideChannels(channelMap){
+  const questionForumId=String(channelMap?.questionForum||'').trim();
+  if(questionForumId){
+    const settings={...(state.companySettings?.settings||{}),question_board:{...(state.companySettings?.settings?.question_board||{}),forum_channel_id:questionForumId,updated_at:new Date().toISOString()}};
+    await updateCompanySettings(state.companyId,{locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul',settings},state.session.user.id);
+    state.companySettings={...(state.companySettings||{}),settings};
+  }
   const grouped=new Map();
   for(const [key,channelId] of Object.entries(channelMap||{})){
     const binding=setupGuideChannelBinding(key); if(!binding||!channelId)continue;
@@ -343,6 +350,7 @@ function clearCompanyData() {
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
+  state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:''};
 }
 
 async function loadCompanies() {
@@ -414,12 +422,27 @@ async function loadAssetsAndAccounts() {
   state.assetsSnapshot=assets||{}; state.accountsSnapshot=accounts||{};
 }
 
+async function loadQuestionBoard() {
+  if (!state.companyId || state.discordConnection?.status!=='connected') {
+    state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:''};
+    return;
+  }
+  try {
+    const board=await getQuestionBoard(state.companyId);
+    state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:'',...(board||{})};
+  } catch (error) {
+    state.questionBoard={...(state.questionBoard||{}),error:String(error?.message||error||'질문게시판을 불러오지 못했습니다.')};
+  }
+}
+
 async function loadCompanyData() {
   await loadBaseCompanyData();
+  if (!canAdmin(state)) { await loadQuestionBoard(); return; }
   if (canAdmin(state)) {
     const jobs=[];
     if (moduleEnabled(state,'fund')) jobs.push(loadFundSnapshot());
     if (moduleEnabled(state,'assets')) jobs.push(loadAssetsAndAccounts());
+    jobs.push(loadQuestionBoard());
     await Promise.all(jobs);
     if (state.fundTab==='weekly' && moduleEnabled(state,'fund')) await loadFundWeeklyMonth(state.fundWeeklyMonth);
   }
@@ -654,10 +677,8 @@ async function saveModuleSettingsData(form,data){
 }
 
 root.addEventListener('click', async event => {
-  const guideBtn=event.target.closest('[data-guide-section]');
-  if(guideBtn){state.guideSection=String(guideBtn.dataset.guideSection||'start');render();return;}
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
+  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
@@ -749,7 +770,7 @@ root.addEventListener('click', async event => {
       if(new Set(normalizedNames).size!==normalizedNames.length)throw new Error('같은 채널명을 두 번 사용할 수 없습니다. 채널명을 다르게 지정해 주세요.');
       let result;
       try{
-        result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name})));
+        result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name,type:row.type||'text'})));
       }catch(error){
         const message=String(error?.message||error||'');
         if(Number(error?.statusCode||0)===403 || /채널 관리 권한/.test(message)){
@@ -764,6 +785,8 @@ root.addEventListener('click', async event => {
       state.setupGuide.permissionMessage='';
       const map={};for(const row of result?.channels||[])if(row?.key&&row?.id)map[String(row.key)]=String(row.id);
       await persistSetupGuideChannels(map);
+      if(map.questionForum) await configureQuestionBoard(state.companyId);
+      await loadQuestionBoard();
       state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);
       setNotice(`${Object.keys(map).length}개 Discord 채널을 준비하고 기능에 연결했습니다.`);
     });return;
@@ -773,7 +796,7 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan(); const map={};
       for(const row of plan){const id=String(state.setupGuide.directChannels?.[row.key]||'');if(!id)throw new Error(`${row.label}에 연결할 Discord 채널을 선택해 주세요.`);map[row.key]=id;}
-      await persistSetupGuideChannels(map);state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 AXE 기능에 연결했습니다.');
+      await persistSetupGuideChannels(map);if(map.questionForum)await configureQuestionBoard(state.companyId);await loadQuestionBoard();state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 AXE 기능과 질문게시판에 연결했습니다.');
     });return;
   }
   if(action==='setup-guide-load-members'){
@@ -819,16 +842,21 @@ root.addEventListener('click', async event => {
     state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=false;render();return;
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
-  if(action==='open-guide'){state.modal={type:'guide'};render();return;}
+  if(action==='refresh-questions'){await withMutation(loadQuestionBoard);return;}
+  if(action==='question-status'){
+    if(!canAdmin(state)){setError('질문 상태 변경은 OWNER 또는 관리자만 가능합니다.');return;}
+    const threadId=String(actionEl.dataset.threadId||'');const status=String(actionEl.dataset.status||'');
+    await withMutation(async()=>{const result=await updateQuestionStatus(state.companyId,threadId,status);await loadQuestionBoard();setNotice(status==='complete'?(result?.dm_sent?'답변완료 처리 후 작성자에게 DM을 보냈습니다.':'답변완료 처리했습니다. 작성자의 DM 수신 설정에 따라 알림이 전달되지 않을 수 있습니다.'):'질문 상태를 변경했습니다.');});return;
+  }
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
   if(action==='dashboard-jump'){
-    if(state.modal?.type==='guide') state.modal=null;
     const page=String(actionEl.dataset.page||'dashboard');
     if(validPages.includes(page)){state.page=page;localStorage.setItem('axe_product_page',page);}
     if(actionEl.dataset.fundTab){state.fundTab=String(actionEl.dataset.fundTab);localStorage.setItem('axe_product_fund_tab',state.fundTab);}
     if(actionEl.dataset.settingsTab){state.settingsTab=String(actionEl.dataset.settingsTab);localStorage.setItem('axe_product_settings_tab',state.settingsTab);}
     if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot);
     if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
+    if(state.page==='questions') await withMutation(loadQuestionBoard);
     render();return;
   }
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
@@ -895,7 +923,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');render();return;}
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
-    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'질문게시판':'questionForum','공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){

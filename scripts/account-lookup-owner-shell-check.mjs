@@ -11,7 +11,7 @@ const checks=[
  ['owner gate action', main.includes('if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}')],
  ['assets account lookup setting', render.includes("['account_lookup_channel_id','계좌조회 채널']")],
  ['guided setup account lookup', main.includes("key:'accountLookup'") && main.includes('account_lookup_channel_id')],
- ['guide documents name-only lookup', render.includes('#계좌조회 사용 예시') && render.includes('이름만 입력하면 승인된 계좌번호')],
+ ['guided setup keeps account lookup channel', main.includes("key:'accountLookup'") && render.includes('계좌 조회 채널')],
  ['account dropdown styling', layout.includes('.runtime-account-menu') && layout.includes('.runtime-account-trigger')],
 ];
 let fail=0;
