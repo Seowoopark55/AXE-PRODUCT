@@ -6,7 +6,7 @@ const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const sql=fs.readFileSync(new URL('../SUPABASE_MIGRATION_3_26_0_FIRST_RUN_MEMBERSHIP_CLAIM.sql',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current package version',pkg.version==='1.7.41-web-ui.65');
+expect('current package version',pkg.version==='1.7.41-web-ui.66');
 expect('first-run explains unresolved membership instead of assuming brand-new user',render.includes('소속 회사를 확인하지 못했습니다.'));
 expect('first-run exposes new company registration path',render.includes('새 회사 등록 시작')&&render.includes("const createAction=testMode?'test-center-open-new-company':'open-create-company'"));
 expect('first-run exposes member registration wait path',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('멤버 등록 필요'));
@@ -27,7 +27,7 @@ expect('refresh claims pre-registered Discord membership before company list',cl
 expect('manual registration check also claims before listing companies',main.includes("if(action==='check-member-registration')")&&main.indexOf('await claimDiscordMemberships();',main.indexOf("if(action==='check-member-registration')"))<main.indexOf('await loadCompanies();',main.indexOf("if(action==='check-member-registration')")));
 expect('successful registration check lands dashboard',main.includes("setNotice('멤버 등록을 확인했습니다. 소속 회사로 연결했습니다.')")&&main.includes("state.page='dashboard'"));
 expect('unregistered member remains blocked with clear error',main.includes('아직 멤버 등록이 확인되지 않습니다. 대표 또는 관리자에게 현재 Discord 계정 등록을 요청해 주세요.'));
-expect('company create starts Guided Setup automatically',main.includes("await persistSetupGuideProgress(1);state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'}"));
+expect('company create starts Guided Setup automatically',main.includes('await persistSetupGuideProgress(1);')&&main.includes("state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};"));
 expect('only owner auto-resumes unfinished initial setup',main.includes("currentMembership(state)?.role==='owner' && saved && !saved.completed"));
 expect('registered non-owner is not forced into setup',!main.includes("canAdmin(state) && saved && !saved.completed"));
 expect('SQL identifies authenticated Discord identity',sql.includes('auth.uid()')&&sql.includes('auth.identities')&&sql.includes("like '%discord%'"));

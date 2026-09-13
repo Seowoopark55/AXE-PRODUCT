@@ -285,12 +285,17 @@ async function uploadLedgerPendingEvidence(entryId){
   }
 }
 function createSetupDemoState(){
+  const demoModules={fund:true,ammo:true,outlaw:false,modbook:true,pinball:true,cooking:false,assets:true};
+  for(const row of state.modules||[]){
+    const key=String(row?.module_key||'');
+    if(key&&!Object.prototype.hasOwnProperty.call(demoModules,key)) demoModules[key]=Boolean(row.enabled);
+  }
   return {
     step:0,
     connected:false,
     adminRole:'대표',
     memberRole:'회사원',
-    modules:{fund:true,ammo:true,outlaw:false,modbook:true,pinball:true,cooking:false,assets:true},
+    modules:demoModules,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
@@ -358,6 +363,14 @@ function createSetupGuideState(step = 0){
 function savedSetupGuideProgress(){
   const value=state.companySettings?.settings?.guided_setup;
   return value&&typeof value==='object'?value:null;
+}
+
+function resolveSetupGuideResumeStep(requestedStep = 0){
+  let step=Math.max(0,Math.min(6,Number(requestedStep||0)));
+  if(state.discordConnection?.status!=='connected'||state.onboardingStatus?.catalog_ready===false) return 1;
+  if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id) return 2;
+  if(String(state.onboardingStatus?.status||'')==='onboarding'&&String(state.onboardingStatus?.current_step||'')==='modules') step=Math.max(step,3);
+  return step;
 }
 
 async function persistSetupGuideProgress(step,{completed=false}={}){
@@ -688,7 +701,7 @@ async function refreshAll() {
     state.ready=true;
     const saved=savedSetupGuideProgress();
     if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
-      const step=Math.max(1,Math.min(6,Number(saved.step||1)));
+      const step=resolveSetupGuideResumeStep(Math.max(1,Math.min(6,Number(saved.step||1))));
       state.setupGuide=createSetupGuideState(step);
       state.modal={type:'setup-guide'};
     }
@@ -805,7 +818,8 @@ async function handleDiscordOAuthReturn() {
   localStorage.removeItem('axe_product_setup_resume');
   localStorage.removeItem('axe_product_setup_resume_step');
   if(resumeGuide){
-    const resumeStep=Number.isInteger(resumeStepRaw)&&resumeStepRaw>=0&&resumeStepRaw<=6?resumeStepRaw:(discordCatalogPending()?1:2);
+    const requestedStep=Number.isInteger(resumeStepRaw)&&resumeStepRaw>=0&&resumeStepRaw<=6?resumeStepRaw:(discordCatalogPending()?1:2);
+    const resumeStep=resolveSetupGuideResumeStep(requestedStep);
     state.setupGuide=createSetupGuideState(resumeStep);
     state.modal={type:'setup-guide'};
     render();
@@ -1031,11 +1045,8 @@ root.addEventListener('click', async event => {
   if(action==='open-setup-guide'){
     if(!canAdmin(state)){setError('초기설정은 OWNER 또는 관리자만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
-    let step=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
-    if(state.discordConnection?.status!=='connected'||state.onboardingStatus?.catalog_ready===false) step=1;
-    else if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id) step=Math.min(step||2,2)||2;
-    else if(String(state.onboardingStatus?.status||'')==='onboarding'&&String(state.onboardingStatus?.current_step||'')==='modules') step=Math.max(step,3);
-    openSetupGuide(step); return;
+    const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
+    openSetupGuide(resolveSetupGuideResumeStep(requestedStep)); return;
   }
   if(action==='setup-guide-back'){if(!state.setupGuide)return;state.setupGuide.step=Math.max(0,Number(state.setupGuide.step||0)-1);render();return;}
   if(action==='setup-guide-jump'){if(!state.setupGuide)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupGuide.step||0)){state.setupGuide.step=Math.max(0,Math.min(6,target));render();}return;}
@@ -1122,7 +1133,9 @@ root.addEventListener('click', async event => {
       const selected=new Set((state.setupGuide.memberSelected||[]).map(String));const members=(state.setupGuide.memberCandidates||[]).filter(m=>selected.has(String(m.discord_user_id)));
       if(!members.length)throw new Error('등록할 멤버를 한 명 이상 선택해 주세요.');
       const result=await bulkRegisterDiscordMembers(state.companyId,state.setupGuide.memberFilterRoleId,members.map(m=>String(m.discord_user_id)),state.setupGuide.memberTargetRole||'member');
-      await loadBaseCompanyData();state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=false;await persistSetupGuideProgress(6);setNotice(`${Number(result?.inserted?.length||0)}명 등록 완료 · ${Number(result?.skipped?.length||0)}명 기존 등록`);
+      await loadBaseCompanyData();state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=false;await persistSetupGuideProgress(6);
+      const insertedCount=Number(result?.inserted?.length||0);const existingCount=Number(result?.skipped?.length||0);const inactiveCount=Number(result?.requires_manual_reactivation?.length||0);
+      setNotice(`${insertedCount}명 등록 완료 · ${existingCount}명 기존 등록${inactiveCount?` · ${inactiveCount}명은 퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요`:''}`);
     });return;
   }
   if(action==='setup-guide-skip-members'){if(!state.setupGuide)return;state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=true;await withMutation(async()=>{await persistSetupGuideProgress(6);});return;}
@@ -1134,7 +1147,7 @@ root.addEventListener('click', async event => {
   if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo=createSetupDemoState();render();return;}
   if(action==='setup-demo-finish'){const back=Boolean(state.modal?.returnToTestCenter);state.setupDemo=null;state.modal=back?{type:'test-center'}:null;render();return;}
   if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(6,target));render();}return;}
-  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];state.setupDemo.channelsGenerated=false;render();}return;}
+  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key){state.setupDemo.modules[key]=!Boolean(state.setupDemo.modules[key]);state.setupDemo.channelsGenerated=false;render();}return;}
   if(action==='setup-demo-channel-mode'){if(!state.setupDemo)return;const mode=String(actionEl.dataset.mode||'quick');state.setupDemo.channelMode=mode==='direct'?'direct':'quick';state.setupDemo.channelsGenerated=false;render();return;}
   if(action==='setup-demo-generate-channels'){if(!state.setupDemo)return;state.setupDemo.channelsGenerated=true;render();return;}
   if(action==='setup-demo-select-visible-members'){
@@ -1396,7 +1409,21 @@ root.addEventListener('submit', async event => {
       state.modal={type:'setup-demo',returnToTestCenter:true};
       return;
     }
-    if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);await claimDiscordMemberships();state.modal=null;state.page='settings';state.settingsTab='basic';localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;state.setupGuideDismissed=false;await persistSetupGuideProgress(1);state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};setNotice('회사를 만들었습니다. 이어서 초기설정을 완료해 주세요.');return;}
+    if(type==='create-company'){
+      const created=await createCompany(String(data.get('name')||'').trim());
+      if(!created?.id)throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
+      state.companyId=created.id;
+      localStorage.setItem('axe_product_company_id',created.id);
+      await claimDiscordMemberships();
+      state.modal=null;state.page='settings';state.settingsTab='basic';
+      localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');
+      await loadCompanies();await loadCompanyData();
+      state.ready=true;state.setupGuideDismissed=false;
+      await persistSetupGuideProgress(1);
+      state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};
+      setNotice('회사 등록이 완료되었습니다. 이어서 초기설정을 시작합니다.');
+      return;
+    }
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='suggestion-create'){
       const category=String(data.get('category')||'improvement').trim(); const title=String(data.get('title')||'').trim(); const body=String(data.get('body')||'').trim();
