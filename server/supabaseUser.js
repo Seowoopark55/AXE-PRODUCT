@@ -301,3 +301,41 @@ export async function upsertDiscordConnection({
 
   return row;
 }
+
+export async function callAxeProductRpc(token, functionName, body = {}) {
+  const { url, key } = config();
+  const safeName = String(functionName || '').trim();
+  if (!/^[a-z0-9_]+$/i.test(safeName)) {
+    const error = new Error('RPC 이름이 올바르지 않습니다.');
+    error.statusCode = 400;
+    throw error;
+  }
+  const response = await fetch(`${url}/rest/v1/rpc/${safeName}`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Content-Profile': 'axe_product',
+      'Accept-Profile': 'axe_product',
+    },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await readJsonSafe(response);
+  if (!response.ok) {
+    const error = new Error(data?.message || data?.error || 'Supabase RPC 요청에 실패했습니다.');
+    error.statusCode = response.status;
+    throw error;
+  }
+  return data;
+}
+
+export async function requirePlatformAdmin(token) {
+  const allowed = await callAxeProductRpc(token, 'platform_is_admin', {});
+  if (allowed !== true) {
+    const error = new Error('PLATFORM OWNER 권한이 필요합니다.');
+    error.statusCode = 403;
+    throw error;
+  }
+  return true;
+}

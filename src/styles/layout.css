@@ -181,3 +181,7 @@
 .runtime-account-menu>button:hover{background:#131b23;color:#eef2f5}.runtime-account-menu>button>span:last-child{display:grid;gap:2px}.runtime-account-menu strong{font-size:10.5px}.runtime-account-menu small{color:#6f7b86;font-size:8px}.runtime-account-menu>i{height:1px;margin:2px 4px;background:rgba(255,255,255,.06)}
 .runtime-account-menu__icon{width:26px;height:26px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.07);border-radius:7px;background:rgba(255,255,255,.02);color:#9a8458}.runtime-account-menu__icon svg{width:13px;height:13px}
 @media(max-width:760px){.runtime-account-trigger{min-width:40px;width:40px;padding:0;justify-content:center}.runtime-account-trigger>span{display:none}.runtime-account-trigger>b{font-size:13px}.runtime-account-menu{right:0;top:42px}}
+
+/* AXE PRODUCT 3.23.1 · support notification badge */
+.nav-item{position:relative}
+.nav-item__badge{min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;justify-self:end;padding:0 6px;border:1px solid rgba(228,178,75,.25);border-radius:999px;background:rgba(228,178,75,.08);color:#e2bd6a;font-size:8px;font-style:normal;font-weight:950;line-height:1}

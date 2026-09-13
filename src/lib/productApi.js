@@ -682,23 +682,78 @@ export async function createGuidedSetupChannels(companyId, categoryName, channel
 }
 
 
-export async function getQuestionBoard(companyId) {
-  return authenticatedProductApi(`/api/discord/questions?company_id=${encodeURIComponent(companyId)}`, {
-    method: 'GET',
+export async function getQuestionBoard(companyId, limit = 100) {
+  assertClient();
+  const result = await supabase.rpc('web_support_list_questions', {
+    p_company_id: companyId,
+    p_limit: Number(limit || 100),
   });
+  return unwrap(result, '질문게시판을 불러오지 못했습니다.') || {
+    configured: true,
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    items: [],
+  };
 }
 
-export async function configureQuestionBoard(companyId) {
-  return authenticatedProductApi('/api/discord/questions', {
-    method: 'POST',
-    body: JSON.stringify({ company_id: companyId, action: 'configure' }),
+export async function createSupportQuestion(companyId, title, body) {
+  assertClient();
+  const result = await supabase.rpc('web_support_create_question', {
+    p_company_id: companyId,
+    p_title: String(title || '').trim(),
+    p_body: String(body || '').trim(),
   });
+  return unwrap(result, '질문을 등록하지 못했습니다.');
 }
 
-export async function updateQuestionStatus(companyId, threadId, status) {
-  return authenticatedProductApi('/api/discord/questions', {
+export async function getSupportQuestion(questionId) {
+  assertClient();
+  const result = await supabase.rpc('web_support_get_question', {
+    p_question_id: questionId,
+  });
+  return unwrap(result, '질문 내용을 불러오지 못했습니다.');
+}
+
+export async function addSupportQuestionMessage(questionId, body) {
+  assertClient();
+  const result = await supabase.rpc('web_support_add_message', {
+    p_question_id: questionId,
+    p_body: String(body || '').trim(),
+  });
+  return unwrap(result, '답변을 등록하지 못했습니다.');
+}
+
+export async function updateQuestionStatus(questionId, status) {
+  assertClient();
+  const result = await supabase.rpc('platform_support_set_status', {
+    p_question_id: questionId,
+    p_status: status,
+  });
+  return unwrap(result, '질문 상태를 변경하지 못했습니다.');
+}
+
+export async function markSupportQuestionSeen(questionId) {
+  assertClient();
+  const result = await supabase.rpc('web_support_mark_seen', {
+    p_question_id: questionId,
+  });
+  return Boolean(unwrap(result, '질문 확인 상태를 저장하지 못했습니다.'));
+}
+
+export async function getPlatformSupportQuestions(limit = 100) {
+  assertClient();
+  const result = await supabase.rpc('platform_support_list_questions', {
+    p_limit: Number(limit || 100),
+  });
+  return unwrap(result, '전체 질문 현황을 불러오지 못했습니다.') || {
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    items: [],
+  };
+}
+
+export async function notifySupportQuestionAnswer(questionId) {
+  return authenticatedProductApi('/api/support/notify', {
     method: 'POST',
-    body: JSON.stringify({ company_id: companyId, action: 'status', thread_id: threadId, status }),
+    body: JSON.stringify({ question_id: questionId }),
   });
 }
 

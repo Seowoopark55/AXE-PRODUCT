@@ -8,7 +8,7 @@ import {
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
-  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, configureQuestionBoard, updateQuestionStatus, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
+  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
@@ -52,10 +52,10 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'',
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountsSnapshot:null,
-  platformAdmin:false, platformSnapshot:[], platformQuery:'', platformStatus:'all', currentSubscription:null,
+  platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
-  questionBoard: { configured:false, counts:{ pending:0, checking:0, complete:0, total:0 }, items:[], forum_url:null, error:'' },
+  questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' },
   companyMenuOpen: false,
   accountMenuOpen: false,
   modal: null,
@@ -148,8 +148,8 @@ function createSetupDemoState(){
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
-    generatedChannels:{questionForum:'질문게시판',fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
-    channels:{questionForum:'#질문게시판',fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',cooking:'#요리-주문',accountLookup:'#계좌조회'},
     memberFilter:'member',
     memberTargetRole:'member',
     memberSelected:['m1','m2','m3','m4','m5','m6'],
@@ -173,9 +173,8 @@ function createSetupGuideState(step = 0){
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
-    generatedChannels:{questionForum:'질문게시판',fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
+    generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
-      questionForum:String(state.companySettings?.settings?.question_board?.forum_channel_id||''),
       fund:String(settingsByKey.fund?.status_channel_id||''),
       ammo3:String(settingsByKey.ammo?.three_channel_id||''),
       ammo10:String(settingsByKey.ammo?.ten_channel_id||''),
@@ -218,7 +217,7 @@ function openSetupGuide(step = 0){
 
 function setupGuideChannelPlan(){
   const modules=state.setupGuide?.modules||{};
-  const rows=[{key:'questionForum',moduleKey:null,settingKey:null,label:'질문게시판',name:state.setupGuide.generatedChannels?.questionForum||'질문게시판',type:'forum'}];
+  const rows=[];
   if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text'});
   if(modules.ammo){
     rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알'});
@@ -289,12 +288,6 @@ function setupGuideChannelBinding(key){
 }
 
 async function persistSetupGuideChannels(channelMap){
-  const questionForumId=String(channelMap?.questionForum||'').trim();
-  if(questionForumId){
-    const settings={...(state.companySettings?.settings||{}),question_board:{...(state.companySettings?.settings?.question_board||{}),forum_channel_id:questionForumId,updated_at:new Date().toISOString()}};
-    await updateCompanySettings(state.companyId,{locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul',settings},state.session.user.id);
-    state.companySettings={...(state.companySettings||{}),settings};
-  }
   const grouped=new Map();
   for(const [key,channelId] of Object.entries(channelMap||{})){
     const binding=setupGuideChannelBinding(key); if(!binding||!channelId)continue;
@@ -350,7 +343,7 @@ function clearCompanyData() {
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
-  state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:''};
+  state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
 }
 
 async function loadCompanies() {
@@ -423,16 +416,40 @@ async function loadAssetsAndAccounts() {
 }
 
 async function loadQuestionBoard() {
-  if (!state.companyId || state.discordConnection?.status!=='connected') {
-    state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:''};
+  if (!state.companyId) {
+    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
     return;
   }
   try {
     const board=await getQuestionBoard(state.companyId);
-    state.questionBoard={configured:false,counts:{pending:0,checking:0,complete:0,total:0},items:[],forum_url:null,error:'',...(board||{})};
+    state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:'',...(board||{})};
   } catch (error) {
     state.questionBoard={...(state.questionBoard||{}),error:String(error?.message||error||'질문게시판을 불러오지 못했습니다.')};
   }
+}
+
+async function loadPlatformSupport() {
+  if (!state.platformAdmin) {
+    state.platformSupport={counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
+    return;
+  }
+  try {
+    const board=await getPlatformSupportQuestions(120);
+    state.platformSupport={counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:'',...(board||{})};
+  } catch (error) {
+    state.platformSupport={...(state.platformSupport||{}),error:String(error?.message||error||'전체 질문 현황을 불러오지 못했습니다.')};
+  }
+}
+
+async function openSupportQuestion(questionId) {
+  const id=String(questionId||'').trim();
+  if(!id) throw new Error('질문을 찾을 수 없습니다.');
+  const question=await getSupportQuestion(id);
+  await markSupportQuestionSeen(id).catch(()=>false);
+  question.unread=false;
+  state.modal={type:'support-question',questionId:id,question};
+  if(state.platformAdmin) await loadPlatformSupport();
+  if(String(question.company_id||'')===String(state.companyId||'')) await loadQuestionBoard();
 }
 
 async function loadCompanyData() {
@@ -456,6 +473,7 @@ async function refreshAll() {
     if(!state.platformAdmin && state.page==='platform'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
+    await loadPlatformSupport();
     applyPlatformCompanyVisibility();
     await loadCompanyData();
     state.ready=true;
@@ -678,7 +696,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='platform'&&state.platformAdmin) state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]); render(); return; }
+  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();} render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
@@ -711,7 +729,7 @@ root.addEventListener('click', async event => {
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();render();return;}
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='close-modal'){closeModal();return;}
@@ -785,7 +803,6 @@ root.addEventListener('click', async event => {
       state.setupGuide.permissionMessage='';
       const map={};for(const row of result?.channels||[])if(row?.key&&row?.id)map[String(row.key)]=String(row.id);
       await persistSetupGuideChannels(map);
-      if(map.questionForum) await configureQuestionBoard(state.companyId);
       await loadQuestionBoard();
       state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);
       setNotice(`${Object.keys(map).length}개 Discord 채널을 준비하고 기능에 연결했습니다.`);
@@ -796,7 +813,7 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan(); const map={};
       for(const row of plan){const id=String(state.setupGuide.directChannels?.[row.key]||'');if(!id)throw new Error(`${row.label}에 연결할 Discord 채널을 선택해 주세요.`);map[row.key]=id;}
-      await persistSetupGuideChannels(map);if(map.questionForum)await configureQuestionBoard(state.companyId);await loadQuestionBoard();state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 AXE 기능과 질문게시판에 연결했습니다.');
+      await persistSetupGuideChannels(map);await loadQuestionBoard();state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 AXE 기능에 연결했습니다.');
     });return;
   }
   if(action==='setup-guide-load-members'){
@@ -843,10 +860,26 @@ root.addEventListener('click', async event => {
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='refresh-questions'){await withMutation(loadQuestionBoard);return;}
+  if(action==='refresh-platform-support'){await withMutation(loadPlatformSupport);return;}
+  if(action==='open-question-create'){state.modal={type:'support-question-create'};render();return;}
+  if(action==='open-question'){
+    const questionId=String(actionEl.dataset.questionId||'');
+    await withMutation(async()=>{await openSupportQuestion(questionId);});return;
+  }
   if(action==='question-status'){
-    if(!canAdmin(state)){setError('질문 상태 변경은 OWNER 또는 관리자만 가능합니다.');return;}
-    const threadId=String(actionEl.dataset.threadId||'');const status=String(actionEl.dataset.status||'');
-    await withMutation(async()=>{const result=await updateQuestionStatus(state.companyId,threadId,status);await loadQuestionBoard();setNotice(status==='complete'?(result?.dm_sent?'답변완료 처리 후 작성자에게 DM을 보냈습니다.':'답변완료 처리했습니다. 작성자의 DM 수신 설정에 따라 알림이 전달되지 않을 수 있습니다.'):'질문 상태를 변경했습니다.');});return;
+    if(!state.platformAdmin){setError('질문 상태 변경은 PLATFORM OWNER만 가능합니다.');return;}
+    const questionId=String(actionEl.dataset.questionId||'');const status=String(actionEl.dataset.status||'');
+    await withMutation(async()=>{
+      await updateQuestionStatus(questionId,status);
+      let notifyResult=null;
+      if(status==='complete') notifyResult=await notifySupportQuestionAnswer(questionId).catch(()=>({sent:false,reason:'dm_failed'}));
+      await loadPlatformSupport();
+      if(state.companyId) await loadQuestionBoard();
+      const question=await getSupportQuestion(questionId);
+      question.unread=false;
+      state.modal={type:'support-question',questionId,question};
+      setNotice(status==='complete'?(notifyResult?.sent?'답변완료 처리 후 작성자에게 Discord DM을 보냈습니다.':'답변완료 처리했습니다. 사이트 알림은 유지되고 Discord DM은 전달되지 않았습니다.'):'질문 상태를 변경했습니다.');
+    });return;
   }
   if(action==='open-feedback'){state.modal={type:'feedback'};render();return;}
   if(action==='dashboard-jump'){
@@ -857,6 +890,7 @@ root.addEventListener('click', async event => {
     if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot);
     if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
     if(state.page==='questions') await withMutation(loadQuestionBoard);
+    if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();}
     render();return;
   }
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
@@ -876,7 +910,7 @@ root.addEventListener('click', async event => {
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
-    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('회사 구독 현황을 새로고침했습니다.');return;}
+    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await loadPlatformSupport();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
     if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){
@@ -923,7 +957,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');render();return;}
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
-    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'질문게시판':'questionForum','공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){
@@ -973,6 +1007,26 @@ root.addEventListener('submit', async event => {
     if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim(),String(data.get('slug')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);state.modal=null;state.page='settings';state.settingsTab='basic';localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;await persistSetupGuideProgress(1);state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};setNotice('새 회사가 생성됐습니다. 초기설정을 이어서 진행해 주세요.');return;}
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='feedback'){const result=await submitProductFeedback(state.companyId,String(data.get('category')),String(data.get('title')||'').trim(),String(data.get('detail')||'').trim(),String(data.get('contact')||'').trim());state.modal=null;setNotice(`피드백을 보냈습니다. 접수번호 ${result?.reference||''}`);return;}
+    if(type==='support-question-create'){
+      const title=String(data.get('title')||'').trim(); const body=String(data.get('body')||'').trim();
+      const questionId=await createSupportQuestion(state.companyId,title,body);
+      state.modal=null; await loadQuestionBoard(); if(state.platformAdmin)await loadPlatformSupport();
+      setNotice('질문을 등록했습니다. 답변이 달리면 질문게시판에 표시됩니다.');
+      if(questionId) await openSupportQuestion(questionId);
+      return;
+    }
+    if(type==='support-question-reply'){
+      const questionId=String(data.get('question_id')||'').trim(); const body=String(data.get('body')||'').trim();
+      const result=await addSupportQuestionMessage(questionId,body);
+      let notifyResult=null;
+      if(state.platformAdmin&&result?.status==='complete') notifyResult=await notifySupportQuestionAnswer(questionId).catch(()=>({sent:false,reason:'dm_failed'}));
+      if(state.platformAdmin)await loadPlatformSupport(); if(state.companyId)await loadQuestionBoard();
+      const question=await getSupportQuestion(questionId); await markSupportQuestionSeen(questionId).catch(()=>false); question.unread=false;
+      state.modal={type:'support-question',questionId,question};
+      if(state.platformAdmin) setNotice(notifyResult?.sent?'답변을 등록하고 Discord DM을 보냈습니다.':'답변을 등록했습니다. 사이트 알림은 표시되고 Discord DM은 전달되지 않았습니다.');
+      else setNotice('추가 질문을 등록했습니다. 답변대기로 전환되었습니다.');
+      return;
+    }
     if(type==='ledger'){const existingId=String(data.get('entry_id')||'')||null;const payload={entryId:existingId,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,payload);let entryId=existingId||ledgerEntryIdFromSave(saved);if((state.ledgerPendingFiles||[]).length&&!entryId){const [yy,mm]=payload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=payload.direction==='지출'?-Math.abs(payload.amount):Math.abs(payload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===payload.category&&String(r.account||'')===payload.account&&dateKey(r.ledger_date)===payload.ledgerDate&&Number(r.amount||0)===signed);entryId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if((state.ledgerPendingFiles||[]).length&&!entryId)throw new Error('내역은 저장됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 해당 내역의 수정 화면에서 사진만 다시 첨부해 주세요.');if(entryId)await uploadLedgerPendingEvidence(entryId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'공금 내역과 첨부사진을 저장했습니다.':'공금 내역을 저장했습니다.');return;}
     if(type==='ledger-correction'){const entryId=String(data.get('entry_id')||'');const row=(state.fundSnapshot?.ledger||[]).find(r=>String(r.id)===entryId);if(!row)throw new Error('정정할 공금 내역을 찾지 못했습니다.');const oldSigned=Number(row.amount||0);const targetAmount=Math.abs(Number(data.get('amount')||0));if(!Number.isFinite(targetAmount)||targetAmount<=0)throw new Error('최종 금액을 확인해 주세요.');const targetDirection=String(data.get('direction')||'수입');const targetSigned=targetDirection==='지출'?-targetAmount:targetAmount;const delta=targetSigned-oldSigned;if(delta===0)throw new Error('현재 금액과 동일합니다. 변경할 금액 또는 구분을 입력해 주세요.');const reason=String(data.get('reason')||'').trim();if(!reason)throw new Error('정정 사유를 입력해 주세요.');const correctionPayload={entryId:null,direction:delta<0?'지출':'수입',amount:Math.abs(delta),account:String(row.account||'공용계좌'),category:`${row.entry_type==='payment'?'주간공금':(row.category||'공금')} 정정`,membershipId:String(row.membership_id||'')||null,memo:`원본 ${entryId.slice(0,8)} 정정 · ${reason}`,ledgerDate:String(data.get('ledger_date')||dateKey(new Date()))};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,correctionPayload);let correctionId=ledgerEntryIdFromSave(saved);if(hadEvidence&&!correctionId){const [yy,mm]=correctionPayload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=correctionPayload.direction==='지출'?-Math.abs(correctionPayload.amount):Math.abs(correctionPayload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===correctionPayload.category&&String(r.account||'')===correctionPayload.account&&dateKey(r.ledger_date)===correctionPayload.ledgerDate&&Number(r.amount||0)===signed&&String(r.memo||'')===correctionPayload.memo);correctionId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if(hadEvidence&&!correctionId)throw new Error('정정은 반영됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 새 정정 내역의 수정 화면에서 사진을 다시 첨부해 주세요.');if(correctionId)await uploadLedgerPendingEvidence(correctionId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'정정 차액과 첨부사진을 반영했습니다.':'원본을 보존한 상태로 정정 차액을 반영했습니다.');return;}
     if(type==='platform-subscription'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');const companyId=String(data.get('company_id')||'');const toIso=(v,end=false)=>{const s=String(v||'').trim();if(!s)return null;return new Date(`${s}T${end?'23:59:59':'00:00:00'}+09:00`).toISOString();};await updatePlatformSubscription(companyId,{plan:String(data.get('plan')||'standard'),status:String(data.get('status')||'active'),startsAt:toIso(data.get('starts_at')),endsAt:toIso(data.get('ends_at'),true),graceUntil:toIso(data.get('grace_until'),true),memo:String(data.get('memo')||'').trim()});await loadCompanies();state.platformSnapshot=await getPlatformCompanies();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();state.modal=null;setNotice('구독 정보를 저장했습니다.');return;}

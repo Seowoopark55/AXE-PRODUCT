@@ -50,3 +50,28 @@
 @media(min-width:761px){.runtime-app--questions .global-account{width:760px}}
 @media(max-width:900px){.axe-questions{width:100%}.axe-question-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.axe-question-summary>button{grid-column:1/-1;min-height:36px;border-top:1px solid var(--line-soft)}.axe-question-row{grid-template-columns:1fr}.axe-question-actions{justify-content:flex-start}}
 @media(max-width:600px){.axe-question-summary{grid-template-columns:1fr 1fr}.axe-question-summary article:nth-child(2){border-right:0}.axe-question-summary article:nth-child(3){grid-column:1/-1;border-top:1px solid var(--line-soft);border-right:0}.axe-question-title-line{align-items:flex-start;flex-direction:column;gap:6px}.axe-question-title-line>strong{white-space:normal}.axe-question-actions{align-items:flex-start;flex-direction:column}.axe-question-admin-actions{flex-wrap:wrap}.axe-questions-note{grid-template-columns:1fr}}
+
+/* AXE PRODUCT 3.23.1 · site-native question board */
+.axe-question-row{cursor:pointer;transition:background .12s ease}
+.axe-question-row:hover{background:rgba(255,255,255,.018)}
+.axe-question-row.is-unread{background:rgba(228,178,75,.018)}
+.axe-question-new{flex:none;padding:3px 5px;border:1px solid rgba(228,178,75,.22);border-radius:999px;background:rgba(228,178,75,.055);color:#dcb15d;font-size:6.8px;font-style:normal;font-weight:950;letter-spacing:.05em}
+.axe-question-actions>button{height:29px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border:1px solid #29343e;border-radius:7px;background:#111820;color:#7f8b95;font-size:7.8px;font-weight:900;cursor:pointer}
+.axe-question-actions>button:hover{border-color:#3b4854;color:#d2d9df}
+.axe-questions-alert{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid rgba(119,201,149,.16);border-radius:9px;background:rgba(119,201,149,.035)}
+.axe-questions-alert strong{color:#78c896;font-size:9px}.axe-questions-alert span{color:#718079;font-size:8.5px}
+.support-question-detail{display:grid;gap:0;max-height:min(76vh,760px)}
+.support-question-detail-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-soft);background:#0c1218}
+.support-question-detail-head>div:nth-child(2){display:grid;gap:2px;min-width:0}.support-question-detail-head>div:nth-child(2)>strong{overflow:hidden;color:#dce1e5;font-size:10.5px;text-overflow:ellipsis;white-space:nowrap}.support-question-detail-head>div:nth-child(2)>span{color:#697580;font-size:8px}
+.support-question-detail-head>div:first-child{display:flex;align-items:center;gap:6px}.support-question-detail-head>div:first-child>em{padding:3px 5px;border:1px solid rgba(228,178,75,.22);border-radius:999px;color:#d6aa55;font-size:6.8px;font-style:normal;font-weight:950}
+.support-question-status-actions{display:flex;gap:5px}.support-question-status-actions button{height:28px;padding:0 8px;border:1px solid #2b3540;border-radius:7px;background:#111820;color:#7e8994;font-size:7.8px;font-weight:900;cursor:pointer}.support-question-status-actions button:disabled{opacity:.42;cursor:default}.support-question-status-actions button:not(:disabled):hover{border-color:#46525e;color:#d4dbe1}
+.support-thread{display:grid;gap:8px;overflow:auto;padding:14px 16px;background:#0a0f14}
+.support-thread-message{width:min(88%,620px);display:grid;gap:7px;padding:11px 12px;border:1px solid #202a33;border-radius:10px;background:#0f151b}
+.support-thread-message.is-platform{margin-left:auto;border-color:rgba(228,178,75,.17);background:rgba(228,178,75,.035)}
+.support-thread-message header{display:flex;align-items:center;justify-content:space-between;gap:10px}.support-thread-message header strong{color:#cfd5da;font-size:9px}.support-thread-message.is-platform header strong{color:#d8b66d}.support-thread-message header span{color:#59646e;font-size:7.5px}.support-thread-message>div{color:#aeb7bf;font-size:9.5px;line-height:1.65;word-break:break-word}
+.support-question-reply{border-top:1px solid var(--line-soft);background:#0e141a}.support-question-reply textarea{min-height:105px}
+@media(max-width:650px){.support-question-detail-head{grid-template-columns:1fr}.support-question-status-actions{justify-content:flex-start}.support-thread-message{width:100%}}
+
+/* AXE PRODUCT 3.23.1 · native question board read-only thread */
+.support-question-readonly{margin-top:14px}
+.support-question-readonly-footer{display:flex;justify-content:flex-end;margin-top:10px}
