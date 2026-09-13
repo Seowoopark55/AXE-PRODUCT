@@ -8,7 +8,7 @@ import {
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
-  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
+  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
@@ -56,6 +56,7 @@ const state = {
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' },
+  questionPendingFiles: [],
   companyMenuOpen: false,
   accountMenuOpen: false,
   modal: null,
@@ -108,6 +109,74 @@ function applyPlatformCompanyVisibility(){
 function clearLedgerPendingFiles(){
   for(const item of state.ledgerPendingFiles||[]){ try{ if(item.previewUrl) URL.revokeObjectURL(item.previewUrl); }catch{} }
   state.ledgerPendingFiles=[];
+}
+function clearQuestionPendingFiles(){
+  for(const item of state.questionPendingFiles||[]){ try{ if(item.previewUrl) URL.revokeObjectURL(item.previewUrl); }catch{} }
+  state.questionPendingFiles=[];
+}
+function questionPendingPreviewHtml(){
+  const pending=state.questionPendingFiles||[];
+  if(!pending.length) return '<span class="support-attachment-empty">아직 첨부한 사진이 없습니다.</span>';
+  return pending.map(item=>`<figure><img src="${item.previewUrl}" alt="질문 첨부 미리보기"><figcaption><span>${String(item.file?.name||'붙여넣은 이미지').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}</span><button type="button" data-action="remove-question-pending" data-pending-id="${item.id}">제거</button></figcaption></figure>`).join('');
+}
+function refreshQuestionPendingAttachmentUi(){
+  const list=root.querySelector('[data-support-pending-list]');
+  const count=root.querySelector('[data-support-pending-count]');
+  if(list) list.innerHTML=questionPendingPreviewHtml();
+  if(count) count.textContent=`${(state.questionPendingFiles||[]).length}/5`;
+}
+function addQuestionPendingFiles(files){
+  const current=state.questionPendingFiles||[];
+  const allowed=['image/jpeg','image/png','image/webp'];
+  let changed=false;
+  for(const file of Array.from(files||[])){
+    if(!(file instanceof File) || !allowed.includes(file.type)){ setError('질문 사진은 JPG, PNG, WEBP 이미지만 첨부할 수 있습니다.'); continue; }
+    if(file.size>10*1024*1024){ setError('사진 한 장은 10MB 이하만 첨부할 수 있습니다.'); continue; }
+    if(current.length>=5){ setError('질문에는 사진을 최대 5장까지 첨부할 수 있습니다.'); break; }
+    current.push({id:crypto.randomUUID(),file,previewUrl:URL.createObjectURL(file)});
+    changed=true;
+  }
+  state.questionPendingFiles=current;
+  if(changed) refreshQuestionPendingAttachmentUi();
+}
+async function uploadQuestionPendingAttachments(questionId,messageId=null){
+  const pending=[...(state.questionPendingFiles||[])];
+  const result={uploaded:0,failed:0,lastError:''};
+  if(!questionId || !pending.length) return result;
+  for(const item of pending){
+    let path='';
+    try{
+      path=await uploadSupportAttachment(state.companyId,questionId,state.session.user.id,item.file);
+      await attachSupportQuestionFile(questionId,messageId,{storagePath:path,fileName:item.file.name||'clipboard-image',mimeType:item.file.type,sizeBytes:item.file.size});
+      result.uploaded+=1;
+    }catch(error){
+      result.failed+=1; result.lastError=String(error?.message||error||'사진 첨부 실패');
+      if(path) await removeSupportAttachments([path]).catch(()=>{});
+    }
+  }
+  return result;
+}
+async function hydrateSupportAttachments(items){
+  const rows=Array.isArray(items)?items:[];
+  return Promise.all(rows.map(async item=>({
+    ...item,
+    signed_url: await getSupportAttachmentSignedUrl(item.storage_path).catch(()=>''),
+  })));
+}
+async function hydrateSupportQuestion(question){
+  if(!question) return question;
+  const rootAttachments=await hydrateSupportAttachments(question.attachments);
+  const messages=await Promise.all((Array.isArray(question.messages)?question.messages:[]).map(async message=>({
+    ...message,
+    attachments: await hydrateSupportAttachments(message.attachments),
+  })));
+  return {...question,attachments:rootAttachments,messages};
+}
+function supportQuestionStoragePaths(question){
+  const paths=[];
+  for(const item of question?.attachments||[]) if(item?.storage_path) paths.push(String(item.storage_path));
+  for(const message of question?.messages||[]) for(const item of message?.attachments||[]) if(item?.storage_path) paths.push(String(item.storage_path));
+  return [...new Set(paths)];
 }
 function addLedgerPendingFiles(files){
   const current=state.ledgerPendingFiles||[];
@@ -344,6 +413,7 @@ function clearCompanyData() {
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
   state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
+  clearQuestionPendingFiles();
 }
 
 async function loadCompanies() {
@@ -444,7 +514,8 @@ async function loadPlatformSupport() {
 async function openSupportQuestion(questionId) {
   const id=String(questionId||'').trim();
   if(!id) throw new Error('질문을 찾을 수 없습니다.');
-  const question=await getSupportQuestion(id);
+  clearQuestionPendingFiles();
+  const question=await hydrateSupportQuestion(await getSupportQuestion(id));
   await markSupportQuestionSeen(id).catch(()=>false);
   question.unread=false;
   state.modal={type:'support-question',questionId:id,question};
@@ -658,7 +729,7 @@ function closeModal({force=false}={}) {
     const dirty=form && [...form.querySelectorAll('input,textarea')].some(el=>String(el.value||'').trim());
     if(dirty && !window.confirm('작성 중인 피드백 내용이 사라질 수 있습니다. 닫을까요?')) return false;
   }
-  if(state.modal?.type==='setup-demo') state.setupDemo=null; if(state.modal?.type==='setup-guide') state.setupGuide=null; if(['ledger','ledger-correction'].includes(state.modal?.type)) clearLedgerPendingFiles(); state.modal=null; render(); return true;
+  if(state.modal?.type==='setup-demo') state.setupDemo=null; if(state.modal?.type==='setup-guide') state.setupGuide=null; if(['ledger','ledger-correction'].includes(state.modal?.type)) clearLedgerPendingFiles(); if(['support-question-create','support-question'].includes(state.modal?.type)) clearQuestionPendingFiles(); state.modal=null; render(); return true;
 }
 
 async function withMutation(fn){ if(mutationBusy)return; mutationBusy=true; state.loading=true; render(); try{await fn();}catch(error){setError(error);}finally{mutationBusy=false;state.loading=false;render();} }
@@ -861,10 +932,35 @@ root.addEventListener('click', async event => {
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='refresh-questions'){await withMutation(loadQuestionBoard);return;}
   if(action==='refresh-platform-support'){await withMutation(loadPlatformSupport);return;}
-  if(action==='open-question-create'){state.modal={type:'support-question-create'};render();return;}
+  if(action==='open-question-create'){clearQuestionPendingFiles();state.modal={type:'support-question-create'};render();return;}
   if(action==='open-question'){
     const questionId=String(actionEl.dataset.questionId||'');
     await withMutation(async()=>{await openSupportQuestion(questionId);});return;
+  }
+  if(action==='remove-question-pending'){
+    const id=String(actionEl.dataset.pendingId||'');
+    const item=(state.questionPendingFiles||[]).find(x=>x.id===id);
+    try{if(item?.previewUrl)URL.revokeObjectURL(item.previewUrl);}catch{}
+    state.questionPendingFiles=(state.questionPendingFiles||[]).filter(x=>x.id!==id);
+    refreshQuestionPendingAttachmentUi();
+    return;
+  }
+  if(action==='delete-question'){
+    const questionId=String(actionEl.dataset.questionId||'');
+    const question=state.modal?.type==='support-question'&&String(state.modal.questionId||'')===questionId?state.modal.question:null;
+    if(!question?.viewer_can_delete){setError('이 질문을 삭제할 권한이 없습니다.');return;}
+    if(!window.confirm('이 질문과 답변, 첨부사진을 모두 삭제할까요?'))return;
+    await withMutation(async()=>{
+      const paths=supportQuestionStoragePaths(question);
+      if(paths.length) await removeSupportAttachments(paths);
+      await deleteSupportQuestion(questionId);
+      clearQuestionPendingFiles();
+      state.modal=null;
+      await loadQuestionBoard();
+      if(state.platformAdmin)await loadPlatformSupport();
+      setNotice('질문을 삭제했습니다.');
+    });
+    return;
   }
   if(action==='question-status'){
     if(!state.platformAdmin){setError('질문 상태 변경은 PLATFORM OWNER만 가능합니다.');return;}
@@ -875,7 +971,7 @@ root.addEventListener('click', async event => {
       if(status==='complete') notifyResult=await notifySupportQuestionAnswer(questionId).catch(()=>({sent:false,reason:'dm_failed'}));
       await loadPlatformSupport();
       if(state.companyId) await loadQuestionBoard();
-      const question=await getSupportQuestion(questionId);
+      const question=await hydrateSupportQuestion(await getSupportQuestion(questionId));
       question.unread=false;
       state.modal={type:'support-question',questionId,question};
       setNotice(status==='complete'?(notifyResult?.sent?'답변완료 처리 후 작성자에게 Discord DM을 보냈습니다.':'답변완료 처리했습니다. 사이트 알림은 유지되고 Discord DM은 전달되지 않았습니다.'):'질문 상태를 변경했습니다.');
@@ -957,6 +1053,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-platform-status]')){state.platformStatus=String(event.target.value||'all');render();return;}
     if(event.target.matches('[data-platform-query]')){state.platformQuery=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-ledger-evidence-input]')){addLedgerPendingFiles(event.target.files);event.target.value='';return;}
+    if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
@@ -989,16 +1086,21 @@ document.addEventListener('click', event => {
 });
 
 root.addEventListener('paste', event=>{
-  if(!event.target.closest('[data-ledger-evidence-drop]')) return;
   const files=Array.from(event.clipboardData?.files||[]).filter(f=>f.type?.startsWith('image/'));
-  if(files.length){event.preventDefault();addLedgerPendingFiles(files);}
+  if(!files.length)return;
+  if(event.target.closest('[data-ledger-evidence-drop]')){event.preventDefault();addLedgerPendingFiles(files);return;}
+  if(['support-question-create','support-question'].includes(state.modal?.type)){event.preventDefault();addQuestionPendingFiles(files);}
 });
-root.addEventListener('dragover', event=>{if(event.target.closest('[data-ledger-evidence-drop]'))event.preventDefault();});
+root.addEventListener('dragover', event=>{if(event.target.closest('[data-ledger-evidence-drop],[data-support-attachment-drop]'))event.preventDefault();});
 root.addEventListener('drop', event=>{
-  if(!event.target.closest('[data-ledger-evidence-drop]')) return;
+  const supportDrop=event.target.closest('[data-support-attachment-drop]');
+  const ledgerDrop=event.target.closest('[data-ledger-evidence-drop]');
+  if(!supportDrop&&!ledgerDrop)return;
   event.preventDefault();
   const files=Array.from(event.dataTransfer?.files||[]).filter(f=>f.type?.startsWith('image/'));
-  if(files.length)addLedgerPendingFiles(files);
+  if(!files.length)return;
+  if(supportDrop)addQuestionPendingFiles(files);
+  else addLedgerPendingFiles(files);
 });
 
 root.addEventListener('submit', async event => {
@@ -1010,20 +1112,25 @@ root.addEventListener('submit', async event => {
     if(type==='support-question-create'){
       const title=String(data.get('title')||'').trim(); const body=String(data.get('body')||'').trim();
       const questionId=await createSupportQuestion(state.companyId,title,body);
+      const attachmentResult=questionId?await uploadQuestionPendingAttachments(questionId,null):{uploaded:0,failed:0};
+      clearQuestionPendingFiles();
       state.modal=null; await loadQuestionBoard(); if(state.platformAdmin)await loadPlatformSupport();
-      setNotice('질문을 등록했습니다. 답변이 달리면 질문게시판에 표시됩니다.');
+      setNotice(attachmentResult.failed?`질문은 등록됐지만 사진 ${attachmentResult.failed}장은 첨부하지 못했습니다.`:'질문을 등록했습니다. 답변이 달리면 질문게시판에 표시됩니다.');
       if(questionId) await openSupportQuestion(questionId);
       return;
     }
     if(type==='support-question-reply'){
       const questionId=String(data.get('question_id')||'').trim(); const body=String(data.get('body')||'').trim();
       const result=await addSupportQuestionMessage(questionId,body);
+      const attachmentResult=result?.message_id?await uploadQuestionPendingAttachments(questionId,result.message_id):{uploaded:0,failed:0};
+      clearQuestionPendingFiles();
       let notifyResult=null;
       if(state.platformAdmin&&result?.status==='complete') notifyResult=await notifySupportQuestionAnswer(questionId).catch(()=>({sent:false,reason:'dm_failed'}));
       if(state.platformAdmin)await loadPlatformSupport(); if(state.companyId)await loadQuestionBoard();
-      const question=await getSupportQuestion(questionId); await markSupportQuestionSeen(questionId).catch(()=>false); question.unread=false;
+      const question=await hydrateSupportQuestion(await getSupportQuestion(questionId)); await markSupportQuestionSeen(questionId).catch(()=>false); question.unread=false;
       state.modal={type:'support-question',questionId,question};
-      if(state.platformAdmin) setNotice(notifyResult?.sent?'답변을 등록하고 Discord DM을 보냈습니다.':'답변을 등록했습니다. 사이트 알림은 표시되고 Discord DM은 전달되지 않았습니다.');
+      if(attachmentResult.failed) setNotice(`${state.platformAdmin?'답변':'추가 질문'}은 등록됐지만 사진 ${attachmentResult.failed}장은 첨부하지 못했습니다.`);
+      else if(state.platformAdmin) setNotice(notifyResult?.sent?'답변을 등록하고 Discord DM을 보냈습니다.':'답변을 등록했습니다. 사이트 알림은 표시되고 Discord DM은 전달되지 않았습니다.');
       else setNotice('추가 질문을 등록했습니다. 답변대기로 전환되었습니다.');
       return;
     }

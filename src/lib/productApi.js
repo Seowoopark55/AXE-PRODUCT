@@ -757,6 +757,79 @@ export async function notifySupportQuestionAnswer(questionId) {
   });
 }
 
+const SUPPORT_ATTACHMENT_BUCKET = 'axe-support-attachments';
+const SUPPORT_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+const SUPPORT_ATTACHMENT_MIME_TO_EXT = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export async function uploadSupportAttachment(companyId, questionId, userId, file) {
+  assertClient();
+  if (!(file instanceof File)) throw new Error('첨부할 이미지를 선택해 주세요.');
+  if (!companyId || !questionId || !userId) throw new Error('질문 첨부파일 경로 정보를 확인하지 못했습니다.');
+  const ext = SUPPORT_ATTACHMENT_MIME_TO_EXT[file.type];
+  if (!ext) throw new Error('사진은 JPG, PNG, WEBP 이미지만 첨부할 수 있습니다.');
+  if (!file.size || file.size > SUPPORT_ATTACHMENT_MAX_BYTES) throw new Error('사진 한 장은 10MB 이하만 첨부할 수 있습니다.');
+
+  const objectName = `${companyId}/${questionId}/${userId}/${crypto.randomUUID()}.${ext}`;
+  const result = await supabase.storage
+    .from(SUPPORT_ATTACHMENT_BUCKET)
+    .upload(objectName, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    });
+  unwrap(result, '질문 사진을 업로드하지 못했습니다.');
+  return objectName;
+}
+
+export async function attachSupportQuestionFile(questionId, messageId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('web_support_attach_file', {
+    p_question_id: questionId,
+    p_message_id: messageId || null,
+    p_storage_path: payload.storagePath,
+    p_file_name: payload.fileName || null,
+    p_mime_type: payload.mimeType || null,
+    p_size_bytes: payload.sizeBytes == null ? null : Number(payload.sizeBytes),
+  });
+  return unwrap(result, '질문 사진을 연결하지 못했습니다.');
+}
+
+export async function getSupportAttachmentSignedUrl(objectName, expiresInSeconds = 600) {
+  assertClient();
+  if (!objectName) throw new Error('질문 사진 경로가 없습니다.');
+  const safeExpires = Math.max(60, Math.min(Number(expiresInSeconds) || 600, 1800));
+  const result = await supabase.storage
+    .from(SUPPORT_ATTACHMENT_BUCKET)
+    .createSignedUrl(objectName, safeExpires);
+  const data = unwrap(result, '질문 사진을 열지 못했습니다.');
+  if (!data?.signedUrl) throw new Error('질문 사진 임시 주소를 만들지 못했습니다.');
+  return data.signedUrl;
+}
+
+export async function removeSupportAttachments(paths = []) {
+  assertClient();
+  const safePaths = [...new Set((Array.isArray(paths) ? paths : [])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean))];
+  if (!safePaths.length) return;
+  const result = await supabase.storage
+    .from(SUPPORT_ATTACHMENT_BUCKET)
+    .remove(safePaths);
+  if (result.error) throw result.error;
+}
+
+export async function deleteSupportQuestion(questionId) {
+  assertClient();
+  const result = await supabase.rpc('web_support_delete_question', {
+    p_question_id: questionId,
+  });
+  return unwrap(result, '질문을 삭제하지 못했습니다.');
+}
+
 export async function listGuidedSetupMembers(companyId, roleId) {
   const data = await authenticatedProductApi('/api/discord/setup/members', {
     method: 'POST',

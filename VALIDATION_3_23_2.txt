@@ -1,0 +1,12 @@
+AXE PRODUCT WEB 3.23.2 VALIDATION
+=================================
+- JS syntax: checked
+- Native question board retained
+- Question delete: author / PLATFORM OWNER
+- Question image upload: file picker
+- Question image paste: Ctrl+V
+- Question image drop: drag & drop
+- Attachment limit: 5 images, 10MB each
+- Private storage bucket policy included
+- Discord forum dependency: none
+- Discord DM answer notification: retained

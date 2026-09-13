@@ -1,3 +1,9 @@
+# AXE PRODUCT STAGING · 3.23.2
+
+현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다.
+
+DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
+
 # AXE PRODUCT WEB · STAGING
 
 현재 STAGING WEB 전체 소스입니다. Production/LIVE와 분리해서 사용합니다.
