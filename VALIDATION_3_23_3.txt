@@ -1,0 +1,10 @@
+AXE PRODUCT WEB 3.23.3 VALIDATION
+=================================
+- JS syntax: checked
+- Native question board retained
+- Question/reply images: in-app lightbox
+- New-tab attachment behavior: removed for question board
+- Close controls: X / Close / backdrop / ESC
+- Question thread remains open after image viewer closes
+- DB migration: none
+- BOT change: none

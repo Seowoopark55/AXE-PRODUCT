@@ -1,6 +1,6 @@
-# AXE PRODUCT STAGING · 3.23.2
+# AXE PRODUCT STAGING · 3.23.3
 
-현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다.
+현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다. 첨부사진은 새 탭 대신 사이트 내부 이미지 뷰어에서 열립니다.
 
 DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
 
@@ -10,7 +10,7 @@ DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
 
 ## 배포 순서
 
-1. Supabase STAGING SQL Editor에서 `SUPABASE_MIGRATION_3_23_1_NATIVE_SUPPORT_BOARD.sql`을 실행합니다.
+1. 질문게시판 DB가 아직 설치되지 않았다면 `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`을 먼저 적용합니다. 이미 3.23.2를 적용했다면 추가 SQL은 없습니다.
 2. 이 프로젝트 전체를 GitHub의 AXE PRODUCT WEB STAGING 프로젝트에 덮어씁니다.
 3. commit / push 합니다.
 4. Vercel STAGING 배포가 `Ready`인지 확인합니다.
@@ -54,8 +54,8 @@ npm run build
 ## 보존 파일
 
 - `SUPABASE_MIGRATION_*.sql`: 현재 프로젝트 DB 설치/복구 및 이번 기능 migration
-- `PATCH_3_23_1.md`: 이번 변경사항
-- `VALIDATION_3_23_1.txt`: 정적 검증 결과
+- `PATCH_3_23_3.md`: 이번 변경사항
+- `VALIDATION_3_23_3.txt`: 정적 검증 결과
 - `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
 - `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 배포 참고
 - `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정

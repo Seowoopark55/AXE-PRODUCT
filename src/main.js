@@ -57,6 +57,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' },
   questionPendingFiles: [],
+  supportImageViewer: null,
   companyMenuOpen: false,
   accountMenuOpen: false,
   modal: null,
@@ -729,7 +730,7 @@ function closeModal({force=false}={}) {
     const dirty=form && [...form.querySelectorAll('input,textarea')].some(el=>String(el.value||'').trim());
     if(dirty && !window.confirm('작성 중인 피드백 내용이 사라질 수 있습니다. 닫을까요?')) return false;
   }
-  if(state.modal?.type==='setup-demo') state.setupDemo=null; if(state.modal?.type==='setup-guide') state.setupGuide=null; if(['ledger','ledger-correction'].includes(state.modal?.type)) clearLedgerPendingFiles(); if(['support-question-create','support-question'].includes(state.modal?.type)) clearQuestionPendingFiles(); state.modal=null; render(); return true;
+  if(state.modal?.type==='setup-demo') state.setupDemo=null; if(state.modal?.type==='setup-guide') state.setupGuide=null; if(['ledger','ledger-correction'].includes(state.modal?.type)) clearLedgerPendingFiles(); if(['support-question-create','support-question'].includes(state.modal?.type)) clearQuestionPendingFiles(); state.supportImageViewer=null; state.modal=null; render(); return true;
 }
 
 async function withMutation(fn){ if(mutationBusy)return; mutationBusy=true; state.loading=true; render(); try{await fn();}catch(error){setError(error);}finally{mutationBusy=false;state.loading=false;render();} }
@@ -795,6 +796,7 @@ root.addEventListener('click', async event => {
     }
     state.settingsTab=nextTab;localStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
   }
+  if(event.target.matches('[data-support-image-backdrop]')){state.supportImageViewer=null;render();return;}
   if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
@@ -803,6 +805,8 @@ root.addEventListener('click', async event => {
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();render();return;}
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
+  if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
+  if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-create-company'){state.modal={type:'create-company'};render();return;}
   if(action==='go-dashboard'){state.accountMenuOpen=false;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
@@ -1083,6 +1087,10 @@ document.addEventListener('click', event => {
   if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;changed=true;}
   if(state.accountMenuOpen && !event.target.closest('.runtime-account-picker')){state.accountMenuOpen=false;changed=true;}
   if(changed)render();
+});
+
+document.addEventListener('keydown', event=>{
+  if(event.key==='Escape' && state.supportImageViewer){event.preventDefault();state.supportImageViewer=null;render();}
 });
 
 root.addEventListener('paste', event=>{

@@ -1,7 +1,7 @@
-AXE PRODUCT WEB 3.23.2 · STAGING ONLY
+AXE PRODUCT WEB 3.23.3 · STAGING ONLY
 
 1. Production/LIVE WEB에 바로 배포하지 않습니다.
-2. `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`은 PRODUCT STAGING Supabase에 먼저 적용합니다.
+2. 3.23.2 질문게시판 DB migration을 이미 적용했다면 이번 UI 패치에는 추가 SQL이 필요하지 않습니다.
 3. WEB ZIP은 GitHub AXE PRODUCT WEB STAGING 프로젝트에 전체 덮어쓰기합니다.
 4. commit / push 후 Vercel STAGING이 Ready인지 확인합니다.
 5. 질문게시판은 AXE PRODUCT DB를 원본으로 사용합니다.

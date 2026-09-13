@@ -145,6 +145,7 @@ function renderAuthed(state) {
       <main class="main main--${esc(state.page||'fund')}">${state.loading && !state.ready ? '<div class="runtime-loading">불러오는 중…</div>' : renderPage(state)}</main>
     </div>
     ${renderModal(state)}
+    ${renderSupportImageViewer(state)}
   </div>`;
 }
 
@@ -552,7 +553,12 @@ function supportAttachmentPicker(state){
 function supportAttachmentGallery(items){
   const rows=(Array.isArray(items)?items:[]).filter(item=>item?.signed_url);
   if(!rows.length)return '';
-  return `<div class="support-thread-attachments">${rows.map(item=>`<a href="${esc(item.signed_url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(item.signed_url)}" alt="${esc(item.file_name||'첨부 사진')}"><span>${esc(item.file_name||'첨부 사진')}</span></a>`).join('')}</div>`;
+  return `<div class="support-thread-attachments">${rows.map(item=>`<button type="button" data-action="open-support-image" data-image-url="${esc(item.signed_url)}" data-image-name="${esc(item.file_name||'첨부 사진')}" aria-label="${esc(item.file_name||'첨부 사진')} 크게 보기"><img src="${esc(item.signed_url)}" alt="${esc(item.file_name||'첨부 사진')}"><span>${esc(item.file_name||'첨부 사진')}</span></button>`).join('')}</div>`;
+}
+function renderSupportImageViewer(state){
+  const viewer=state.supportImageViewer;
+  if(!viewer?.url)return '';
+  return `<div class="support-image-lightbox" data-support-image-backdrop><section class="support-image-lightbox__panel" role="dialog" aria-modal="true" aria-label="첨부 사진 크게 보기"><header><div><strong>첨부 사진</strong><span>${esc(viewer.name||'첨부 사진')}</span></div><button type="button" data-action="close-support-image" aria-label="사진 닫기">×</button></header><div class="support-image-lightbox__stage"><img src="${esc(viewer.url)}" alt="${esc(viewer.name||'첨부 사진')}"></div><footer><span>바깥 영역을 클릭하거나 ESC를 눌러도 닫을 수 있습니다.</span><button type="button" class="runtime-btn-ghost" data-action="close-support-image">닫기</button></footer></section></div>`;
 }
 function supportQuestionCreateModal(state){return modalShell('질문 작성','사용 중 막히는 내용만 간단히 남겨주세요. 운영자가 확인 후 답변합니다.',`<form data-form="support-question-create" class="runtime-modal-form support-question-form"><label class="is-full">제목<input name="title" maxlength="120" placeholder="예: 공금 납부 취소는 어떻게 하나요?" required></label><label class="is-full">질문 내용<textarea name="body" maxlength="4000" rows="8" placeholder="현재 상황과 궁금한 점을 적어주세요." required></textarea></label>${supportAttachmentPicker(state)}<div class="runtime-modal-hint is-full">질문은 AXE PRODUCT 안에 저장됩니다. 답변이 등록되면 사이트에 새 답변 표시가 뜨고, Discord 계정이 연결되어 있으면 DM 알림도 시도합니다.</div><footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">질문 등록</button></footer></form>`,true);}
 function supportQuestionModal(state,m){

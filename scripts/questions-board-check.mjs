@@ -40,6 +40,9 @@ ok('question image upload exists', api.includes("axe-support-attachments") && ap
 ok('question clipboard paste exists', main.includes("['support-question-create','support-question'].includes(state.modal?.type)") && render.includes('Ctrl+V로 바로 붙여넣을 수 있습니다.'));
 ok('question drag and drop exists', main.includes("data-support-attachment-drop") && render.includes('끌어놓아도 됩니다.'));
 ok('support attachment bucket is private and restricted', migration.includes("'axe-support-attachments'") && migration.includes('support_storage_can_read') && migration.includes('support_storage_can_write') && migration.includes('support_storage_can_delete'));
+ok('question attachment opens inside app lightbox', render.includes('data-action=\"open-support-image\"') && render.includes('support-image-lightbox') && main.includes("action==='open-support-image'"));
+ok('question lightbox has explicit close affordances', render.includes('data-action=\"close-support-image\"') && main.includes("action==='close-support-image'") && main.includes("event.key==='Escape'"));
+ok('question attachments no longer force a new tab', !render.includes('target=\"_blank\" rel=\"noopener noreferrer\"><img src=\"${esc(item.signed_url)}'));
 
 const failed=checks.filter(([,pass])=>!pass);
 for(const [name,pass] of checks) console.log(`${pass?'PASS':'FAIL'} · ${name}`);
