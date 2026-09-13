@@ -110,3 +110,17 @@
 .axe-question-mine{padding:3px 5px;border:1px solid rgba(95,143,197,.2);border-radius:999px;background:rgba(95,143,197,.045);color:#8eb2d9;font-size:6.7px;font-style:normal;font-weight:900;white-space:nowrap}
 .axe-question-list--bounded{overflow:hidden}
 @media(max-width:720px){.axe-question-toolbar{align-items:flex-start;flex-direction:column}.axe-question-filter-stack{width:100%;align-items:flex-start;flex-direction:column}.axe-question-scope-filter{width:100%;padding-right:0;padding-bottom:5px;border-right:0;border-bottom:1px solid rgba(255,255,255,.055)}.axe-question-status-filter{width:100%;overflow:auto;padding-bottom:1px}}
+
+/* ============================================================
+   3.25.0 PRIVATE SUGGESTION BOARD
+   ============================================================ */
+.suggestion-private-banner{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid rgba(103,137,173,.16);border-radius:9px;background:rgba(103,137,173,.025)}
+.suggestion-private-banner strong{flex:none;padding:3px 6px;border:1px solid rgba(103,137,173,.18);border-radius:999px;color:#8fa9c2;font-size:7px;font-weight:950;letter-spacing:.02em}
+.suggestion-private-banner span{color:#6f7b86;font-size:8.5px;line-height:1.5}
+.suggestion-category{flex:none;min-width:54px;padding:4px 7px;border:1px solid #303a44;border-radius:999px;background:#111820;color:#8a959e;font-size:7.3px;font-weight:950;text-align:center;white-space:nowrap}
+.suggestion-category.is-improvement{border-color:rgba(213,163,67,.2);background:rgba(213,163,67,.04);color:#d0ab65}
+.suggestion-category.is-bug{border-color:rgba(196,102,102,.18);background:rgba(196,102,102,.035);color:#c98c8c}
+.suggestion-category.is-other{border-color:rgba(129,148,168,.18);background:rgba(129,148,168,.035);color:#93a6b8}
+.suggestion-thread-detail .support-question-detail-head>div:first-child{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.axe-suggestions .axe-question-title-line{gap:6px}
+@media(max-width:600px){.suggestion-private-banner{align-items:flex-start;flex-direction:column}.suggestion-category{min-width:0}}

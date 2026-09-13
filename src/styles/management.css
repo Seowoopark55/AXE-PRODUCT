@@ -395,3 +395,8 @@
 /* AXE PRODUCT 3.23.6 · Remaining growth-safe queues */
 .axe-fund-subview--review .ops-data-pager,.platform-board .ops-data-pager{border-top:1px solid var(--line-soft)}
 .platform-company-list{overflow:hidden}
+
+/* 3.25.0 platform private suggestion queue */
+.platform-suggestion-board{margin-top:0}
+.platform-suggestion-board .platform-support-row>div:first-child{flex-wrap:wrap}
+.platform-suggestion-board .suggestion-category{min-width:52px}

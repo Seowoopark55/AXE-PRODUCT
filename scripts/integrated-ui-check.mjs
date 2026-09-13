@@ -35,10 +35,10 @@ expect('No raw company asset browser write', !/\.from\(\s*['"]asset_company_asse
 expect('No raw member account browser write', !/\.from\(\s*['"]asset_member_accounts['"]\s*\)[\s\S]{0,250}\.(insert|update|delete|upsert)\(/i.test(api));
 
 expect('Accepted sidebar group label', render.includes('회사 운영'));
-for (const label of ['공금 관리','멤버 관리','자산 관리','계좌 관리','회사 설정','피드백 · 제보']) expect(`Sidebar/page label: ${label}`, render.includes(label));
+for (const label of ['공금 관리','멤버 관리','자산 관리','계좌 관리','회사 설정','질문게시판','건의게시판']) expect(`Sidebar/page label: ${label}`, render.includes(label));
 expect('Boxed AXE header mark removed', !render.includes('brand-mark'));
-expect('Feedback backdrop does not close modal', main.includes("['feedback','cooking-menu'].includes(state.modal?.type)"));
-expect('Feedback draft close protection', main.includes('작성 중인 피드백 내용이 사라질 수 있습니다.'));
+expect('Legacy feedback modal removed', !render.includes('feedbackModal') && !main.includes("type==='feedback'"));
+expect('Suggestion board first-class route', main.includes("'suggestions'") && render.includes("data-page=\"suggestions\""));
 expect('Mandatory ledger cancellation reason', main.includes('취소 사유를 입력해 주세요.') && api.includes('normalizedReason'));
 expect('Fund monthly selector', render.includes('data-fund-weekly-month'));
 expect('Fund weekly tab always reloads live status', main.includes("if(state.fundTab==='weekly') await loadFundWeeklyMonth();") && !main.includes("state.fundTab==='weekly'&&!state.fundMonthlyRows.length"));
@@ -76,7 +76,7 @@ expect('Cooking Discord guide direct RLS config API', api.includes("from('cookin
 expect('Cooking Discord guide state wiring', main.includes('cookingDiscordConfig') && main.includes("type==='cooking-guide'"));
 expect('Cooking compact settings UX', render.includes('ops-cooking-guide-card') && render.includes('ops-cooking-menu-tools') && render.includes('안내 저장'));
 expect('Cooking guide SET baseline field removed', !render.includes('name="set_guide"') && !main.includes("data.get('set_guide')"));
-expect('Cooking menu modal ignores backdrop click', main.includes("['feedback','cooking-menu'].includes(state.modal?.type)"));
+expect('Cooking menu modal ignores backdrop click', main.includes("['cooking-menu'].includes(state.modal?.type)"));
 
 if(failures.length){
   console.error('AXE PRODUCT INTEGRATED UI CHECK: FAIL');

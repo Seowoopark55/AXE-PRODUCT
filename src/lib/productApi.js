@@ -1137,6 +1137,154 @@ export async function reviewWebAccountRequest(companyId, requestId, action, revi
   return unwrap(result, '계좌 신청을 처리하지 못했습니다.');
 }
 
+
+// -----------------------------------------------------------------------------
+// Private suggestion board
+// -----------------------------------------------------------------------------
+export async function getSuggestionBoard(companyId, limit = 100) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_list', {
+    p_company_id: companyId,
+    p_limit: Number(limit || 100),
+  });
+  return unwrap(result, '건의게시판을 불러오지 못했습니다.') || {
+    configured: true,
+    private: true,
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    items: [],
+  };
+}
+
+export async function createSuggestion(companyId, category, title, body) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_create', {
+    p_company_id: companyId,
+    p_category: String(category || 'improvement').trim(),
+    p_title: String(title || '').trim(),
+    p_body: String(body || '').trim(),
+  });
+  return unwrap(result, '건의를 등록하지 못했습니다.');
+}
+
+export async function getSuggestion(suggestionId) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_get', {
+    p_suggestion_id: suggestionId,
+  });
+  return unwrap(result, '건의 내용을 불러오지 못했습니다.');
+}
+
+export async function addSuggestionMessage(suggestionId, body) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_add_message', {
+    p_suggestion_id: suggestionId,
+    p_body: String(body || '').trim(),
+  });
+  return unwrap(result, '메시지를 등록하지 못했습니다.');
+}
+
+export async function updateSuggestionStatus(suggestionId, status) {
+  assertClient();
+  const result = await supabase.rpc('platform_suggestion_set_status', {
+    p_suggestion_id: suggestionId,
+    p_status: status,
+  });
+  return unwrap(result, '건의 상태를 변경하지 못했습니다.');
+}
+
+export async function markSuggestionSeen(suggestionId) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_mark_seen', {
+    p_suggestion_id: suggestionId,
+  });
+  return Boolean(unwrap(result, '건의 확인 상태를 저장하지 못했습니다.'));
+}
+
+export async function getPlatformSuggestions(limit = 100) {
+  assertClient();
+  const result = await supabase.rpc('platform_suggestion_list', {
+    p_limit: Number(limit || 100),
+  });
+  return unwrap(result, '전체 건의 현황을 불러오지 못했습니다.') || {
+    counts: { pending: 0, checking: 0, complete: 0, unread: 0, total: 0 },
+    items: [],
+  };
+}
+
+export async function notifySuggestionAnswer(suggestionId) {
+  return authenticatedProductApi('/api/suggestions/notify', {
+    method: 'POST',
+    body: JSON.stringify({ suggestion_id: suggestionId }),
+  });
+}
+
+const SUGGESTION_ATTACHMENT_BUCKET = 'axe-suggestion-attachments';
+
+export async function uploadSuggestionAttachment(companyId, suggestionId, userId, file) {
+  assertClient();
+  if (!(file instanceof File)) throw new Error('첨부할 이미지를 선택해 주세요.');
+  if (!companyId || !suggestionId || !userId) throw new Error('건의 첨부파일 경로 정보를 확인하지 못했습니다.');
+  const ext = SUPPORT_ATTACHMENT_MIME_TO_EXT[file.type];
+  if (!ext) throw new Error('사진은 JPG, PNG, WEBP 이미지만 첨부할 수 있습니다.');
+  if (!file.size || file.size > SUPPORT_ATTACHMENT_MAX_BYTES) throw new Error('사진 한 장은 10MB 이하만 첨부할 수 있습니다.');
+
+  const objectName = `${companyId}/${suggestionId}/${userId}/${crypto.randomUUID()}.${ext}`;
+  const result = await supabase.storage
+    .from(SUGGESTION_ATTACHMENT_BUCKET)
+    .upload(objectName, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    });
+  unwrap(result, '건의 사진을 업로드하지 못했습니다.');
+  return objectName;
+}
+
+export async function attachSuggestionFile(suggestionId, messageId, payload = {}) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_attach_file', {
+    p_suggestion_id: suggestionId,
+    p_message_id: messageId || null,
+    p_storage_path: payload.storagePath,
+    p_file_name: payload.fileName || null,
+    p_mime_type: payload.mimeType || null,
+    p_size_bytes: payload.sizeBytes == null ? null : Number(payload.sizeBytes),
+  });
+  return unwrap(result, '건의 사진을 연결하지 못했습니다.');
+}
+
+export async function getSuggestionAttachmentSignedUrl(objectName, expiresInSeconds = 600) {
+  assertClient();
+  if (!objectName) throw new Error('건의 사진 경로가 없습니다.');
+  const safeExpires = Math.max(60, Math.min(Number(expiresInSeconds) || 600, 1800));
+  const result = await supabase.storage
+    .from(SUGGESTION_ATTACHMENT_BUCKET)
+    .createSignedUrl(objectName, safeExpires);
+  const data = unwrap(result, '건의 사진을 열지 못했습니다.');
+  if (!data?.signedUrl) throw new Error('건의 사진 임시 주소를 만들지 못했습니다.');
+  return data.signedUrl;
+}
+
+export async function removeSuggestionAttachments(paths = []) {
+  assertClient();
+  const safePaths = [...new Set((Array.isArray(paths) ? paths : [])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean))];
+  if (!safePaths.length) return;
+  const result = await supabase.storage
+    .from(SUGGESTION_ATTACHMENT_BUCKET)
+    .remove(safePaths);
+  if (result.error) throw result.error;
+}
+
+export async function deleteSuggestion(suggestionId) {
+  assertClient();
+  const result = await supabase.rpc('web_suggestion_delete', {
+    p_suggestion_id: suggestionId,
+  });
+  return unwrap(result, '건의를 삭제하지 못했습니다.');
+}
+
 export async function submitProductFeedback(companyId, category, title, detail, contact = '') {
   assertClient();
   const result = await supabase.rpc('submit_product_feedback', {

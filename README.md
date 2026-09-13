@@ -1,47 +1,56 @@
-# AXE PRODUCT STAGING · 3.24.0
+# AXE PRODUCT STAGING · 3.25.0
 
-3.24.0은 기존 3.23.7의 질문게시판/데이터 증가 대응 UI를 유지하면서 `핀볼 모집`을 정식 멀티테넌트 모듈로 추가한 버전입니다.
+3.25.0은 3.24.0 핀볼 모듈과 기존 질문게시판을 유지하면서, 기존 `피드백 · 제보` 단순 폼을 **1:1 비공개 건의게시판**으로 교체한 WEB/DB 업데이트입니다.
 
-## 기존 UI 기준 유지
-- 질문 5건/페이지 + `전체 질문 / 내 질문`
-- 공금/멤버/자산/계좌/요리 등 장기 데이터 목록은 제한된 목록 + 페이지 이동/고정 영역 구조 유지
-- 질문 등록 후 상세창 재오픈 없이 작성창 종료
-- 답변은 PLATFORM OWNER만 등록
+## 지원 구조
+- `질문게시판`: 같은 회사 멤버가 질문/답변을 함께 볼 수 있는 회사 FAQ형 지원 공간
+- `건의게시판`: **작성자 본인과 PLATFORM OWNER만 볼 수 있는 1:1 비공개 공간**
+- 두 게시판 모두 답변은 PLATFORM OWNER만 등록
+- Discord는 답변 알림용이며 사이트 데이터의 원본은 `axe_product` DB
 
-## 3.24.0 · 핀볼 모집
-- 개조서 전용이 아닌 일반 아이템 모집 지원
-- 등록 개조서는 정확한 이름 일치 시 정보 자동 연결
-- 회사별 `#핀볼-모집` 채널 생성/연결
-- 상시 `모집 만들기` 패널 + 버튼형 참여/마감/취소
-- DB 기반 상태 저장 및 BOT 재시작 복구
-- 1인 동시 2개 / 회사 동시 8개 / 10분 6회 생성 제한 / 참가자 최대 40명
-- 24시간 자동 만료 / 마감 결과 15분 자동 정리
-- 더블클릭, 동시 생성, 버튼 연타, 중복 패널, 모듈 OFF/채널 변경 등 운영 예외 방어
+## 건의게시판
+- 개선 제안 / 오류 제보 / 기타
+- 답변대기 / 확인중 / 답변완료
+- 사용자에게는 자기 글만 노출
+- 5건/페이지
+- 답변 도착 `NEW` 표시
+- 작성자 추가 메시지 → 답변대기로 재전환
+- 작성자/PLATFORM OWNER 삭제
+- 작성 후 상세창 자동 재오픈 없음
+- 수동 `회신 Discord` 입력 없음
 
-## 배포
-1. `SUPABASE_MIGRATION_3_24_0_PINBALL_SYSTEM.sql`을 Supabase STAGING에 적용합니다.
-2. 프로젝트 전체를 GitHub AXE PRODUCT WEB STAGING에 덮어쓰고 commit / push 합니다.
-3. Vercel STAGING `Ready`를 확인합니다.
-4. 별도 PRODUCT STAGING BOT R23 ZIP을 SSH 서버 홈에 업로드한 뒤 `apply-axe-product.sh`로 배포합니다.
+## 첨부사진
+- 파일 선택 / Drag & Drop / Ctrl+V 붙여넣기
+- JPG · PNG · WEBP
+- 장당 10MB / 메시지당 최대 5장
+- 앱 내부 이미지 크게보기
+- private bucket `axe-suggestion-attachments`
 
-> WEB ZIP은 `apply-axe-product.sh`로 배포하지 않습니다. LIVE BOT/WEB은 대상이 아닙니다.
+## PLATFORM OWNER
+서비스 관리 화면에서:
+- 고객 질문 Queue
+- 비공개 건의 · 제보 Queue
+를 각각 확인합니다.
 
-## DB 전제
-질문게시판을 사용하는 기존 STAGING 환경은 3.23.2 및 3.23.6 migration이 적용된 상태를 유지합니다. 핀볼에는 3.24.0 migration만 추가 적용합니다.
+답변 등록 시 사이트 NEW 표시를 남기고, 작성자의 현재 연결 Discord ID로 DM을 시도합니다. DM 실패는 답변 흐름에 영향을 주지 않습니다.
+
+## 배포 순서
+1. `SUPABASE_MIGRATION_3_25_0_PRIVATE_SUGGESTION_BOARD.sql`을 PRODUCT STAGING Supabase SQL Editor에서 실행합니다.
+2. WEB ZIP을 압축 해제해 GitHub AXE PRODUCT WEB STAGING 프로젝트에 전체 덮어씁니다.
+3. commit / push 합니다.
+4. Vercel STAGING 상태가 `Ready`인지 확인합니다.
+
+> 3.25.0에는 BOT 변경이 없습니다. `apply-axe-product.sh`를 사용하지 않습니다. LIVE BOT/WEB은 대상이 아닙니다.
+
+## 기존 migration 전제
+기존 STAGING DB에는 사용 중인 이전 migration(질문게시판 3.23.x, 핀볼 3.24.0 등)이 적용된 상태를 유지하고, 이번에는 3.25.0 migration만 추가 적용합니다.
 
 ## 검증
-```bash
-npm run check
-npm run build
-```
+- 전체 `npm run check` PASS
+- Native Question Board 31/31 PASS
+- Scale-safe lists 16/16 PASS
+- PINBALL MODULE 20/20 PASS
+- PRIVATE SUGGESTION BOARD 23/23 PASS
+- 모든 JS/MJS `node --check` PASS
 
-현재 전달 ZIP은 `node_modules`와 빌드 산출물을 포함하지 않습니다. 최종 Vite build는 Vercel STAGING `Ready`로 확인합니다.
-
-## 보존 파일
-- `SUPABASE_MIGRATION_*.sql`: DB 설치/업그레이드 migration
-- `PATCH_3_24_0.md`: 이번 변경사항
-- `VALIDATION_3_24_0.txt`: 정적/회귀 검증 결과
-- `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
-- `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 참고
-- `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정
-- `PLATFORM_OWNER_SETUP.md`: Platform Owner 설정
+전달 ZIP에는 `node_modules`가 포함되지 않습니다. 따라서 로컬 Vite build는 실행하지 않았으며 최종 build 검증은 Vercel STAGING `Ready`로 확인합니다.
