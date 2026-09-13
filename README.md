@@ -1,6 +1,8 @@
-# AXE PRODUCT STAGING · 3.23.4
+# AXE PRODUCT STAGING · 3.23.5
 
 현재 질문게시판은 AXE PRODUCT 자체 기능입니다. 질문/답변은 `axe_product`에 저장하며 Discord 포럼을 사용하지 않습니다. 질문 작성자와 PLATFORM OWNER는 질문을 삭제할 수 있고, 질문·답변에는 파일 선택/드래그/Ctrl+V 방식으로 사진을 최대 5장 첨부할 수 있습니다. 첨부사진은 새 탭 대신 사이트 내부 이미지 뷰어에서 열리며, 질문 상세창보다 항상 위에 표시됩니다.
+
+이번 버전은 데이터 증가 대응 UI를 추가했습니다. 공금·멤버·자산·계좌·요리·질문 목록은 검색/필터 + 제한된 페이지 단위로 표시되어 데이터가 늘어나도 운영 화면의 기본 높이와 구조가 유지됩니다.
 
 DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
 
@@ -14,7 +16,7 @@ DB 적용: `SUPABASE_MIGRATION_3_23_2_NATIVE_SUPPORT_ATTACHMENTS_DELETE.sql`
 2. 이 프로젝트 전체를 GitHub의 AXE PRODUCT WEB STAGING 프로젝트에 덮어씁니다.
 3. commit / push 합니다.
 4. Vercel STAGING 배포가 `Ready`인지 확인합니다.
-5. STAGING에서 로그인 → 질문 등록 → PLATFORM OWNER 답변 → 답변완료/알림 흐름을 확인합니다.
+5. STAGING에서 공금/멤버/계좌/요리/질문 목록의 검색·필터·페이지 이동과 기존 질문/답변 흐름을 함께 확인합니다.
 
 > WEB 파일은 SSH의 `apply-axe-product.sh`로 배포하지 않습니다.
 
@@ -54,8 +56,8 @@ npm run build
 ## 보존 파일
 
 - `SUPABASE_MIGRATION_*.sql`: 현재 프로젝트 DB 설치/복구 및 이번 기능 migration
-- `PATCH_3_23_4.md`: 이번 변경사항
-- `VALIDATION_3_23_4.txt`: 정적 검증 결과
+- `PATCH_3_23_5.md`: 이번 변경사항
+- `VALIDATION_3_23_5.txt`: 정적 검증 결과
 - `DEPLOY_STAGING_ONLY.txt`: STAGING 배포 경계
 - `LIVE_GUIDED_SETUP_DEPLOY.md`: Guided Setup 배포 참고
 - `MINIMAL_DISCORD_AUTH_SETUP.md`: Discord OAuth 환경 설정

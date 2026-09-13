@@ -1,0 +1,27 @@
+AXE PRODUCT WEB STAGING 3.23.5 · SCALE-SAFE DATA LAYOUT R1
+
+Static validation:
+- node --check src/ui/render.js: PASS
+- node --check src/main.js: PASS
+- npm run check: PASS
+- Existing regression suite: PASS
+- Scale-safe lists custom check: 13/13 PASS
+
+Scale-safe checks:
+- shared page-size contract: PASS
+- shared pager renderer: PASS
+- fund ledger bounded: PASS
+- members bounded: PASS
+- assets + returns bounded: PASS
+- accounts bounded + review preview capped: PASS
+- cooking search/status/pager: PASS
+- question status/pager: PASS
+- filter changes reset page: PASS
+- list page action routing: PASS
+- no nested list scrollbar: PASS
+- cooking scale styling: PASS
+- question scale styling: PASS
+
+Build note:
+- `npm run build` could not be executed in this isolated workspace because `node_modules` is intentionally not included and local `vite` is unavailable.
+- Final build verification remains Vercel STAGING `Ready` after GitHub push.

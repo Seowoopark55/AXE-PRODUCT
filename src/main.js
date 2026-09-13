@@ -48,14 +48,15 @@ const state = {
   fundMonthlyRows: [],
   fundWeeklyFee: 0,
   fundWeeklyLoading: false,
-  fundFilters: { person:'all', type:'all', account:'all' },
-  memberFilter: 'all', memberRole:'', memberQuery:'',
-  assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetsSnapshot:null,
-  accountQuery:'', accountStatus:'', accountsSnapshot:null,
+  fundFilters: { person:'all', type:'all', account:'all' }, fundLedgerPage:1,
+  memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
+  assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
+  accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
   platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
-  questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' },
+  questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionPage:1,
+  cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   supportImageViewer: null,
   companyMenuOpen: false,
@@ -414,6 +415,7 @@ function clearCompanyData() {
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
   state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
+  state.fundLedgerPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;
   clearQuestionPendingFiles();
 }
 
@@ -771,8 +773,8 @@ root.addEventListener('click', async event => {
   if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();} render(); return; }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
-  const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;render();return;}
-  const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;render();return;}
+  const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;state.memberPage=1;render();return;}
+  const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;if(state.assetTab==='assets')state.assetPage=1;else state.returnPage=1;render();return;}
   const settingsTab=event.target.closest('[data-settings-tab]');
   if(settingsTab){
     const nextTab=String(settingsTab.dataset.settingsTab||'basic');
@@ -800,10 +802,17 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['feedback','cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(action==='list-page'){
+    const key=String(actionEl.dataset.listKey||''); const page=Math.max(1,Number(actionEl.dataset.listPage||1));
+    const map={fundLedger:'fundLedgerPage',members:'memberPage',assets:'assetPage',returns:'returnPage',accounts:'accountPage',cooking:'cookingPage',questions:'questionPage'};
+    if(map[key]){state[map[key]]=page;render();}
+    return;
+  }
+  if(action==='question-filter'){state.questionStatus=String(actionEl.dataset.questionStatus||'all');state.questionPage=1;render();return;}
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await loadPlatformSupport();render();return;}
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.cookingPage=1;await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
@@ -1004,7 +1013,7 @@ root.addEventListener('click', async event => {
   if(action==='edit-asset'){state.modal={type:'asset',assetId:actionEl.dataset.assetId};render();return;}
   if(action==='open-account-request'){state.modal={type:'account'};render();return;}
   if(action==='open-account-row'){const membershipId=String(actionEl.dataset.membershipId||'');state.modal=membershipId===currentMembership(state)?.id?{type:'account'}:{type:'account-detail',membershipId};render();return;}
-  if(action==='reset-fund-filter'){state.fundFilters={person:'all',type:'all',account:'all'};render();return;}
+  if(action==='reset-fund-filter'){state.fundFilters={person:'all',type:'all',account:'all'};state.fundLedgerPage=1;render();return;}
   if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
@@ -1037,13 +1046,14 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
-    if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;await withMutation(loadFundSnapshot);return;}
+    if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;state.fundLedgerPage=1;await withMutation(loadFundSnapshot);return;}
     if(event.target.matches('[data-fund-weekly-month]')){state.fundWeeklyMonth=event.target.value;state.fundMonthlyRows=[];await loadFundWeeklyMonth();return;}
-    if(event.target.matches('[data-fund-filter]')){state.fundFilters[event.target.dataset.fundFilter]=event.target.value;render();return;}
-    if(event.target.matches('[data-member-role]')){state.memberRole=event.target.value;render();return;}
-    if(event.target.matches('[data-asset-category]')){state.assetCategory=event.target.value;render();return;}
-    if(event.target.matches('[data-asset-status]')){state.assetStatus=event.target.value;render();return;}
-    if(event.target.matches('[data-account-status]')){state.accountStatus=event.target.value;render();return;}
+    if(event.target.matches('[data-fund-filter]')){state.fundFilters[event.target.dataset.fundFilter]=event.target.value;state.fundLedgerPage=1;render();return;}
+    if(event.target.matches('[data-member-role]')){state.memberRole=event.target.value;state.memberPage=1;render();return;}
+    if(event.target.matches('[data-asset-category]')){state.assetCategory=event.target.value;state.assetPage=1;render();return;}
+    if(event.target.matches('[data-asset-status]')){state.assetStatus=event.target.value;state.assetPage=1;render();return;}
+    if(event.target.matches('[data-account-status]')){state.accountStatus=event.target.value;state.accountPage=1;render();return;}
+    if(event.target.matches('[data-cooking-status]')){state.cookingStatus=String(event.target.value||'all');state.cookingPage=1;render();return;}
     if(event.target.matches('[data-asset-holder]')){const status=root.querySelector('[data-asset-modal-status]');if(status)status.value=event.target.value?'보유':'미배정';return;}
     if(event.target.matches('[data-asset-modal-status]')){const holder=root.querySelector('[data-asset-holder]');if(event.target.value==='미배정'&&holder)holder.value='';return;}
     if(event.target.matches('[data-guide-role]')){if(!state.setupGuide)return;state.setupGuide[event.target.dataset.guideRole]=String(event.target.value||'');render();return;}
@@ -1076,9 +1086,10 @@ root.addEventListener('change', async event => {
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {
-  if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
-  if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
-  if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;state.accountPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-cooking-query]')){state.cookingQuery=event.target.value;state.cookingPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-cooking-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-platform-query]')){state.platformQuery=event.target.value;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-platform-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
 });
 

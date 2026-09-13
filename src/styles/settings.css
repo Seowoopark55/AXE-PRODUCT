@@ -151,3 +151,8 @@
   .main--settings .ops-settings-overview strong{font-size:17px}
   .main--settings .ops-settings-overview small{font-size:7.8px}
 }
+
+
+/* AXE PRODUCT 3.23.5 · Cooking list stays compact as menu count grows */
+.ops-cooking-filterbar{min-height:40px;display:flex;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid var(--line-soft);background:#0f151b}.ops-cooking-filterbar .ops-mgmt-search{width:min(240px,100%)}.ops-cooking-filterbar>span{margin-left:auto;color:#707b85;font-size:8.6px;white-space:nowrap}
+@media(max-width:760px){.ops-cooking-filterbar{align-items:stretch;flex-wrap:wrap}.ops-cooking-filterbar .ops-mgmt-search{width:100%}.ops-cooking-filterbar>span{margin-left:0}}
