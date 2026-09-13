@@ -106,26 +106,36 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-function renderOnboarding(state) {
-  const discord=onboardingDiscordIdentity(state);
-  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">
+function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
+  const createAction=testMode?'test-center-open-new-company':'open-create-company';
+  const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
+  const checkAction=testMode?'test-center-member-check':'check-member-registration';
+  const createFocus=focus==='create'?' is-test-focus':'';
+  const memberFocus=focus==='member'?' is-test-focus':'';
+  const waiting=testMode&&memberCheck==='waiting'?`<div class="runtime-first-run__test-result is-waiting"><strong>아직 멤버 등록이 확인되지 않았습니다.</strong><span>대표 또는 관리자에게 현재 Discord 계정 등록을 요청한 뒤 다시 확인합니다.</span></div>`:'';
+  return `
     <header class="runtime-first-run__head"><span>AXE PRODUCT START</span><h1>소속 회사를 확인하지 못했습니다.</h1><p>새 회사를 등록할 대표인지, 이미 AXE PRODUCT를 이용 중인 회사의 팀원인지 선택해 주세요.</p></header>
     <div class="runtime-first-run__grid">
-      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>아직 AXE PRODUCT를 이용 중인 회사가 없다면 새 운영 공간을 만들고 초기설정을 바로 시작합니다.</p>
+      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>아직 AXE PRODUCT를 이용 중인 회사가 없다면 새 운영 공간을 만들고 초기설정을 바로 시작합니다.</p>
         <div class="runtime-first-run__new-flow"><span>회사 이름</span><i>→</i><span>Discord 연결</span><i>→</i><span>초기설정</span></div>
-        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="open-create-company">새 회사 등록 시작</button>
+        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">새 회사 등록 시작</button>
         <small class="runtime-first-run__auto">SLUG 같은 시스템 식별값은 자동으로 생성됩니다.</small>
         <div class="runtime-first-run__warning">이미 운영 중인 회사의 팀원이라면 새 회사를 만들지 말고 오른쪽 안내를 따라주세요.</div>
       </article>
-      <article class="runtime-onboarding-card runtime-first-run__member"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 AXE PRODUCT에 진입할 수 없습니다.</p>
-        <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="copy-registration-info" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
+      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 AXE PRODUCT에 진입할 수 없습니다.</p>
+        <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="${copyAction}" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
         <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사 등록이 확인될 때까지 대기</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
-        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="check-member-registration">등록 확인하기</button>
+        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">등록 확인하기</button>
+        ${waiting}
         <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 이 버튼을 누르면 자동으로 소속 회사를 확인하고 바로 연결합니다.</small>
       </article>
     </div>
-    <div class="runtime-onboarding-note runtime-first-run__note"><strong>팀원 등록은 회사 쪽에서 먼저 진행합니다.</strong><span>미등록 사용자가 임의로 회사를 찾아 들어가는 방식은 제공하지 않습니다.</span></div>
-  </div></section>`;
+    <div class="runtime-onboarding-note runtime-first-run__note"><strong>팀원 등록은 회사 쪽에서 먼저 진행합니다.</strong><span>미등록 사용자가 임의로 회사를 찾아 들어가는 방식은 제공하지 않습니다.</span></div>`;
+}
+
+function renderOnboarding(state) {
+  const discord=onboardingDiscordIdentity(state);
+  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord)}</div></section>`;
 }
 
 function renderAuthed(state) {
@@ -141,7 +151,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span><strong>${esc(userDisplayName(state))}</strong><small>${esc(ROLE_LABEL[membership?.role] || '-')}</small></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -667,7 +677,59 @@ function settingRow(title,desc,control,kind){return `<div class="ops-settings-ro
 function renderModuleSettings(state,channels){ const visible=(state.modules||[]).filter(m=>MODULE_UI[m.module_key]).sort((a,b)=>MODULE_ORDER.indexOf(a.module_key)-MODULE_ORDER.indexOf(b.module_key)); const resetBusy=['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')); return `<form id="settings-active-form" data-form="settings-modules" class="ops-settings-board ops-settings-modules"><div class="ops-settings-board-head"><div><h2>기능 설정</h2><p>기능 하나에서 사용 여부와 필요한 Discord 채널 설정까지 끝냅니다.</p></div><span><strong>${visible.filter(m=>m.enabled).length}</strong> / ${visible.length} 사용 중</span></div><div class="ops-settings-module-list runtime-module-list">${visible.map(m=>renderModuleRow(m,channels,resetBusy)).join('')}</div><div class="ops-settings-module-foot"><strong>BOT 자동 반영 연결됨</strong><span>저장한 기능·채널 설정은 STAGING BOT이 자동으로 반영하고 패널을 생성·갱신합니다.</span></div></form>`; }
 function renderModuleRow(m,channels,disabled=false){ const ui=MODULE_UI[m.module_key]; const settings=m.settings||{}; const controls=ui.channels.length?`<div class="ops-settings-channels">${ui.channels.map(([key,label])=>`<label><span>${label}</span><select name="module_${m.module_key}_${key}" ${disabled?'disabled':''}><option value="">채널 선택</option>${channels.map(c=>`<option value="${esc(c.channel_id)}" ${settings[key]===c.channel_id?'selected':''}>#${esc(c.channel_name)}</option>`).join('')}</select></label>`).join('')}</div>`:'<div class="ops-settings-no-channel">별도 채널 설정 없음</div>'; return `<article class="ops-settings-module ops-settings-module--channels-${ui.channels.length} ${m.enabled?'is-enabled':''} ${disabled?'is-disabled':''}"><div class="ops-settings-module-copy"><strong>${esc(ui.name)}</strong><small>${esc(ui.desc)}</small></div>${controls}<button type="button" class="runtime-power ${m.enabled?'is-on':'is-off'}" data-action="toggle-module" data-module-key="${esc(m.module_key)}" ${disabled?'disabled':''}>${icon('power')}<span>${m.enabled?'ON':'OFF'}</span></button></article>`; }
 
-function renderModal(state){ const m=state.modal; if(!m)return ''; if(m.type==='setup-guide')return setupGuideLive(state); if(m.type==='setup-demo')return setupGuidePreview(state); if(m.type==='support-question-create')return supportQuestionCreateModal(state); if(m.type==='support-question')return supportQuestionModal(state,m); if(m.type==='suggestion-create')return suggestionCreateModal(state); if(m.type==='suggestion-thread')return suggestionThreadModal(state,m); if(m.type==='ledger')return ledgerModal(state,m); if(m.type==='ledger-correction')return ledgerCorrectionModal(state,m); if(m.type==='ledger-evidence')return ledgerEvidenceModal(state,m); if(m.type==='platform-subscription')return platformSubscriptionModal(state,m); if(m.type==='member')return memberModal(state,m); if(m.type==='asset')return assetModal(state,m); if(m.type==='account')return accountModal(state); if(m.type==='account-detail')return accountDetailModal(state,m); if(m.type==='create-company')return companyModal(); if(m.type==='discord-reconnect')return discordReconnectModal(state); if(m.type==='cooking-menu')return cookingMenuModal(state,m); return ''; }
+function testCenterDashboardPreview(state,mode='member'){
+  const name=mode==='owner'?(state.testCenter?.fakeCompanyName||'AXE TEST'):'AXE TEST';
+  const message=mode==='owner'?'초기설정 완료 후에는 이 화면으로 이동합니다.':'등록된 팀원은 회사 생성이나 초기설정 없이 바로 이 화면으로 들어옵니다.';
+  return `<div class="test-center-dashboard">
+    <div class="test-center-dashboard__top"><span>DASHBOARD</span><strong>좋은 하루입니다, 테스트 사용자.</strong><small>${esc(message)}</small></div>
+    <div class="test-center-dashboard__kpis"><span><small>활동 멤버</small><b>12명</b></span><span><small>공용계좌 잔액</small><b>20,000원</b></span><span><small>회사 자산</small><b>8개</b></span><span><small>Discord</small><b>연결됨</b></span></div>
+    <div class="test-center-dashboard__grid"><article><span>NOW</span><strong>지금 확인할 것</strong><p>급한 운영 항목이 없습니다.</p></article><article><span>QUICK ACTION</span><strong>빠른 실행</strong><p>공금 등록 · 멤버 관리 · 자산 추가 · 계좌 관리</p></article><article><span>ACTIVITY</span><strong>최근 활동</strong><p>${esc(name)} 운영 기록이 표시됩니다.</p></article><article><span>OPERATIONS</span><strong>운영 연결 상태</strong><p>Discord 연결됨 · 사용 기능 정상</p></article></div>
+  </div>`;
+}
+
+function testCenterCompanyForm(state){
+  const name=state.testCenter?.fakeCompanyName||'AXE TEST';
+  return `<div class="test-center-company-form"><div class="runtime-modal-warning"><strong>새 회사를 등록하시겠습니까?</strong><span>실제 서비스에서는 이미 이용 중인 회사의 팀원이라면 새 회사를 만들지 않고 대표에게 멤버 등록을 요청합니다.</span></div><form data-form="test-center-company" class="runtime-modal-form"><label class="is-full">회사 이름<input name="name" maxlength="80" value="${esc(name)}" autocomplete="off" required></label><div class="runtime-modal-hint is-full">SLUG는 화면에 노출되지 않고 시스템에서 자동 생성됩니다. 이 테스트에서는 실제 회사가 생성되지 않습니다.</div><footer><button type="button" class="runtime-btn-ghost" data-action="test-center-company-back">돌아가기</button><button class="runtime-btn-primary" type="submit">회사 만들기 체험</button></footer></form></div>`;
+}
+
+function testCenterModal(state){
+  if(!state.platformAdmin)return '';
+  const tc=state.testCenter||{};
+  const scenario=String(tc.scenario||'first-run');
+  const scenarios=[
+    ['first-run','미등록 사용자','첫 로그인 분기 화면'],
+    ['member-waiting','미등록 팀원','대표 등록 전 진입 차단'],
+    ['member-registered','멤버 등록 완료','등록 확인 후 회사 진입'],
+    ['new-owner','신규 대표','회사 생성 → 초기설정'],
+    ['setup-progress','초기설정 진행 중','재접속 시 이어하기'],
+    ['setup-complete','초기설정 완료','바로 대시보드 진입']
+  ];
+  const buttons=scenarios.map(([key,title,desc])=>`<button type="button" class="${scenario===key?'is-active':''}" data-action="test-center-select" data-scenario="${key}"><span>${esc(title)}</span><small>${esc(desc)}</small></button>`).join('');
+  const discord={name:tc.fakeDiscordName||'테스트 팀원',id:tc.fakeDiscordId||'123456789012345678'};
+  let body='';
+  let caption='실제 화면과 같은 문구·구조를 테스트 데이터로 확인합니다.';
+  if(tc.screen==='company-form') body=testCenterCompanyForm(state);
+  else if(tc.screen==='dashboard') body=testCenterDashboardPreview(state,scenario==='new-owner'||scenario==='setup-complete'?'owner':'member');
+  else if(scenario==='first-run') body=`<div class="test-center-first-run runtime-first-run">${firstRunContent(discord,{testMode:true})}</div>`;
+  else if(scenario==='member-waiting') body=`<div class="test-center-first-run runtime-first-run">${firstRunContent(discord,{testMode:true,focus:'member',memberCheck:tc.memberCheck})}</div>`;
+  else if(scenario==='member-registered') body=`<div class="test-center-first-run runtime-first-run">${firstRunContent(discord,{testMode:true,focus:'member'})}</div>`;
+  else if(scenario==='new-owner') body=`<div class="test-center-first-run runtime-first-run">${firstRunContent(discord,{testMode:true,focus:'create'})}</div>`;
+  else if(scenario==='setup-progress'){
+    caption='초기설정 도중 나갔다가 다시 접속한 OWNER 상황을 체험합니다.';
+    body=`<div class="test-center-state-card"><span>RESUME SETUP</span><h2>초기설정을 이어서 진행합니다.</h2><p>회사와 Discord 연결은 유지되고, 저장된 진행 상태를 기준으로 마지막 단계부터 이어집니다.</p><div><b>현재 저장 상태</b><strong>STEP 4 · 사용할 기능 선택</strong></div><button type="button" class="runtime-btn-primary" data-action="test-center-launch-setup" data-step="3">이어하기 화면 체험</button></div>`;
+  }else{
+    caption='초기설정을 완료한 OWNER가 다시 접속했을 때의 도착 화면입니다.';
+    body=`<div class="test-center-state-card is-ready"><span>SETUP COMPLETE</span><h2>초기설정 완료</h2><p>다음 로그인부터 초기설정은 다시 나타나지 않고 운영 대시보드로 바로 진입합니다.</p><div class="test-center-state-actions"><button type="button" class="runtime-btn-primary" data-action="test-center-launch-setup" data-step="6">완료 단계 다시 보기</button><button type="button" class="runtime-btn-ghost" data-action="test-center-show-dashboard">대시보드 도착 화면</button></div></div>`;
+  }
+  return `<div class="test-center-backdrop"><section class="test-center-shell" role="dialog" aria-modal="true" aria-label="PLATFORM OWNER 테스트 센터">
+    <header class="test-center-header"><div><span>PLATFORM OWNER · TEST CENTER</span><h2>테스트 센터</h2><p>고객 첫 접속과 초기설정 흐름을 실제 데이터 변경 없이 체험합니다.</p></div><button type="button" data-action="test-center-exit" aria-label="테스트 센터 닫기">×</button></header>
+    <div class="test-center-safe"><i></i><strong>TEST MODE</strong><span>회사 · 멤버 · Discord · 설정 데이터에 저장하지 않습니다.</span></div>
+    <div class="test-center-layout"><aside class="test-center-nav"><span>시나리오</span>${buttons}</aside><main class="test-center-preview"><div class="test-center-preview__head"><div><strong>${esc(scenarios.find(item=>item[0]===scenario)?.[1]||'테스트')}</strong><span>${esc(caption)}</span></div><em>SIMULATION</em></div><div class="test-center-stage">${body}</div></main></div>
+    <footer class="test-center-footer"><span>실제 인증·DB 동작 검증은 별도 STAGING 계정 테스트가 필요합니다.</span><button type="button" class="runtime-btn-ghost" data-action="test-center-exit">테스트 종료</button></footer>
+  </section></div>`;
+}
+
+function renderModal(state){ const m=state.modal; if(!m)return ''; if(m.type==='test-center')return testCenterModal(state); if(m.type==='setup-guide')return setupGuideLive(state); if(m.type==='setup-demo')return setupGuidePreview(state); if(m.type==='support-question-create')return supportQuestionCreateModal(state); if(m.type==='support-question')return supportQuestionModal(state,m); if(m.type==='suggestion-create')return suggestionCreateModal(state); if(m.type==='suggestion-thread')return suggestionThreadModal(state,m); if(m.type==='ledger')return ledgerModal(state,m); if(m.type==='ledger-correction')return ledgerCorrectionModal(state,m); if(m.type==='ledger-evidence')return ledgerEvidenceModal(state,m); if(m.type==='platform-subscription')return platformSubscriptionModal(state,m); if(m.type==='member')return memberModal(state,m); if(m.type==='asset')return assetModal(state,m); if(m.type==='account')return accountModal(state); if(m.type==='account-detail')return accountDetailModal(state,m); if(m.type==='create-company')return companyModal(); if(m.type==='discord-reconnect')return discordReconnectModal(state); if(m.type==='cooking-menu')return cookingMenuModal(state,m); return ''; }
 function modalShell(title,desc,body,wide=false){return `<div class="runtime-modal-backdrop" data-modal-backdrop><section class="runtime-modal ${wide?'is-wide':''}" role="dialog" aria-modal="true"><header><div><h2>${esc(title)}</h2><p>${esc(desc)}</p></div><button type="button" data-action="close-modal">×</button></header>${body}</section></div>`;}
 
 function supportText(value){return esc(value||'').replaceAll('\n','<br>');}

@@ -67,6 +67,7 @@ const state = {
   accountMenuOpen: false,
   modal: null,
   setupDemo: null,
+  testCenter: null,
   setupGuide: null,
   setupGuideDismissed: false,
   loading: false,
@@ -300,6 +301,17 @@ function createSetupDemoState(){
     memberSelected:['m1','m2','m3','m4','m5','m6'],
     memberImportDone:false,
     memberImportSkipped:false
+  };
+}
+
+function createTestCenterState(){
+  return {
+    scenario:'first-run',
+    screen:'preview',
+    memberCheck:'',
+    fakeCompanyName:'AXE TEST',
+    fakeDiscordName:'테스트 팀원',
+    fakeDiscordId:'123456789012345678'
   };
 }
 
@@ -856,7 +868,14 @@ async function boot() {
 }
 
 function closeModal({force=false}={}) {
+  if(state.modal?.type==='setup-demo' && state.modal?.returnToTestCenter){
+    state.setupDemo=null;
+    state.modal={type:'test-center'};
+    render();
+    return true;
+  }
   if(state.modal?.type==='setup-demo') state.setupDemo=null;
+  if(state.modal?.type==='test-center') state.testCenter=null;
   if(state.modal?.type==='setup-guide'){ state.setupGuide=null; state.setupGuideDismissed=true; }
   if(['ledger','ledger-correction'].includes(state.modal?.type)) clearLedgerPendingFiles();
   if(['support-question-create','support-question'].includes(state.modal?.type)) clearQuestionPendingFiles();
@@ -944,6 +963,43 @@ root.addEventListener('click', async event => {
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
+  if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
+  if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
+  if(action==='test-center-select'){
+    if(!state.platformAdmin||!state.testCenter)return;
+    state.testCenter.scenario=String(actionEl.dataset.scenario||'first-run');
+    state.testCenter.screen='preview';state.testCenter.memberCheck='';
+    render();return;
+  }
+  if(action==='test-center-open-new-company'){if(!state.platformAdmin||!state.testCenter)return;state.testCenter.screen='company-form';render();return;}
+  if(action==='test-center-company-back'){if(!state.platformAdmin||!state.testCenter)return;state.testCenter.screen='preview';render();return;}
+  if(action==='test-center-copy-info'){
+    if(!state.platformAdmin||!state.testCenter)return;
+    const text=`AXE PRODUCT 멤버 등록 요청\nDiscord 이름: ${state.testCenter.fakeDiscordName}\nDiscord ID: ${state.testCenter.fakeDiscordId}`;
+    try{await navigator.clipboard.writeText(text);setNotice('테스트용 등록 정보를 복사했습니다. 실제 회사 데이터에는 반영되지 않습니다.');}catch{setNotice('테스트 모드입니다. 실제 데이터에는 아무 변화가 없습니다.');}
+    return;
+  }
+  if(action==='test-center-member-check'){
+    if(!state.platformAdmin||!state.testCenter)return;
+    if(state.testCenter.scenario==='member-registered'){
+      state.testCenter.screen='dashboard';
+      state.testCenter.memberCheck='registered';
+    }else{
+      state.testCenter.memberCheck='waiting';
+    }
+    render();return;
+  }
+  if(action==='test-center-show-dashboard'){if(!state.platformAdmin||!state.testCenter)return;state.testCenter.screen='dashboard';render();return;}
+  if(action==='test-center-launch-setup'){
+    if(!state.platformAdmin||!state.testCenter)return;
+    const step=Math.max(0,Math.min(6,Number(actionEl.dataset.step||0)));
+    state.setupDemo=createSetupDemoState();
+    state.setupDemo.step=step;
+    state.setupDemo.connected=step>=2;
+    if(step>=5) state.setupDemo.channelsGenerated=true;
+    state.modal={type:'setup-demo',returnToTestCenter:true};
+    render();return;
+  }
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
@@ -1076,7 +1132,7 @@ root.addEventListener('click', async event => {
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}
   if(action==='setup-demo-back'){if(!state.setupDemo)return;state.setupDemo.step=Math.max(0,Number(state.setupDemo.step||0)-1);render();return;}
   if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo=createSetupDemoState();render();return;}
-  if(action==='setup-demo-finish'){state.setupDemo=null;state.modal=null;render();return;}
+  if(action==='setup-demo-finish'){const back=Boolean(state.modal?.returnToTestCenter);state.setupDemo=null;state.modal=back?{type:'test-center'}:null;render();return;}
   if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(6,target));render();}return;}
   if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];state.setupDemo.channelsGenerated=false;render();}return;}
   if(action==='setup-demo-channel-mode'){if(!state.setupDemo)return;const mode=String(actionEl.dataset.mode||'quick');state.setupDemo.channelMode=mode==='direct'?'direct':'quick';state.setupDemo.channelsGenerated=false;render();return;}
@@ -1329,6 +1385,17 @@ root.addEventListener('drop', event=>{
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
+    if(type==='test-center-company'){
+      if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');
+      const name=String(data.get('name')||'').trim();
+      if(!name)throw new Error('테스트 회사 이름을 입력해 주세요.');
+      state.testCenter.fakeCompanyName=name;
+      state.setupDemo=createSetupDemoState();
+      state.setupDemo.step=1;
+      state.setupDemo.connected=false;
+      state.modal={type:'setup-demo',returnToTestCenter:true};
+      return;
+    }
     if(type==='create-company'){const created=await createCompany(String(data.get('name')||'').trim());if(!created?.id)throw new Error('생성된 회사 정보를 받지 못했습니다.');state.companyId=created.id;localStorage.setItem('axe_product_company_id',created.id);await claimDiscordMemberships();state.modal=null;state.page='settings';state.settingsTab='basic';localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();await loadCompanyData();state.ready=true;state.setupGuideDismissed=false;await persistSetupGuideProgress(1);state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};setNotice('회사를 만들었습니다. 이어서 초기설정을 완료해 주세요.');return;}
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='suggestion-create'){

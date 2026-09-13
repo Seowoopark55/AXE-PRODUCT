@@ -1,4 +1,14 @@
-# AXE PRODUCT STAGING · 3.26.1
+# AXE PRODUCT STAGING · 3.26.2
+
+## 3.26.2 · PLATFORM OWNER Test Center
+
+- PLATFORM OWNER 계정 메뉴에 `테스트 센터` 추가
+- 실제 회사/멤버/Discord/설정 데이터를 변경하지 않는 시뮬레이션 전용
+- 미등록 사용자 / 미등록 팀원 / 등록 완료 팀원 / 신규 대표 / 초기설정 진행 중 / 초기설정 완료 시나리오
+- 실제 첫 접속 UI 문구와 구조를 공유해 최근 온보딩 패치를 바로 체감
+- 신규 대표 체험은 회사명만 입력하며 SLUG 비노출
+- 초기설정 시나리오는 기존 Guided Setup Preview로 연결하고 종료 시 테스트 센터로 복귀
+- WEB only. SQL/BOT 변경 없음.
 
 ## 3.26.1 · First-run Member Registration Gate
 
