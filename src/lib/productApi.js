@@ -1499,6 +1499,19 @@ export async function updatePlatformSubscription(companyId, payload = {}) {
   return unwrap(result, '구독 정보를 저장하지 못했습니다.');
 }
 
+export async function deletePlatformCompany(companyId, confirmName) {
+  assertClient();
+  const id = String(companyId || '').trim();
+  const name = String(confirmName || '').trim();
+  if (!id) throw new Error('삭제할 회사를 확인하지 못했습니다.');
+  if (!name) throw new Error('회사 이름을 입력해 주세요.');
+  const result = await supabase.rpc('platform_admin_delete_company', {
+    p_company_id: id,
+    p_confirm_name: name,
+  });
+  return unwrap(result, '회사를 삭제하지 못했습니다.');
+}
+
 export async function getFundLedgerAttachments(companyId, entryId = null) {
   assertClient();
   const result = await supabase.rpc('fund_admin_list_ledger_attachments', {
