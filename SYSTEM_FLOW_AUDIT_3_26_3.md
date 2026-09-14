@@ -1,28 +1,44 @@
-# AXE PRODUCT · First-run / Onboarding System Flow Audit 3.26.3
+# AXE PRODUCT · First-run / Onboarding System Flow Audit 3.26.3 R2
 
-## 판정
-전체 제품 방향은 적합합니다. 이용자가 회사 위치나 설정 위치를 스스로 찾지 않고 로그인 결과에 따라 시스템이 다음 행동을 결정하는 구조를 유지합니다.
+## 최종 판정
+WEB 흐름은 이번 통합 패치 기준으로 일관되게 정리됐습니다. 실제 DB의 `create_company` 반환형과 3.26.0 membership claim 적용 여부만 STAGING DB에서 읽기 전용으로 확인하면 됩니다.
 
-## PASS
-- Discord 로그인 직후 membership claim이 회사 목록 조회보다 먼저 실행됨
-- 등록된 팀원은 회사 생성 화면을 보지 않음
-- 미등록 팀원은 회사 검색/합류 없이 등록 대기 상태
-- 새 회사 생성은 회사명만 입력, SLUG 비노출
-- 실제 Guided Setup에 개조서/핀볼 포함
-- 기능별 채널 plan에 개조서/핀볼 포함
-- 서버가 브라우저가 보낸 Discord ID를 그대로 신뢰하지 않고 Discord 역할을 재검증
-- OWNER만 미완료 Guided Setup 자동 재개
-- Test Center는 실제 회사 생성/멤버 claim/Discord OAuth를 실행하지 않는 시뮬레이션 경계 유지
+## 흐름
+1. Discord 로그인
+2. `web_claim_discord_memberships()` 실행
+3. active membership 기반 회사 목록 확인
+4. 회사가 있으면 기존 회사 진입
+5. 회사가 없으면 두 경로만 노출
+   - 신규 대표: 회사명 입력 → 내부 SLUG 자동 생성 → 회사 생성
+   - 기존 팀원: Discord 이름/ID 전달 → 회사측 선등록 → `등록 확인하기`
+6. 신규 회사 생성 결과를 실제 company row로 재확인
+7. 현재 로그인 사용자의 OWNER membership 재확인
+8. OWNER Guided Setup 시작
+9. Discord 연결 → 역할 → 기능 → 채널 → 멤버 → 완료
+10. 중간 이탈 시 선행조건에 맞춰 OWNER만 재개
+11. 완료 후 Dashboard
 
-## 이번 감사에서 발견해 수정한 문제
-1. 회사 생성 RPC 반환 형태를 `{id}` 하나로 가정해 성공 후에도 오류처럼 보일 수 있었음.
-2. 생성 결과를 놓친 상태에서 이용자가 재시도하면 새로운 랜덤 SLUG로 중복 회사를 만들 가능성이 있었음.
-3. Test Center 기능 STEP이 실제 기능 정의와 분리되어 개조서/핀볼이 누락됨.
-4. 자동 재개와 수동 재개가 서로 다른 단계 계산을 사용해 저장된 STEP이 실제 선행 조건보다 앞설 수 있었음.
-5. 과거 퇴사/정지 멤버가 일괄 등록에서 단순 `기존 등록`으로 뭉뚱그려질 수 있었음.
+## 예외 점검 결과
+- 회사 생성 버튼 연속 클릭: `withMutation()`으로 동시 제출 차단 + 같은 시도 SLUG 재사용
+- RPC 성공 + 응답 해석 실패: scalar/object/array 반환 인식 + 실제 company row 재조회
+- RPC 응답 유실: 같은 SLUG 재조회로 복구
+- 회사 생성 후 OWNER membership 누락: Guided Setup 시작 전에 명시적으로 차단/안내
+- Discord 연결 중 이탈: 저장 단계와 실제 연결/카탈로그 상태를 다시 비교해 복구
+- 초기설정 중 새로고침: 공용 resume resolver로 선행조건 기준 재개
+- 초기설정 완료 후 재접속: completed 상태는 자동 재개 대상 아님
+- 등록된 일반 멤버: Guided Setup 자동 노출 없음
+- 등록된 ADMIN: Guided Setup 버튼/실행 권한 없음; 일반 회사 설정만 사용
+- 미등록 팀원: 회사 검색/합류코드 없이 등록 대기
+- inactive/left/suspended: claim 및 일괄등록에서 자동 활성화하지 않음
+- 여러 회사 소속: 기존 company picker 유지; OWNER는 추가 회사 생성 가능
+- Test Center 모듈: 실제 `MODULE_ORDER` / `MODULE_UI` 공유
 
-## 남은 DB hardening 후보
-- 동일 회사 안에서 같은 Discord ID placeholder가 동시 요청으로 중복 생성되는 경계를 DB 수준에서 원자적으로 막는 정책.
-- 퇴사 후 재입사 시 기존 membership을 재활성화할지, 새 이력을 만들지에 대한 명시적 제품 정책.
+## 실제 DB에서 추가 확인할 것
+- `axe_product.create_company`의 정확한 identity arguments / RETURNS / 함수 정의
+- 3.26.0 `web_claim_discord_memberships()` 존재 및 EXECUTE 권한
+- `company_memberships.user_id` nullable 여부
+- 동일 회사 내 동일 Discord ID membership 중복 그룹 존재 여부
+- 최근 생성 회사에 OWNER membership이 정상적으로 함께 생성되는지
 
-이 두 항목은 실제 STAGING 데이터의 중복/이력 상태를 확인하기 전에 자동 migration으로 넣지 않습니다.
+## 의도적으로 이번에 DB migration을 넣지 않은 항목
+`(company_id, discord_user_id)` UNIQUE 경계는 과거 퇴사/재입사 이력 정책과 실제 중복 데이터 상태 확인 없이 추가하면 정상 이력을 깨뜨릴 수 있으므로 이번 WEB 패치에 포함하지 않았습니다.

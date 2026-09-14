@@ -284,57 +284,18 @@ async function uploadLedgerPendingEvidence(entryId){
     }
   }
 }
-function companyIdFromCreateResult(value){
-  if(!value)return '';
-  if(typeof value==='string')return String(value).trim();
-  if(Array.isArray(value))return companyIdFromCreateResult(value[0]);
-  if(typeof value==='object')return String(value.id||value.company_id||value.data?.id||value.data?.company_id||value.company?.id||value.company?.company_id||'').trim();
-  return '';
-}
-
-function findCreatedCompanyAfterRefresh(beforeIds, requestedName){
-  const before=beforeIds instanceof Set?beforeIds:new Set(beforeIds||[]);
-  const added=(state.companies||[]).filter(company=>company?.id&&!before.has(company.id));
-  const wanted=String(requestedName||'').trim().toLocaleLowerCase('ko-KR');
-  const sameName=added.filter(company=>String(company?.name||'').trim().toLocaleLowerCase('ko-KR')===wanted);
-  if(sameName.length===1)return sameName[0];
-  return null;
-}
-
-async function createCompanyAndResolve(name){
-  const requestedName=String(name||'').trim();
-  if(!requestedName)throw new Error('회사 이름을 입력해 주세요.');
-  const beforeIds=new Set((state.companies||[]).map(company=>company.id).filter(Boolean));
-  let created=null;
-  let createError=null;
-  try{
-    created=await createCompany(requestedName);
-  }catch(error){
-    createError=error;
-  }
-  let companyId=companyIdFromCreateResult(created);
-  if(!companyId){
-    try{
-      await claimDiscordMemberships().catch(()=>{});
-      await loadCompanies();
-      companyId=findCreatedCompanyAfterRefresh(beforeIds,requestedName)?.id||'';
-    }catch{}
-  }
-  if(companyId)return companyId;
-  if(createError){
-    const detail=String(createError?.message||'').trim();
-    throw new Error(detail&&detail!=='회사를 생성하지 못했습니다.'?`회사를 등록하지 못했습니다. ${detail}`:'회사를 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-  }
-  throw new Error('회사 등록 결과를 확인하지 못했습니다. 새 회사를 다시 만들기 전에 페이지를 새로고침해 등록 여부를 확인해 주세요.');
-}
-
 function createSetupDemoState(){
+  const demoModules={fund:true,ammo:true,outlaw:false,modbook:true,pinball:true,cooking:false,assets:true};
+  for(const row of state.modules||[]){
+    const key=String(row?.module_key||'');
+    if(key&&!Object.prototype.hasOwnProperty.call(demoModules,key)) demoModules[key]=Boolean(row.enabled);
+  }
   return {
     step:0,
     connected:false,
     adminRole:'대표',
     memberRole:'회사원',
-    modules:{fund:true,ammo:true,outlaw:false,modbook:true,pinball:true,cooking:false,assets:true},
+    modules:demoModules,
     channelMode:'quick',
     categoryName:'AXE PRODUCT',
     channelsGenerated:false,
@@ -402,6 +363,14 @@ function createSetupGuideState(step = 0){
 function savedSetupGuideProgress(){
   const value=state.companySettings?.settings?.guided_setup;
   return value&&typeof value==='object'?value:null;
+}
+
+function resolveSetupGuideResumeStep(requestedStep = 0){
+  let step=Math.max(0,Math.min(6,Number(requestedStep||0)));
+  if(state.discordConnection?.status!=='connected'||state.onboardingStatus?.catalog_ready===false) return 1;
+  if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id) return 2;
+  if(String(state.onboardingStatus?.status||'')==='onboarding'&&String(state.onboardingStatus?.current_step||'')==='modules') step=Math.max(step,3);
+  return step;
 }
 
 async function persistSetupGuideProgress(step,{completed=false}={}){
@@ -732,7 +701,7 @@ async function refreshAll() {
     state.ready=true;
     const saved=savedSetupGuideProgress();
     if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
-      const step=Math.max(1,Math.min(6,Number(saved.step||1)));
+      const step=resolveSetupGuideResumeStep(Math.max(1,Math.min(6,Number(saved.step||1))));
       state.setupGuide=createSetupGuideState(step);
       state.modal={type:'setup-guide'};
     }
@@ -849,7 +818,8 @@ async function handleDiscordOAuthReturn() {
   localStorage.removeItem('axe_product_setup_resume');
   localStorage.removeItem('axe_product_setup_resume_step');
   if(resumeGuide){
-    const resumeStep=Number.isInteger(resumeStepRaw)&&resumeStepRaw>=0&&resumeStepRaw<=6?resumeStepRaw:(discordCatalogPending()?1:2);
+    const requestedStep=Number.isInteger(resumeStepRaw)&&resumeStepRaw>=0&&resumeStepRaw<=6?resumeStepRaw:(discordCatalogPending()?1:2);
+    const resumeStep=resolveSetupGuideResumeStep(requestedStep);
     state.setupGuide=createSetupGuideState(resumeStep);
     state.modal={type:'setup-guide'};
     render();
@@ -928,6 +898,8 @@ function closeModal({force=false}={}) {
 }
 
 async function withMutation(fn){ if(mutationBusy)return; mutationBusy=true; state.loading=true; render(); try{await fn();}catch(error){setError(error);}finally{mutationBusy=false;state.loading=false;render();} }
+
+function isCurrentCompanyOwner(){ return currentMembership(state)?.role==='owner'; }
 
 function onboardingPhase(){ return String(state.onboardingStatus?.status||''); }
 function onboardingStep(){ return String(state.onboardingStatus?.current_step||''); }
@@ -1074,13 +1046,10 @@ root.addEventListener('click', async event => {
   }
   if(action==='go-dashboard'){state.accountMenuOpen=false;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
-    if(!canAdmin(state)){setError('초기설정은 OWNER 또는 관리자만 진행할 수 있습니다.');return;}
+    if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
-    let step=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
-    if(state.discordConnection?.status!=='connected'||state.onboardingStatus?.catalog_ready===false) step=1;
-    else if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id) step=Math.min(step||2,2)||2;
-    else if(String(state.onboardingStatus?.status||'')==='onboarding'&&String(state.onboardingStatus?.current_step||'')==='modules') step=Math.max(step,3);
-    openSetupGuide(step); return;
+    const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
+    openSetupGuide(resolveSetupGuideResumeStep(requestedStep)); return;
   }
   if(action==='setup-guide-back'){if(!state.setupGuide)return;state.setupGuide.step=Math.max(0,Number(state.setupGuide.step||0)-1);render();return;}
   if(action==='setup-guide-jump'){if(!state.setupGuide)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupGuide.step||0)){state.setupGuide.step=Math.max(0,Math.min(6,target));render();}return;}
@@ -1091,11 +1060,11 @@ root.addEventListener('click', async event => {
     state.setupGuide.step=Math.min(6,step+1);await withMutation(async()=>{await persistSetupGuideProgress(state.setupGuide.step);});return;
   }
   if(action==='setup-guide-connect'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{localStorage.setItem('axe_product_setup_resume','1');localStorage.removeItem('axe_product_setup_resume_step');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);});return;
   }
   if(action==='setup-guide-reapprove-channels'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       localStorage.setItem('axe_product_setup_resume','1');
       localStorage.setItem('axe_product_setup_resume_step','4');
@@ -1104,19 +1073,19 @@ root.addEventListener('click', async event => {
     });return;
   }
   if(action==='setup-guide-save-roles'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{await saveSetupGuideRoles();await persistSetupGuideProgress(3);setNotice('Discord 역할 설정을 저장했습니다.');});return;
   }
   if(action==='setup-guide-toggle-module'){
     if(!state.setupGuide)return;const key=String(actionEl.dataset.moduleKey||'');if(Object.prototype.hasOwnProperty.call(state.setupGuide.modules||{},key)){state.setupGuide.modules[key]=!state.setupGuide.modules[key];render();}return;
   }
   if(action==='setup-guide-save-modules'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{await saveSetupGuideModules();await persistSetupGuideProgress(4);setNotice('사용 기능을 저장했습니다.');});return;
   }
   if(action==='setup-guide-channel-mode'){if(!state.setupGuide)return;state.setupGuide.channelMode=String(actionEl.dataset.mode||'quick')==='direct'?'direct':'quick';if(state.setupGuide.channelMode==='direct'){state.setupGuide.permissionIssue=null;state.setupGuide.permissionMessage='';}render();return;}
   if(action==='setup-guide-create-channels'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan();
       const category=String(state.setupGuide.categoryName||'AXE PRODUCT').trim();
@@ -1147,7 +1116,7 @@ root.addEventListener('click', async event => {
     });return;
   }
   if(action==='setup-guide-save-direct-channels'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan(); const map={};
       for(const row of plan){const id=String(state.setupGuide.directChannels?.[row.key]||'');if(!id)throw new Error(`${row.label}에 연결할 Discord 채널을 선택해 주세요.`);map[row.key]=id;}
@@ -1155,23 +1124,25 @@ root.addEventListener('click', async event => {
     });return;
   }
   if(action==='setup-guide-load-members'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(loadSetupGuideMembers);return;
   }
   if(action==='setup-guide-select-members'){
     if(!state.setupGuide)return;const ids=(state.setupGuide.memberCandidates||[]).map(m=>String(m.discord_user_id));const selected=new Set((state.setupGuide.memberSelected||[]).map(String));const all=ids.length>0&&ids.every(id=>selected.has(id));ids.forEach(id=>all?selected.delete(id):selected.add(id));state.setupGuide.memberSelected=[...selected];render();return;
   }
   if(action==='setup-guide-import-members'){
-    if(!state.setupGuide||!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}
+    if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const selected=new Set((state.setupGuide.memberSelected||[]).map(String));const members=(state.setupGuide.memberCandidates||[]).filter(m=>selected.has(String(m.discord_user_id)));
       if(!members.length)throw new Error('등록할 멤버를 한 명 이상 선택해 주세요.');
       const result=await bulkRegisterDiscordMembers(state.companyId,state.setupGuide.memberFilterRoleId,members.map(m=>String(m.discord_user_id)),state.setupGuide.memberTargetRole||'member');
-      await loadBaseCompanyData();state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=false;await persistSetupGuideProgress(6);setNotice(`${Number(result?.inserted?.length||0)}명 등록 완료 · ${Number(result?.skipped?.length||0)}명 기존 등록`);
+      await loadBaseCompanyData();state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=false;await persistSetupGuideProgress(6);
+      const insertedCount=Number(result?.inserted?.length||0);const existingCount=Number(result?.skipped?.length||0);const inactiveCount=Number(result?.requires_manual_reactivation?.length||0);
+      setNotice(`${insertedCount}명 등록 완료 · ${existingCount}명 기존 등록${inactiveCount?` · ${inactiveCount}명은 퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요`:''}`);
     });return;
   }
   if(action==='setup-guide-skip-members'){if(!state.setupGuide)return;state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=true;await withMutation(async()=>{await persistSetupGuideProgress(6);});return;}
-  if(action==='setup-guide-finish'){await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
+  if(action==='setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 완료할 수 있습니다.');return;}await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
   if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}
@@ -1179,7 +1150,7 @@ root.addEventListener('click', async event => {
   if(action==='setup-demo-restart'){if(!state.setupDemo)return;state.setupDemo=createSetupDemoState();render();return;}
   if(action==='setup-demo-finish'){const back=Boolean(state.modal?.returnToTestCenter);state.setupDemo=null;state.modal=back?{type:'test-center'}:null;render();return;}
   if(action==='setup-demo-jump'){if(!state.setupDemo)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupDemo.step||0)){state.setupDemo.step=Math.max(0,Math.min(6,target));render();}return;}
-  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key&&Object.prototype.hasOwnProperty.call(state.setupDemo.modules,key)){state.setupDemo.modules[key]=!state.setupDemo.modules[key];state.setupDemo.channelsGenerated=false;render();}return;}
+  if(action==='setup-demo-toggle-module'){if(!state.setupDemo)return;const key=String(actionEl.dataset.moduleKey||'');if(key){state.setupDemo.modules[key]=!Boolean(state.setupDemo.modules[key]);state.setupDemo.channelsGenerated=false;render();}return;}
   if(action==='setup-demo-channel-mode'){if(!state.setupDemo)return;const mode=String(actionEl.dataset.mode||'quick');state.setupDemo.channelMode=mode==='direct'?'direct':'quick';state.setupDemo.channelsGenerated=false;render();return;}
   if(action==='setup-demo-generate-channels'){if(!state.setupDemo)return;state.setupDemo.channelsGenerated=true;render();return;}
   if(action==='setup-demo-select-visible-members'){
@@ -1449,10 +1420,27 @@ root.addEventListener('submit', async event => {
       state.modal=null;
       await loadBaseCompanyData();
       state.memberFilter='active';state.memberRole='';state.memberQuery='';state.memberPage=1;
-      setNotice(result?.status==='existing'?'이미 등록된 Discord 멤버입니다. 멤버 목록에서 확인해 주세요.':'멤버를 등록했습니다. 해당 팀원은 등록 확인 후 바로 회사에 연결됩니다.');
+      if(result?.status==='existing' && result?.membership?.status && result.membership.status!=='active') setNotice('이미 등록 이력이 있는 멤버입니다. 멤버 관리에서 현재 상태를 확인해 주세요.');
+      else setNotice(result?.status==='existing'?'이미 등록된 Discord 멤버입니다. 멤버 목록에서 확인해 주세요.':'멤버를 등록했습니다. 해당 팀원은 등록 확인 후 바로 회사에 연결됩니다.');
       return;
     }
-    if(type==='create-company'){const name=String(data.get('name')||'').trim();const createdCompanyId=await createCompanyAndResolve(name);state.companyId=createdCompanyId;localStorage.setItem('axe_product_company_id',createdCompanyId);await claimDiscordMemberships();state.modal=null;state.page='settings';state.settingsTab='basic';localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');await loadCompanies();state.companyId=createdCompanyId;localStorage.setItem('axe_product_company_id',createdCompanyId);await loadCompanyData();state.ready=true;state.setupGuideDismissed=false;await persistSetupGuideProgress(1);state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};setNotice('회사 등록이 완료되었습니다. 이어서 초기설정을 완료해 주세요.');return;}
+    if(type==='create-company'){
+      const created=await createCompany(String(data.get('name')||'').trim());
+      if(!created?.id)throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
+      state.companyId=created.id;
+      localStorage.setItem('axe_product_company_id',created.id);
+      await claimDiscordMemberships();
+      state.modal=null;state.page='settings';state.settingsTab='basic';
+      localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');
+      await loadCompanies();await loadCompanyData();
+      state.ready=true;
+      if(!isCurrentCompanyOwner())throw new Error('회사 등록은 확인됐지만 OWNER 권한 연결을 확인하지 못했습니다. 새로고침 후에도 같다면 관리자에게 문의해 주세요.');
+      state.setupGuideDismissed=false;
+      await persistSetupGuideProgress(1);
+      state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};
+      setNotice('회사 등록이 완료되었습니다. 이어서 초기설정을 시작합니다.');
+      return;
+    }
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
     if(type==='suggestion-create'){
       const category=String(data.get('category')||'improvement').trim(); const title=String(data.get('title')||'').trim(); const body=String(data.get('body')||'').trim();

@@ -4,6 +4,7 @@ const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
 const registerMembers=fs.readFileSync(new URL('../api/discord/setup/register-members.js',import.meta.url),'utf8');
+const registerMember=fs.readFileSync(new URL('../api/discord/setup/register-member.js',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 
 const checks=[];
@@ -39,6 +40,18 @@ expect('registration verification still claims before company listing',main.inde
 expect('server re-verifies selected Discord members before registration',registerMembers.includes('// Re-scan on the server so the browser cannot submit arbitrary Discord IDs.')&&registerMembers.includes('findSelectedRoleMembers(guildId, roleId, selectedIds)'));
 expect('inactive historical members are not silently reactivated',registerMembers.includes('requires_manual_reactivation')&&main.includes('퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요'));
 expect('test center remains non-writing for member registration check',main.includes("if(action==='test-center-member-check')")&&!main.match(/if\(action==='test-center-member-check'\)[\s\S]{0,500}claimDiscordMemberships\(/));
+
+
+expect('existing non-owner does not see additional company action',render.includes("(currentMembership(state)?.role==='owner'||state.platformAdmin)")&&main.includes("role!=='owner'&&!state.platformAdmin"));
+expect('direct member registration is available to company admins',render.includes('data-action="open-member-register"')&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
+expect('direct member registration revalidates company admin server-side',registerMember.includes('await requireCompanyAdmin(token, user.id, companyId)'));
+expect('direct member registration verifies actual Discord guild membership',registerMember.includes("/guilds/${guildId}/members/${discordUserId}"));
+expect('direct member registration fails clearly when Discord is not connected',registerMember.includes("status(409)")&&registerMember.includes('먼저 회사 설정에서 Discord 서버를 연결해 주세요.'));
+expect('direct member registration never grants owner role',registerMember.includes("new Set(['admin','manager','member'])")&&!registerMember.includes("'owner','admin','manager','member'"));
+expect('direct member registration preserves inactive historical state',main.includes("result?.membership?.status && result.membership.status!=='active'")&&main.includes('멤버 관리에서 현재 상태를 확인해 주세요.'));
+expect('guided setup launcher is owner-only',render.includes("const previewAction=currentMembership(state)?.role==='owner'")&&main.includes("if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}"));
+expect('guided setup mutations are owner-only',!main.includes("!state.setupGuide||!canAdmin(state)")&&main.includes("setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()"));
+expect('company creation verifies owner membership before setup',main.includes("if(!isCurrentCompanyOwner())throw new Error('회사 등록은 확인됐지만 OWNER 권한 연결을 확인하지 못했습니다."));
 
 let failed=0;
 for(const [label,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${label}`);if(!ok)failed++;}

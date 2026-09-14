@@ -1,11 +1,17 @@
-AXE PRODUCT WEB 3.26.2 · STAGING ONLY
+AXE PRODUCT WEB 3.26.3 · STAGING ONLY
 
-1. 3.26.0 membership claim SQL을 아직 적용하지 않았다면 먼저 실행:
-   SUPABASE_MIGRATION_3_26_0_FIRST_RUN_MEMBERSHIP_CLAIM.sql
-2. WEB STAGING repo에 이 폴더 전체 덮어쓰기
-3. commit / push
-4. Vercel Ready 확인
-5. PLATFORM OWNER 계정 우측 메뉴 → 테스트 센터에서 시나리오 확인
+전제: 3.26.0 membership claim SQL이 이미 적용된 STAGING.
 
-3.26.2 자체 추가 SQL 없음.
-BOT 변경 없음. LIVE BOT / LIVE 경로 작업 금지.
+이번 3.26.3 자체는 추가 SQL 없음.
+BOT 변경 없음.
+
+배포:
+1. WEB STAGING GitHub 프로젝트에 이 폴더 전체 덮어쓰기
+2. commit / push
+3. Vercel STAGING Ready 확인
+4. PLATFORM OWNER → 테스트 센터에서 다음 확인
+   - 기능 선택에 개조서 / 핀볼 모집 표시
+   - 신규 대표 회사 생성 체험
+   - 초기설정 진행 중 재개 체험
+
+LIVE BOT / LIVE WEB 작업 금지.

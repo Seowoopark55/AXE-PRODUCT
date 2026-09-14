@@ -1,6 +1,6 @@
 
 > axe-product-staging@1.7.41-web-ui.66 check
-> node scripts/source-check.mjs && node scripts/integrated-ui-check.mjs && node scripts/onboarding-catalog-check.mjs && node scripts/operations-ux-check.mjs && node scripts/member-identity-ux-check.mjs && node scripts/dense-ops-system-check.mjs && node scripts/content-fit-density-check.mjs && node scripts/generated-ambient-shell-check.mjs && node scripts/guided-setup-typography-check.mjs && node scripts/live-guided-setup-check.mjs && node scripts/session-auth-privacy-check.mjs && node scripts/operations-row-actions-check.mjs && node scripts/platform-subscription-evidence-check.mjs && node scripts/platform-shell-balance-check.mjs && node scripts/content-offset-plan-check.mjs && node scripts/discord-permission-reapproval-check.mjs && node scripts/modbook-channel-guided-check.mjs && node scripts/discord-upfront-permissions-check.mjs && node scripts/dashboard-operations-check.mjs && node scripts/dashboard-readability-check.mjs && node scripts/account-lookup-owner-shell-check.mjs && node scripts/questions-board-check.mjs && node scripts/scale-safe-lists-check.mjs && node scripts/pinball-module-check.mjs && node scripts/suggestions-board-check.mjs && node scripts/first-run-onboarding-check.mjs && node scripts/test-center-check.mjs
+> node scripts/source-check.mjs && node scripts/integrated-ui-check.mjs && node scripts/onboarding-catalog-check.mjs && node scripts/operations-ux-check.mjs && node scripts/member-identity-ux-check.mjs && node scripts/dense-ops-system-check.mjs && node scripts/content-fit-density-check.mjs && node scripts/generated-ambient-shell-check.mjs && node scripts/guided-setup-typography-check.mjs && node scripts/live-guided-setup-check.mjs && node scripts/session-auth-privacy-check.mjs && node scripts/operations-row-actions-check.mjs && node scripts/platform-subscription-evidence-check.mjs && node scripts/platform-shell-balance-check.mjs && node scripts/content-offset-plan-check.mjs && node scripts/discord-permission-reapproval-check.mjs && node scripts/modbook-channel-guided-check.mjs && node scripts/discord-upfront-permissions-check.mjs && node scripts/dashboard-operations-check.mjs && node scripts/dashboard-readability-check.mjs && node scripts/account-lookup-owner-shell-check.mjs && node scripts/questions-board-check.mjs && node scripts/scale-safe-lists-check.mjs && node scripts/pinball-module-check.mjs && node scripts/suggestions-board-check.mjs && node scripts/first-run-onboarding-check.mjs && node scripts/test-center-check.mjs && node scripts/onboarding-flow-integrity-check.mjs
 
 AXE PRODUCT SOURCE CHECK: PASS
 Checked 28 source files.
@@ -450,10 +450,6 @@ PASS member path shows and copies Discord registration identity
 PASS first-run has no invite-code join form
 PASS first-run does not search or enumerate companies
 PASS member page teaches registration-first rule
-PASS member page provides direct registration action
-PASS direct registration accepts copied Discord ID
-PASS direct registration revalidates company admin and Discord guild member
-PASS direct registration never grants owner
 PASS member page no longer exposes join-code action
 PASS slug is hidden from company UI
 PASS company create generates internal slug automatically
@@ -463,9 +459,6 @@ PASS manual registration check also claims before listing companies
 PASS successful registration check lands dashboard
 PASS unregistered member remains blocked with clear error
 PASS company create starts Guided Setup automatically
-PASS company create normalizes scalar or object RPC return
-PASS company create reconciles ambiguous result before allowing retry
-PASS existing non-owner cannot start another company accidentally
 PASS only owner auto-resumes unfinished initial setup
 PASS registered non-owner is not forced into setup
 PASS SQL identifies authenticated Discord identity
@@ -475,7 +468,7 @@ PASS SQL prevents duplicate company membership claim
 PASS claim RPC is authenticated-only
 PASS first-run layout stays two-path and responsive
 PASS waiting card has visible blocked-state treatment
-First-run registration gate: 35/35 PASS
+First-run registration gate: 28/28 PASS
 PASS web package version
 PASS platform account menu has test center
 PASS test center is platform owner only
@@ -492,19 +485,43 @@ PASS test member check stays local
 PASS guided preview returns to test center
 PASS safe mode copy text
 PASS test center safe banner
-PASS preview module list shares live registry
-PASS preview registry includes modbook and pinball
-PASS preview no longer hardcodes stale five-card list
 PASS test center CSS
 PASS no join code input in center
-Test Center: 21/21 PASS
-
-=== 3.26.3 extra verification ===
-- all JS/MJS node --check: PASS
-- direct Discord-ID member registration endpoint syntax: PASS
-- node_modules bundled: NO
-- local Vite build: NOT RUN (node_modules intentionally absent)
-- final build verification: Vercel STAGING Ready
-- SQL changes in 3.26.3: NONE
-- BOT changes in 3.26.3: NONE
-- LIVE target: NO
+Test Center: 18/18 PASS
+PASS 3.26.3 web package version
+PASS company slug remains internal and automatic
+PASS company create keeps a stable pending attempt
+PASS company create retries recover by the same slug before another insert
+PASS company create accepts scalar/object/array RPC result shapes
+PASS company create verifies canonical company row after RPC
+PASS ambiguous old company result error removed
+PASS company create success message is customer-readable
+PASS company create unresolved state gives recovery instruction
+PASS guided setup uses one shared resume resolver
+PASS resume resolver checks Discord connection/catalog prerequisite
+PASS resume resolver checks role prerequisite
+PASS automatic owner resume uses shared resolver
+PASS manual setup open uses shared resolver
+PASS OAuth setup resume uses shared resolver
+PASS unfinished setup auto-resume remains owner-only
+PASS live module order includes modbook and pinball
+PASS test preview derives module cards from live module definitions
+PASS test preview step uses the shared preview module list
+PASS test preview can toggle newly added shared modules
+PASS test preview channel plan also includes modbook and pinball
+PASS first-run stays registration-gated with no company search/join code
+PASS registration verification still claims before company listing
+PASS server re-verifies selected Discord members before registration
+PASS inactive historical members are not silently reactivated
+PASS test center remains non-writing for member registration check
+PASS existing non-owner does not see additional company action
+PASS direct member registration is available to company admins
+PASS direct member registration revalidates company admin server-side
+PASS direct member registration verifies actual Discord guild membership
+PASS direct member registration fails clearly when Discord is not connected
+PASS direct member registration never grants owner role
+PASS direct member registration preserves inactive historical state
+PASS guided setup launcher is owner-only
+PASS guided setup mutations are owner-only
+PASS company creation verifies owner membership before setup
+Onboarding flow integrity: 36/36 PASS

@@ -1,25 +1,62 @@
-# AXE PRODUCT STAGING · 3.26.3 · Onboarding Flow Hardening
+# AXE PRODUCT WEB 3.26.3 · ONBOARDING FLOW INTEGRATED R2
 
-## 점검 결과
-- 첫 접속 분기, 멤버 선등록/자동 claim, OWNER Guided Setup 자동 재개 흐름은 현재 제품 방향과 일치합니다.
-- 실제 Guided Setup에는 공금/총알/무법지대/개조서/핀볼/요리/자산·계좌가 등록돼 있었고, 테스트 센터 Preview만 오래된 5개 카드 목록을 사용하고 있었습니다.
-- 회사 생성 화면의 `생성된 회사 정보를 받지 못했습니다.`는 계정당 회사 제한 문구가 아니라, RPC 반환값을 객체 `.id`로만 해석하던 WEB 처리 문제였습니다.
+## 기준
+- 배포 기준선: `AXE_PRODUCT_WEB_STAGING_3_26_2_PLATFORM_TEST_CENTER_R1`
+- 기존 3.26.3 `INTEGRITY R1` / `HARDENING R1`은 서로 다른 보강점이 있었고 배포 완료 증거가 없어 후보본으로만 취급했습니다.
+- 이 R2는 `INTEGRITY R1`의 회사 생성/재개 보호를 기준으로 `HARDENING R1`의 유효한 멤버 등록 기능을 선택 병합한 통합본입니다.
 
-## 수정
-1. 회사 생성 반환값을 UUID 문자열/객체/배열 모두 처리합니다.
-2. 반환값이 모호하거나 호출 오류가 발생해도 회사 목록을 재조회해 새 회사 생성 여부를 먼저 확인합니다.
-3. 중복 생성 위험을 줄이기 위해 재시도 전 확인 안내를 명확히 합니다.
-4. 이미 회사가 있는 일반 admin/manager/member의 사이드바 `+ 새 회사`를 숨기고 액션도 차단합니다. OWNER/PLATFORM OWNER와 회사가 없는 신규 사용자는 생성 가능 상태를 유지합니다.
-5. 멤버 관리에 `멤버 등록` 버튼을 추가해 팀원이 첫 접속 화면에서 복사한 Discord ID를 대표/관리자가 직접 등록할 수 있게 했습니다. 서버 API가 회사 관리자 권한과 현재 Discord 서버 소속을 다시 검증하며 OWNER 권한은 신규 등록에서 허용하지 않습니다.
-6. Test Center Guided Setup Preview의 기능 카드를 `MODULE_ORDER / MODULE_UI` 단일 소스에서 렌더링하도록 변경했습니다. 개조서/핀볼 포함.
-7. Test Center 검증에 실제/체험 모듈 레지스트리 동기화 검사를 추가했습니다.
-8. README의 3.26.0 합류 코드 설명에 3.26.1에서 대체된 과거 방식임을 명시했습니다.
+## 1. 회사 생성 결과 처리 및 중복 생성 방어
+- `create_company` RPC 반환값을 `{id}` 한 형태로만 가정하지 않습니다.
+- UUID scalar / object `id` / object `company_id` / array 반환을 모두 인식합니다.
+- 같은 생성 시도의 내부 SLUG를 `sessionStorage`에 30분간 유지합니다.
+- RPC 호출 전에 같은 SLUG의 회사가 이미 생겼는지 확인합니다.
+- RPC 응답 유실/네트워크 오류 시에도 같은 SLUG를 다시 조회한 뒤 실제 생성 여부를 복구합니다.
+- RPC 성공 후 실제 `companies` row를 재조회해 확인된 회사만 다음 단계로 넘깁니다.
+- 빠른 연속 클릭은 기존 `withMutation()` 잠금과 동일 SLUG 복구를 함께 사용합니다.
+- 기존 기술 문구 `생성된 회사 정보를 받지 못했습니다.`는 제거했습니다.
+- 성공 안내: `회사 등록이 완료되었습니다. 이어서 초기설정을 시작합니다.`
+- 결과 확인 불가: `회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.`
+- 회사 생성 뒤 현재 사용자가 실제 OWNER membership인지 다시 확인하고, 누락이면 Guided Setup으로 강행하지 않습니다.
 
-## 변경 범위
-- WEB only
-- SQL 변경 없음
-- BOT 변경 없음
-- LIVE 대상 아님
+## 2. 첫 접속 / 멤버 등록 흐름
+- 등록된 Discord placeholder membership은 로그인 직후 claim한 뒤 회사 목록을 조회합니다.
+- 미등록 팀원은 회사 검색/합류코드 없이 대표·관리자에게 등록을 요청하고 `등록 확인하기`로 재확인합니다.
+- 회사 멤버 관리 화면에 `멤버 등록`을 추가했습니다.
+- 대표/관리자가 팀원이 전달한 Discord ID를 입력하면 서버가 현재 연결된 Discord 서버의 실제 멤버인지 다시 확인하고 placeholder membership을 생성합니다.
+- OWNER 역할은 직접 등록 화면에서 부여할 수 없습니다.
+- 과거 `left/suspended` membership이 있으면 자동 재활성화하지 않고 멤버 관리에서 상태를 확인하도록 안내합니다.
 
-## 별도 하드닝 후보
-현재 확보한 DB 스냅샷에는 `company_memberships`의 `(company_id, user_id)` UNIQUE는 확인되지만 `(company_id, discord_user_id)` UNIQUE는 확인되지 않았습니다. Guided Setup의 정상 멤버 등록 흐름은 기존 Discord ID를 선검사하지만, DB 레벨 중복 방지는 별도 데이터 점검 후 안전하게 추가하는 편이 좋습니다. 이번 WEB 패치에는 포함하지 않습니다.
+## 3. 신규 회사 생성 노출 정책
+- 회사가 없는 사용자는 기존처럼 `새 회사 등록 시작`을 사용할 수 있습니다.
+- 이미 회사에 소속된 일반 멤버/관리자는 사이드바의 `+ 새 회사`가 보이지 않습니다.
+- 액션을 직접 호출해도 기존 회사 OWNER 또는 PLATFORM OWNER가 아니면 차단합니다.
+- 여러 회사 소속 자체는 기존 시스템 구조대로 지원하며, OWNER는 추가 회사 등록 및 회사 전환이 가능합니다.
+
+## 4. 초기설정 OWNER 전용
+- 미완료 초기설정 자동 재개는 OWNER만 수행합니다.
+- 수동 `초기설정 가이드` 버튼도 OWNER에게만 표시합니다.
+- Discord 연결, 역할 저장, 기능 저장, 채널 생성/연결, 멤버 일괄등록, 완료 처리 등 실제 Guided Setup mutation도 OWNER만 진행하도록 통일했습니다.
+- ADMIN은 일반 회사 설정 화면에서 운영 설정을 관리할 수 있지만 신규 회사의 초기 Guided Setup을 대신 진행하지 않습니다.
+
+## 5. 초기설정 재개 단계 무결성
+- 새로고침/재접속/Discord OAuth 복귀/수동 초기설정 열기의 단계 계산을 `resolveSetupGuideResumeStep()` 하나로 통합했습니다.
+- 저장된 STEP이 앞서 있어도 Discord 연결/카탈로그가 준비되지 않았으면 STEP 1로 복구합니다.
+- 관리자/일반 멤버 Discord 역할 설정이 없으면 STEP 2로 복구합니다.
+- 완료된 초기설정이 일반 재접속에서 자동으로 다시 열리지 않습니다.
+
+## 6. Test Center와 실제 기능 목록 동기화
+- Test Center 기능 선택은 실제 Guided Setup과 동일한 `MODULE_ORDER` + `MODULE_UI`를 사용합니다.
+- 현재 `공금 / 총알 / 무법지대 / 개조서 / 핀볼 모집 / 요리 주문 / 자산·계좌 관리`가 동일하게 표시됩니다.
+- 이후 공용 모듈 정의에 기능이 추가되면 Test Center도 같은 목록을 따라갑니다.
+- Test Center는 계속 실제 회사/멤버/Discord/설정을 변경하지 않습니다.
+
+## 검증
+- `node --check` 대상 변경 JS: PASS
+- 전체 `npm run check`: PASS
+- `scripts/onboarding-flow-integrity-check.mjs`: 36/36 PASS
+
+## DB / BOT
+- 이 WEB 패치 자체에 추가 migration은 없습니다.
+- `SUPABASE_MIGRATION_3_26_0_FIRST_RUN_MEMBERSHIP_CLAIM.sql` 적용 상태와 실제 `axe_product.create_company` RETURNS 형식은 별도 읽기 전용 진단 SQL로 확인합니다.
+- BOT 변경 없음.
+- LIVE 변경 없음.

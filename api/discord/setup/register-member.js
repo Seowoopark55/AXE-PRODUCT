@@ -43,7 +43,10 @@ export default async function handler(req, res) {
     const { token, user } = await requireUser(req);
     await requireCompanyAdmin(token, user.id, companyId);
     const connection = await getCompanyDiscordConnection(token, companyId);
-    const guildId = String(connection.guild_id || '');
+    const guildId = String(connection?.guild_id || '').trim();
+    if (!guildId) {
+      return res.status(409).json({ error: '먼저 회사 설정에서 Discord 서버를 연결해 주세요.' });
+    }
 
     const existing = await getCompanyMembershipsByDiscordIds(token, companyId, [discordUserId]);
     if (existing.length) {
