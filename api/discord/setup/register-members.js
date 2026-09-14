@@ -89,8 +89,6 @@ export default async function handler(req, res) {
     const verifiedIds = verified.members.map((member) => member.discord_user_id);
     const existing = await getCompanyMembershipsByDiscordIds(token, companyId, verifiedIds);
     const existingIds = new Set(existing.map((row) => String(row.discord_user_id || '')));
-    const existingActive = existing.filter((row) => String(row.status || '') === 'active');
-    const requiresManualReactivation = existing.filter((row) => String(row.status || '') !== 'active');
     const rows = verified.members
       .filter((member) => !existingIds.has(member.discord_user_id))
       .map((member) => ({
@@ -106,8 +104,7 @@ export default async function handler(req, res) {
     const rejectedIds = selectedIds.filter((id) => !verifiedIds.includes(id));
     return res.status(200).json({
       inserted,
-      skipped: existingActive,
-      requires_manual_reactivation: requiresManualReactivation,
+      skipped: existing,
       rejected_count: rejectedIds.length,
       scanned: verified.scanned,
       source_role: { id: roleId, name: String(sourceRole.name || '') },

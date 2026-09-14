@@ -20,6 +20,9 @@ expect('test member check stays local',main.includes("if(action==='test-center-m
 expect('guided preview returns to test center',main.includes('returnToTestCenter:true')&&main.includes("back?{type:'test-center'}:null"));
 expect('safe mode copy text',main.includes('테스트용 등록 정보를 복사했습니다.'));
 expect('test center safe banner',render.includes('TEST MODE')&&render.includes('실제 데이터 변경 없이'));
+expect('preview module list shares live registry',render.includes('const previewModules=MODULE_ORDER.map')&&render.includes('previewModules.map(moduleCard)'));
+expect('preview registry includes modbook and pinball',render.includes("const MODULE_ORDER = ['fund','ammo','outlaw','modbook','pinball','cooking','assets']")&&render.includes("modbook:{name:'개조서'")&&render.includes("pinball:{name:'핀볼 모집'"));
+expect('preview no longer hardcodes stale five-card list',!render.includes("moduleCard('fund','공금 관리'"));
 expect('test center CSS',css.includes('.test-center-shell')&&css.includes('.test-center-safe'));
 expect('no join code input in center',!render.match(/testCenterModal[\s\S]{0,12000}합류 코드 입력/));
 console.log(`Test Center: ${passed}/${passed+failed} PASS`);if(failed)process.exit(1);

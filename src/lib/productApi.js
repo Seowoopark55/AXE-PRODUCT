@@ -56,9 +56,6 @@ export async function listCompanies() {
   return unwrap(result, '회사 목록을 불러오지 못했습니다.') || [];
 }
 
-const COMPANY_CREATE_ATTEMPT_KEY = 'axe_product_pending_company_create_v1';
-const COMPANY_CREATE_ATTEMPT_TTL_MS = 30 * 60 * 1000;
-
 function makeInternalCompanySlug() {
   const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID().replace(/-/g, '').slice(0, 16)
@@ -66,119 +63,26 @@ function makeInternalCompanySlug() {
   return `company-${randomPart.toLowerCase()}`;
 }
 
-function readPendingCompanyCreate() {
-  try {
-    const raw = sessionStorage.getItem(COMPANY_CREATE_ATTEMPT_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    const createdAt = Number(parsed?.created_at || 0);
-    if (!parsed?.name || !parsed?.slug || !createdAt || Date.now() - createdAt > COMPANY_CREATE_ATTEMPT_TTL_MS) {
-      sessionStorage.removeItem(COMPANY_CREATE_ATTEMPT_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writePendingCompanyCreate(name, slug) {
-  try {
-    sessionStorage.setItem(COMPANY_CREATE_ATTEMPT_KEY, JSON.stringify({ name, slug, created_at: Date.now() }));
-  } catch {}
-}
-
-function clearPendingCompanyCreate() {
-  try { sessionStorage.removeItem(COMPANY_CREATE_ATTEMPT_KEY); } catch {}
-}
-
-function companyIdFromRpcData(data) {
-  if (typeof data === 'string') return data.trim();
-  if (Array.isArray(data)) return companyIdFromRpcData(data[0]);
-  if (data && typeof data === 'object') return String(data.id || data.company_id || '').trim();
-  return '';
-}
-
-async function findCompanyById(companyId) {
-  const id = String(companyId || '').trim();
-  if (!id) return null;
-  const result = await supabase
-    .from('companies')
-    .select('id,name,slug,status,created_at,updated_at')
-    .eq('id', id)
-    .maybeSingle();
-  if (result.error) throw result.error;
-  return result.data || null;
-}
-
-async function findCompanyBySlug(slug) {
-  const value = String(slug || '').trim();
+function normalizeCreatedCompany(value) {
   if (!value) return null;
-  const result = await supabase
-    .from('companies')
-    .select('id,name,slug,status,created_at,updated_at')
-    .eq('slug', value)
-    .maybeSingle();
-  if (result.error) throw result.error;
-  return result.data || null;
+  if (typeof value === 'string') return { id: value.trim() };
+  if (Array.isArray(value)) return normalizeCreatedCompany(value[0]);
+  if (typeof value === 'object') {
+    const nested = value.company && typeof value.company === 'object' ? value.company : null;
+    const id = String(value.id || value.company_id || value.data?.id || value.data?.company_id || nested?.id || nested?.company_id || '').trim();
+    return id ? { ...value, id } : value;
+  }
+  return value;
 }
 
 export async function createCompany(name, slug = '') {
   assertClient();
-  const normalizedName = String(name || '').trim();
-  if (!normalizedName) throw new Error('회사 이름을 입력해 주세요.');
-
-  const explicitSlug = String(slug || '').trim();
-  const pending = explicitSlug ? null : readPendingCompanyCreate();
-  const internalSlug = explicitSlug || (pending?.name === normalizedName ? pending.slug : makeInternalCompanySlug());
-  if (!explicitSlug && (!pending || pending.name !== normalizedName || pending.slug !== internalSlug)) {
-    writePendingCompanyCreate(normalizedName, internalSlug);
-  }
-
-  // A previous request may have committed successfully while the browser missed
-  // the response. Recover that company first so a retry cannot create a duplicate.
-  if (!explicitSlug) {
-    const recovered = await findCompanyBySlug(internalSlug).catch(() => null);
-    if (recovered?.id) {
-      clearPendingCompanyCreate();
-      return recovered;
-    }
-  }
-
-  let result;
-  try {
-    result = await supabase.rpc('create_company', {
-      p_name: normalizedName,
-      p_slug: internalSlug,
-    });
-  } catch (error) {
-    const recovered = await findCompanyBySlug(internalSlug).catch(() => null);
-    if (recovered?.id) {
-      clearPendingCompanyCreate();
-      return recovered;
-    }
-    throw new Error('회사를 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-  }
-
-  if (result.error) {
-    const recovered = await findCompanyBySlug(internalSlug).catch(() => null);
-    if (recovered?.id) {
-      clearPendingCompanyCreate();
-      return recovered;
-    }
-    throw new Error('회사를 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-  }
-
-  const returnedId = companyIdFromRpcData(result.data);
-  let company = returnedId ? await findCompanyById(returnedId).catch(() => null) : null;
-  if (!company?.id) company = await findCompanyBySlug(internalSlug).catch(() => null);
-
-  if (!company?.id) {
-    throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
-  }
-
-  clearPendingCompanyCreate();
-  return company;
+  const internalSlug = String(slug || '').trim() || makeInternalCompanySlug();
+  const result = await supabase.rpc('create_company', {
+    p_name: name,
+    p_slug: internalSlug,
+  });
+  return normalizeCreatedCompany(unwrap(result, '회사를 생성하지 못했습니다.'));
 }
 
 export async function claimDiscordMemberships() {
@@ -976,6 +880,21 @@ export async function bulkRegisterDiscordMembers(companyId, roleId, discordUserI
       role_id: String(roleId || ''),
       discord_user_ids: ids,
       target_role: role === 'admin' ? 'admin' : 'member',
+    }),
+  });
+}
+
+
+export async function registerDiscordMember(companyId, discordUserId, role = 'member') {
+  const id = String(discordUserId || '').trim();
+  if (!/^\d{15,22}$/.test(id)) throw new Error('Discord ID는 15~22자리 숫자로 입력해 주세요.');
+  const targetRole = ['admin','manager','member'].includes(String(role || '')) ? String(role) : 'member';
+  return authenticatedProductApi('/api/discord/setup/register-member', {
+    method: 'POST',
+    body: JSON.stringify({
+      company_id: companyId,
+      discord_user_id: id,
+      target_role: targetRole,
     }),
   });
 }
