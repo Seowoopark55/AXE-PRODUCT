@@ -10,7 +10,7 @@
 @import './styles/responsive.css';
 @import './styles/brand-skin.css';
 
-/* AXE PRODUCT STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
+/* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}
 body{margin:0;background:#070a0e;color:#e8edf2;overflow-x:hidden;}
 button,select,input,textarea{font:inherit}
@@ -50,7 +50,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .member-profile-form>label{align-self:start}.member-profile-form .member-profile-inline.is-full{grid-column:1/-1}.member-profile-form .member-profile-inline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}.member-profile-form .member-profile-inline label{display:grid;gap:6px;min-width:0;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-form textarea[name="member_note"]{min-height:82px;max-height:160px}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px 28px;gap:6px}.member-profile-label{height:16px;display:flex;align-items:center;gap:5px;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-label em{color:#697581;font-size:8.5px;font-style:normal;font-weight:600}
 @media(max-width:700px){.member-profile-form .member-profile-inline{grid-template-columns:1fr}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px auto}}
 
-/* AXE PRODUCT 3.18.11 · GENERATED AMBIENT SHELL R1
+/* AXE ONE 3.18.11 · GENERATED AMBIENT SHELL R1
    Apply the newly generated high-quality AXE side-shell artwork directly as the
    desktop brand backdrop. The decorative image lives outside the app frame and
    the central shared console remains the operational focus. */
@@ -78,7 +78,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 @media(max-width:760px){body{background:#040608}body::before,body::after{display:none}#app{background:#040608!important}.runtime-app{width:100%;min-height:100vh;margin:0;border:0;border-radius:0;box-shadow:none}}
 
 
-/* AXE PRODUCT 3.19.0 · GUIDED SETUP PREVIEW R1 */
+/* AXE ONE 3.19.0 · GUIDED SETUP PREVIEW R1 */
 .runtime-onboarding--single{grid-template-columns:minmax(0,520px);justify-content:center}.runtime-onboarding-card--primary{padding:28px}.runtime-onboarding-note{padding:14px 18px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(9,12,16,.78);display:grid;gap:4px}.runtime-onboarding-note strong{color:#d9dde2;font-size:11px}.runtime-onboarding-note span{color:#76818c;font-size:9.5px;line-height:1.6}.company-quick-actions--single{grid-template-columns:1fr!important}
 .ops-setup-demo-launch{height:36px;min-width:134px;padding:0 12px;border:1px solid rgba(213,163,67,.18);border-radius:9px;background:rgba(213,163,67,.035);color:#aeb7c0;display:grid;align-content:center;justify-items:start;gap:1px}.ops-setup-demo-launch span{color:#8b7142;font-size:7px;font-weight:950;letter-spacing:.12em}.ops-setup-demo-launch strong{color:#d3c2a0;font-size:9.6px;font-weight:900}.ops-setup-demo-launch:hover{border-color:rgba(213,163,67,.34);background:rgba(213,163,67,.065);color:#e4d0aa}
 .setup-demo-backdrop{position:fixed;z-index:7000;inset:0;display:grid;place-items:center;padding:22px;background:rgba(0,0,0,.78);backdrop-filter:blur(10px)}
@@ -93,7 +93,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 @media(max-width:760px){.setup-demo-backdrop{padding:0}.setup-demo-shell{width:100%;height:100%;min-height:0;border:0;border-radius:0;grid-template-columns:1fr}.setup-demo-rail{display:none}.setup-demo-main{grid-template-rows:58px 1fr 68px}.setup-demo-content{padding:22px 18px}.setup-demo-hero h2,.setup-demo-quest h2,.setup-demo-complete h2{font-size:23px}.setup-demo-facts{grid-template-columns:1fr}.setup-demo-role-grid,.setup-demo-module-grid,.setup-demo-channel-list{grid-template-columns:1fr}}
 
 
-/* AXE PRODUCT 3.19.1 · GUIDED SETUP TYPOGRAPHY R1
+/* AXE ONE 3.19.1 · GUIDED SETUP TYPOGRAPHY R1
    Guided Setup only: improve readability without changing structure, spacing,
    interactions, or real settings behavior. */
 .ops-setup-demo-launch span{font-size:8px}
@@ -141,7 +141,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 }
 
 
-/* AXE PRODUCT 3.19.2 · GUIDED CHANNEL BUILDER PREVIEW R1 */
+/* AXE ONE 3.19.2 · GUIDED CHANNEL BUILDER PREVIEW R1 */
 .setup-demo-quest--channels{width:min(650px,100%)}
 .setup-demo-channel-mode{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:22px}
 .setup-demo-channel-mode>button{min-height:66px;display:grid;grid-template-columns:34px 1fr;align-items:center;gap:10px;padding:10px 12px;border:1px solid #25303a;border-radius:11px;background:#0b1015;color:#7b8792;text-align:left;transition:.15s}
@@ -169,7 +169,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 @media(max-width:760px){.setup-demo-channel-mode{grid-template-columns:1fr}.setup-demo-category-row,.setup-demo-create-row{grid-template-columns:1fr}.setup-demo-create-row>em{display:none}.setup-demo-builder-head{align-items:flex-start;padding-top:10px;padding-bottom:10px}.setup-demo-category-row input,.setup-demo-channel-input{width:100%}.setup-demo-generation-result li>span{display:grid;gap:2px}}
 
 
-/* AXE PRODUCT 3.19.3 · GUIDED MEMBER IMPORT + FIXED FOOTER R1
+/* AXE ONE 3.19.3 · GUIDED MEMBER IMPORT + FIXED FOOTER R1
    Keep the guide footer visible while long channel/member setup content scrolls,
    and preview role-filtered bulk member registration without touching Discord/DB. */
 .setup-demo-main{min-height:0}
@@ -187,14 +187,14 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-demo-member-result{min-height:58px;display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;margin-top:10px;padding:0 12px;border:1px solid rgba(111,193,145,.14);border-radius:9px;background:rgba(111,193,145,.03)}.setup-demo-member-result>i{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:rgba(111,193,145,.07);color:#84bb99;font-size:10px;font-style:normal}.setup-demo-member-result>div{display:grid;gap:3px}.setup-demo-member-result strong{color:#bdd0c3;font-size:10.5px}.setup-demo-member-result span{color:#64756b;font-size:9px}.setup-demo-member-result span b{color:#9fc0aa}.setup-demo-member-result.is-skipped{border-color:rgba(213,163,67,.1);background:rgba(213,163,67,.02)}.setup-demo-member-result.is-skipped>i{background:rgba(213,163,67,.055);color:#a88a53}.setup-demo-member-result.is-skipped strong{color:#c1b290}.setup-demo-member-result.is-skipped span{color:#746d61}
 @media(max-width:760px){.setup-demo-member-toolbar{grid-template-columns:1fr}.setup-demo-member-list{max-height:250px}.setup-demo-member-row{grid-template-columns:18px 30px 1fr}.setup-demo-member-row em{display:none}.setup-demo-member-actions{align-items:flex-start;flex-direction:column;padding:8px 0}.setup-demo-main>footer{box-shadow:0 -8px 22px rgba(0,0,0,.18)}}
 
-/* AXE PRODUCT 3.20.0 · LIVE GUIDED SETUP R1 */
+/* AXE ONE 3.20.0 · LIVE GUIDED SETUP R1 */
 .setup-demo-preview-badge.is-live{border-color:rgba(213,163,67,.20);background:rgba(213,163,67,.045)}
 .setup-demo-preview-badge.is-live i{background:#d5a343;box-shadow:0 0 12px rgba(213,163,67,.24)}
 .setup-demo-preview-badge.is-live span{color:#d9bd82}
 .setup-demo-preview-badge.is-live small{color:#8c7a58}
 
 
-/* AXE PRODUCT 3.21.2 · PLATFORM SHELL BALANCE R1
+/* AXE ONE 3.21.2 · PLATFORM SHELL BALANCE R1
    Center the product identity in the top rail, push the signed-in identity to
    the far-right edge, and shift compact operational boards slightly right so
    the main workspace no longer feels left-heavy. */
@@ -254,7 +254,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 }
 
 
-/* AXE PRODUCT 3.21.3 · CONTENT OFFSET + PLAN CLEANUP R1
+/* AXE ONE 3.21.3 · CONTENT OFFSET + PLAN CLEANUP R1
    Nudge operational content slightly lower and further right on desktop so the
    compact boards sit more naturally inside the wider workspace. */
 @media(min-width:981px){
@@ -283,7 +283,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 }
 
 
-/* AXE PRODUCT 3.21.4 · DISCORD PERMISSION REAPPROVAL R1
+/* AXE ONE 3.21.4 · DISCORD PERMISSION REAPPROVAL R1
    Keep channel-creation permission recovery inside Guided Setup instead of
    dumping a raw 403 at the user. Reapproval is locked to the connected guild. */
 .setup-guide-permission-card{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:12px;margin:12px 0;padding:12px 13px;border:1px solid rgba(213,163,67,.22);border-radius:10px;background:linear-gradient(135deg,rgba(213,163,67,.055),rgba(213,163,67,.018));box-shadow:inset 0 1px 0 rgba(255,255,255,.015)}
@@ -304,7 +304,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-guide-connect-permissions>small b{color:#aeb8c8;font-weight:800}
 @media(max-width:640px){.setup-guide-connect-permissions-head{align-items:flex-start}.setup-guide-connect-permission-chips{gap:5px}.setup-guide-connect-permission-chips span{font-size:8px}}
 
-/* AXE PRODUCT 3.26.1 · first-run company-or-member gate */
+/* AXE ONE 3.26.1 · first-run company-or-member gate */
 .runtime-auth--first-run{padding:34px 18px}
 .runtime-first-run{width:min(900px,100%);display:grid;gap:14px}
 .runtime-first-run__head{display:grid;gap:6px;padding:0 2px 4px}
@@ -347,7 +347,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 @media(max-width:760px){.runtime-first-run__grid{grid-template-columns:1fr}.runtime-first-run__head h1{font-size:22px}.runtime-first-run__identity{grid-template-columns:1fr}.runtime-first-run__identity button{width:100%}.runtime-first-run__note{align-items:flex-start;flex-direction:column;text-align:left}.ops-member-registration-rule{display:none}}
 
 
-/* AXE PRODUCT 3.26.2 · PLATFORM OWNER TEST CENTER */
+/* AXE ONE 3.26.2 · PLATFORM OWNER TEST CENTER */
 .runtime-first-run__test-result{display:grid;gap:4px;margin-top:9px;padding:10px 11px;border:1px solid rgba(221,166,67,.18);border-radius:9px;background:rgba(221,166,67,.035)}
 .runtime-first-run__test-result strong{color:#c8b07d;font-size:10.5px}.runtime-first-run__test-result span{color:#7f7564;font-size:9.3px;line-height:1.5}.runtime-first-run__test-result.is-waiting{border-color:rgba(218,110,92,.16);background:rgba(218,110,92,.025)}.runtime-first-run__test-result.is-waiting strong{color:#c89488}
 .runtime-onboarding-card.is-test-focus{border-color:rgba(213,163,67,.34)!important;box-shadow:0 0 0 1px rgba(213,163,67,.06),0 18px 48px rgba(0,0,0,.2)}

@@ -7,7 +7,7 @@ const main = read('src/main.js');
 const render = read('src/ui/render.js');
 const channels = read('api/discord/setup/channels.js');
 const api = read('src/lib/productApi.js');
-const sql = read('SUPABASE_MIGRATION_3_24_0_PINBALL_SYSTEM.sql');
+const sql = read('database/migrations/SUPABASE_MIGRATION_3_24_0_PINBALL_SYSTEM.sql');
 
 const checks = [
   ['module UI', render.includes("pinball:{name:'핀볼 모집'")],

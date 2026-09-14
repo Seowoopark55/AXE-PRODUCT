@@ -13,10 +13,10 @@ check(api.includes('updateMembershipAlias'),'member alias mutation is wired');
 check(main.includes('updateMembershipAlias(id,aliasName)'),'member form persists alias');
 check(main.includes('suppressBrowserFormHistory'),'browser form history suppression is applied');
 check(render.includes('name="category"')&&render.includes('autocomplete="off"'),'fund free-text category disables browser autocomplete');
-check(html.includes('<title>AXE PRODUCT</title>')&&!html.includes('<title>AXE PRODUCT STAGING</title>'),'browser title is customer-facing');
+check(html.includes('<title>AXE ONE</title>')&&!html.includes('<title>AXE ONE STAGING</title>'),'browser title is customer-facing');
 
 check(render.includes('member-profile-inline')&&render.includes('name="member_note"'),'member detail uses aligned 3-column role/status/hire row plus memo');
 check(render.includes('ops-lane-head--member')&&render.includes('ops-lane-row--member'),'member list uses fixed dense name/role/hire/status/manage lanes');
 check(api.includes('member_note')&&api.includes('updateMembershipNote'),'member memo is loaded and writable');
 check(main.includes('updateMembershipNote(id,memberNote)'),'member form persists memo');
-if(!process.exitCode) console.log('AXE PRODUCT MEMBER IDENTITY UX CHECK: PASS');
+if(!process.exitCode) console.log('AXE ONE MEMBER IDENTITY UX CHECK: PASS');

@@ -20,4 +20,4 @@ check(!main.includes('uploadCompanyBanner')&&!main.includes('removeCompanyBanner
 check(api.includes("web_company_admin_update_name"),'company name admin RPC binding exists');
 check(api.includes("axe-product-company-branding"),'legacy branding storage binding left untouched for compatibility');
 check(render.includes('global-account')&&render.includes('sidebar-footer')&&render.includes('connection-status'),'account/header and clean Discord-only sidebar footer layout present');
-if(!process.exitCode)console.log(`AXE PRODUCT OPERATIONS UX CHECK: PASS · ${sql}`);
+if(!process.exitCode)console.log(`AXE ONE OPERATIONS UX CHECK: PASS · ${sql}`);

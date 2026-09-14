@@ -1,4 +1,4 @@
-/* AXE PRODUCT FUND 3.5 --------------------------------------------------
+/* AXE ONE FUND 3.5 --------------------------------------------------
    Fund remains isolated under .axe-fund-*. The ledger view is a direct
    PRODUCT port of AXE NET's proven date-group + compact operations rows.
 ------------------------------------------------------------------------ */
@@ -297,7 +297,7 @@
   .axe-fund-history-head{margin-bottom:7px}
 }
 
-/* AXE PRODUCT 3.17.0 · compact ledger lanes
+/* AXE ONE 3.17.0 · compact ledger lanes
    Mirrors the Company Settings row rhythm instead of stretching a semantic
    table across the viewport. */
 .axe-fund-ledger{width:min(760px,100%);margin:0 auto}
@@ -313,7 +313,7 @@
 .axe-fund-ledger-empty{padding:24px 12px;color:#747d86;font-size:9.8px;text-align:center}
 
 
-/* AXE PRODUCT 3.17.1 · content-fit fund ledger.
+/* AXE ONE 3.17.1 · content-fit fund ledger.
    Width is the sum of useful lanes, not a stretched operations canvas. */
 @media(min-width:761px){
   .axe-fund-ledger{width:636px;max-width:100%;margin-left:auto;margin-right:auto}
@@ -339,7 +339,7 @@
 .axe-fund-ledger-list{max-height:430px;overflow:auto}
 
 
-/* AXE PRODUCT 3.17.3 · FUND left-anchor balance
+/* AXE ONE 3.17.3 · FUND left-anchor balance
    FUND-only visual rail. Keeps Company Settings and other pages untouched.
    The main FUND canvas is intentionally left anchored; the ledger no longer
    floats in the middle of a much wider operations workspace. */
@@ -389,7 +389,7 @@
 }
 
 
-/* AXE PRODUCT 3.17.4 · app-shell fund balance
+/* AXE ONE 3.17.4 · app-shell fund balance
    Removes the top banner on FUND, tightens the sidebar silhouette, and
    scales the FUND summary to the PRODUCT app shell. */
 @media(min-width:761px){
@@ -406,7 +406,7 @@
 }
 
 
-/* AXE PRODUCT 3.17.5 · global shell harmonization
+/* AXE ONE 3.17.5 · global shell harmonization
    Applies the compact app-frame principle across PRODUCT, keeps the user box
    inside the same shell, and normalizes FUND summary balance. */
 @media(min-width:761px){
@@ -425,7 +425,7 @@
 }
 
 
-/* AXE PRODUCT 3.17.6 · page-wide content-fit propagation
+/* AXE ONE 3.17.6 · page-wide content-fit propagation
    The FUND compact treatment becomes the baseline for every top rail:
    no banner, tighter shell, and summary/tabs aligned to the same lane width. */
 @media(min-width:761px){
@@ -447,7 +447,7 @@
 }
 
 
-/* AXE PRODUCT 3.17.8 · FUND subview rail lock
+/* AXE ONE 3.17.8 · FUND subview rail lock
    Weekly/review/balance/settings keep their content-fit widths but share the
    exact same left origin as the FUND header, summary, tabs and ledger. */
 @media(min-width:761px){
@@ -461,6 +461,6 @@
   }
 }
 
-/* AXE PRODUCT 3.23.6 · Large-company bounds */
+/* AXE ONE 3.23.6 · Large-company bounds */
 .axe-fund-week-scroll{max-height:min(52vh,420px);overflow:auto}
 .axe-fund-week-row--head{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 rgba(255,255,255,.045)}

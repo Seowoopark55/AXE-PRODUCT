@@ -56,7 +56,7 @@
 @media(max-width:900px){.axe-questions{width:100%}.axe-question-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.axe-question-summary>button{grid-column:1/-1;min-height:36px;border-top:1px solid var(--line-soft)}.axe-question-row{grid-template-columns:1fr}.axe-question-actions{justify-content:flex-start}}
 @media(max-width:600px){.axe-question-summary{grid-template-columns:1fr 1fr}.axe-question-summary article:nth-child(2){border-right:0}.axe-question-summary article:nth-child(3){grid-column:1/-1;border-top:1px solid var(--line-soft);border-right:0}.axe-question-title-line{align-items:flex-start;flex-direction:column;gap:6px}.axe-question-title-line>strong{white-space:normal}.axe-question-actions{align-items:flex-start;flex-direction:column}.axe-question-admin-actions{flex-wrap:wrap}.axe-questions-note{grid-template-columns:1fr}}
 
-/* AXE PRODUCT 3.23.1 · site-native question board */
+/* AXE ONE 3.23.1 · site-native question board */
 .axe-question-row{cursor:pointer;transition:background .12s ease}
 .axe-question-row:hover{background:rgba(255,255,255,.018)}
 .axe-question-row.is-unread{background:rgba(228,178,75,.018)}
@@ -77,11 +77,11 @@
 .support-question-reply{border-top:1px solid var(--line-soft);background:#0e141a}.support-question-reply textarea{min-height:105px}
 @media(max-width:650px){.support-question-detail-head{grid-template-columns:1fr}.support-question-status-actions{justify-content:flex-start}.support-thread-message{width:100%}}
 
-/* AXE PRODUCT 3.23.1 · native question board read-only thread */
+/* AXE ONE 3.23.1 · native question board read-only thread */
 .support-question-readonly{margin-top:14px}
 .support-question-readonly-footer{display:flex;justify-content:flex-end;margin-top:10px}
 
-/* AXE PRODUCT 3.23.2 · native question attachments */
+/* AXE ONE 3.23.2 · native question attachments */
 .support-attachment-picker{display:grid;gap:8px;padding:10px 11px;border:1px solid #222d37;border-radius:10px;background:#0b1117}
 .support-attachment-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.support-attachment-head>div{display:grid;gap:2px}.support-attachment-head strong{color:#cfd6dc;font-size:9px}.support-attachment-head span{color:#66737e;font-size:7.8px}
 .support-attachment-upload{height:30px;display:inline-flex;align-items:center;gap:6px;padding:0 9px;border:1px solid rgba(213,163,67,.22);border-radius:7px;background:rgba(213,163,67,.05);color:#cda85f;font-size:8px;font-weight:900;cursor:pointer;white-space:nowrap}.support-attachment-upload svg{width:13px;height:13px}.support-attachment-upload input{display:none}
@@ -92,7 +92,7 @@
 .support-question-reply footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.support-question-reply footer>div{display:flex;gap:7px}.support-question-readonly-footer{justify-content:space-between;gap:10px}
 @media(max-width:650px){.support-attachment-head{align-items:flex-start;flex-direction:column}.support-attachment-preview{grid-template-columns:repeat(3,minmax(0,1fr))}.support-thread-attachments{grid-template-columns:repeat(2,minmax(0,1fr))}.support-question-reply footer{align-items:stretch;flex-direction:column}.support-question-reply footer>div{justify-content:flex-end}.support-question-readonly-footer{align-items:stretch;flex-direction:column}}
 
-/* AXE PRODUCT 3.23.4 · support image lightbox above question modal */
+/* AXE ONE 3.23.4 · support image lightbox above question modal */
 .support-image-lightbox{position:fixed;inset:0;z-index:8000;display:grid;place-items:center;padding:24px;background:rgba(2,6,9,.86);backdrop-filter:blur(7px)}
 .support-image-lightbox__panel{width:min(1040px,94vw);max-height:92vh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid #2a3540;border-radius:14px;background:#0b1117;box-shadow:0 24px 80px rgba(0,0,0,.58)}
 .support-image-lightbox__panel>header{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px 10px 16px;border-bottom:1px solid #202a33;background:#0e151c}.support-image-lightbox__panel>header>div{min-width:0;display:grid;gap:2px}.support-image-lightbox__panel>header strong{color:#dce2e7;font-size:10px}.support-image-lightbox__panel>header span{max-width:720px;overflow:hidden;color:#76838e;font-size:8px;text-overflow:ellipsis;white-space:nowrap}.support-image-lightbox__panel>header button{width:34px;height:34px;border:1px solid #303c47;border-radius:8px;background:#111a22;color:#aeb8c0;font-size:20px;line-height:1;cursor:pointer}.support-image-lightbox__panel>header button:hover{border-color:#53616d;color:#fff}
@@ -101,11 +101,11 @@
 @media(max-width:650px){.support-image-lightbox{padding:10px}.support-image-lightbox__panel{width:100%;max-height:96vh;border-radius:11px}.support-image-lightbox__stage{padding:8px}.support-image-lightbox__stage img{max-height:calc(96vh - 122px)}.support-image-lightbox__panel>footer>span{display:none}.support-image-lightbox__panel>footer{justify-content:flex-end}}
 
 
-/* AXE PRODUCT 3.23.5 · Question board bounded list */
+/* AXE ONE 3.23.5 · Question board bounded list */
 .axe-question-toolbar{min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;border-bottom:1px solid var(--line-soft);background:#0f151b}.axe-question-status-filter{display:flex;align-items:center;gap:4px}.axe-question-status-filter button{height:27px;padding:0 8px;border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(255,255,255,.012);color:#84909a;font-size:8.3px;font-weight:850;cursor:pointer}.axe-question-status-filter button.is-active{border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.065);color:#dfbf7b}.axe-question-toolbar>span{color:#68737d;font-size:9px;white-space:nowrap}
 @media(max-width:600px){.axe-question-toolbar{align-items:flex-start;flex-direction:column}.axe-question-status-filter{width:100%;overflow:auto;padding-bottom:1px}.axe-question-status-filter button{flex:none}}
 
-/* AXE PRODUCT 3.23.6 · Question board scope + hard visual bound */
+/* AXE ONE 3.23.6 · Question board scope + hard visual bound */
 .axe-question-filter-stack{min-width:0;display:flex;align-items:center;gap:7px}
 .axe-question-scope-filter{display:flex;align-items:center;gap:4px;padding-right:7px;border-right:1px solid rgba(255,255,255,.065)}
 .axe-question-scope-filter button{height:27px;display:inline-flex;align-items:center;gap:5px;padding:0 8px;border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(255,255,255,.012);color:#89949e;font-size:8.3px;font-weight:850;cursor:pointer}

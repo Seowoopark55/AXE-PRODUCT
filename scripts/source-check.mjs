@@ -33,11 +33,11 @@ for(const relative of ['api/discord/start.js','api/discord/callback.js','api/dis
 const productApiText=fs.readFileSync(path.join(root,'src','lib','productApi.js'),'utf8');
 for(const requiredTable of ['discord_guild_channels','discord_guild_roles','discord_company_config']) if(!productApiText.includes(requiredTable)) failures.push(`missing Discord catalog integration: ${requiredTable}`);
 if(failures.length){
-  console.error('AXE PRODUCT SOURCE CHECK: FAIL');
+  console.error('AXE ONE SOURCE CHECK: FAIL');
   failures.forEach(f=>console.error(` - ${f}`));
   process.exit(1);
 }
-console.log('AXE PRODUCT SOURCE CHECK: PASS');
+console.log('AXE ONE SOURCE CHECK: PASS');
 console.log(`Checked ${files.length} source files.`);
 console.log(' - axe_product schema lock: PASS');
 console.log(' - no NEW AXE NET / HUB app-table reference: PASS');

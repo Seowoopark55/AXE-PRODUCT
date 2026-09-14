@@ -4,7 +4,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
-const sql=fs.readFileSync(new URL('../SUPABASE_MIGRATION_3_26_4_COMPANY_DELETE.sql',import.meta.url),'utf8');
+const sql=fs.readFileSync(new URL('../database/migrations/SUPABASE_MIGRATION_3_26_4H_COMPANY_DELETE_AUDIT_ORDER_FIX.sql',import.meta.url),'utf8');
 
 const checks=[
   ['platform delete RPC API', api.includes("platform_admin_delete_company") && api.includes('deletePlatformCompany')],

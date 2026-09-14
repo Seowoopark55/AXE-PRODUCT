@@ -5,7 +5,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const check=(ok,label)=>{if(!ok){console.error(`FAIL ${label}`);process.exitCode=1;}else console.log(`PASS ${label}`);};
 
-check(pkg.version==='1.7.41-web-ui.67','web patch version');
+check(pkg.version==='1.7.41-web-ui.68','web patch version');
 check(main.includes('startCatalogStatusPoll'),'catalog readiness polling exists');
 check(main.includes('status?.catalog_ready === true'),'poll waits for DB catalog readiness');
 check(main.includes('discordCatalogPending()'),'role flow guards catalog readiness');
@@ -16,4 +16,4 @@ check(render.includes("catalogPending&&state.settingsTab==='basic'"),'save is di
 check(render.includes("${catalogPending?'disabled':''}"),'module tab is disabled while catalog is pending');
 check(render.includes("Discord 정보 불러오는 중..."),'role selects do not look empty while syncing');
 
-if(!process.exitCode) console.log('AXE PRODUCT WEB onboarding catalog readiness check: PASS');
+if(!process.exitCode) console.log('AXE ONE WEB onboarding catalog readiness check: PASS');

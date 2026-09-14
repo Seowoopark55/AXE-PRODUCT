@@ -3,7 +3,7 @@ const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
-const sql=fs.readFileSync(new URL('../SUPABASE_MIGRATION_3_21_1_SCHEMA_HOTFIX_WITH_PLATFORM_OWNER.sql',import.meta.url),'utf8');
+const sql=fs.readFileSync(new URL('../database/migrations/SUPABASE_MIGRATION_3_21_1_SCHEMA_HOTFIX_WITH_PLATFORM_OWNER.sql',import.meta.url),'utf8');
 const checks=[
  ['platform admin RPC exists',api.includes("supabase.rpc('platform_is_admin')")],
  ['platform owner entry is account-menu only',!render.includes('<span class="sidebar-nav__label spaced">플랫폼</span>') && render.includes('state.platformAdmin?`<button type="button" data-action="open-platform-admin"')],

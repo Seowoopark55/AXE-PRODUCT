@@ -1166,7 +1166,7 @@ export async function resetAmmoRound(companyId, roundId, reason = '') {
 
 
 // ============================================================
-// AXE PRODUCT WEB OPERATIONS BRIDGE v1.7.37
+// AXE ONE WEB OPERATIONS BRIDGE v1.7.37
 // Authenticated browser-safe RPCs. Never pass BOT runtime keys.
 // ============================================================
 export async function getFundTreasurySnapshot(companyId, year = null, month = null, limit = 120) {
@@ -1464,7 +1464,7 @@ export async function updateCompanyModuleSettings(companyId, moduleKey, settings
 }
 
 // ============================================================
-// AXE PRODUCT 3.21.0 — PLATFORM OWNER + LEDGER EVIDENCE
+// AXE ONE 3.21.0 — PLATFORM OWNER + LEDGER EVIDENCE
 // ============================================================
 export async function isPlatformAdmin() {
   assertClient();

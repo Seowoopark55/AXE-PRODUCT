@@ -4,7 +4,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 let passed=0,failed=0;const expect=(label,ok)=>{if(ok){passed++;console.log(`PASS ${label}`)}else{failed++;console.error(`FAIL ${label}`)}};
-expect('web package version',pkg.version==='1.7.41-web-ui.67');
+expect('web package version',pkg.version==='1.7.41-web-ui.68');
 expect('platform account menu has test center',render.includes('data-action="open-test-center"')&&render.includes('테스트 센터'));
 expect('test center is platform owner only',render.includes("if(!state.platformAdmin)return ''"));
 expect('test center state exists',main.includes('testCenter: null')&&main.includes('function createTestCenterState()'));

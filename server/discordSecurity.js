@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-// Least-privilege baseline used when AXE PRODUCT is installed into a Discord server.
+// Least-privilege baseline used when AXE ONE is installed into a Discord server.
 // Manage Channels + View Channel + Send Messages + Manage Messages + Embed Links + Read Message History.
 // Administrator (8) is intentionally not included.
 export const DISCORD_BOT_BASE_PERMISSIONS = '93200';

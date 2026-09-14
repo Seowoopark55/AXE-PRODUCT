@@ -1,7 +1,7 @@
-# AXE PRODUCT · Discord 로그인 최소 권한 전환
+# AXE ONE · Discord 로그인 최소 권한 전환
 
 ## 목표
-AXE PRODUCT 로그인에서 Discord의 `이메일 주소 보기` 권한을 제거하고, 로그인 식별에 필요한 최소 범위인 `identify`만 요청합니다.
+AXE ONE 로그인에서 Discord의 `이메일 주소 보기` 권한을 제거하고, 로그인 식별에 필요한 최소 범위인 `identify`만 요청합니다.
 
 ## 확인된 원인
 Supabase의 기본 `discord` OAuth provider는 Discord 로그인 scope에 `email`과 `identify`를 기본으로 사용합니다. WEB에서 `scopes: identify`를 전달하는 것만으로 기본 `email` scope를 제거할 수 없습니다.
@@ -17,7 +17,7 @@ Supabase Dashboard → Auth → Providers → Custom OAuth Providers에서 Manua
 - UserInfo URL: `https://discord.com/api/users/@me`
 - Scope: `identify`
 - Email optional: `true`
-- Client ID / Client Secret: AXE PRODUCT 로그인용 Discord OAuth application 값
+- Client ID / Client Secret: AXE ONE 로그인용 Discord OAuth application 값
 
 Supabase 화면에 표시되는 Callback URL을 Discord Developer Portal의 Redirect URI에 그대로 등록합니다. Callback URL을 임의로 추측해서 입력하지 않습니다.
 
@@ -59,4 +59,4 @@ Custom provider 검증이 끝난 뒤에만 아래 값을 추가합니다.
 - 사용자명 / 표시명
 - 아바타
 
-AXE PRODUCT 운영에 필요하지 않은 이메일, 전화번호, 친구 목록, DM 등은 요청하지 않습니다.
+AXE ONE 운영에 필요하지 않은 이메일, 전화번호, 친구 목록, DM 등은 요청하지 않습니다.

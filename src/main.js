@@ -297,7 +297,7 @@ function createSetupDemoState(){
     memberRole:'회사원',
     modules:demoModules,
     channelMode:'quick',
-    categoryName:'AXE PRODUCT',
+    categoryName:'AXE ONE',
     channelsGenerated:false,
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',pinball:'#핀볼-모집',cooking:'#요리-주문',accountLookup:'#계좌조회'},
@@ -334,7 +334,7 @@ function createSetupGuideState(step = 0){
     memberRoleId:String(cfg.member_role_id||''),
     modules:moduleMap,
     channelMode:'quick',
-    categoryName:'AXE PRODUCT',
+    categoryName:'AXE ONE',
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
@@ -441,7 +441,7 @@ async function saveSetupGuideModules(){
   const previous=state.setupGuide;
   const next=createSetupGuideState(4);
   next.channelMode=previous.channelMode||'quick';
-  next.categoryName=previous.categoryName||'AXE PRODUCT';
+  next.categoryName=previous.categoryName||'AXE ONE';
   next.generatedChannels={...(previous.generatedChannels||next.generatedChannels)};
   state.setupGuide=next;
 }
@@ -486,7 +486,7 @@ async function cleanupLegacyPwa() {
       await Promise.all(keys.filter((key) => key.startsWith('axe-product-pwa-')).map((key) => caches.delete(key)));
     }
   } catch (error) {
-    console.warn('AXE PRODUCT legacy PWA cleanup failed', error);
+    console.warn('AXE ONE legacy PWA cleanup failed', error);
   }
 }
 
@@ -837,7 +837,7 @@ async function recoverSessionOnResume({force=false}={}) {
     let session=await getSession();
     const expiresAt=Number(session?.expires_at||0)*1000;
     if(session && (!expiresAt || expiresAt-nowMs<5*60*1000)){
-      try{session=await refreshSession()||session;}catch(error){console.warn('AXE PRODUCT session refresh deferred',error);}
+      try{session=await refreshSession()||session;}catch(error){console.warn('AXE ONE session refresh deferred',error);}
     }
     if(!session){
       try{session=await refreshSession();}catch(error){
@@ -853,7 +853,7 @@ async function recoverSessionOnResume({force=false}={}) {
     }
     if(state.session?.user){state.session=null;clearCompanyData();state.ready=true;render();}
   }catch(error){
-    console.warn('AXE PRODUCT session recovery skipped after transient error',error);
+    console.warn('AXE ONE session recovery skipped after transient error',error);
   }finally{sessionRecoveryBusy=false;}
 }
 
@@ -991,7 +991,7 @@ root.addEventListener('click', async event => {
   if(action==='test-center-company-back'){if(!state.platformAdmin||!state.testCenter)return;state.testCenter.screen='preview';render();return;}
   if(action==='test-center-copy-info'){
     if(!state.platformAdmin||!state.testCenter)return;
-    const text=`AXE PRODUCT 멤버 등록 요청\nDiscord 이름: ${state.testCenter.fakeDiscordName}\nDiscord ID: ${state.testCenter.fakeDiscordId}`;
+    const text=`AXE ONE 멤버 등록 요청\nDiscord 이름: ${state.testCenter.fakeDiscordName}\nDiscord ID: ${state.testCenter.fakeDiscordId}`;
     try{await navigator.clipboard.writeText(text);setNotice('테스트용 등록 정보를 복사했습니다. 실제 회사 데이터에는 반영되지 않습니다.');}catch{setNotice('테스트 모드입니다. 실제 데이터에는 아무 변화가 없습니다.');}
     return;
   }
@@ -1026,7 +1026,7 @@ root.addEventListener('click', async event => {
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
-    const text=`AXE PRODUCT 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
+    const text=`AXE ONE 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
     try{await navigator.clipboard.writeText(text);setNotice('대표에게 전달할 등록 정보를 복사했습니다.');}catch{setError('등록 정보를 복사하지 못했습니다. Discord ID를 직접 전달해 주세요.');}
     return;
   }
@@ -1088,7 +1088,7 @@ root.addEventListener('click', async event => {
     if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan();
-      const category=String(state.setupGuide.categoryName||'AXE PRODUCT').trim();
+      const category=String(state.setupGuide.categoryName||'AXE ONE').trim();
       if(!category)throw new Error('카테고리 이름을 입력해 주세요.');
       if(plan.some(row=>!String(row.name||'').trim()))throw new Error('생성할 채널 이름을 모두 입력해 주세요.');
       const normalizedNames=plan.map(row=>String(row.name||'').trim().toLocaleLowerCase('ko-KR'));
@@ -1332,7 +1332,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-asset-modal-status]')){const holder=root.querySelector('[data-asset-holder]');if(event.target.value==='미배정'&&holder)holder.value='';return;}
     if(event.target.matches('[data-guide-role]')){if(!state.setupGuide)return;state.setupGuide[event.target.dataset.guideRole]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-guide-direct-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideDirectChannel||'');state.setupGuide.directChannels=state.setupGuide.directChannels||{};state.setupGuide.directChannels[key]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-guide-category-name]')){if(!state.setupGuide)return;state.setupGuide.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';render();return;}
+    if(event.target.matches('[data-guide-category-name]')){if(!state.setupGuide)return;state.setupGuide.categoryName=String(event.target.value||'').trim()||'AXE ONE';render();return;}
     if(event.target.matches('[data-guide-generated-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideGeneratedChannel||'');state.setupGuide.generatedChannels=state.setupGuide.generatedChannels||{};state.setupGuide.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();render();return;}
     if(event.target.matches('[data-guide-member-filter]')){if(!state.setupGuide)return;state.setupGuide.memberFilterRoleId=String(event.target.value||'');state.setupGuide.memberListLoaded=false;state.setupGuide.memberCandidates=[];state.setupGuide.memberSelected=[];if(state.setupGuide.memberFilterRoleId)await withMutation(loadSetupGuideMembers);else render();return;}
     if(event.target.matches('[data-guide-member-target-role]')){if(!state.setupGuide)return;state.setupGuide.memberTargetRole=String(event.target.value||'')==='admin'?'admin':'member';render();return;}
@@ -1344,7 +1344,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-suggestion-attachment-input]')){addSuggestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','핀볼-모집':'pinball','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE PRODUCT';state.setupDemo.channelsGenerated=false;render();return;}
+    if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE ONE';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){
       if(!state.setupDemo)return;

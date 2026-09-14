@@ -2,7 +2,7 @@ import fs from 'node:fs';
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const auth=fs.readFileSync(new URL('../src/lib/supabase.js',import.meta.url),'utf8');
 const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
-const doc=fs.readFileSync(new URL('../MINIMAL_DISCORD_AUTH_SETUP.md',import.meta.url),'utf8');
+const doc=fs.readFileSync(new URL('../docs/MINIMAL_DISCORD_AUTH_SETUP.md',import.meta.url),'utf8');
 const check=(ok,label)=>{console.log(`${ok?'PASS':'FAIL'} ${label}`);if(!ok)process.exitCode=1;};
 check(auth.includes('persistSession: true')&&auth.includes('autoRefreshToken: true'),'Supabase session persistence enabled');
 check(main.includes('recoverSessionOnResume')&&main.includes("visibilitychange")&&main.includes("window.addEventListener('focus'"),'foreground session recovery installed');

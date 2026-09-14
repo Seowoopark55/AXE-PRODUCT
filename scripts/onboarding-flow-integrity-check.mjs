@@ -10,7 +10,7 @@ const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),
 const checks=[];
 const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
 
-expect('3.26.3 web package version',pkg.version==='1.7.41-web-ui.67');
+expect('3.26.3 web package version',pkg.version==='1.7.41-web-ui.68');
 expect('company slug remains internal and automatic',api.includes('makeInternalCompanySlug')&&api.includes('p_slug: internalSlug'));
 expect('company create keeps a stable pending attempt',api.includes('COMPANY_CREATE_ATTEMPT_KEY')&&api.includes('writePendingCompanyCreate')&&api.includes('readPendingCompanyCreate'));
 expect('company create retries recover by the same slug before another insert',api.indexOf('const recovered = await findCompanyBySlug(internalSlug)')<api.indexOf("result = await supabase.rpc('create_company'"));
@@ -35,7 +35,7 @@ expect('test preview step uses the shared preview module list',render.includes('
 expect('test preview can toggle newly added shared modules',main.includes("if(action==='setup-demo-toggle-module')")&&main.includes('state.setupDemo.modules[key]=!Boolean(state.setupDemo.modules[key])'));
 expect('test preview channel plan also includes modbook and pinball',render.includes("if(modules.modbook)channelPlan.push")&&render.includes("if(modules.pinball)channelPlan.push"));
 
-expect('first-run stays registration-gated with no company search/join code',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('등록되기 전에는 AXE PRODUCT에 진입할 수 없습니다.')&&!render.includes('data-form="join-company"'));
+expect('first-run stays registration-gated with no company search/join code',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('등록되기 전에는 AXE ONE에 진입할 수 없습니다.')&&!render.includes('data-form="join-company"'));
 expect('registration verification still claims before company listing',main.indexOf('await claimDiscordMemberships();',main.indexOf("if(action==='check-member-registration')"))<main.indexOf('await loadCompanies();',main.indexOf("if(action==='check-member-registration')")));
 expect('server re-verifies selected Discord members before registration',registerMembers.includes('// Re-scan on the server so the browser cannot submit arbitrary Discord IDs.')&&registerMembers.includes('findSelectedRoleMembers(guildId, roleId, selectedIds)'));
 expect('inactive historical members are not silently reactivated',registerMembers.includes('requires_manual_reactivation')&&main.includes('퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요'));

@@ -1,4 +1,4 @@
-/* AXE PRODUCT 3.12 · Viewport Compact + Alignment
+/* AXE ONE 3.12 · Viewport Compact + Alignment
    Wide overview anchors the page. Settings controls use fixed operational lanes,
    and all save/action controls stay inside a normal laptop browser viewport. */
 .ops-settings-page{width:100%;margin:0}
@@ -67,7 +67,7 @@
 }
 
 
-/* AXE PRODUCT 3.15 · onboarding + safe Discord reconnect */
+/* AXE ONE 3.15 · onboarding + safe Discord reconnect */
 .ops-onboarding-progress,.ops-onboarding-strip{width:min(680px,100%);margin:0 auto 9px;border:1px solid var(--line);border-radius:10px;background:#0c1117}
 .ops-onboarding-progress{min-height:46px;display:grid;grid-template-columns:180px 1fr;align-items:center;gap:10px;padding:7px 10px}.ops-onboarding-progress__copy{display:grid;gap:2px}.ops-onboarding-progress__copy strong{color:#dce2e8;font-size:11px}.ops-onboarding-progress__copy span{color:#74808b;font-size:8.8px;line-height:1.35}
 .ops-onboarding-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.ops-onboarding-steps>span{height:28px;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #27313a;border-radius:7px;background:#0f151b;color:#68737d;font-size:8.8px;font-weight:800;white-space:nowrap}.ops-onboarding-steps b{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:#171f27;color:#77838e;font-size:8px}.ops-onboarding-steps>span.is-current{border-color:rgba(228,178,75,.34);background:rgba(228,178,75,.055);color:#e1c27f}.ops-onboarding-steps>span.is-current b{background:rgba(228,178,75,.16);color:#f0ba4d}.ops-onboarding-steps>span.is-done{border-color:rgba(120,211,155,.17);color:#8fcda4}.ops-onboarding-steps>span.is-done b{background:rgba(120,211,155,.10);color:#90d4a7}
@@ -98,7 +98,7 @@
 @media(max-width:700px){.ops-settings-row--branding .ops-settings-control,.ops-branding-control{width:100%}.ops-branding-control{align-items:stretch;flex-direction:column}.ops-branding-control input[type=file]{width:100%}}
 
 
-/* AXE PRODUCT 3.17.8 · Company Settings app-shell integration
+/* AXE ONE 3.17.8 · Company Settings app-shell integration
    The settings page now begins directly under the global header and follows
    the same left-anchored app composition as the operational pages. */
 @media(min-width:761px){
@@ -153,6 +153,6 @@
 }
 
 
-/* AXE PRODUCT 3.23.5 · Cooking list stays compact as menu count grows */
+/* AXE ONE 3.23.5 · Cooking list stays compact as menu count grows */
 .ops-cooking-filterbar{min-height:40px;display:flex;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid var(--line-soft);background:#0f151b}.ops-cooking-filterbar .ops-mgmt-search{width:min(240px,100%)}.ops-cooking-filterbar>span{margin-left:auto;color:#707b85;font-size:8.6px;white-space:nowrap}
 @media(max-width:760px){.ops-cooking-filterbar{align-items:stretch;flex-wrap:wrap}.ops-cooking-filterbar .ops-mgmt-search{width:100%}.ops-cooking-filterbar>span{margin-left:0}}
