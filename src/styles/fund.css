@@ -731,3 +731,52 @@
     text-align:center;
   }
 }
+
+/* AXE ONE 3.26.17 · Remaining FUND tables follow the ledger reference. */
+@media(min-width:761px){
+  .main--fund .axe-fund-subview--weekly,
+  .main--fund .axe-fund-subview--review{width:636px;max-width:100%;margin-left:0;margin-right:auto}
+
+  .main--fund .axe-fund-week-grid{min-width:0}
+  .main--fund .axe-fund-week-row{
+    grid-template-columns:minmax(105px,1fr) 72px repeat(5,58px);
+    min-height:40px;
+  }
+  .main--fund .axe-fund-week-row--head{min-height:27px;height:27px;font-size:8.5px}
+  .main--fund .axe-fund-week-row>span,
+  .main--fund .axe-fund-week-row>b{
+    min-width:0;
+    padding:0 4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .main--fund .axe-fund-week-row>span strong,
+  .main--fund .axe-fund-week-role{width:100%;overflow:hidden;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+  .main--fund .axe-fund-week-row>span strong{font-size:10.2px}
+  .main--fund .axe-fund-week-role{font-size:8.9px}
+  .main--fund .axe-fund-week-row:not(.axe-fund-week-row--head)>b{height:39px}
+
+  .main--fund .axe-fund-review-columns,
+  .main--fund .axe-fund-review-row{
+    grid-template-columns:minmax(82px,1fr) 78px 72px 68px 52px 52px minmax(110px,1.2fr);
+    gap:4px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .main--fund .axe-fund-review-columns{height:27px;font-size:8.5px}
+  .main--fund .axe-fund-review-columns>span,
+  .main--fund .axe-fund-review-row>[data-label]{
+    min-width:0;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .main--fund .axe-fund-review-row{min-height:40px;padding-top:4px;padding-bottom:4px}
+  .main--fund .axe-fund-review-cell{font-size:8.9px;text-align:center}
+  .main--fund .axe-fund-review-cell strong{font-size:10.2px}
+  .main--fund .axe-fund-review-actions{justify-content:center}
+}

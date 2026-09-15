@@ -10,7 +10,7 @@ const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),
 const checks=[];
 const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
 
-expect('3.26.3 web package version',pkg.version==='1.7.41-web-ui.76');
+expect('3.26.3 web package version',pkg.version==='1.7.41-web-ui.77');
 expect('company slug remains internal and automatic',api.includes('makeInternalCompanySlug')&&api.includes('p_slug: internalSlug'));
 expect('company create keeps a stable pending attempt',api.includes('COMPANY_CREATE_ATTEMPT_KEY')&&api.includes('writePendingCompanyCreate')&&api.includes('readPendingCompanyCreate'));
 expect('company create retries recover by the same slug before another insert',api.indexOf('const recovered = await findCompanyBySlug(internalSlug)')<api.indexOf("result = await supabase.rpc('create_company'"));

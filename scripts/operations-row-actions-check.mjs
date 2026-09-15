@@ -3,9 +3,9 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
 const checks=[
- ['member status/manage headers centered',css.includes('.main--members .ops-lane-head--member>span:nth-child(3)')&&css.includes('.main--members .ops-lane-head--member>span:nth-child(4)')],
- ['asset status/manage headers centered',css.includes('.main--assets .ops-lane-head--asset>span:nth-child(4)')&&css.includes('.main--assets .ops-lane-head--asset>span:nth-child(5)')],
- ['account status/manage headers centered',css.includes('.main--accounts .ops-lane-head--account>span:nth-child(3)')&&css.includes('.main--accounts .ops-lane-head--account>span:nth-child(4)')],
+ ['member header/value axes centered',css.includes('.main--members .ops-lane-head>span,')&&css.includes('.main--members .ops-lane-row>.ops-lane-cell,')&&css.includes('justify-content:center;')],
+ ['asset header/value axes centered',css.includes('.main--assets .ops-lane-head>span,')&&css.includes('.main--assets .ops-lane-row>.ops-lane-cell,')],
+ ['account header/value axes centered',css.includes('.main--accounts .ops-lane-head>span,')&&css.includes('.main--accounts .ops-lane-row>.ops-lane-cell{')],
  ['fund linked entries have active edit control',render.includes("r.can_edit?'':'is-correction'")&&render.includes('data-action="edit-ledger"')],
  ['fund correction modal exists',render.includes('data-form="ledger-correction"')&&render.includes('원본 행은 삭제하지 않고 정정 차액만 별도 기록됩니다.')],
  ['fund correction submit creates delta entry',main.includes("if(type==='ledger-correction')")&&main.includes('const delta=targetSigned-oldSigned')&&main.includes('saveFundLedgerEntry')],

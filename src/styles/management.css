@@ -419,7 +419,10 @@
 .ops-mgmt-section-head--solo{min-height:32px;margin-bottom:6px}
 .platform-page .page-header.page-header--compact{min-height:54px;margin-bottom:10px}
 
-/* AXE ONE 3.26.11 · operational data uses explicit columns, not inline metadata pills. */
+/* AXE ONE 3.26.17 · FUND-ledger visual standard for operational tables.
+   The proven FUND ledger is the desktop reference: a 636px left rail,
+   identical header/body lane templates, centered header/value axes, compact
+   40px data rows, and status pills only where state recognition benefits. */
 @media(min-width:761px){
   .main--members .ops-mgmt-page,
   .main--members .ops-mgmt-summary,
@@ -434,7 +437,7 @@
   .main--accounts .ops-mgmt-workspace,
   .main--accounts .ops-account-review,
   .main--accounts .ops-mgmt-board{
-    width:760px;
+    width:636px;
     max-width:100%;
     margin-left:0;
     margin-right:auto;
@@ -442,72 +445,123 @@
 
   .main--members .ops-lane-head--member,
   .main--members .ops-lane-row--member{
-    grid-template-columns:minmax(150px,1fr) 88px 112px 82px 60px;
-    gap:8px;
-    padding-left:10px;
-    padding-right:10px;
+    grid-template-columns:minmax(120px,1.45fr) 74px 94px 70px 52px;
   }
   .main--assets .ops-lane-head--asset,
   .main--assets .ops-lane-row--asset{
-    grid-template-columns:120px minmax(130px,1fr) 96px 76px 82px 60px;
-    gap:8px;
-    padding-left:10px;
-    padding-right:10px;
+    grid-template-columns:86px minmax(110px,1.35fr) 82px 68px 70px 52px;
   }
-  .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:760px;max-width:100%}
+  .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:636px;max-width:100%}
   .main--assets .ops-lane-head--return,
   .main--assets .ops-lane-row--return{
-    grid-template-columns:minmax(120px,1fr) 98px 82px minmax(120px,1.15fr) 88px 102px;
-    gap:8px;
-    padding-left:10px;
-    padding-right:10px;
+    grid-template-columns:minmax(96px,1fr) 84px 70px minmax(98px,1.05fr) 76px 86px;
   }
   .main--accounts .ops-lane-head--account,
   .main--accounts .ops-lane-row--account{
-    grid-template-columns:minmax(140px,1fr) 82px minmax(170px,1.35fr) 82px 60px;
-    gap:8px;
-    padding-left:10px;
-    padding-right:10px;
+    grid-template-columns:minmax(108px,1fr) 70px minmax(145px,1.25fr) 70px 52px;
   }
 
-  .main--members .ops-lane-head--member>span:nth-child(4),
-  .main--members .ops-lane-head--member>span:nth-child(5),
-  .main--assets .ops-lane-head--asset>span:nth-child(5),
-  .main--assets .ops-lane-head--asset>span:nth-child(6),
-  .main--accounts .ops-lane-head--account>span:nth-child(4),
-  .main--accounts .ops-lane-head--account>span:nth-child(5){text-align:center}
-
-  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(4),
-  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(5),
-  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(5),
-  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(6),
-  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(4),
-  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(5){justify-content:center;text-align:center}
-
+  .main--members .ops-lane-head,
+  .main--members .ops-lane-row,
+  .main--assets .ops-lane-head,
+  .main--assets .ops-lane-row,
+  .main--accounts .ops-lane-head,
+  .main--accounts .ops-lane-row{
+    gap:4px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .main--members .ops-lane-head,
+  .main--assets .ops-lane-head,
+  .main--accounts .ops-lane-head{
+    height:27px;
+    font-size:8.5px;
+  }
   .main--members .ops-lane-row,
   .main--assets .ops-lane-row,
-  .main--accounts .ops-lane-row{min-height:46px}
+  .main--accounts .ops-lane-row{
+    min-height:40px;
+  }
+
+  .main--members .ops-lane-head>span,
+  .main--members .ops-lane-row>.ops-lane-cell,
+  .main--assets .ops-lane-head>span,
+  .main--assets .ops-lane-row>.ops-lane-cell,
+  .main--accounts .ops-lane-head>span,
+  .main--accounts .ops-lane-row>.ops-lane-cell{
+    min-width:0;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0;
+    padding:0;
+    text-align:center;
+  }
+
+  .main--members .ops-lane-copy,
+  .main--assets .ops-lane-copy,
+  .main--accounts .ops-lane-copy{display:flex}
+  .main--members .ops-lane-copy strong,
+  .main--assets .ops-lane-copy strong,
+  .main--accounts .ops-lane-copy strong,
+  .main--members .ops-lane-value,
+  .main--assets .ops-lane-value,
+  .main--accounts .ops-lane-value{
+    width:100%;
+    min-width:0;
+    overflow:hidden;
+    text-align:center;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .main--members .ops-lane-copy strong,
+  .main--assets .ops-lane-copy strong,
+  .main--accounts .ops-lane-copy strong{font-size:10.2px}
+  .main--members .ops-lane-value,
+  .main--assets .ops-lane-value,
+  .main--accounts .ops-lane-value{font-size:9px}
+
+  .main--members .ops-mgmt-badge,
+  .main--assets .ops-mgmt-badge,
+  .main--accounts .ops-mgmt-badge{
+    min-width:42px;
+    height:24px;
+    padding:0 6px;
+    font-size:8.3px;
+  }
+  .main--members .ops-mgmt-action,
+  .main--assets .ops-mgmt-action,
+  .main--accounts .ops-mgmt-action{
+    min-width:42px;
+    height:25px;
+    padding:0 6px;
+    font-size:8.4px;
+  }
 }
 
 .ops-member-identity,.ops-asset-identity{display:block}.ops-role-badge,.ops-inline-tag{display:none}
 
-/* Platform company management follows the same one-value-per-column rule. */
+/* Platform company management keeps its wider 760px rail because it has eight
+   business columns, but follows the same header/value center-axis contract. */
 .platform-company-head,.platform-company-row{
   grid-template-columns:110px 115px 44px 64px 82px 122px 94px 54px;
   gap:7px;
   padding-left:9px;
   padding-right:9px;
 }
-.platform-company-row{min-height:46px}
-.platform-company-head>span:nth-child(3),
-.platform-company-head>span:nth-child(4),
-.platform-company-head>span:last-child{text-align:center}
-.platform-company-row>div:nth-child(3),
-.platform-company-row>div:nth-child(4),
-.platform-company-row>div:last-child{display:flex;align-items:center;justify-content:center;text-align:center}
-.platform-company-value{min-width:0;overflow:hidden;color:#aab3bc;font-size:9.3px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.platform-company-row{min-height:40px}
+.platform-company-head>span,
+.platform-company-row>div{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.platform-company-value{width:100%;min-width:0;overflow:hidden;color:#aab3bc;font-size:9.1px;font-weight:700;text-align:center;text-overflow:ellipsis;white-space:nowrap}
 .platform-company-value.is-muted{color:#6e7a85;font-weight:600}.platform-company-value.is-plan{color:#d2b36d}.platform-company-value.is-period{font-variant-numeric:tabular-nums}
-.platform-company-copy{display:block}.platform-company-copy strong{font-size:10.6px}
+.platform-company-copy{display:flex}.platform-company-copy strong{width:100%;min-width:0;overflow:hidden;font-size:10.2px;text-align:center;text-overflow:ellipsis;white-space:nowrap}
 
 @media(max-width:760px){
   .ops-lane-row>.ops-lane-cell[data-label]:not(:last-child){
@@ -536,9 +590,9 @@
 
   .platform-company-head{display:none}
   .platform-company-row{grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;padding:10px}
-  .platform-company-row>div{grid-column:1}
-  .platform-company-row>div:nth-child(4){grid-column:2;grid-row:1;justify-content:flex-end}
-  .platform-company-row>div:last-child{grid-column:2;grid-row:2 / span 5;justify-content:flex-end;align-self:center}
+  .platform-company-row>div{grid-column:1;display:block;text-align:left}
+  .platform-company-row>div:nth-child(4){grid-column:2;grid-row:1;display:flex;justify-content:flex-end}
+  .platform-company-row>div:last-child{grid-column:2;grid-row:2 / span 5;display:flex;justify-content:flex-end;align-self:center}
   .platform-company-row>div:nth-child(2)::before{content:'Discord  ';color:#66727d;font-size:8px}
   .platform-company-row>div:nth-child(3)::before{content:'멤버  ';color:#66727d;font-size:8px}
   .platform-company-row>div:nth-child(5)::before{content:'플랜  ';color:#66727d;font-size:8px}

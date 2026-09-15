@@ -1,28 +1,27 @@
-# AXE ONE WEB STAGING 3.26.16 — FUND ledger axis specificity fix R1
+# AXE ONE WEB STAGING 3.26.17 · FUND reference table unification R1
 
-Baseline: recovered 3.26.14 STAGING source.
+Baseline: AXE ONE WEB STAGING 3.26.16.
 
-## Scope
+Changes:
+- FUND ledger `구분` no longer repeats `수입/지출`; direction remains visually encoded by signed amount/color.
+- Members / Assets / Accounts desktop operational rails standardized to the proven 636px FUND ledger rail.
+- Header and row cells share identical grid templates and centered visual axes.
+- Core operational rows compacted to 40px; status/action controls remain explicit.
+- Asset returns follow the same column-axis contract.
+- Cooking menu list standardized to 636px with matching header/body axes and compact rows.
+- FUND weekly status and FUND review sub-tables standardized to the same 636px/center-axis table grammar.
+- Platform company management keeps 760px because of eight business columns, but header/value axes are centered consistently.
+- Mobile labeled-row fallback is preserved.
+
+Safety:
 - WEB only.
-- FUND ledger only.
-- Preserve the accepted 636px FUND rail and the existing 8-column markup.
-- No DB, BOT, API, onboarding, or other page behavior changes.
-- No `index.html` asset/build-path changes.
+- No DB migration.
+- No BOT change.
+- LIVE untouched.
+- `index.html`, `src/main.js`, and root `src/styles.css` are byte-identical to 3.26.16; only targeted renderer/styles/checks changed.
 
-## Root cause fixed
-3.26.13 intentionally aligned header cells differently using selectors such as
-`.axe-fund-ledger-columns>span:nth-child(2)`. The 3.26.14 centering rule used the
-less-specific generic selector `.axe-fund-ledger-columns>span`, so CSS
-specificity kept the old header alignment even though body cells were centered.
-That is why DATE looked correct while NAME / ACCOUNT / ENTRY / TYPE / AMOUNT
-appeared shifted relative to their row values.
-
-3.26.16 changes only the final header selector to
-`.axe-fund-ledger-columns>span:nth-child(n)`, giving it equal specificity and
-later source order. Header and row values therefore use the same center axis in
-every one of the eight grid tracks.
-
-## Safety
-A regression check also verifies that `index.html` still points to `/src/main.js`,
-`main.js` still imports `styles.css`, and `styles.css` still imports `fund.css`.
-This specifically avoids repeating the 3.26.15 asset-path failure.
+Validation:
+- `npm run check`: PASS (all project checks + 12/12 table-standard checks).
+- `node --check src/ui/render.js`: PASS.
+- CSS brace balance: PASS.
+- Local `npm run build` not executed because Vite is not installed in the artifact workspace; use Vercel Ready as the final build check.
