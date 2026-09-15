@@ -518,3 +518,49 @@
   .axe-fund-review-row>[data-label]::before{content:attr(data-label);color:#66727d;font-size:8px;font-weight:800}
   .axe-fund-review-actions{justify-content:flex-start}
 }
+
+
+/* AXE ONE 3.26.12 · FUND ledger alignment R1
+   Keep the 8-column ledger as the reference table. The previous 3.17.6
+   636px parent rail constrained the newer 760px ledger via max-width:100%,
+   clipping the management lane. Header text also inherited a legacy
+   all-centered rule while row values were left/right aligned. */
+@media(min-width:761px){
+  .main--fund .axe-fund{
+    width:min(760px,100%);
+  }
+
+  .main--fund .axe-fund-ledger{
+    width:760px;
+    max-width:100%;
+  }
+
+  .main--fund .axe-fund-ledger-columns,
+  .main--fund .axe-fund-ledger-row{
+    grid-template-columns:82px 78px 72px minmax(110px,1fr) 96px 88px 50px 50px;
+    gap:6px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span{
+    min-width:0;
+    text-align:left;
+  }
+  .main--fund .axe-fund-ledger-columns>span:nth-child(1),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(7),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(8){
+    text-align:center;
+  }
+  .main--fund .axe-fund-ledger-columns>span:nth-child(6){
+    text-align:right;
+  }
+
+  .main--fund .axe-fund-ledger-date{justify-content:center;text-align:center}
+  .main--fund .axe-fund-ledger-person,
+  .main--fund .axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-entry,
+  .main--fund .axe-fund-ledger-type{text-align:left}
+  .main--fund .axe-fund-ledger-money{text-align:right}
+  .main--fund .axe-fund-ledger-action{justify-content:center;text-align:center}
+}
