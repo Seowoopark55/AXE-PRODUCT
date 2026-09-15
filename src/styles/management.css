@@ -124,7 +124,7 @@
   .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head>div>span{white-space:normal}.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
   .ops-mgmt-tabs-row{align-items:stretch;flex-direction:column}.ops-mgmt-tabs-row>.ops-action-primary{align-self:flex-end}
   .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,210px)}
-  .ops-lane-head{display:none}.ops-lane-row{grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px;padding:9px 10px}.ops-lane-row>.ops-lane-cell{grid-column:1}.ops-lane-row>.ops-lane-cell.is-center,.ops-lane-row>.ops-lane-cell.is-right{justify-content:flex-start}.ops-lane-row>.ops-lane-cell:last-child{grid-column:2;grid-row:1 / span 4;align-self:center;justify-content:flex-end}
+  .ops-lane-head{display:none}.ops-lane-row{grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px;padding:9px 10px}.ops-lane-row>.ops-lane-cell{grid-column:1}.ops-lane-row>.ops-lane-cell.is-center,.ops-lane-row>.ops-lane-cell.is-right{justify-content:flex-start}.ops-lane-row>.ops-lane-cell:last-child{grid-column:2;grid-row:1 / span 6;align-self:center;justify-content:flex-end}
   .ops-account-review article{grid-template-columns:minmax(0,1fr) auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
 }
 
@@ -419,7 +419,7 @@
 .ops-mgmt-section-head--solo{min-height:32px;margin-bottom:6px}
 .platform-page .page-header.page-header--compact{min-height:54px;margin-bottom:10px}
 
-/* AXE ONE 3.26.17 · FUND-ledger visual standard for operational tables.
+/* AXE ONE 3.26.18 · FUND-ledger density standard for operational tables.
    The proven FUND ledger is the desktop reference: a 636px left rail,
    identical header/body lane templates, centered header/value axes, compact
    40px data rows, and status pills only where state recognition benefits. */
@@ -445,11 +445,11 @@
 
   .main--members .ops-lane-head--member,
   .main--members .ops-lane-row--member{
-    grid-template-columns:minmax(120px,1.45fr) 74px 94px 70px 52px;
+    grid-template-columns:minmax(0,1.08fr) minmax(0,1.08fr) minmax(0,.72fr) minmax(0,.86fr) minmax(0,.72fr) minmax(0,.58fr);
   }
   .main--assets .ops-lane-head--asset,
   .main--assets .ops-lane-row--asset{
-    grid-template-columns:86px minmax(110px,1.35fr) 82px 68px 70px 52px;
+    grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr) minmax(0,.96fr) minmax(0,.72fr) minmax(0,1.02fr) minmax(0,.72fr) minmax(0,.58fr);
   }
   .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:636px;max-width:100%}
   .main--assets .ops-lane-head--return,
@@ -458,7 +458,7 @@
   }
   .main--accounts .ops-lane-head--account,
   .main--accounts .ops-lane-row--account{
-    grid-template-columns:minmax(108px,1fr) 70px minmax(145px,1.25fr) 70px 52px;
+    grid-template-columns:minmax(0,.95fr) minmax(0,1fr) minmax(0,.70fr) minmax(0,1.28fr) minmax(0,.72fr) minmax(0,.58fr);
   }
 
   .main--members .ops-lane-head,
