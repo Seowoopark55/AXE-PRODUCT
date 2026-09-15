@@ -156,3 +156,11 @@
 /* AXE ONE 3.23.5 · Cooking list stays compact as menu count grows */
 .ops-cooking-filterbar{min-height:40px;display:flex;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid var(--line-soft);background:#0f151b}.ops-cooking-filterbar .ops-mgmt-search{width:min(240px,100%)}.ops-cooking-filterbar>span{margin-left:auto;color:#707b85;font-size:8.6px;white-space:nowrap}
 @media(max-width:760px){.ops-cooking-filterbar{align-items:stretch;flex-wrap:wrap}.ops-cooking-filterbar .ops-mgmt-search{width:100%}.ops-cooking-filterbar>span{margin-left:0}}
+
+/* AXE ONE 3.26.9 · settings copy cleanup */
+.ops-settings-page .page-header.page-header--compact{min-height:56px;margin-bottom:12px}
+.ops-settings-overview article{gap:3px;padding-top:14px;padding-bottom:14px}
+.ops-settings-tabs button{min-height:38px;display:flex;align-items:center}
+.ops-settings-tabs button strong{font-size:11.7px}
+.ops-settings-row{min-height:50px}
+.ops-settings-row>div:first-child{gap:0}

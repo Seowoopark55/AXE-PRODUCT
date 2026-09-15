@@ -2,6 +2,13 @@
 
 AXE ONE is the customer-facing brand for the existing AXE PRODUCT platform.
 
+## Release
+
+- WEB STAGING 3.26.9 / package `1.7.41-web-ui.70`
+- Extends the dashboard cleanup across the main operating tabs.
+- Removes redundant helper copy where labels, values, states, or controls are already self-explanatory.
+- Keeps meaning-bearing metadata, privacy notices, permission disclosures, module descriptions, and onboarding/error guidance.
+
 ## Deployment
 
 This repository is WEB STAGING. Deploy by replacing the GitHub working tree contents with this FULL CLEAN package, committing, pushing, and confirming Vercel is Ready. Do not use `apply-axe-product.sh` for WEB deployment.
@@ -17,8 +24,9 @@ The following technical identifiers intentionally remain unchanged to avoid unne
 
 ## Database
 
-SQL history is kept under `database/migrations/`. The AXE ONE brand migration for this release is `SUPABASE_MIGRATION_3_26_5_AXE_ONE_BRAND.sql`.
+No new DB migration is required for 3.26.9.
 
 ## Validation
 
-Run `npm run check` before deployment when dependencies are installed.
+- `npm run check`: PASS
+- Local `npm run build` requires Vite dependencies to be installed; final build confirmation remains Vercel Ready.

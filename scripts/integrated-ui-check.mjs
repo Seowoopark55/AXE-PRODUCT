@@ -64,7 +64,7 @@ expect('Onboarding role validation', main.includes('관리자 역할을 선택�
 expect('Onboarding dynamic save CTA', render.includes("return '저장하고 다음'") && render.includes("return '설정 완료'"));
 expect('Onboarding save guidance copy', render.includes('기능 설정으로 이동하면 현재 입력값이 자동 저장됩니다.'));
 expect('Onboarding completion notice', main.includes('초기 설정이 완료됐습니다.'));
-expect('BOT bridge copy reflects connected state', render.includes('BOT 자동 반영 연결됨'));
+expect('BOT bridge remains connected-state aware without redundant footer copy', render.includes("state.discordConnection?.status==='connected'") && !render.includes('BOT 자동 반영 연결됨'));
 expect('Prototype CSS system imported', ['tokens.css','layout.css','fund.css','management.css','settings.css','overlays.css'].every(x=>css.includes(x)));
 
 expect('Cooking menu settings tab', render.includes('요리 메뉴') && render.includes('renderCookingMenuSettings'));

@@ -185,3 +185,7 @@
 /* AXE ONE 3.23.1 · support notification badge */
 .nav-item{position:relative}
 .nav-item__badge{min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;justify-self:end;padding:0 6px;border:1px solid rgba(228,178,75,.25);border-radius:999px;background:rgba(228,178,75,.08);color:#e2bd6a;font-size:8px;font-style:normal;font-weight:950;line-height:1}
+
+/* AXE ONE 3.26.9 · copy density cleanup */
+.page-header.page-header--compact{min-height:56px;margin-bottom:14px}
+.page-header.page-header--compact .page-header__actions{padding-top:9px}

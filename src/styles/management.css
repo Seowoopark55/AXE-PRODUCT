@@ -409,3 +409,9 @@
 .platform-service-view{width:760px;max-width:100%;min-height:150px}.platform-service-view>.platform-support-board,.platform-service-view>.platform-board{margin-bottom:0}.platform-company-meta{min-height:30px;padding-left:10px;padding-right:10px}.platform-company-list{min-height:336px}.platform-company-list>.runtime-empty{min-height:336px}
 .runtime-company-delete-form .runtime-delete-warning{display:grid;gap:5px;padding:13px 14px;border:1px solid rgba(211,91,91,.24);border-radius:9px;background:rgba(155,48,48,.07)}.runtime-delete-warning strong{color:#efb0b0;font-size:10.5px}.runtime-delete-warning span{color:#b89a9a;font-size:9px;line-height:1.55}.runtime-delete-warning small{color:#806d6d;font-size:8.3px;line-height:1.5}.runtime-company-delete-form label small b{color:#dcb3b3}
 @media(max-width:760px){.platform-service-tabs,.platform-service-view{width:100%}.platform-service-tabs{grid-template-columns:1fr}.platform-company-list{min-height:0}.platform-company-list>.runtime-empty{min-height:150px}}
+
+/* AXE ONE 3.26.9 · operational copy cleanup */
+.ops-mgmt-page .page-header.page-header--compact{min-height:56px;margin-bottom:12px}
+.ops-mgmt-summary--clean article{gap:3px;padding-top:14px;padding-bottom:14px}
+.ops-mgmt-section-head--solo{min-height:32px;margin-bottom:6px}
+.platform-page .page-header.page-header--compact{min-height:54px;margin-bottom:10px}

@@ -13,7 +13,7 @@ const checks=[
   ['irreversible warning', render.includes('이 작업은 되돌릴 수 없습니다.')],
   ['discord cleanup warning', render.includes('Discord 서버에 이미 만들어진 채널이나 메시지는 자동으로 삭제하지 않습니다.')],
   ['service management tabs', render.includes('platform-service-tabs') && render.includes('회사 관리') && render.includes('고객 질문') && render.includes('건의 · 제보')],
-  ['bounded platform page size', render.includes('platform:6') && render.includes('한 화면 최대 ${OPS_PAGE_SIZE.platform}개')],
+  ['bounded platform page size', render.includes('platform:6') && render.includes('pageRows(rows,state.platformPage,OPS_PAGE_SIZE.platform)')],
   ['platform tab state', main.includes("platformView:'companies'") && main.includes("action==='platform-view'")],
   ['delete audit table', sql.includes('platform_company_deletion_log')],
   ['delete function security definer', sql.includes('platform_admin_delete_company') && sql.includes('security definer') && sql.includes('platform_is_admin()')],

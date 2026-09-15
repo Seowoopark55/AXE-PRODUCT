@@ -6,7 +6,7 @@ const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const sql=fs.readFileSync(new URL('../database/migrations/SUPABASE_MIGRATION_3_26_0_FIRST_RUN_MEMBERSHIP_CLAIM.sql',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current package version',pkg.version==='1.7.41-web-ui.69');
+expect('current package version',pkg.version==='1.7.41-web-ui.70');
 expect('first-run explains unresolved membership instead of assuming brand-new user',render.includes('소속 회사를 확인하지 못했습니다.'));
 expect('first-run exposes new company registration path',render.includes('새 회사 등록 시작')&&render.includes("const createAction=testMode?'test-center-open-new-company':'open-create-company'"));
 expect('first-run exposes member registration wait path',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('멤버 등록 필요'));
@@ -15,7 +15,7 @@ expect('member path can re-check registration',render.includes("const checkActio
 expect('member path shows and copies Discord registration identity',render.includes('Discord ID')&&render.includes("const copyAction=testMode?'test-center-copy-info':'copy-registration-info'")&&main.includes('AXE ONE 멤버 등록 요청'));
 expect('first-run has no invite-code join form',!render.includes('data-form="join-company"')&&!render.includes('회사 합류 코드'));
 expect('first-run does not search or enumerate companies',!render.includes('회사 검색')||render.includes('회사 검색이나 합류 코드는 사용하지 않습니다.'));
-expect('member page teaches registration-first rule',render.includes('멤버 등록 → 팀원 로그인 → 자동 연결'));
+expect('member page keeps registration-first action without redundant explainer',render.includes('data-action="open-member-register"')&&render.includes('멤버 등록')&&render.includes('팀원 등록은 회사 쪽에서 먼저 진행합니다.'));
 expect('member page no longer exposes join-code action',!render.includes('data-action="create-member-invite"'));
 expect('slug is hidden from company UI',!render.includes('name="slug"')&&!render.includes('SLUG 입력'));
 expect('company create generates internal slug automatically',api.includes('makeInternalCompanySlug')&&api.includes('const internalSlug')&&api.includes('p_slug: internalSlug'));
