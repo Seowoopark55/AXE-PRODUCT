@@ -4,10 +4,11 @@ AXE ONE is the customer-facing brand for the existing AXE PRODUCT platform.
 
 ## Release
 
-- WEB STAGING 3.26.9 / package `1.7.41-web-ui.70`
-- Extends the dashboard cleanup across the main operating tabs.
-- Removes redundant helper copy where labels, values, states, or controls are already self-explanatory.
-- Keeps meaning-bearing metadata, privacy notices, permission disclosures, module descriptions, and onboarding/error guidance.
+- WEB STAGING 3.26.10 / package `1.7.41-web-ui.71`
+- Second-pass visual cleanup for operational lists and compact identity rows.
+- Hides single-page range footers, moves role/order/type metadata into compact inline badges, and removes generic placeholder copy.
+- Reworks the fund ledger into single-line date/account/type/status metadata while preserving all operational information.
+- Keeps meaning-bearing data, privacy notices, permission disclosures, module descriptions, and onboarding/error guidance.
 
 ## Deployment
 
@@ -24,7 +25,7 @@ The following technical identifiers intentionally remain unchanged to avoid unne
 
 ## Database
 
-No new DB migration is required for 3.26.9.
+No new DB migration is required for 3.26.10.
 
 ## Validation
 

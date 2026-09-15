@@ -11,7 +11,7 @@ const checks=[
   ['members inherits 636px FUND frame', management, /main--members \.ops-mgmt-page[\s\S]*?width:636px/],
   ['assets inherits 636px FUND frame', management, /main--assets \.ops-mgmt-page[\s\S]*?width:636px/],
   ['accounts inherits 636px FUND frame', management, /main--accounts \.ops-mgmt-page[\s\S]*?width:636px/],
-  ['members lanes fill shared frame', management, /grid-template-columns:240px 90px 105px 85px 70px/],
+  ['members lanes fill shared frame', management, /grid-template-columns:300px 110px 90px 75px/],
   ['assets lanes fill shared frame', management, /grid-template-columns:180px 190px 80px 70px 70px/],
   ['accounts lanes fill shared frame', management, /grid-template-columns:180px 250px 90px 77px/],
   ['assets tabs use FUND underline grammar', management, /main--assets \.ops-dense-tabs button\.is-active:after/],

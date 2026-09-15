@@ -3,7 +3,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
 const checks=[
- ['member status/manage headers centered',css.includes('.main--members .ops-lane-head--member>span:nth-child(4)')&&css.includes('.main--members .ops-lane-head--member>span:nth-child(5)')],
+ ['member status/manage headers centered',css.includes('.main--members .ops-lane-head--member>span:nth-child(3)')&&css.includes('.main--members .ops-lane-head--member>span:nth-child(4)')],
  ['asset status/manage headers centered',css.includes('.main--assets .ops-lane-head--asset>span:nth-child(4)')&&css.includes('.main--assets .ops-lane-head--asset>span:nth-child(5)')],
  ['account status/manage headers centered',css.includes('.main--accounts .ops-lane-head--account>span:nth-child(3)')&&css.includes('.main--accounts .ops-lane-head--account>span:nth-child(4)')],
  ['fund linked entries have active edit control',render.includes("r.can_edit?'':'is-correction'")&&render.includes('data-action="edit-ledger"')],

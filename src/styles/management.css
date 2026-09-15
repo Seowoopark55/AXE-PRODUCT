@@ -55,7 +55,10 @@
 .ops-lane-cell{min-width:0}.ops-lane-cell.is-center{display:flex;align-items:center;justify-content:center}.ops-lane-cell.is-right{display:flex;align-items:center;justify-content:flex-end}
 .ops-lane-copy{min-width:0;display:grid;gap:2px}.ops-lane-copy strong{overflow:hidden;color:var(--ops-title);font-size:11.8px;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-lane-copy span{overflow:hidden;color:var(--ops-sub);font-size:8.8px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}.ops-lane-value{overflow:hidden;color:var(--ops-copy);font-size:10.8px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.ops-lane-value.is-muted{color:#89949e;font-weight:600}
 
-.ops-lane-head--member,.ops-lane-row--member{grid-template-columns:minmax(0,1fr) 104px 112px 82px 60px}
+.ops-member-identity{min-width:0;display:flex;align-items:center;gap:7px}.ops-member-identity>strong{min-width:0;overflow:hidden;color:var(--ops-title);font-size:11.8px;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-role-badge{height:19px;display:inline-flex;align-items:center;padding:0 6px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:#111820;color:#89949e;font-size:7.8px;font-weight:800;white-space:nowrap}
+.ops-asset-identity{min-width:0;display:flex;align-items:center;gap:6px}.ops-asset-identity>strong{min-width:0;overflow:hidden;color:var(--ops-title);font-size:11.2px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}.ops-inline-tag{height:18px;display:inline-flex;align-items:center;padding:0 5px;border:1px solid rgba(255,255,255,.07);border-radius:999px;background:#111820;color:#7f8a94;font-size:7.5px;font-weight:800;white-space:nowrap}
+
+.ops-lane-head--member,.ops-lane-row--member{grid-template-columns:minmax(0,1fr) 112px 82px 60px}
 .ops-lane-head--asset,.ops-lane-row--asset{grid-template-columns:minmax(0,1.2fr) minmax(0,1.35fr) 88px 82px 60px}
 .ops-lane-head--return,.ops-lane-row--return{grid-template-columns:minmax(0,1.45fr) minmax(0,1.1fr) 118px}
 .ops-lane-head--account,.ops-lane-row--account{grid-template-columns:minmax(0,1fr) minmax(160px,1.45fr) 88px 60px}
@@ -80,7 +83,7 @@
   .ops-mgmt-page--members .ops-mgmt-workspace{width:520px;max-width:100%}
   .ops-mgmt-page--members .ops-mgmt-board{width:520px;max-width:100%}
   .ops-mgmt-page--members .ops-lane-head--member,
-  .ops-mgmt-page--members .ops-lane-row--member{grid-template-columns:172px 72px 88px 68px 56px;gap:7px;padding-left:9px;padding-right:9px}
+  .ops-mgmt-page--members .ops-lane-row--member{grid-template-columns:220px 96px 72px 56px;gap:7px;padding-left:9px;padding-right:9px}
 
   .ops-mgmt-page--assets .ops-mgmt-tabs-row{width:570px;max-width:100%}
   .ops-mgmt-page--assets .ops-mgmt-board{width:570px;max-width:100%}
@@ -306,7 +309,7 @@
   /* Fill the shared 636px board instead of leaving a narrow cluster inside it. */
   .main--members .ops-lane-head--member,
   .main--members .ops-lane-row--member{
-    grid-template-columns:240px 90px 105px 85px 70px;
+    grid-template-columns:300px 110px 90px 75px;
     gap:7px;
     padding-left:9px;
     padding-right:9px;
@@ -337,15 +340,15 @@
 
 /* AXE ONE 3.20.1 · OPERATIONS COLUMN ALIGNMENT R1 */
 @media(min-width:761px){
+  .main--members .ops-lane-head--member>span:nth-child(3),
   .main--members .ops-lane-head--member>span:nth-child(4),
-  .main--members .ops-lane-head--member>span:nth-child(5),
   .main--assets .ops-lane-head--asset>span:nth-child(4),
   .main--assets .ops-lane-head--asset>span:nth-child(5),
   .main--accounts .ops-lane-head--account>span:nth-child(3),
   .main--accounts .ops-lane-head--account>span:nth-child(4){text-align:center}
 
+  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(3),
   .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(4),
-  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(5),
   .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(4),
   .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(5),
   .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(3),
