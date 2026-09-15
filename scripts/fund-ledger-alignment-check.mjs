@@ -2,19 +2,20 @@ import fs from 'node:fs';
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
-const expectedHeader='<span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span>';
-const expectedGrid='grid-template-columns:72px 56px 62px minmax(108px,1fr) 90px 82px 52px 52px;';
+const headers=['날짜','이름','계좌','내역','구분','금액','증빙','관리'];
 const checks=[
-  ['web package version',pkg.version==='1.7.41-web-ui.75'],
-  ['ledger keeps eight semantic columns',render.includes(expectedHeader)],
-  ['ledger header and row share one compact eight-column grid',fund.includes(expectedGrid)],
-  ['fund ledger returns to 636px reference rail',fund.includes('.main--fund .axe-fund-ledger{\n    width:636px;')],
-  ['fund summary and ledger share the same rail rule',fund.includes('.main--fund .axe-fund-summary,\n  .main--fund .axe-fund-tabs,\n  .main--fund .axe-fund-ledger{\n    width:636px;')],
-  ['ledger row is compact',fund.includes('.main--fund .axe-fund-ledger-row{\n    min-height:40px;')],
-  ['all ledger headers and values share one center axis',fund.includes('AXE ONE 3.26.14 · FUND ledger center-axis R1') && fund.includes('.main--fund .axe-fund-ledger-columns>span,\n  .main--fund .axe-fund-ledger-row>[data-label]{\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    text-align:center;')],
-  ['money is centered under its header',fund.includes('.main--fund .axe-fund-ledger-money,\n  .main--fund .axe-fund-ledger-action,') && fund.includes('.main--fund .axe-fund-ledger-money{\n    width:100%;\n    text-align:center;')],
+  ['web package version',pkg.version==='1.7.41-web-ui.76'],
+  ['ledger uses one semantic table',render.includes('<table class="axe-fund-ledger-table">') && render.includes('<thead><tr>') && render.includes('<tbody>${body}</tbody>')],
+  ['ledger has exactly eight headers',headers.every(v=>render.includes(`<th>${v}</th>`))],
+  ['ledger rows use matching td cells',render.includes('<tr class="axe-fund-ledger-row">') && (render.match(/<td class="axe-fund-ledger-/g)||[]).length>=8],
+  ['old parallel grid header removed',!render.includes('axe-fund-ledger-columns')],
+  ['one canonical ledger css marker',(fund.match(/AXE ONE 3\.26\.15 · FUND ledger canonical table structure R1/g)||[]).length===1],
+  ['legacy ledger grid templates removed',!fund.includes('.axe-fund-ledger-columns') && !/\.axe-fund-ledger-row\s*\{[^}]*grid-template-columns/s.test(fund)],
+  ['table layout is fixed',fund.includes('.axe-fund-ledger-table{') && fund.includes('table-layout:fixed;')],
+  ['all th and td share center alignment',fund.includes('.axe-fund-ledger-table th,\n.axe-fund-ledger-table td{') && fund.includes('text-align:center;')],
+  ['ledger stays on 636px reference rail',fund.includes('.axe-fund-ledger{\n  width:636px;')],
 ];
 let passed=0;
 for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${name}`);if(ok)passed++;}
-console.log(`FUND ledger alignment: ${passed}/${checks.length} PASS`);
+console.log(`FUND ledger structure: ${passed}/${checks.length} PASS`);
 if(passed!==checks.length) process.exit(1);

@@ -5,14 +5,14 @@ const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'ut
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[
-  ['web package version',pkg.version==='1.7.41-web-ui.75'],
+  ['web package version',pkg.version==='1.7.41-web-ui.76'],
   ['single-page range footer remains hidden',render.includes('paged.totalPages<=1)return')],
   ['members expose role as a dedicated column',render.includes('<span>이름</span><span>역할</span><span>입사일</span><span>상태</span><span>관리</span>')],
   ['assets expose acquisition method as a dedicated column',render.includes('<span>보유자</span><span>자산</span><span>취득 방식</span><span>분류</span><span>상태</span><span>관리</span>')],
   ['returns use six explicit columns',render.includes('<span>자산</span><span>이전 보유자</span><span>처리</span><span>메모</span><span>확인자</span><span>처리일</span>')],
   ['accounts expose role as a dedicated column',render.includes('<span>이름</span><span>역할</span><span>계좌번호</span><span>상태</span><span>관리</span>')],
   ['member and asset metadata pills are retired',management.includes('.ops-role-badge,.ops-inline-tag{display:none}')],
-  ['fund ledger exposes account and type columns',render.includes('<span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span>')],
+  ['fund ledger exposes account and type columns',render.includes('<th>날짜</th><th>이름</th><th>계좌</th><th>내역</th><th>구분</th><th>금액</th><th>증빙</th><th>관리</th>')],
   ['fund ledger no longer renders inline metadata pills',!render.includes('axe-fund-ledger-tag is-account')&&!render.includes('axe-fund-ledger-meta')],
   ['fund weekly view exposes role column',render.includes('<span>멤버</span><span>역할</span>${[1,2,3,4,5]')],
   ['fund review uses explicit column header',render.includes('axe-fund-review-columns')&&render.includes('<span>멤버</span><span>납부 주차</span><span>금액</span><span>방식</span><span>상태</span><span>증빙</span><span>처리</span>')],
