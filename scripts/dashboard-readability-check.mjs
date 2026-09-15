@@ -2,7 +2,7 @@ import fs from 'node:fs';
 const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current web package version',pkg.version==='1.7.41-web-ui.74');
+expect('current web package version',pkg.version==='1.7.41-web-ui.75');
 expect('dashboard hero description is readable',css.includes('.axe-dashboard-hero p{margin:6px 0 0;color:#929ca5;font-size:11.5px}'));
 expect('dashboard refresh is at least 10px',css.includes('color:#a7b0b8;font-size:10.5px;font-weight:850'));
 expect('metric labels increased',css.includes('.axe-dashboard-metrics span{color:#8a959f;font-size:10px'));

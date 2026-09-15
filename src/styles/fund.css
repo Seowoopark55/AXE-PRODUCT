@@ -693,3 +693,39 @@
     font-size:8.4px;
   }
 }
+
+
+/* AXE ONE 3.26.14 · FUND ledger center-axis R1
+   The compact 636px reference rail from 3.26.13 is preserved.  Every ledger
+   header and its corresponding value now shares the same visual center axis,
+   so NAME / ACCOUNT / ENTRY / TYPE / AMOUNT no longer drift to a different
+   edge inside the same grid track.  Long values still truncate safely. */
+@media(min-width:761px){
+  .main--fund .axe-fund-ledger-columns>span,
+  .main--fund .axe-fund-ledger-row>[data-label]{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .main--fund .axe-fund-ledger-person,
+  .main--fund .axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-entry,
+  .main--fund .axe-fund-ledger-type,
+  .main--fund .axe-fund-ledger-money,
+  .main--fund .axe-fund-ledger-action,
+  .main--fund .axe-fund-ledger-date{
+    justify-content:center;
+    text-align:center;
+  }
+
+  .main--fund .axe-fund-ledger-person strong,
+  .main--fund .axe-fund-ledger-account span,
+  .main--fund .axe-fund-ledger-entry strong,
+  .main--fund .axe-fund-ledger-type,
+  .main--fund .axe-fund-ledger-money{
+    width:100%;
+    text-align:center;
+  }
+}
