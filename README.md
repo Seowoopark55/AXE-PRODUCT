@@ -1,27 +1,25 @@
-# AXE ONE WEB STAGING 3.26.17 · FUND reference table unification R1
+# AXE ONE WEB STAGING 3.26.19 · MEMBER / ACCOUNT BALANCE R1
 
-Baseline: AXE ONE WEB STAGING 3.26.16.
+Baseline: AXE ONE WEB STAGING 3.26.18.
 
 Changes:
-- FUND ledger `구분` no longer repeats `수입/지출`; direction remains visually encoded by signed amount/color.
-- Members / Assets / Accounts desktop operational rails standardized to the proven 636px FUND ledger rail.
-- Header and row cells share identical grid templates and centered visual axes.
-- Core operational rows compacted to 40px; status/action controls remain explicit.
-- Asset returns follow the same column-axis contract.
-- Cooking menu list standardized to 636px with matching header/body axes and compact rows.
-- FUND weekly status and FUND review sub-tables standardized to the same 636px/center-axis table grammar.
-- Platform company management keeps 760px because of eight business columns, but header/value axes are centered consistently.
-- Mobile labeled-row fallback is preserved.
+- Member management keeps the Discord display-name column because it is useful identity information on the member screen.
+- Member desktop column proportions were rebalanced so `이름 ↔ Discord ↔ 역할` center-to-center spacing is visually even; header and row values still share the exact same grid tracks.
+- Account management removes the Discord display-name column because it is redundant and visually unnatural in an account-centric list.
+- Account management now uses `이름 | 역할 | 계좌번호 | 상태 | 관리`.
+- Account search copy is simplified to `멤버 · 계좌 검색`, matching the visible account information.
+- Account five-column widths were redistributed so the account number receives appropriate width without creating empty-looking lanes.
+- Mobile account action span updated for the five-field row.
 
 Safety:
 - WEB only.
 - No DB migration.
 - No BOT change.
 - LIVE untouched.
-- `index.html`, `src/main.js`, and root `src/styles.css` are byte-identical to 3.26.16; only targeted renderer/styles/checks changed.
+- `index.html`, `src/main.js`, and root `src/styles.css` remain byte-identical to 3.26.18.
 
 Validation:
-- `npm run check`: PASS (all project checks + 12/12 table-standard checks).
 - `node --check src/ui/render.js`: PASS.
-- CSS brace balance: PASS.
-- Local `npm run build` not executed because Vite is not installed in the artifact workspace; use Vercel Ready as the final build check.
+- `npm run check`: PASS, including dedicated member/account balance checks.
+- Critical Vite entry files are byte-identical to the 3.26.18 baseline.
+- Local `npm run build` could not run because the workspace has no Vite binary (`vite: not found`); use Vercel Ready as the final build check.

@@ -5,7 +5,7 @@ const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.
 const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[
-  ['version',pkg.version==='1.7.41-web-ui.78'],
+  ['version',pkg.version==='1.7.41-web-ui.79'],
   ['ledger direction redundancy removed',!render.includes("const type=`${kind}${r.direction?` · ${r.direction}`:''}`")&&render.includes('data-label="구분">${esc(kind)}')],
   ['members 636 rail',/main--members \.ops-mgmt-page,[\s\S]*?width:636px/.test(mgmt)],
   ['assets 636 rail',/main--assets \.ops-mgmt-page,[\s\S]*?width:636px/.test(mgmt)],

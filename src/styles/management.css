@@ -445,7 +445,7 @@
 
   .main--members .ops-lane-head--member,
   .main--members .ops-lane-row--member{
-    grid-template-columns:minmax(0,1.08fr) minmax(0,1.08fr) minmax(0,.72fr) minmax(0,.86fr) minmax(0,.72fr) minmax(0,.58fr);
+    grid-template-columns:minmax(0,.90fr) minmax(0,1.10fr) minmax(0,.90fr) minmax(0,.86fr) minmax(0,.72fr) minmax(0,.58fr);
   }
   .main--assets .ops-lane-head--asset,
   .main--assets .ops-lane-row--asset{
@@ -458,7 +458,7 @@
   }
   .main--accounts .ops-lane-head--account,
   .main--accounts .ops-lane-row--account{
-    grid-template-columns:minmax(0,.95fr) minmax(0,1fr) minmax(0,.70fr) minmax(0,1.28fr) minmax(0,.72fr) minmax(0,.58fr);
+    grid-template-columns:minmax(0,.95fr) minmax(0,.78fr) minmax(0,1.38fr) minmax(0,.72fr) minmax(0,.58fr);
   }
 
   .main--members .ops-lane-head,
@@ -538,6 +538,10 @@
     padding:0 6px;
     font-size:8.4px;
   }
+}
+
+@media(max-width:760px){
+  .ops-lane-row--account>.ops-lane-cell:last-child{grid-row:1 / span 5}
 }
 
 .ops-member-identity,.ops-asset-identity{display:block}.ops-role-badge,.ops-inline-tag{display:none}
