@@ -3,7 +3,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('web package version',pkg.version==='1.7.41-web-ui.73');
+expect('web package version',pkg.version==='1.7.41-web-ui.74');
 expect('dashboard metrics have label and value only',!render.includes('현재 재직 기준')&&!render.includes('공금 원장 기준')&&!render.includes('개 미배정`')&&!render.includes("state.discordConnection?.guild_name||'서버 연결 정상'"));
 expect('metric markup no helper small',render.includes('metrics.map(([label,value,page])')&&render.includes('<strong>${esc(value)}</strong></button>`).join'));
 expect('all-clear duplicate helper removed',render.includes('급한 운영 항목이 없습니다.')&&!render.includes('운영 상태가 안정적입니다.'));

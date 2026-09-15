@@ -6,7 +6,7 @@ const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const sql=fs.readFileSync(new URL('../database/migrations/SUPABASE_MIGRATION_3_26_0_FIRST_RUN_MEMBERSHIP_CLAIM.sql',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('current package version',pkg.version==='1.7.41-web-ui.73');
+expect('current package version',pkg.version==='1.7.41-web-ui.74');
 expect('first-run explains unresolved membership instead of assuming brand-new user',render.includes('소속 회사를 확인하지 못했습니다.'));
 expect('first-run exposes new company registration path',render.includes('새 회사 등록 시작')&&render.includes("const createAction=testMode?'test-center-open-new-company':'open-create-company'"));
 expect('first-run exposes member registration wait path',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('멤버 등록 필요'));

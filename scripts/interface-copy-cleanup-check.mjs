@@ -6,7 +6,7 @@ const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.
 const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
-expect('web package version',pkg.version==='1.7.41-web-ui.73');
+expect('web package version',pkg.version==='1.7.41-web-ui.74');
 expect('compact page header supported',render.includes("page-header${compact?' page-header--compact':''}")&&layout.includes('.page-header.page-header--compact'));
 expect('operational page header descriptions removed',
   render.includes("pageHeader('MEMBERS','멤버 관리',''")&&

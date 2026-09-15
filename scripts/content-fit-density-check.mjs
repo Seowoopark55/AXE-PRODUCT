@@ -7,7 +7,7 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
 
 const checks=[
-  ['fund ledger uses 760px operational rail', fund, /main--fund \.axe-fund-ledger\{width:760px/],
+  ['fund ledger uses compact 636px reference rail', fund, /main--fund \.axe-fund-ledger\{[\s\S]*?width:636px/],
   ['members use 760px operational rail', management, /main--members \.ops-mgmt-page,[\s\S]*?width:760px/],
   ['assets use 760px operational rail', management, /main--assets \.ops-mgmt-page,[\s\S]*?width:760px/],
   ['accounts use 760px operational rail', management, /main--accounts \.ops-mgmt-page,[\s\S]*?width:760px/],

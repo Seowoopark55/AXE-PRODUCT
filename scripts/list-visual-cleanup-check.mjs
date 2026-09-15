@@ -5,7 +5,7 @@ const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'ut
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[
-  ['web package version',pkg.version==='1.7.41-web-ui.73'],
+  ['web package version',pkg.version==='1.7.41-web-ui.74'],
   ['single-page range footer remains hidden',render.includes('paged.totalPages<=1)return')],
   ['members expose role as a dedicated column',render.includes('<span>이름</span><span>역할</span><span>입사일</span><span>상태</span><span>관리</span>')],
   ['assets expose acquisition method as a dedicated column',render.includes('<span>보유자</span><span>자산</span><span>취득 방식</span><span>분류</span><span>상태</span><span>관리</span>')],

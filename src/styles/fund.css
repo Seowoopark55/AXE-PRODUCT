@@ -564,3 +564,132 @@
   .main--fund .axe-fund-ledger-money{text-align:right}
   .main--fund .axe-fund-ledger-action{justify-content:center;text-align:center}
 }
+
+
+/* AXE ONE 3.26.13 · FUND ledger reference R1
+   The ledger is the reference table for the rest of AXE ONE: it shares the
+   exact 636px rail used by the FUND summary/tabs, keeps eight explicit data
+   lanes, and uses one identical grid for header + body.  Metadata remains
+   visible, but row height/gaps are reduced so the board reads as one compact
+   operations table instead of a wide card. */
+@media(min-width:761px){
+  .main--fund .axe-fund,
+  .main--fund .axe-fund-summary,
+  .main--fund .axe-fund-tabs,
+  .main--fund .axe-fund-ledger{
+    width:636px;
+    max-width:100%;
+    margin-left:0;
+    margin-right:auto;
+  }
+
+  .main--fund .axe-fund-ledger-head{
+    min-height:38px;
+    margin-bottom:6px;
+  }
+
+  .main--fund .axe-fund-ledger-board{
+    width:100%;
+  }
+
+  .main--fund .axe-fund-ledger-toolbar{
+    min-height:38px;
+    padding:4px 7px;
+  }
+
+  .main--fund .axe-fund-ledger-columns,
+  .main--fund .axe-fund-ledger-row{
+    grid-template-columns:72px 56px 62px minmax(108px,1fr) 90px 82px 52px 52px;
+    gap:4px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .main--fund .axe-fund-ledger-columns{
+    height:27px;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span,
+  .main--fund .axe-fund-ledger-row>[data-label]{
+    min-width:0;
+    width:100%;
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span:nth-child(1),
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-date,
+  .main--fund .axe-fund-ledger-columns>span:nth-child(7),
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-action:nth-child(7),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(8),
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-action:nth-child(8){
+    text-align:center;
+    justify-content:center;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span:nth-child(2),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(3),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(4),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(5),
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-person,
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-entry,
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-type{
+    text-align:left;
+    justify-content:flex-start;
+  }
+
+  .main--fund .axe-fund-ledger-columns>span:nth-child(6),
+  .main--fund .axe-fund-ledger-row>.axe-fund-ledger-money{
+    text-align:right;
+    justify-content:flex-end;
+  }
+
+  .main--fund .axe-fund-ledger-row{
+    min-height:40px;
+  }
+
+  .main--fund .axe-fund-ledger-date,
+  .main--fund .axe-fund-ledger-person,
+  .main--fund .axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-entry,
+  .main--fund .axe-fund-ledger-type,
+  .main--fund .axe-fund-ledger-money,
+  .main--fund .axe-fund-ledger-action{
+    align-items:center;
+  }
+
+  .main--fund .axe-fund-ledger-person,
+  .main--fund .axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-entry,
+  .main--fund .axe-fund-ledger-type,
+  .main--fund .axe-fund-ledger-money{
+    display:flex;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+
+  .main--fund .axe-fund-ledger-person strong,
+  .main--fund .axe-fund-ledger-account span,
+  .main--fund .axe-fund-ledger-entry strong,
+  .main--fund .axe-fund-ledger-type{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .main--fund .axe-fund-ledger-date strong{font-size:9.3px}
+  .main--fund .axe-fund-ledger-person strong,
+  .main--fund .axe-fund-ledger-entry>strong,
+  .main--fund .axe-fund-ledger-money{font-size:10.2px}
+  .main--fund .axe-fund-ledger-account,
+  .main--fund .axe-fund-ledger-type{font-size:8.7px}
+  .main--fund .axe-fund-ledger-action .axe-fund-history-action{
+    min-width:42px;
+    height:25px;
+    padding:0 6px;
+    font-size:8.4px;
+  }
+}
