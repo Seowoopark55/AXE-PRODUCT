@@ -1,13 +1,3 @@
-# AXE ONE WEB STAGING 3.26.15 — FUND Ledger Table Structure R1
-
-- Package: `1.7.41-web-ui.76`
-- WEB only. No DB/BOT/LIVE change.
-
-## Root cause fixed
-The FUND ledger had accumulated multiple generations of CSS-grid rules (3.17.x, 3.26.11–3.26.14) targeting the same header/row selectors. Later overrides visually masked earlier rules but left the layout brittle and difficult to reason about.
-
-3.26.15 removes active legacy ledger-grid rules and renders the ledger as one semantic HTML `<table>` with a single column model. Header and body therefore cannot use different column tracks. The 636px reference rail remains unchanged.
-
 # AXE ONE · PRODUCT STAGING
 
 AXE ONE is the customer-facing brand for the existing AXE PRODUCT platform.
