@@ -3,26 +3,26 @@ const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf
 const management=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
 const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
-const layout=fs.readFileSync(new URL('../src/styles/layout.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[
-  ['web package version',pkg.version==='1.7.41-web-ui.71'],
-  ['header identity role is inline badge',render.includes('runtime-account-trigger__identity')&&layout.includes('.runtime-account-trigger em{')],
-  ['single-page range footer is hidden',render.includes('paged.totalPages<=1)return')],
-  ['multi-page footer uses compact total copy',render.includes('· 총 ${paged.total}${esc(noun)}')],
-  ['member role is inline badge',render.includes('ops-member-identity')&&render.includes('ops-role-badge')],
-  ['member board is four lanes',render.includes('<span>이름</span><span>입사일</span><span>상태</span><span>관리</span>')&&management.includes('grid-template-columns:300px 110px 90px 75px')],
-  ['unfiltered member result strip is suppressed',render.includes('const memberFiltered=Boolean(')],
-  ['asset metadata is inline tag',render.includes('ops-asset-identity')&&render.includes('ops-inline-tag')],
-  ['account role is inline badge',render.includes('ops-lane-row--account')&&render.includes('ops-member-identity')],
-  ['cooking generic placeholder detail is hidden',render.includes("!['설명','상세 설명'].includes(detail)")],
-  ['cooking order is compact badge',render.includes('ops-cooking-order-badge')&&settings.includes('.ops-cooking-order-badge{')],
-  ['cooking price is single-line per SET',render.includes('<em>/SET</em>')],
-  ['fund date is one line',render.includes('${y}.${m}.${d}')&&!render.includes('<strong>${m}.${d}</strong><span>${y}</span>')],
-  ['fund account/type/direction use inline tags',render.includes('axe-fund-ledger-tag is-account')&&render.includes("axe-fund-ledger-tag ${r.direction==='수입'?'is-income':'is-expense'}")],
-  ['fund ledger compact row styling exists',fund.includes('.axe-fund-ledger-meta{')&&fund.includes('.axe-fund-ledger-note{')],
+  ['web package version',pkg.version==='1.7.41-web-ui.72'],
+  ['single-page range footer remains hidden',render.includes('paged.totalPages<=1)return')],
+  ['members expose role as a dedicated column',render.includes('<span>이름</span><span>역할</span><span>입사일</span><span>상태</span><span>관리</span>')],
+  ['assets expose acquisition method as a dedicated column',render.includes('<span>보유자</span><span>자산</span><span>취득 방식</span><span>분류</span><span>상태</span><span>관리</span>')],
+  ['returns use six explicit columns',render.includes('<span>자산</span><span>이전 보유자</span><span>처리</span><span>메모</span><span>확인자</span><span>처리일</span>')],
+  ['accounts expose role as a dedicated column',render.includes('<span>이름</span><span>역할</span><span>계좌번호</span><span>상태</span><span>관리</span>')],
+  ['member and asset metadata pills are retired',management.includes('.ops-role-badge,.ops-inline-tag{display:none}')],
+  ['fund ledger exposes account and type columns',render.includes('<span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span>')],
+  ['fund ledger no longer renders inline metadata pills',!render.includes('axe-fund-ledger-tag is-account')&&!render.includes('axe-fund-ledger-meta')],
+  ['fund weekly view exposes role column',render.includes('<span>멤버</span><span>역할</span>${[1,2,3,4,5]')],
+  ['fund review uses explicit column header',render.includes('axe-fund-review-columns')&&render.includes('<span>멤버</span><span>납부 주차</span><span>금액</span><span>방식</span><span>상태</span><span>증빙</span><span>처리</span>')],
+  ['cooking uses explicit column header',render.includes('ops-cooking-menu-columns')&&render.includes('<span>메뉴</span><span>설명</span><span>가격 / SET</span><span>순서</span><span>상태</span><span>관리</span>')],
+  ['cooking order badge is retired',settings.includes('.ops-cooking-order-badge{display:none}')],
+  ['platform company data has dedicated columns',render.includes('<span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span>')],
+  ['desktop operational boards widened for real columns',management.includes('width:760px;')],
+  ['mobile operational rows expose labels',management.includes('content:attr(data-label)')&&fund.includes('content:attr(data-label)')&&settings.includes('content:attr(data-label)')],
 ];
 let passed=0;
 for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${name}`);if(ok)passed++;}
-console.log(`List visual cleanup: ${passed}/${checks.length} PASS`);
+console.log(`Column structure cleanup: ${passed}/${checks.length} PASS`);
 if(passed!==checks.length) process.exit(1);

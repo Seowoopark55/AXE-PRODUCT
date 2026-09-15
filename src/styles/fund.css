@@ -468,3 +468,53 @@
 .axe-fund-header.axe-fund-header--clean{min-height:58px;margin-bottom:12px}
 .axe-fund-summary--clean .axe-fund-metric{gap:3px;padding-top:14px;padding-bottom:14px}
 .axe-fund-card-head>div:only-child{gap:0}
+
+/* AXE ONE 3.26.11 · FUND table normalization: metadata becomes explicit columns. */
+.axe-fund-ledger-account,.axe-fund-ledger-type{min-width:0;overflow:hidden;color:#9aa5ae;font-size:9.1px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-ledger-type.is-income{color:#72dba5}.axe-fund-ledger-type.is-expense{color:#dc9696}
+.axe-fund-ledger-entry{display:block}.axe-fund-ledger-entry>strong{display:block}
+
+.axe-fund-review-columns,.axe-fund-review-row{display:grid;grid-template-columns:110px 94px 80px 82px 58px 56px minmax(140px,1fr);align-items:center;gap:6px;padding-left:9px;padding-right:9px}
+.axe-fund-review-columns{height:29px;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:8.5px;font-weight:750}
+.axe-fund-review-columns>span:nth-child(5),.axe-fund-review-columns>span:nth-child(6),.axe-fund-review-columns>span:nth-child(7){text-align:center}
+.axe-fund-review-row{min-height:46px;padding-top:5px;padding-bottom:5px}
+.axe-fund-review-cell{min-width:0;overflow:hidden;color:#aeb7c0;font-size:9.4px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.axe-fund-review-cell strong{color:var(--ops-title);font-size:10.7px}.axe-fund-review-cell.is-money{color:#d5dde4;font-variant-numeric:tabular-nums}
+.axe-fund-review-actions{justify-content:center}
+
+@media(min-width:761px){
+  .main--fund .axe-fund-ledger{width:760px;max-width:100%}
+  .main--fund .axe-fund-ledger-columns,
+  .main--fund .axe-fund-ledger-row{
+    grid-template-columns:82px 78px 72px minmax(110px,1fr) 96px 88px 50px 50px;
+    gap:6px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .main--fund .axe-fund-ledger-columns>span:nth-child(1),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(7),
+  .main--fund .axe-fund-ledger-columns>span:nth-child(8){text-align:center}
+  .main--fund .axe-fund-ledger-columns>span:nth-child(6){text-align:right}
+  .main--fund .axe-fund-ledger-row{min-height:46px}
+  .main--fund .axe-fund-ledger-date{justify-content:center;text-align:center}
+  .main--fund .axe-fund-ledger-money{text-align:right}
+  .main--fund .axe-fund-subview--weekly,
+  .main--fund .axe-fund-subview--review{width:min(760px,100%)}
+  .axe-fund-week-grid{min-width:700px}
+  .axe-fund-week-row{grid-template-columns:140px 86px repeat(5,1fr);min-height:46px}
+  .axe-fund-week-row>span{padding:0 10px}.axe-fund-week-role{overflow:hidden;color:#9aa5ae;font-size:9.5px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+}
+
+@media(max-width:760px){
+  .axe-fund-ledger-row{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:9px 10px}
+  .axe-fund-ledger-row>[data-label]:not(:last-child){display:grid;grid-template-columns:68px minmax(0,1fr);align-items:center;gap:8px;grid-column:1;justify-content:stretch;text-align:left}
+  .axe-fund-ledger-row>[data-label]:not(:last-child)::before{content:attr(data-label);color:#66727d;font-size:8px;font-weight:800}
+  .axe-fund-ledger-row>.axe-fund-ledger-action:last-child{grid-column:2;grid-row:1 / span 8;align-self:center}
+  .axe-fund-ledger-money{text-align:left}.axe-fund-ledger-date{text-align:left}
+
+  .axe-fund-review-columns{display:none}
+  .axe-fund-review-row{grid-template-columns:1fr;gap:5px;padding:9px 10px}
+  .axe-fund-review-row>[data-label]{display:grid;grid-template-columns:74px minmax(0,1fr);align-items:center;gap:8px}
+  .axe-fund-review-row>[data-label]::before{content:attr(data-label);color:#66727d;font-size:8px;font-weight:800}
+  .axe-fund-review-actions{justify-content:flex-start}
+}
