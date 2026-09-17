@@ -1,5 +1,5 @@
 {
-  "batch": "PHASE-1.1-GUIDED-SETUP-CATEGORY-LAYOUT",
+  "batch": "PHASE-1.2-ACCESS-GATE-INVITE-LOGIN",
   "allowedProductFiles": [
     "src/styles/management.css",
     "scripts/dense-ops-system-check.mjs",
@@ -26,7 +26,8 @@
     "src/main.js",
     "src/ui/render.js",
     "src/styles/layout-studio.css",
-    "src/ui/layoutStudio.js"
+    "src/ui/layoutStudio.js",
+    "src/styles/access-gate.css"
   ],
   "forbiddenPrefixes": [
     "server/",

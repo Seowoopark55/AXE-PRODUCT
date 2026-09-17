@@ -22,6 +22,10 @@
       "ok": true
     },
     {
+      "name": "scripts/access-gate-invite-check.mjs",
+      "ok": true
+    },
+    {
       "name": "scripts/account-lookup-owner-shell-check.mjs",
       "ok": true
     },

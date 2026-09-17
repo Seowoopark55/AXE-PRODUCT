@@ -2,7 +2,7 @@ import './styles.css';
 import { envReady } from './lib/supabase.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
+  listCompanies, createCompany, claimDiscordMemberships, redeemCompanyInvite, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
@@ -25,8 +25,65 @@ const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','layout'];
 
+const PENDING_INVITE_KEY = 'axe_one_pending_invite_v1';
+
+function normalizeInviteCode(value) {
+  return String(value || '').trim();
+}
+function readPendingInviteCode() {
+  try { return normalizeInviteCode(sessionStorage.getItem(PENDING_INVITE_KEY)); } catch { return ''; }
+}
+function writePendingInviteCode(value) {
+  const code=normalizeInviteCode(value);
+  try { if(code) sessionStorage.setItem(PENDING_INVITE_KEY,code); else sessionStorage.removeItem(PENDING_INVITE_KEY); } catch {}
+  return code;
+}
+function clearPendingInviteCode() {
+  try { sessionStorage.removeItem(PENDING_INVITE_KEY); } catch {}
+}
+function captureInviteFromUrl() {
+  let captured='';
+  try {
+    const url=new URL(window.location.href);
+    captured=normalizeInviteCode(url.searchParams.get('invite'));
+    if(captured){
+      writePendingInviteCode(captured);
+      url.searchParams.delete('invite');
+      const clean=`${url.pathname}${url.search}${url.hash}`;
+      window.history.replaceState(window.history.state,'',clean);
+    }
+  } catch {}
+  return captured || readPendingInviteCode();
+}
+function inviteCompanyId(result) {
+  if(Array.isArray(result)) return inviteCompanyId(result[0]);
+  if(!result || typeof result!=='object') return '';
+  return String(result.company_id || result.joined_company_id || result.target_company_id || '').trim();
+}
+function isFatalInviteError(message) {
+  return /expired|만료|revoked|취소|exhaust|used up|invalid|not found|찾을 수|unavailable|이용할 수 없는/i.test(String(message||''));
+}
+function friendlyInviteError(error) {
+  const raw=String(error?.message||error||'');
+  if(/expired|만료/i.test(raw)) return '초대권의 유효기간이 만료되었습니다. 새 초대권을 요청해 주세요.';
+  if(/revoked|취소/i.test(raw)) return '취소된 초대권입니다. 새 초대권을 요청해 주세요.';
+  if(/exhaust|used up|모두 사용/i.test(raw)) return '이미 모두 사용된 초대권입니다. 새 초대권을 요청해 주세요.';
+  if(/unavailable|이용할 수 없는/i.test(raw)) return '현재 이용할 수 없는 회사의 초대권입니다.';
+  if(/invalid|not found|찾을 수|invite/i.test(raw)) return '초대 코드를 확인할 수 없습니다. 코드를 다시 확인해 주세요.';
+  return '초대권을 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+}
+
+const initialInviteCode = captureInviteFromUrl();
+
 const state = {
   envReady,
+  discordAuthMinimal: String(import.meta.env.VITE_SUPABASE_DISCORD_AUTH_PROVIDER || '').trim().startsWith('custom:'),
+  pendingInviteCode: initialInviteCode,
+  inviteSource: initialInviteCode ? 'link' : '',
+  inviteCodeOpen: false,
+  inviteError: '',
+  inviteAttemptedCode: '',
+  inviteRedeemed: false,
   session: null,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
@@ -693,6 +750,39 @@ async function loadCompanyData() {
   }
 }
 
+async function redeemPendingInvite({force=false,throwOnError=false}={}) {
+  const code=normalizeInviteCode(state.pendingInviteCode || readPendingInviteCode());
+  if(!code || !state.session?.user) return null;
+  if(!force && state.inviteAttemptedCode===code) return null;
+  state.inviteAttemptedCode=code;
+  state.inviteError='';
+  try {
+    const result=await redeemCompanyInvite(code);
+    const targetCompanyId=inviteCompanyId(result);
+    clearPendingInviteCode();
+    state.pendingInviteCode='';
+    state.inviteSource='';
+    state.inviteCodeOpen=false;
+    state.inviteRedeemed=true;
+    if(targetCompanyId){
+      state.companyId=targetCompanyId;
+      localStorage.setItem('axe_product_company_id',targetCompanyId);
+    }
+    await claimDiscordMemberships().catch(()=>({}));
+    return result || { status:'redeemed' };
+  } catch(error) {
+    const message=friendlyInviteError(error);
+    state.inviteError=message;
+    if(isFatalInviteError(error?.message||error)){
+      clearPendingInviteCode();
+      state.pendingInviteCode='';
+      state.inviteSource='';
+    }
+    if(throwOnError) throw new Error(message);
+    return null;
+  }
+}
+
 async function refreshAll() {
   if (!state.session?.user) { state.ready=true; render(); return; }
   state.loading=true; state.error=''; render();
@@ -701,6 +791,7 @@ async function refreshAll() {
     applyLayoutStudioProfile(state.platformAdmin?state.layoutStudio:LAYOUT_STUDIO_DEFAULTS);
     if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
+    await redeemPendingInvite();
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
@@ -1036,6 +1127,8 @@ root.addEventListener('click', async event => {
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
+  if(action==='show-invite-code'){state.inviteCodeOpen=true;state.inviteError='';render();requestAnimationFrame(()=>root.querySelector('[data-invite-code-input]')?.focus());return;}
+  if(action==='hide-invite-code'){state.inviteCodeOpen=false;state.inviteError='';render();return;}
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
   if(action==='open-create-company'){const role=currentMembership(state)?.role;if((state.companies||[]).length&&role!=='owner'&&!state.platformAdmin){setError('새 회사 등록은 현재 회사 OWNER만 시작할 수 있습니다. 기존 회사 팀원은 새 회사를 만들 필요가 없습니다.');return;}state.modal={type:'create-company'};render();return;}
   if(action==='copy-registration-info'){
@@ -1049,7 +1142,7 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       await claimDiscordMemberships();
       await loadCompanies();
-      if(!state.companies.length) throw new Error('아직 멤버 등록이 확인되지 않습니다. 대표 또는 관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
+      if(!state.companies.length) throw new Error('아직 회사 접근 권한이 확인되지 않습니다. 초대 코드를 입력하거나 대표·관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
       if(!state.companyId||!state.companies.some(company=>company.id===state.companyId)) state.companyId=state.companies[0].id;
       localStorage.setItem('axe_product_company_id',state.companyId);
       state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
@@ -1414,6 +1507,33 @@ root.addEventListener('drop', event=>{
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
+    if(type==='invite-login'){
+      const code=normalizeInviteCode(data.get('invite_code'));
+      if(!code)throw new Error('초대 코드를 입력해 주세요.');
+      state.pendingInviteCode=writePendingInviteCode(code);
+      state.inviteSource='code';
+      state.inviteAttemptedCode='';
+      state.inviteError='';
+      await signInWithDiscord();
+      return;
+    }
+    if(type==='invite-redeem'){
+      const code=normalizeInviteCode(data.get('invite_code'));
+      if(!code)throw new Error('초대 코드를 입력해 주세요.');
+      state.pendingInviteCode=writePendingInviteCode(code);
+      state.inviteSource='code';
+      state.inviteAttemptedCode='';
+      await redeemPendingInvite({force:true,throwOnError:true});
+      await loadCompanies();
+      if(!state.companies.length)throw new Error('초대권은 확인됐지만 회사 접근 권한을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.');
+      if(!state.companyId||!state.companies.some(company=>company.id===state.companyId))state.companyId=state.companies[0].id;
+      localStorage.setItem('axe_product_company_id',state.companyId);
+      state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
+      await loadCompanyData();
+      state.ready=true;
+      setNotice('초대가 확인되었습니다. 회사 운영 콘솔에 연결했습니다.');
+      return;
+    }
     if(type==='test-center-company'){
       if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');
       const name=String(data.get('name')||'').trim();

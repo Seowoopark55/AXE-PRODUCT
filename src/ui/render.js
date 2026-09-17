@@ -93,22 +93,39 @@ function renderEnvironmentMissing() {
 }
 
 function renderLogin(state) {
-  return `<section class="runtime-auth"><div class="runtime-auth-card">
-    <div class="product-brand product-brand--login"><div><strong>AXE ONE</strong><small>OPERATIONS CONSOLE</small></div></div>
-    <h1>회사를 움직이는 하나의 콘솔.</h1><p>Discord 기반의 회사 운영을 더 간결하고 체계적으로.</p>
-    <button class="runtime-login-button" data-action="discord-login" ${state.loading ? 'disabled' : ''}>Discord로 로그인</button>
-  </div></section>`;
+  const hasInvite=Boolean(state.pendingInviteCode);
+  const inviteOpen=Boolean(state.inviteCodeOpen);
+  const privacy=state.discordAuthMinimal
+    ? `<span class="runtime-access-privacy is-minimal"><i>✓</i>Discord 기본 프로필만 확인 · 이메일 권한 요청 없음</span>`
+    : `<span class="runtime-access-privacy"><i>◇</i>Discord 인증 후 계정 식별 정보로 회사 권한을 확인합니다.</span>`;
+  return `<section class="runtime-auth runtime-auth--access"><div class="runtime-access-shell">
+    <section class="runtime-access-brand-panel">
+      <div class="runtime-access-brand-top"><span class="runtime-access-private"><i></i>PRIVATE ACCESS</span><div class="product-brand product-brand--login"><div><strong>AXE ONE</strong><small>OPERATIONS CONSOLE</small></div></div></div>
+      <div class="runtime-access-brand-copy"><span>ONE CONSOLE · ONE FLOW</span><h1>회사를 움직이는<br>하나의 콘솔.</h1><p>Discord 기반의 회사 운영을 더 간결하고 체계적으로.<br>승인된 구성원만 자신의 회사 공간에 접근합니다.</p></div>
+      <div class="runtime-access-steps"><div><b>01</b><span><strong>IDENTITY</strong><small>Discord 계정으로 본인 확인</small></span></div><div><b>02</b><span><strong>ACCESS</strong><small>회사 멤버십 또는 초대권 확인</small></span></div><div><b>03</b><span><strong>CONSOLE</strong><small>승인된 회사 운영 공간으로 연결</small></span></div></div>
+    </section>
+    <section class="runtime-access-panel">
+      <div class="runtime-access-panel-head"><span>SECURE SIGN IN</span><h2>${hasInvite?'초대받은 계정으로 계속':'AXE ONE에 접속'}</h2><p>${hasInvite?'초대 링크가 확인되었습니다. Discord 계정으로 본인을 확인하면 초대권을 자동으로 확인합니다.':'기존 구성원은 Discord로 로그인하면 등록된 회사로 바로 연결됩니다.'}</p></div>
+      ${hasInvite?`<div class="runtime-access-invite-ready"><span class="runtime-access-ticket-icon">↗</span><div><strong>초대 링크 확인됨</strong><small>로그인 후 1회 초대권을 안전하게 확인합니다.</small></div><em>READY</em></div>`:''}
+      <button class="runtime-access-discord" data-action="discord-login" ${state.loading?'disabled':''}><span class="runtime-access-discord-mark">D</span><strong>${hasInvite?'Discord로 초대 확인':'Discord로 계속하기'}</strong><i>→</i></button>
+      <div class="runtime-access-divider"><span>또는</span></div>
+      ${inviteOpen?`<form class="runtime-access-invite-form" data-form="invite-login"><label><span>초대 코드</span><div><input data-invite-code-input name="invite_code" maxlength="96" placeholder="XXXX-XXXX-XXXX" autocomplete="off" required><button type="submit">코드로 계속</button></div></label><button type="button" class="runtime-access-collapse" data-action="hide-invite-code">입력 취소</button></form>`:`<button type="button" class="runtime-access-invite-toggle" data-action="show-invite-code"><span>초대 코드를 가지고 있어요</span><i>+</i></button>`}
+      ${state.inviteError?`<div class="runtime-access-inline-error">${esc(state.inviteError)}</div>`:''}
+      <div class="runtime-access-trust">${privacy}<small>로그인만으로 회사 데이터가 공개되지 않습니다. 등록된 멤버십 또는 유효한 초대권이 있어야 진입할 수 있습니다.</small></div>
+    </section>
+  </div><footer class="runtime-access-footer"><span>AXE ONE</span><i></i><span>AUTHORIZED COMPANY OPERATIONS ONLY</span></footer></section>`;
 }
 
 function onboardingDiscordIdentity(state) {
   const user=state.session?.user||{};
   const meta=user.user_metadata||{};
-  const id=String(meta.provider_id||meta.sub||user.identities?.find?.(item=>String(item?.provider||'').toLowerCase()==='discord')?.identity_data?.sub||'').trim();
+  const id=String(meta.provider_id||meta.sub||user.identities?.find?.(item=>String(item?.provider||'').toLowerCase().includes('discord'))?.identity_data?.sub||'').trim();
   const name=String(meta.full_name||meta.global_name||meta.name||meta.user_name||meta.preferred_username||'Discord 사용자').trim();
   return {id,name};
 }
 
 function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
+  // Test Center keeps the historical scenario simulator isolated from the live access gate.
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
   const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
   const checkAction=testMode?'test-center-member-check':'check-member-registration';
@@ -116,28 +133,32 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
   const memberFocus=focus==='member'?' is-test-focus':'';
   const waiting=testMode&&memberCheck==='waiting'?`<div class="runtime-first-run__test-result is-waiting"><strong>아직 멤버 등록이 확인되지 않았습니다.</strong><span>대표 또는 관리자에게 현재 Discord 계정 등록을 요청한 뒤 다시 확인합니다.</span></div>`:'';
   return `
-    <header class="runtime-first-run__head"><span>AXE ONE START</span><h1>소속 회사를 확인하지 못했습니다.</h1><p>새 회사를 등록할 대표인지, 이미 AXE ONE를 이용 중인 회사의 팀원인지 선택해 주세요.</p></header>
+    <header class="runtime-first-run__head"><span>AXE ONE TEST SCENARIO</span><h1>소속 회사를 확인하지 못했습니다.</h1><p>테스트 센터에서 기존 최초 접속 분기 동작을 점검합니다.</p></header>
     <div class="runtime-first-run__grid">
-      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>아직 AXE ONE를 이용 중인 회사가 없다면 새 운영 공간을 만들고 초기설정을 바로 시작합니다.</p>
+      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY · TEST</span><h2>새 회사 등록 시뮬레이션</h2><p>PLATFORM OWNER 테스트 센터에서만 기존 회사 생성 흐름을 확인합니다.</p>
         <div class="runtime-first-run__new-flow"><span>회사 이름</span><i>→</i><span>Discord 연결</span><i>→</i><span>초기설정</span></div>
-        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">새 회사 등록 시작</button>
-        <small class="runtime-first-run__auto">SLUG 같은 시스템 식별값은 자동으로 생성됩니다.</small>
-        <div class="runtime-first-run__warning">이미 운영 중인 회사의 팀원이라면 새 회사를 만들지 말고 오른쪽 안내를 따라주세요.</div>
+        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">테스트 회사 등록 흐름</button>
+        <small class="runtime-first-run__auto">실제 미소속 사용자의 진입 화면에서는 자유 회사 생성을 제공하지 않습니다.</small>
       </article>
-      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 AXE ONE에 진입할 수 없습니다.</p>
+      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER · TEST</span><em>멤버십 확인</em></div><h2>기존 멤버 연결 시뮬레이션</h2><p>Discord 계정이 회사 멤버로 등록된 경우 자동 연결되는 흐름을 확인합니다.</p>
         <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="${copyAction}" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
-        <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사 등록이 확인될 때까지 대기</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
-        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">등록 확인하기</button>
-        ${waiting}
-        <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 이 버튼을 누르면 자동으로 소속 회사를 확인하고 바로 연결합니다.</small>
+        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">등록 확인하기</button>${waiting}
       </article>
-    </div>
-    <div class="runtime-onboarding-note runtime-first-run__note"><strong>팀원 등록은 회사 쪽에서 먼저 진행합니다.</strong><span>미등록 사용자가 임의로 회사를 찾아 들어가는 방식은 제공하지 않습니다.</span></div>`;
+    </div>`;
 }
 
 function renderOnboarding(state) {
   const discord=onboardingDiscordIdentity(state);
-  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord)}</div></section>`;
+  return `<section class="runtime-auth runtime-auth--access runtime-auth--access-gate"><div class="runtime-access-gate">
+    <header class="runtime-access-gate-head"><div class="product-brand product-brand--login"><div><strong>AXE ONE</strong><small>ACCESS GATE</small></div></div><span class="runtime-access-signed"><i></i>DISCORD VERIFIED</span></header>
+    <div class="runtime-access-gate-body"><span class="runtime-access-kicker">COMPANY ACCESS REQUIRED</span><h1>회사 접근 권한이 필요합니다.</h1><p>로그인은 완료되었습니다. AXE ONE은 등록된 회사 구성원 또는 유효한 초대권을 가진 사용자만 운영 콘솔에 연결합니다.</p>
+      <div class="runtime-access-identity-card"><span class="runtime-access-avatar">${esc((discord.name||'D').slice(0,1).toUpperCase())}</span><div><small>현재 Discord 계정</small><strong>${esc(discord.name)}</strong><em>${esc(discord.id||'Discord ID 확인 중')}</em></div><b>VERIFIED</b></div>
+      <form class="runtime-access-redeem" data-form="invite-redeem"><label><span>초대 코드</span><div><input name="invite_code" maxlength="96" placeholder="XXXX-XXXX-XXXX" autocomplete="off" required><button type="submit">초대 확인</button></div></label><small>회사 담당자에게 받은 1회 초대 코드를 입력해 주세요.</small></form>
+      ${state.inviteError?`<div class="runtime-access-inline-error">${esc(state.inviteError)}</div>`:''}
+      <div class="runtime-access-existing"><div><strong>이미 회사에서 멤버 등록을 완료했나요?</strong><span>Discord ID가 등록되어 있다면 다시 확인하는 것만으로 연결할 수 있습니다.</span></div><button type="button" data-action="check-member-registration">멤버십 다시 확인</button></div>
+    </div>
+    <footer class="runtime-access-gate-footer"><span>링크를 알고 있는 것만으로는 회사 데이터에 접근할 수 없습니다.</span><button type="button" data-action="logout">다른 Discord 계정 사용</button></footer>
+  </div></section>`;
 }
 
 function renderAuthed(state) {

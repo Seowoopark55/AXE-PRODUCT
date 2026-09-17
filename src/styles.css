@@ -10,6 +10,7 @@
 @import './styles/overlays.css';
 @import './styles/responsive.css';
 @import './styles/brand-skin.css';
+@import './styles/access-gate.css';
 
 /* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}

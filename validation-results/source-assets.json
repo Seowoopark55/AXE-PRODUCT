@@ -66,6 +66,10 @@
       "ok": true
     },
     {
+      "name": "src/styles.css -> src/styles/access-gate.css",
+      "ok": true
+    },
+    {
       "name": "src/styles.css -> public/brand/axe-shell-generated-v1.png",
       "ok": true
     },
@@ -107,7 +111,8 @@
     "src/styles/layout-studio.css",
     "src/styles/overlays.css",
     "src/styles/responsive.css",
-    "src/styles/brand-skin.css"
+    "src/styles/brand-skin.css",
+    "src/styles/access-gate.css"
   ],
   "scripts": [
     "src/main.js",
@@ -136,6 +141,7 @@
     "src/styles/overlays.css",
     "src/styles/responsive.css",
     "src/styles/brand-skin.css",
+    "src/styles/access-gate.css",
     "public/brand/axe-shell-generated-v1.png",
     "src/lib/supabase.js",
     "src/lib/productApi.js",
