@@ -21,3 +21,305 @@
 .runtime-access-redeem{display:grid;gap:7px;padding:14px;border:1px solid rgba(213,163,67,.12);border-radius:12px;background:rgba(213,163,67,.018)}.runtime-access-redeem label{display:grid;gap:6px}.runtime-access-redeem>small{color:#605f5a;font-size:8.6px}.runtime-access-existing{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:4px}.runtime-access-existing>div{display:grid;gap:3px}.runtime-access-existing strong{color:#a9adb1;font-size:9.8px}.runtime-access-existing span{color:#60676e;font-size:8.8px}.runtime-access-existing button{height:34px;flex:0 0 auto;padding:0 11px;border:1px solid #2c343c;border-radius:9px;background:#101419;color:#898f96;font-size:9px;font-weight:850}.runtime-access-existing button:hover{border-color:#3b444e;color:#c8ccd0}.runtime-access-gate-footer{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 28px;border-top:1px solid rgba(255,255,255,.06);background:#090c10}.runtime-access-gate-footer span{color:#535a61;font-size:8.6px}.runtime-access-gate-footer button{padding:0;border:0;background:transparent;color:#777e85;font-size:8.8px}
 
 @media(max-width:780px){.runtime-auth.runtime-auth--access{padding:18px 14px 34px}.runtime-access-shell{grid-template-columns:1fr;min-height:0;border-radius:18px}.runtime-access-brand-panel{min-height:250px;padding:28px 24px 24px;border-right:0;border-bottom:1px solid rgba(255,255,255,.065)}.runtime-access-brand-top .product-brand--login{display:block}.runtime-access-brand-top .product-brand strong{font-size:16px}.runtime-access-private{font-size:7.8px}.runtime-access-brand-copy{margin:30px 0 22px}.runtime-access-brand-copy h1{font-size:32px!important}.runtime-access-brand-copy p br{display:none}.runtime-access-steps{display:none}.runtime-access-panel{padding:28px 24px 24px}.runtime-access-trust{margin-top:22px}.runtime-access-footer{bottom:8px}.runtime-access-gate-head,.runtime-access-gate-footer{padding-left:20px;padding-right:20px}.runtime-access-gate-body{padding:24px 20px}.runtime-access-existing{align-items:flex-start;flex-direction:column}.runtime-access-existing button{width:100%}.runtime-access-gate-footer{align-items:flex-start;flex-direction:column;padding-top:13px;padding-bottom:13px}.runtime-access-invite-form label>div,.runtime-access-redeem label>div{grid-template-columns:1fr}.runtime-access-invite-form label button,.runtime-access-redeem label button{width:100%}}
+
+/* AXE ONE · Premium Login Frame R4
+   Dedicated generated artwork + live HTML controls. */
+.runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){
+  padding:0;
+  background:#05080a;
+}
+.runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate):before{
+  background:radial-gradient(circle at 50% 45%,rgba(197,145,57,.035),transparent 48%);
+  opacity:1;
+}
+.runtime-access-stage{
+  position:relative;
+  z-index:1;
+  width:min(100vw,calc(100vh * 1.776833));
+  height:min(100vh,calc(100vw / 1.776833));
+  min-width:0;
+  min-height:0;
+  background:url('/brand/axe-login-frame-v1.png') center/100% 100% no-repeat;
+}
+.runtime-access-stage .runtime-access-shell{
+  position:absolute;
+  inset:9.6% 12.4% 12.7% 11%;
+  width:auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:52.7% 47.3%;
+  overflow:hidden;
+  border:0;
+  border-radius:20px;
+  background:transparent;
+  box-shadow:none;
+}
+.runtime-access-stage .runtime-access-brand-panel{
+  padding:8.2% 10% 7.2%;
+  border-right:0;
+  background:linear-gradient(90deg,rgba(3,6,8,.11),rgba(3,6,8,.02));
+}
+.runtime-access-stage .runtime-access-brand-top{display:block}
+.runtime-access-stage .runtime-access-brand-top .product-brand--login{margin:0}
+.runtime-access-stage .runtime-access-brand-top .product-brand strong{
+  color:#f3f0e9;
+  font-size:clamp(18px,1.45vw,25px);
+  letter-spacing:.11em;
+}
+.runtime-access-stage .runtime-access-brand-top .product-brand small{
+  margin-top:7px;
+  color:#c69a4e;
+  font-size:clamp(8px,.58vw,10px);
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.runtime-access-stage .runtime-access-brand-copy{
+  margin:auto 0;
+  max-width:510px;
+}
+.runtime-access-stage .runtime-access-brand-copy h1{
+  margin:0 0 clamp(15px,1.45vw,24px)!important;
+  color:#f3f1ed!important;
+  font-size:clamp(31px,2.45vw,44px)!important;
+  font-weight:900;
+  line-height:1.14!important;
+  letter-spacing:-.045em;
+  text-shadow:0 1px 24px rgba(0,0,0,.22);
+}
+.runtime-access-stage .runtime-access-brand-copy h1 em{
+  color:#e5b96d;
+  font-style:normal;
+}
+.runtime-access-stage .runtime-access-brand-copy p{
+  margin:0!important;
+  color:#a9afb4!important;
+  font-size:clamp(10.5px,.84vw,13.5px)!important;
+  line-height:1.72!important;
+}
+.runtime-access-features{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.075);
+}
+.runtime-access-features>span{
+  min-width:0;
+  display:grid;
+  gap:3px;
+  padding:0 15px;
+  border-left:1px solid rgba(255,255,255,.055);
+}
+.runtime-access-features>span:first-child{padding-left:0;border-left:0}
+.runtime-access-features>span:last-child{padding-right:0}
+.runtime-access-features i{
+  margin-bottom:3px;
+  color:#c69a4e;
+  font-size:clamp(7px,.48vw,9px);
+  font-style:normal;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.runtime-access-features b{
+  overflow:hidden;
+  color:#c7c9ca;
+  font-size:clamp(8.5px,.62vw,10.5px);
+  font-weight:850;
+  white-space:nowrap;
+}
+.runtime-access-features small{
+  overflow:hidden;
+  color:#6f767c;
+  font-size:clamp(7.5px,.52vw,9px);
+  line-height:1.4;
+  white-space:nowrap;
+}
+.runtime-access-stage .runtime-access-panel{
+  padding:8.5% 9.5% 7.2%;
+  background:linear-gradient(180deg,rgba(7,12,16,.2),rgba(5,9,12,.1));
+}
+.runtime-access-stage .runtime-access-panel-head{
+  gap:8px;
+  margin-bottom:clamp(18px,1.7vw,28px);
+}
+.runtime-access-stage .runtime-access-panel-head>span{
+  position:relative;
+  padding-top:13px;
+  color:#aaaeb2;
+  font-size:clamp(9.5px,.68vw,11.5px);
+  font-weight:700;
+  letter-spacing:0;
+}
+.runtime-access-stage .runtime-access-panel-head>span:before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:31px;
+  height:2px;
+  border-radius:2px;
+  background:#d8a958;
+  box-shadow:0 0 12px rgba(216,169,88,.3);
+}
+.runtime-access-stage .runtime-access-panel-head h2{
+  color:#f4f1ec;
+  font-size:clamp(27px,2vw,36px);
+  font-weight:900;
+  line-height:1.18;
+  letter-spacing:-.04em;
+}
+.runtime-access-stage .runtime-access-panel-head p{
+  max-width:470px;
+  color:#9da4aa!important;
+  font-size:clamp(10.5px,.78vw,13px)!important;
+  line-height:1.65!important;
+}
+.runtime-access-stage .runtime-access-discord{
+  height:clamp(58px,5.2vw,72px);
+  grid-template-columns:38px 1fr 22px;
+  gap:14px;
+  padding:0 18px;
+  border:1px solid rgba(230,178,83,.68);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(48,36,18,.92),rgba(27,22,14,.92));
+  color:#f0c36f;
+  box-shadow:inset 0 0 0 1px rgba(255,224,158,.04),0 0 28px rgba(188,130,35,.055);
+}
+.runtime-access-stage .runtime-access-discord:hover{
+  transform:translateY(-1px);
+  border-color:rgba(244,194,98,.86);
+  background:linear-gradient(180deg,rgba(58,42,20,.94),rgba(31,25,14,.94));
+  box-shadow:0 12px 34px rgba(0,0,0,.28),0 0 24px rgba(209,155,57,.08);
+}
+.runtime-access-stage .runtime-access-discord-mark{
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  box-shadow:0 7px 18px rgba(88,101,242,.18);
+}
+.runtime-access-stage .runtime-access-discord-mark:before{left:8px;top:9px;width:14px;height:10px}
+.runtime-access-stage .runtime-access-discord-mark>i{top:14px}
+.runtime-access-stage .runtime-access-discord-mark>i:first-child{left:12px}
+.runtime-access-stage .runtime-access-discord-mark>i:last-child{right:12px}
+.runtime-access-stage .runtime-access-discord strong{font-size:clamp(11.5px,.86vw,14px)}
+.runtime-access-stage .runtime-access-discord>em{color:#d3a650;font-size:18px}
+.runtime-access-stage .runtime-access-divider{height:clamp(42px,4vw,54px)}
+.runtime-access-stage .runtime-access-divider:before{background:rgba(255,255,255,.08)}
+.runtime-access-stage .runtime-access-divider span{
+  padding:0 14px;
+  background:#091016;
+  color:#7d8388;
+  font-size:clamp(9px,.63vw,10.5px);
+}
+.runtime-access-stage .runtime-access-invite-toggle{
+  min-height:clamp(62px,5vw,74px);
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 18px;
+  gap:13px;
+  padding:11px 15px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;
+  background:rgba(13,19,24,.76);
+  backdrop-filter:blur(2px);
+}
+.runtime-access-stage .runtime-access-invite-toggle:hover{
+  border-color:rgba(223,176,88,.22);
+  background:rgba(18,24,29,.9);
+}
+.runtime-access-invite-icon{
+  position:relative;
+  width:40px;
+  height:40px;
+  border:1px solid rgba(255,255,255,.105);
+  border-radius:11px;
+  background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.008));
+}
+.runtime-access-invite-icon:before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:12px;
+  width:18px;
+  height:13px;
+  border:1.5px solid #a1a8ad;
+  border-radius:2px;
+}
+.runtime-access-invite-icon:after{
+  content:"";
+  position:absolute;
+  left:12px;
+  top:13px;
+  width:14px;
+  height:8px;
+  border-bottom:1.5px solid #a1a8ad;
+  transform:rotate(-35deg) skewX(20deg);
+  opacity:.75;
+}
+.runtime-access-stage .runtime-access-invite-copy{gap:4px}
+.runtime-access-stage .runtime-access-invite-copy b{
+  color:#d3d5d5;
+  font-size:clamp(11.5px,.78vw,13.5px);
+}
+.runtime-access-stage .runtime-access-invite-copy small{
+  color:#7c8389;
+  font-size:clamp(10px,.66vw,11.5px);
+  line-height:1.45;
+}
+.runtime-access-stage .runtime-access-invite-toggle>i{color:#a4abb0;font-size:17px}
+.runtime-access-stage .runtime-access-invite-form label>span{font-size:10.5px}
+.runtime-access-stage .runtime-access-invite-form input{height:47px;font-size:12px}
+.runtime-access-stage .runtime-access-invite-form label button{height:47px;font-size:10.5px}
+.runtime-access-stage .runtime-access-collapse{font-size:9.5px}
+.runtime-access-stage .runtime-access-trust{
+  gap:12px;
+  margin-top:auto;
+  padding-top:clamp(20px,2vw,30px);
+  border-top:1px solid rgba(255,255,255,.075);
+}
+.runtime-access-stage .runtime-access-privacy,
+.runtime-access-stage .runtime-access-trust-row{
+  align-items:center;
+  gap:11px;
+}
+.runtime-access-stage .runtime-access-privacy>i,
+.runtime-access-stage .runtime-access-trust-row>i{
+  width:20px;
+  flex:0 0 20px;
+  color:#d0a457;
+  font-size:13px;
+}
+.runtime-access-stage .runtime-access-privacy>span{gap:3px}
+.runtime-access-stage .runtime-access-privacy strong{
+  color:#b9bdc0;
+  font-size:clamp(11.5px,.76vw,13px);
+}
+.runtime-access-stage .runtime-access-privacy small,
+.runtime-access-stage .runtime-access-trust-row small{
+  color:#7c8389;
+  font-size:clamp(10.5px,.7vw,12px);
+  line-height:1.5;
+}
+.runtime-access-stage .runtime-access-privacy.is-minimal>i,
+.runtime-access-stage .runtime-access-trust-row>i{color:#d3a957}
+.runtime-access-stage .runtime-access-invite-ready{font-size:inherit}
+.runtime-access-stage .runtime-access-invite-ready strong{font-size:11px}
+.runtime-access-stage .runtime-access-invite-ready small{font-size:9.3px}
+.runtime-access-stage .runtime-access-inline-error{font-size:10px}
+
+@media(max-width:900px){
+  .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){padding:20px 14px 34px;background:radial-gradient(circle at 50% 0,rgba(198,146,61,.085),transparent 38%),#05080a}
+  .runtime-access-stage{width:100%;height:auto;min-height:0;background:none}
+  .runtime-access-stage .runtime-access-shell{position:relative;inset:auto;width:min(620px,100%);margin:0 auto;grid-template-columns:1fr;border:1px solid rgba(215,166,78,.22);border-radius:20px;background:#090d11;box-shadow:0 28px 80px rgba(0,0,0,.48)}
+  .runtime-access-stage .runtime-access-brand-panel{min-height:0;padding:26px 24px 22px;border-right:0;border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(145deg,rgba(197,145,57,.05),transparent 58%),#090d11}
+  .runtime-access-stage .runtime-access-brand-copy{margin:30px 0 20px;max-width:none}
+  .runtime-access-stage .runtime-access-brand-copy h1{font-size:31px!important}
+  .runtime-access-stage .runtime-access-brand-copy p{font-size:11.5px!important}
+  .runtime-access-stage .runtime-access-brand-copy p br{display:block}
+  .runtime-access-features{display:none}
+  .runtime-access-stage .runtime-access-panel{padding:28px 24px 24px;background:#0b1015}
+  .runtime-access-stage .runtime-access-panel-head h2{font-size:29px}
+  .runtime-access-stage .runtime-access-panel-head p{font-size:11.3px!important}
+  .runtime-access-stage .runtime-access-discord{height:60px}
+  .runtime-access-stage .runtime-access-invite-toggle{min-height:66px}
+  .runtime-access-stage .runtime-access-trust{margin-top:24px}
+}
