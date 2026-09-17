@@ -5,7 +5,7 @@ const css=fs.readFileSync(new URL('../src/styles/pages.css',import.meta.url),'ut
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const checks=[]; const expect=(label,ok)=>checks.push([label,Boolean(ok)]);
 expect('current web package version',pkg.version==='1.7.41-web-ui.79');
-expect('dashboard is a valid route',main.includes("const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform']"));
+expect('dashboard is a valid route',/const validPages = \[[^\]]*'dashboard'[^\]]*\]/.test(main));
 expect('dashboard is default route',main.includes(": 'dashboard',"));
 expect('setup completion lands on dashboard',main.includes("state.page='dashboard';localStorage.setItem('axe_product_page','dashboard')"));
 expect('sidebar dashboard entry',render.includes("navItem(state,'dashboard','대시보드')"));

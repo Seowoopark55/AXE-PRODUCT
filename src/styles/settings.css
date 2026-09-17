@@ -174,15 +174,15 @@
   padding-left:var(--ops-table-cell-pad-inline);
   padding-right:var(--ops-table-cell-pad-inline);
 }
-.ops-cooking-menu-columns{height:var(--ops-table-header-height);border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:8.5px;font-weight:750}
+.ops-cooking-menu-columns{height:var(--ops-table-header-height);border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:var(--ops-table-header-font-size);font-weight:750}
 .ops-cooking-menu-columns>span,.ops-cooking-menu-cell{min-width:0;width:100%;text-align:center}
 .ops-cooking-menu-columns>span{display:flex;align-items:center;justify-content:center}
 .ops-cooking-menu-row{min-height:var(--ops-table-row-height);padding-top:4px;padding-bottom:4px}
-.ops-cooking-menu-cell{color:#aab3bc;font-size:8.9px;font-weight:700}
+.ops-cooking-menu-cell{color:#aab3bc;font-size:calc(var(--ops-table-secondary-font-size) - .1px);font-weight:700}
 .ops-cooking-menu-cell.is-center,.ops-cooking-menu-price{display:flex;align-items:center;justify-content:center}
 .ops-cooking-menu-name strong,.ops-cooking-menu-detail{display:block;width:100%;min-width:0;overflow:hidden;text-align:center;text-overflow:ellipsis;white-space:nowrap}
-.ops-cooking-menu-name strong{color:var(--text);font-size:10.2px}
-.ops-cooking-menu-detail.is-muted{color:#65717c}.ops-cooking-menu-price strong{color:#77e7b2;font-size:9.8px}.ops-cooking-menu-order{text-align:center;font-variant-numeric:tabular-nums}
+.ops-cooking-menu-name strong{color:var(--text);font-size:var(--ops-table-primary-font-size)}
+.ops-cooking-menu-detail.is-muted{color:#65717c}.ops-cooking-menu-price strong{color:#77e7b2;font-size:calc(var(--ops-table-primary-font-size) - .4px)}.ops-cooking-menu-order{text-align:center;font-variant-numeric:tabular-nums}
 .ops-cooking-order-badge{display:none}
 .ops-cooking-menu-row .runtime-power{min-height:24px!important;height:24px!important;padding-left:6px!important;padding-right:6px!important;font-size:8.1px!important}
 .ops-cooking-menu-row .ops-mgmt-action{min-width:var(--ops-table-action-min-width);min-height:26px;height:25px;padding:0 var(--ops-table-action-pad-inline);font-size:var(--ops-table-action-font-size)}

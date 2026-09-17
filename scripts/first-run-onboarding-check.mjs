@@ -15,7 +15,7 @@ expect('member path can re-check registration',render.includes("const checkActio
 expect('member path shows and copies Discord registration identity',render.includes('Discord ID')&&render.includes("const copyAction=testMode?'test-center-copy-info':'copy-registration-info'")&&main.includes('AXE ONE 멤버 등록 요청'));
 expect('first-run has no invite-code join form',!render.includes('data-form="join-company"')&&!render.includes('회사 합류 코드'));
 expect('first-run does not search or enumerate companies',!render.includes('회사 검색')||render.includes('회사 검색이나 합류 코드는 사용하지 않습니다.'));
-expect('member page keeps registration-first action without redundant explainer',render.includes('data-action="open-member-register"')&&render.includes('멤버 등록')&&render.includes('팀원 등록은 회사 쪽에서 먼저 진행합니다.'));
+expect('member page removes redundant web registration CTA while Discord/setup registration remains',render.includes("pageHeader('MEMBERS','멤버 관리','','')")&&render.includes('Discord 우클릭 → 앱 → AXE 멤버 등록')&&render.includes('선택 멤버 등록'));
 expect('member page no longer exposes join-code action',!render.includes('data-action="create-member-invite"'));
 expect('slug is hidden from company UI',!render.includes('name="slug"')&&!render.includes('SLUG 입력'));
 expect('company create generates internal slug automatically',api.includes('makeInternalCompanySlug')&&api.includes('const internalSlug')&&api.includes('p_slug: internalSlug'));

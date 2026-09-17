@@ -41,6 +41,11 @@
   --ops-table-row-height:40px;
   --ops-table-gap:4px;
   --ops-table-cell-pad-inline:8px;
+  --ops-table-header-font-size:8.5px;
+  --ops-table-primary-font-size:10.2px;
+  --ops-table-secondary-font-size:9px;
+  --ops-table-control-font-size:9.6px;
+  --ops-table-status-font-size:8.3px;
   --ops-table-action-min-width:42px;
   --ops-table-action-pad-inline:6px;
   --ops-table-action-font-size:8.4px;

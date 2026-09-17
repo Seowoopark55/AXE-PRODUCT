@@ -18,11 +18,12 @@ import {
   removeSuggestionAttachments, deleteSuggestion,
 } from './lib/productApi.js';
 import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
+import { LAYOUT_STUDIO_DEFAULTS, loadLayoutStudioProfile, saveLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue } from './ui/layoutStudio.js';
 
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform'];
+const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','layout'];
 
 const state = {
   envReady,
@@ -55,6 +56,7 @@ const state = {
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
   platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', currentSubscription:null,
+  layoutStudio:loadLayoutStudioProfile(), layoutStudioSaved:loadLayoutStudioProfile(), layoutStudioDirty:false, layoutStudioAdvanced:false,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -75,6 +77,8 @@ const state = {
   error: '',
   notice: '',
 };
+
+applyLayoutStudioProfile(LAYOUT_STUDIO_DEFAULTS);
 
 let noticeTimer = null;
 let mutationBusy = false;
@@ -691,7 +695,8 @@ async function refreshAll() {
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
-    if(!state.platformAdmin && state.page==='platform'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
+    applyLayoutStudioProfile(state.platformAdmin?state.layoutStudio:LAYOUT_STUDIO_DEFAULTS);
+    if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
@@ -979,7 +984,14 @@ root.addEventListener('click', async event => {
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
+  if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='layout';applyLayoutStudioProfile(state.layoutStudio);localStorage.setItem('axe_product_page','layout');render();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
+  if(action==='layout-preset'){if(!state.platformAdmin)return;state.layoutStudio=applyLayoutStudioPreset(state.layoutStudio,String(actionEl.dataset.layoutType||''),String(actionEl.dataset.layoutValue||''));state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
+  if(action==='layout-adjust'){if(!state.platformAdmin)return;state.layoutStudio=adjustLayoutStudioValue(state.layoutStudio,String(actionEl.dataset.layoutKey||''),Number(actionEl.dataset.layoutDelta||0));state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
+  if(action==='layout-toggle-advanced'){if(!state.platformAdmin)return;state.layoutStudioAdvanced=!state.layoutStudioAdvanced;render();return;}
+  if(action==='layout-reset-default'){if(!state.platformAdmin)return;state.layoutStudio={...LAYOUT_STUDIO_DEFAULTS};state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
+  if(action==='layout-revert'){if(!state.platformAdmin)return;state.layoutStudio=loadLayoutStudioProfile();state.layoutStudioSaved={...state.layoutStudio};state.layoutStudioDirty=false;applyLayoutStudioProfile(state.layoutStudio);render();return;}
+  if(action==='layout-save'){if(!state.platformAdmin)return;state.layoutStudio=saveLayoutStudioProfile(state.layoutStudio);state.layoutStudioSaved={...state.layoutStudio};state.layoutStudioDirty=false;applyLayoutStudioProfile(state.layoutStudio);setNotice('레이아웃 설정을 현재 브라우저에 저장했습니다.');return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
   if(action==='test-center-select'){
     if(!state.platformAdmin||!state.testCenter)return;

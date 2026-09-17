@@ -43,7 +43,7 @@ expect('test center remains non-writing for member registration check',main.incl
 
 
 expect('existing non-owner does not see additional company action',render.includes("(currentMembership(state)?.role==='owner'||state.platformAdmin)")&&main.includes("role!=='owner'&&!state.platformAdmin"));
-expect('direct member registration is available to company admins',render.includes('data-action="open-member-register"')&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
+expect('direct member registration API remains available while member-page CTA is removed',render.includes("pageHeader('MEMBERS','멤버 관리','','')")&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
 expect('direct member registration revalidates company admin server-side',registerMember.includes('await requireCompanyAdmin(token, user.id, companyId)'));
 expect('direct member registration verifies actual Discord guild membership',registerMember.includes("/guilds/${guildId}/members/${discordUserId}"));
 expect('direct member registration fails clearly when Discord is not connected',registerMember.includes("status(409)")&&registerMember.includes('먼저 회사 설정에서 Discord 서버를 연결해 주세요.'));

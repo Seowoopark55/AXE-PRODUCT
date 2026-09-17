@@ -50,6 +50,10 @@
       "ok": true
     },
     {
+      "name": "src/styles.css -> src/styles/layout-studio.css",
+      "ok": true
+    },
+    {
       "name": "src/styles.css -> src/styles/overlays.css",
       "ok": true
     },
@@ -78,6 +82,10 @@
       "ok": true
     },
     {
+      "name": "src/ui/render.js -> src/ui/layoutStudio.js",
+      "ok": true
+    },
+    {
       "name": "reachable stylesheet exists",
       "ok": true
     },
@@ -96,6 +104,7 @@
     "src/styles/fund.css",
     "src/styles/management.css",
     "src/styles/settings.css",
+    "src/styles/layout-studio.css",
     "src/styles/overlays.css",
     "src/styles/responsive.css",
     "src/styles/brand-skin.css"
@@ -104,7 +113,8 @@
     "src/main.js",
     "src/lib/supabase.js",
     "src/lib/productApi.js",
-    "src/ui/render.js"
+    "src/ui/render.js",
+    "src/ui/layoutStudio.js"
   ],
   "external": [
     "package:@supabase/supabase-js"
@@ -122,12 +132,14 @@
     "src/styles/fund.css",
     "src/styles/management.css",
     "src/styles/settings.css",
+    "src/styles/layout-studio.css",
     "src/styles/overlays.css",
     "src/styles/responsive.css",
     "src/styles/brand-skin.css",
     "public/brand/axe-shell-generated-v1.png",
     "src/lib/supabase.js",
     "src/lib/productApi.js",
-    "src/ui/render.js"
+    "src/ui/render.js",
+    "src/ui/layoutStudio.js"
   ]
 }
