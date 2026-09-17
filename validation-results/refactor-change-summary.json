@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "batch": "PHASE-1.2-ACCESS-GATE-INVITE-LOGIN",
   "changed": [
     "api/discord/setup/channels.js",

@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "mode": "refactor-aware",
   "baselineManifest": "tests/validation/product-sha256.json",
   "batch": "PHASE-1.2-ACCESS-GATE-INVITE-LOGIN",
@@ -58,9 +58,11 @@
     "src/styles.css",
     "src/ui/render.js"
   ],
-  "unchangedCount": 60,
+  "unchangedCount": 59,
   "missing": [],
-  "unauthorized": [],
+  "unauthorized": [
+    "README.md"
+  ],
   "added": [],
   "forbiddenChanged": [],
   "checks": [
@@ -71,8 +73,10 @@
     },
     {
       "name": "only approved original product files changed",
-      "ok": true,
-      "detail": []
+      "ok": false,
+      "detail": [
+        "README.md"
+      ]
     },
     {
       "name": "no unexpected product files added",
