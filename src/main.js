@@ -301,7 +301,6 @@ function createSetupDemoState(){
     memberRole:'회사원',
     modules:demoModules,
     channelMode:'quick',
-    categoryName:'AXE ONE',
     channelsGenerated:false,
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',pinball:'#핀볼-모집',cooking:'#요리-주문',accountLookup:'#계좌조회'},
@@ -338,7 +337,6 @@ function createSetupGuideState(step = 0){
     memberRoleId:String(cfg.member_role_id||''),
     modules:moduleMap,
     channelMode:'quick',
-    categoryName:'AXE ONE',
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
@@ -390,19 +388,25 @@ function openSetupGuide(step = 0){
   render();
 }
 
+function setupGuideChannelCategory(key){
+  if(['ammo3','ammo10','pinball','outlaw'].includes(String(key))) return 'AXE ONE · 무법지대';
+  if(['fund','accountLookup'].includes(String(key))) return 'AXE ONE · 회사운영';
+  return 'AXE ONE · 편의기능';
+}
+
 function setupGuideChannelPlan(){
   const modules=state.setupGuide?.modules||{};
   const rows=[];
-  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text'});
+  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text',categoryName:setupGuideChannelCategory('fund')});
   if(modules.ammo){
-    rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알'});
-    rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알'});
+    rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알',categoryName:setupGuideChannelCategory('ammo3')});
+    rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알',categoryName:setupGuideChannelCategory('ammo10')});
   }
-  if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록'});
-  if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서'});
-  if(modules.pinball)rows.push({key:'pinball',moduleKey:'pinball',settingKey:'channel_id',label:'핀볼 모집',name:state.setupGuide.generatedChannels?.pinball||'핀볼-모집'});
-  if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문'});
-  if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회'});
+  if(modules.pinball)rows.push({key:'pinball',moduleKey:'pinball',settingKey:'channel_id',label:'핀볼 모집',name:state.setupGuide.generatedChannels?.pinball||'핀볼-모집',categoryName:setupGuideChannelCategory('pinball')});
+  if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록',categoryName:setupGuideChannelCategory('outlaw')});
+  if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서',categoryName:setupGuideChannelCategory('modbook')});
+  if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문',categoryName:setupGuideChannelCategory('cooking')});
+  if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회',categoryName:setupGuideChannelCategory('accountLookup')});
   return rows;
 }
 
@@ -445,7 +449,6 @@ async function saveSetupGuideModules(){
   const previous=state.setupGuide;
   const next=createSetupGuideState(4);
   next.channelMode=previous.channelMode||'quick';
-  next.categoryName=previous.categoryName||'AXE ONE';
   next.generatedChannels={...(previous.generatedChannels||next.generatedChannels)};
   state.setupGuide=next;
 }
@@ -1100,14 +1103,12 @@ root.addEventListener('click', async event => {
     if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan();
-      const category=String(state.setupGuide.categoryName||'AXE ONE').trim();
-      if(!category)throw new Error('카테고리 이름을 입력해 주세요.');
       if(plan.some(row=>!String(row.name||'').trim()))throw new Error('생성할 채널 이름을 모두 입력해 주세요.');
       const normalizedNames=plan.map(row=>String(row.name||'').trim().toLocaleLowerCase('ko-KR'));
       if(new Set(normalizedNames).size!==normalizedNames.length)throw new Error('같은 채널명을 두 번 사용할 수 없습니다. 채널명을 다르게 지정해 주세요.');
       let result;
       try{
-        result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name,type:row.type||'text'})));
+        result=await createGuidedSetupChannels(state.companyId,'AXE ONE',plan.map(row=>({key:row.key,name:row.name,type:row.type||'text',category_name:row.categoryName})));
       }catch(error){
         const message=String(error?.message||error||'');
         if(Number(error?.statusCode||0)===403 || /채널 관리 권한/.test(message)){
@@ -1344,7 +1345,6 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-asset-modal-status]')){const holder=root.querySelector('[data-asset-holder]');if(event.target.value==='미배정'&&holder)holder.value='';return;}
     if(event.target.matches('[data-guide-role]')){if(!state.setupGuide)return;state.setupGuide[event.target.dataset.guideRole]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-guide-direct-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideDirectChannel||'');state.setupGuide.directChannels=state.setupGuide.directChannels||{};state.setupGuide.directChannels[key]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-guide-category-name]')){if(!state.setupGuide)return;state.setupGuide.categoryName=String(event.target.value||'').trim()||'AXE ONE';render();return;}
     if(event.target.matches('[data-guide-generated-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideGeneratedChannel||'');state.setupGuide.generatedChannels=state.setupGuide.generatedChannels||{};state.setupGuide.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();render();return;}
     if(event.target.matches('[data-guide-member-filter]')){if(!state.setupGuide)return;state.setupGuide.memberFilterRoleId=String(event.target.value||'');state.setupGuide.memberListLoaded=false;state.setupGuide.memberCandidates=[];state.setupGuide.memberSelected=[];if(state.setupGuide.memberFilterRoleId)await withMutation(loadSetupGuideMembers);else render();return;}
     if(event.target.matches('[data-guide-member-target-role]')){if(!state.setupGuide)return;state.setupGuide.memberTargetRole=String(event.target.value||'')==='admin'?'admin':'member';render();return;}
@@ -1356,7 +1356,6 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-suggestion-attachment-input]')){addSuggestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','핀볼-모집':'pinball','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
-    if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE ONE';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){
       if(!state.setupDemo)return;

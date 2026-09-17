@@ -1,15 +1,20 @@
 {
   "status": "PASS",
-  "batch": "BATCH-08-RESPONSIVE-CLEANUP-RC-PRECHECK",
+  "batch": "PHASE-1.1-GUIDED-SETUP-CATEGORY-LAYOUT",
   "changed": [
+    "api/discord/setup/channels.js",
     "scripts/content-fit-density-check.mjs",
+    "scripts/dashboard-operations-check.mjs",
     "scripts/dense-ops-system-check.mjs",
+    "scripts/first-run-onboarding-check.mjs",
     "scripts/fund-ledger-alignment-check.mjs",
     "scripts/fund-ledger-axis-specificity-check.mjs",
     "scripts/list-visual-cleanup-check.mjs",
+    "scripts/onboarding-flow-integrity-check.mjs",
     "scripts/ops-density-balance-check.mjs",
     "scripts/ops-table-fund-standard-check.mjs",
     "scripts/platform-shell-balance-check.mjs",
+    "src/main.js",
     "src/styles/brand-skin.css",
     "src/styles/components.css",
     "src/styles/fund.css",
@@ -19,7 +24,8 @@
     "src/styles/responsive.css",
     "src/styles/settings.css",
     "src/styles/tokens.css",
-    "src/styles.css"
+    "src/styles.css",
+    "src/ui/render.js"
   ],
   "allowed": [
     "src/styles/management.css",
@@ -39,6 +45,14 @@
     "src/styles/overlays.css",
     "src/styles/brand-skin.css",
     "src/styles/responsive.css",
-    "src/styles/layout.css"
+    "src/styles/layout.css",
+    "api/discord/setup/channels.js",
+    "scripts/dashboard-operations-check.mjs",
+    "scripts/first-run-onboarding-check.mjs",
+    "scripts/onboarding-flow-integrity-check.mjs",
+    "src/main.js",
+    "src/ui/render.js",
+    "src/styles/layout-studio.css",
+    "src/ui/layoutStudio.js"
   ]
 }

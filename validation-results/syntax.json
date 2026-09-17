@@ -14,6 +14,10 @@
       "ok": true
     },
     {
+      "name": "src/ui/layoutStudio.js",
+      "ok": true
+    },
+    {
       "name": "src/ui/render.js",
       "ok": true
     },
@@ -78,6 +82,10 @@
       "ok": true
     },
     {
+      "name": "scripts/guided-setup-category-layout-check.mjs",
+      "ok": true
+    },
+    {
       "name": "scripts/guided-setup-typography-check.mjs",
       "ok": true
     },
@@ -87,6 +95,10 @@
     },
     {
       "name": "scripts/interface-copy-cleanup-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/layout-studio-check.mjs",
       "ok": true
     },
     {

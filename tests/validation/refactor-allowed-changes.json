@@ -1,5 +1,5 @@
 {
-  "batch": "BATCH-08-RESPONSIVE-CLEANUP-RC-PRECHECK",
+  "batch": "PHASE-1.1-GUIDED-SETUP-CATEGORY-LAYOUT",
   "allowedProductFiles": [
     "src/styles/management.css",
     "scripts/dense-ops-system-check.mjs",
@@ -18,10 +18,17 @@
     "src/styles/overlays.css",
     "src/styles/brand-skin.css",
     "src/styles/responsive.css",
-    "src/styles/layout.css"
+    "src/styles/layout.css",
+    "api/discord/setup/channels.js",
+    "scripts/dashboard-operations-check.mjs",
+    "scripts/first-run-onboarding-check.mjs",
+    "scripts/onboarding-flow-integrity-check.mjs",
+    "src/main.js",
+    "src/ui/render.js",
+    "src/styles/layout-studio.css",
+    "src/ui/layoutStudio.js"
   ],
   "forbiddenPrefixes": [
-    "api/",
     "server/",
     "database/"
   ]
