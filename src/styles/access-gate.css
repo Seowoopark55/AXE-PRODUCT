@@ -22,8 +22,8 @@
 
 @media(max-width:780px){.runtime-auth.runtime-auth--access{padding:18px 14px 34px}.runtime-access-shell{grid-template-columns:1fr;min-height:0;border-radius:18px}.runtime-access-brand-panel{min-height:250px;padding:28px 24px 24px;border-right:0;border-bottom:1px solid rgba(255,255,255,.065)}.runtime-access-brand-top .product-brand--login{display:block}.runtime-access-brand-top .product-brand strong{font-size:16px}.runtime-access-private{font-size:7.8px}.runtime-access-brand-copy{margin:30px 0 22px}.runtime-access-brand-copy h1{font-size:32px!important}.runtime-access-brand-copy p br{display:none}.runtime-access-steps{display:none}.runtime-access-panel{padding:28px 24px 24px}.runtime-access-trust{margin-top:22px}.runtime-access-footer{bottom:8px}.runtime-access-gate-head,.runtime-access-gate-footer{padding-left:20px;padding-right:20px}.runtime-access-gate-body{padding:24px 20px}.runtime-access-existing{align-items:flex-start;flex-direction:column}.runtime-access-existing button{width:100%}.runtime-access-gate-footer{align-items:flex-start;flex-direction:column;padding-top:13px;padding-bottom:13px}.runtime-access-invite-form label>div,.runtime-access-redeem label>div{grid-template-columns:1fr}.runtime-access-invite-form label button,.runtime-access-redeem label button{width:100%}}
 
-/* AXE ONE · Premium Login Frame R4
-   Dedicated generated artwork + live HTML controls. */
+/* AXE ONE · Premium Login Frame R5
+   Balanced scale: more breathing room, lower visual fatigue, live HTML controls. */
 .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){
   padding:0;
   background:#05080a;
@@ -35,11 +35,12 @@
 .runtime-access-stage{
   position:relative;
   z-index:1;
-  width:min(100vw,calc(100vh * 1.776833));
-  height:min(100vh,calc(100vw / 1.776833));
+  width:min(1320px,92vw,calc(88vh * 1.776833));
+  height:auto;
+  aspect-ratio:1672/941;
   min-width:0;
   min-height:0;
-  background:url('/brand/axe-login-frame-v1.png') center/100% 100% no-repeat;
+  background:linear-gradient(rgba(3,6,8,.08),rgba(3,6,8,.08)),url('/brand/axe-login-frame-v1.png') center/100% 100% no-repeat;
 }
 .runtime-access-stage .runtime-access-shell{
   position:absolute;
@@ -55,7 +56,7 @@
   box-shadow:none;
 }
 .runtime-access-stage .runtime-access-brand-panel{
-  padding:8.2% 10% 7.2%;
+  padding:7.4% 9.2% 6.6%;
   border-right:0;
   background:linear-gradient(90deg,rgba(3,6,8,.11),rgba(3,6,8,.02));
 }
@@ -63,7 +64,7 @@
 .runtime-access-stage .runtime-access-brand-top .product-brand--login{margin:0}
 .runtime-access-stage .runtime-access-brand-top .product-brand strong{
   color:#f3f0e9;
-  font-size:clamp(18px,1.45vw,25px);
+  font-size:clamp(17px,1.18vw,22px);
   letter-spacing:.11em;
 }
 .runtime-access-stage .runtime-access-brand-top .product-brand small{
@@ -80,7 +81,7 @@
 .runtime-access-stage .runtime-access-brand-copy h1{
   margin:0 0 clamp(15px,1.45vw,24px)!important;
   color:#f3f1ed!important;
-  font-size:clamp(31px,2.45vw,44px)!important;
+  font-size:clamp(28px,1.95vw,36px)!important;
   font-weight:900;
   line-height:1.14!important;
   letter-spacing:-.045em;
@@ -93,7 +94,7 @@
 .runtime-access-stage .runtime-access-brand-copy p{
   margin:0!important;
   color:#a9afb4!important;
-  font-size:clamp(10.5px,.84vw,13.5px)!important;
+  font-size:clamp(10.5px,.72vw,12.5px)!important;
   line-height:1.72!important;
 }
 .runtime-access-features{
@@ -135,12 +136,12 @@
   white-space:nowrap;
 }
 .runtime-access-stage .runtime-access-panel{
-  padding:8.5% 9.5% 7.2%;
+  padding:7.6% 8.7% 6.6%;
   background:linear-gradient(180deg,rgba(7,12,16,.2),rgba(5,9,12,.1));
 }
 .runtime-access-stage .runtime-access-panel-head{
   gap:8px;
-  margin-bottom:clamp(18px,1.7vw,28px);
+  margin-bottom:clamp(16px,1.3vw,22px);
 }
 .runtime-access-stage .runtime-access-panel-head>span{
   position:relative;
@@ -163,7 +164,7 @@
 }
 .runtime-access-stage .runtime-access-panel-head h2{
   color:#f4f1ec;
-  font-size:clamp(27px,2vw,36px);
+  font-size:clamp(24px,1.6vw,31px);
   font-weight:900;
   line-height:1.18;
   letter-spacing:-.04em;
@@ -171,19 +172,19 @@
 .runtime-access-stage .runtime-access-panel-head p{
   max-width:470px;
   color:#9da4aa!important;
-  font-size:clamp(10.5px,.78vw,13px)!important;
+  font-size:clamp(10.5px,.7vw,12px)!important;
   line-height:1.65!important;
 }
 .runtime-access-stage .runtime-access-discord{
-  height:clamp(58px,5.2vw,72px);
+  height:clamp(54px,4.2vw,62px);
   grid-template-columns:38px 1fr 22px;
   gap:14px;
   padding:0 18px;
-  border:1px solid rgba(230,178,83,.68);
+  border:1px solid rgba(230,178,83,.52);
   border-radius:14px;
   background:linear-gradient(180deg,rgba(48,36,18,.92),rgba(27,22,14,.92));
   color:#f0c36f;
-  box-shadow:inset 0 0 0 1px rgba(255,224,158,.04),0 0 28px rgba(188,130,35,.055);
+  box-shadow:inset 0 0 0 1px rgba(255,224,158,.03),0 0 18px rgba(188,130,35,.035);
 }
 .runtime-access-stage .runtime-access-discord:hover{
   transform:translateY(-1px);
@@ -201,9 +202,9 @@
 .runtime-access-stage .runtime-access-discord-mark>i{top:14px}
 .runtime-access-stage .runtime-access-discord-mark>i:first-child{left:12px}
 .runtime-access-stage .runtime-access-discord-mark>i:last-child{right:12px}
-.runtime-access-stage .runtime-access-discord strong{font-size:clamp(11.5px,.86vw,14px)}
+.runtime-access-stage .runtime-access-discord strong{font-size:clamp(11.5px,.72vw,13px)}
 .runtime-access-stage .runtime-access-discord>em{color:#d3a650;font-size:18px}
-.runtime-access-stage .runtime-access-divider{height:clamp(42px,4vw,54px)}
+.runtime-access-stage .runtime-access-divider{height:clamp(36px,3.2vw,46px)}
 .runtime-access-stage .runtime-access-divider:before{background:rgba(255,255,255,.08)}
 .runtime-access-stage .runtime-access-divider span{
   padding:0 14px;
@@ -212,7 +213,7 @@
   font-size:clamp(9px,.63vw,10.5px);
 }
 .runtime-access-stage .runtime-access-invite-toggle{
-  min-height:clamp(62px,5vw,74px);
+  min-height:clamp(56px,4.2vw,64px);
   display:grid;
   grid-template-columns:42px minmax(0,1fr) 18px;
   gap:13px;
@@ -258,11 +259,11 @@
 .runtime-access-stage .runtime-access-invite-copy{gap:4px}
 .runtime-access-stage .runtime-access-invite-copy b{
   color:#d3d5d5;
-  font-size:clamp(11.5px,.78vw,13.5px);
+  font-size:clamp(11px,.7vw,12.5px);
 }
 .runtime-access-stage .runtime-access-invite-copy small{
   color:#7c8389;
-  font-size:clamp(10px,.66vw,11.5px);
+  font-size:clamp(10px,.6vw,11px);
   line-height:1.45;
 }
 .runtime-access-stage .runtime-access-invite-toggle>i{color:#a4abb0;font-size:17px}
@@ -273,7 +274,7 @@
 .runtime-access-stage .runtime-access-trust{
   gap:12px;
   margin-top:auto;
-  padding-top:clamp(20px,2vw,30px);
+  padding-top:clamp(17px,1.5vw,24px);
   border-top:1px solid rgba(255,255,255,.075);
 }
 .runtime-access-stage .runtime-access-privacy,
@@ -312,12 +313,12 @@
   .runtime-access-stage .runtime-access-shell{position:relative;inset:auto;width:min(620px,100%);margin:0 auto;grid-template-columns:1fr;border:1px solid rgba(215,166,78,.22);border-radius:20px;background:#090d11;box-shadow:0 28px 80px rgba(0,0,0,.48)}
   .runtime-access-stage .runtime-access-brand-panel{min-height:0;padding:26px 24px 22px;border-right:0;border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(145deg,rgba(197,145,57,.05),transparent 58%),#090d11}
   .runtime-access-stage .runtime-access-brand-copy{margin:30px 0 20px;max-width:none}
-  .runtime-access-stage .runtime-access-brand-copy h1{font-size:31px!important}
+  .runtime-access-stage .runtime-access-brand-copy h1{font-size:28px!important}
   .runtime-access-stage .runtime-access-brand-copy p{font-size:11.5px!important}
   .runtime-access-stage .runtime-access-brand-copy p br{display:block}
   .runtime-access-features{display:none}
   .runtime-access-stage .runtime-access-panel{padding:28px 24px 24px;background:#0b1015}
-  .runtime-access-stage .runtime-access-panel-head h2{font-size:29px}
+  .runtime-access-stage .runtime-access-panel-head h2{font-size:27px}
   .runtime-access-stage .runtime-access-panel-head p{font-size:11.3px!important}
   .runtime-access-stage .runtime-access-discord{height:60px}
   .runtime-access-stage .runtime-access-invite-toggle{min-height:66px}
