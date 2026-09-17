@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const management=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
+const tokens=fs.readFileSync(new URL('../src/styles/tokens.css',import.meta.url),'utf8');
 const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'utf8');
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
@@ -20,7 +21,7 @@ const checks=[
   ['cooking uses explicit column header',render.includes('ops-cooking-menu-columns')&&render.includes('<span>메뉴</span><span>설명</span><span>가격 / SET</span><span>순서</span><span>상태</span><span>관리</span>')],
   ['cooking order badge is retired',settings.includes('.ops-cooking-order-badge{display:none}')],
   ['platform company data has dedicated columns',render.includes('<span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span>')],
-  ['core operational boards follow 636px fund reference rail',/main--members \.ops-mgmt-page,[\s\S]*?width:636px/.test(management)&&/main--assets \.ops-mgmt-page,[\s\S]*?width:636px/.test(management)&&/main--accounts \.ops-mgmt-page,[\s\S]*?width:636px/.test(management)],
+  ['core operational boards follow 636px fund reference rail',tokens.includes('--ops-rail-standard:636px;')&&/main--members \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(management)&&/main--assets \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(management)&&/main--accounts \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(management)],
   ['mobile operational rows expose labels',management.includes('content:attr(data-label)')&&fund.includes('content:attr(data-label)')&&settings.includes('content:attr(data-label)')],
 ];
 let passed=0;

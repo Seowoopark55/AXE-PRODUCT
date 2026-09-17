@@ -57,7 +57,7 @@ body{background:var(--bg);color:var(--text)}
 
 /* Surfaces stay neutral black. Gold is reserved for state and action accents. */
 .summary-strip,.panel,.ops-mgmt-summary,.ops-mgmt-board,.ops-settings-overview,.ops-settings-board,
-.axe-fund-card,.axe-fund-review-card,.axe-fund-settings-list,.axe-fund-history-surface{
+.axe-fund-card,.axe-fund-review-card,.axe-fund-settings-list{
   background:#0c0e11!important;
   box-shadow:none!important;
 }
@@ -126,11 +126,5 @@ select{color-scheme:dark}select option{background:#111317;color:#ded9d0}
 .runtime-modal{background:#0c0e11;border-color:rgba(255,255,255,.10)}.runtime-modal>header{background:#0f1114;border-bottom-color:rgba(255,255,255,.06)}
 .runtime-modal>header h2{color:#e9e5dd}.runtime-modal>header p{color:#7f838a}
 .runtime-btn-primary{border-color:rgba(255,181,46,.22);background:#111317;color:#d9b566}.runtime-btn-ghost{border-color:rgba(255,255,255,.09);background:#111317;color:#aaa9a5}
-.feedback-modal{background:#0c0e11!important;border-color:rgba(255,255,255,.10)!important}.feedback-modal-head{background:#0f1114!important}
-.feedback-type-row button{background:#111317!important;color:#85888d!important}.feedback-type-row button.is-active{background:rgba(255,181,46,.03)!important;border-color:rgba(255,181,46,.16)!important;color:#d6b16a!important;box-shadow:none!important}
-.feedback-submit{border-color:rgba(255,181,46,.22)!important;background:#111317!important;color:#d9b566!important}.feedback-submit:hover{border-color:rgba(255,181,46,.36)!important;background:#15171a!important;color:#e3c57f!important}
 
 /* Preserve the AXE NET ledger as visual source of truth. */
-.axe-fund-history-surface{background:#0c0e11!important;border-color:rgba(255,255,255,.075)!important}
-.axe-fund-history-toolbar{background:#0f1114!important}
-.axe-fund-history-row:hover{background:rgba(255,255,255,.015)!important}

@@ -10,9 +10,9 @@ const checks=[
   ['platform save reapplies visibility', main.includes("type==='platform-subscription'") && main.includes('const changed=applyPlatformCompanyVisibility()')],
   ['header brand centered', css.includes('left:50%') && css.includes('transform:translate(-50%,-50%)')],
   ['account pushed right', css.includes('margin-left:auto!important') && css.includes('width:auto!important')],
-  ['operational content shifted right', css.includes('margin-left:32px!important') && css.includes('.main>.axe-fund')],
-  ['medium desktop shift reduced', css.includes('margin-left:16px!important')],
-  ['small desktop fallback', css.includes('max-width:980px') && css.includes('margin-left:0!important')],
+  ['operational content final desktop offset', css.includes('margin-left:72px!important') && css.includes('.main>.axe-fund')],
+  ['medium desktop final offset', css.includes('margin-left:48px!important')],
+  ['small desktop final offset', css.includes('max-width:980px') && css.includes('margin-left:12px!important')],
 ];
 let pass=0;
 for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'}  ${name}`);if(ok)pass++;}

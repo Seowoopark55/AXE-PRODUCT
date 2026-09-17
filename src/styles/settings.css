@@ -80,7 +80,6 @@
 .ops-settings-module.is-disabled{opacity:.52}.ops-settings-module.is-disabled .runtime-power{cursor:not-allowed}
 
 /* Company-scoped cooking order menu · compact operational layout */
-.ops-cooking-settings{width:min(680px,100%);margin:0 auto}
 .ops-cooking-guide-card{margin-bottom:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
 .ops-cooking-guide-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;padding:6px 9px;border-bottom:1px solid var(--line-soft)}
 .ops-cooking-guide-head>div{display:flex;align-items:baseline;gap:8px;min-width:0}.ops-cooking-guide-head strong{font-size:11.3px;color:var(--text);white-space:nowrap}.ops-cooking-guide-head span{overflow:hidden;font-size:8.8px;color:var(--muted);text-overflow:ellipsis;white-space:nowrap}
@@ -88,11 +87,10 @@
 .ops-cooking-guide-grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:8px;padding:7px 9px}.ops-cooking-guide-grid label{display:grid;gap:3px}.ops-cooking-guide-grid label>span{font-size:8.8px;color:#aab3bc}.ops-cooking-guide-grid input,.ops-cooking-guide-grid textarea{width:100%;height:30px;min-height:30px;border:1px solid #29333d;border-radius:7px;background:#0d1217;color:var(--text);font:inherit;font-size:10px;padding:5px 8px;outline:none}.ops-cooking-guide-grid textarea{resize:vertical;line-height:1.35}.ops-cooking-guide-grid input:focus,.ops-cooking-guide-grid textarea:focus{border-color:rgba(228,178,75,.46);box-shadow:0 0 0 2px rgba(228,178,75,.045)}
 .ops-cooking-menu-board{overflow:hidden}.ops-cooking-menu-head{min-height:40px!important;padding:6px 9px!important}.ops-cooking-menu-head h2{font-size:13px}.ops-cooking-menu-head p{font-size:9px}.ops-cooking-menu-tools{display:flex;align-items:center;gap:7px}.ops-cooking-menu-count{font-size:9px;color:var(--muted);white-space:nowrap}.ops-cooking-menu-count strong{color:var(--warning);font-size:11px}
 .ops-cooking-menu-list{display:grid}
-.ops-cooking-menu-row{display:grid;grid-template-columns:minmax(0,1fr) 92px 70px 52px;gap:8px;align-items:center;min-height:43px;padding:6px 9px;border-bottom:1px solid var(--line-soft);transition:.15s ease}.ops-cooking-menu-row:last-child{border-bottom:0}.ops-cooking-menu-row.is-disabled{opacity:.52}.ops-cooking-menu-main{min-width:0;display:grid;gap:2px}.ops-cooking-menu-main>div{min-width:0;display:flex;align-items:center;gap:6px}.ops-cooking-menu-main strong{min-width:0;overflow:hidden;color:var(--text);font-size:11px;text-overflow:ellipsis;white-space:nowrap}.ops-cooking-menu-main small{overflow:hidden;color:var(--muted);font-size:8.4px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-cooking-order-badge{height:18px;display:inline-flex;align-items:center;padding:0 5px;border:1px solid rgba(255,255,255,.07);border-radius:999px;background:#111820;color:#78838d;font-size:7.7px;font-weight:800;white-space:nowrap}.ops-cooking-menu-price{display:flex;align-items:center;justify-content:flex-end}.ops-cooking-menu-price strong{color:#77e7b2;font-size:10.5px;white-space:nowrap}.ops-cooking-menu-price em{margin-left:2px;color:#718078;font-size:7.6px;font-style:normal;font-weight:750}.ops-cooking-menu-row .runtime-power{justify-self:start;min-height:26px!important;height:26px!important;padding-left:7px!important;padding-right:7px!important}.ops-cooking-menu-row .ops-mgmt-action{min-height:26px;padding:0 7px;font-size:8.8px}.ops-cooking-menu-empty{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:80px;color:var(--muted)}.ops-cooking-menu-empty strong{color:var(--text);font-size:11px}.ops-cooking-menu-empty span{font-size:9px}
+.ops-cooking-menu-row{border-bottom:1px solid var(--line-soft);transition:.15s ease}.ops-cooking-menu-row:last-child{border-bottom:0}.ops-cooking-menu-row.is-disabled{opacity:.52}.ops-cooking-order-badge{display:none}.ops-cooking-menu-empty{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:80px;color:var(--muted)}.ops-cooking-menu-empty strong{color:var(--text);font-size:11px}.ops-cooking-menu-empty span{font-size:9px}
 .ops-cooking-settings .ops-settings-module-foot{min-height:30px;padding:5px 9px}
-@media (max-width:900px){.ops-cooking-guide-grid{grid-template-columns:1fr}.ops-cooking-guide-head{align-items:flex-start}.ops-cooking-guide-head>div{display:grid;gap:2px}.ops-cooking-guide-head span{white-space:normal}.ops-cooking-menu-row{grid-template-columns:minmax(0,1fr) 82px 64px 50px}.ops-cooking-menu-tools{gap:5px}}
-@media (max-width:560px){.ops-cooking-menu-row{grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.ops-cooking-menu-price{justify-content:flex-start;grid-column:1;grid-row:2}.ops-cooking-menu-row .runtime-power{grid-column:2;grid-row:1 / span 2}.ops-cooking-menu-row .ops-mgmt-action{grid-column:3;grid-row:1 / span 2}.ops-cooking-menu-main small{white-space:normal}}
-@media(max-width:760px){.ops-settings-tabs.has-cooking{grid-template-columns:repeat(3,minmax(0,1fr))}.ops-cooking-settings{width:100%}}
+@media (max-width:900px){.ops-cooking-guide-grid{grid-template-columns:1fr}.ops-cooking-guide-head{align-items:flex-start}.ops-cooking-guide-head>div{display:grid;gap:2px}.ops-cooking-guide-head span{white-space:normal}.ops-cooking-menu-tools{gap:5px}}
+@media (max-width:560px){.ops-cooking-menu-price{grid-column:1;grid-row:2}}
 
 
 .ops-settings-row--branding .ops-settings-control{width:370px}.ops-branding-control{display:flex;align-items:center;gap:7px;width:100%}.ops-branding-control input[type=file]{width:270px;height:34px;padding:5px 7px;font-size:9px}.ops-branding-control button{height:32px;padding:0 9px;border:1px solid rgba(255,255,255,.1);border-radius:7px;background:#0c1116;color:#9ea5ac;font-size:9px;font-weight:800;white-space:nowrap}.ops-branding-control button:hover{border-color:rgba(228,178,75,.24);color:#e0c486}
@@ -128,8 +126,7 @@
   .main--settings .ops-settings-nav-row,
   .main--settings .ops-onboarding-progress,
   .main--settings .ops-onboarding-strip,
-  .main--settings .ops-settings-modules,
-  .main--settings .ops-cooking-settings{
+  .main--settings .ops-settings-modules{
     width:680px;
     max-width:100%;
     margin-left:0;
@@ -167,19 +164,20 @@
 .ops-settings-row>div:first-child{gap:0}
 
 /* AXE ONE 3.26.17 · Cooking menu follows the FUND ledger table standard. */
-.ops-cooking-settings{width:min(636px,100%);margin:0 auto 0 0}
+.ops-cooking-settings{width:100%;margin:0 auto 0 0}
+@media(min-width:761px){.main--settings .ops-cooking-settings{width:min(680px,100%)}}
 .ops-cooking-menu-columns,.ops-cooking-menu-row{
   display:grid;
   grid-template-columns:minmax(105px,1fr) minmax(125px,1.15fr) 78px 46px 68px 52px;
-  gap:4px;
+  gap:var(--ops-table-gap);
   align-items:center;
-  padding-left:8px;
-  padding-right:8px;
+  padding-left:var(--ops-table-cell-pad-inline);
+  padding-right:var(--ops-table-cell-pad-inline);
 }
-.ops-cooking-menu-columns{height:27px;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:8.5px;font-weight:750}
+.ops-cooking-menu-columns{height:var(--ops-table-header-height);border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.006);color:#68747f;font-size:8.5px;font-weight:750}
 .ops-cooking-menu-columns>span,.ops-cooking-menu-cell{min-width:0;width:100%;text-align:center}
 .ops-cooking-menu-columns>span{display:flex;align-items:center;justify-content:center}
-.ops-cooking-menu-row{min-height:40px;padding-top:4px;padding-bottom:4px}
+.ops-cooking-menu-row{min-height:var(--ops-table-row-height);padding-top:4px;padding-bottom:4px}
 .ops-cooking-menu-cell{color:#aab3bc;font-size:8.9px;font-weight:700}
 .ops-cooking-menu-cell.is-center,.ops-cooking-menu-price{display:flex;align-items:center;justify-content:center}
 .ops-cooking-menu-name strong,.ops-cooking-menu-detail{display:block;width:100%;min-width:0;overflow:hidden;text-align:center;text-overflow:ellipsis;white-space:nowrap}
@@ -187,7 +185,7 @@
 .ops-cooking-menu-detail.is-muted{color:#65717c}.ops-cooking-menu-price strong{color:#77e7b2;font-size:9.8px}.ops-cooking-menu-order{text-align:center;font-variant-numeric:tabular-nums}
 .ops-cooking-order-badge{display:none}
 .ops-cooking-menu-row .runtime-power{min-height:24px!important;height:24px!important;padding-left:6px!important;padding-right:6px!important;font-size:8.1px!important}
-.ops-cooking-menu-row .ops-mgmt-action{min-width:42px;height:25px;padding:0 6px;font-size:8.4px}
+.ops-cooking-menu-row .ops-mgmt-action{min-width:var(--ops-table-action-min-width);min-height:26px;height:25px;padding:0 var(--ops-table-action-pad-inline);font-size:var(--ops-table-action-font-size)}
 
 @media(max-width:760px){
   .ops-cooking-settings{width:100%}

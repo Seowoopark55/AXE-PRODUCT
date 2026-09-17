@@ -33,6 +33,17 @@
   --ops-font-secondary:10.5px;
   --ops-font-support:9.5px;
   --ops-font-control:10.8px;
+
+  /* Operational table standard · shared density only.
+     Rail width and column tracks remain feature-specific. */
+  --ops-rail-standard:636px;
+  --ops-table-header-height:27px;
+  --ops-table-row-height:40px;
+  --ops-table-gap:4px;
+  --ops-table-cell-pad-inline:8px;
+  --ops-table-action-min-width:42px;
+  --ops-table-action-pad-inline:6px;
+  --ops-table-action-font-size:8.4px;
   --radius:12px;
   --radius-sm:8px;
   --shadow:0 22px 60px rgba(0,0,0,.22);

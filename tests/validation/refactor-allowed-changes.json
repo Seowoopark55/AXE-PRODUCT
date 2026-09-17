@@ -1,0 +1,28 @@
+{
+  "batch": "BATCH-08-RESPONSIVE-CLEANUP-RC-PRECHECK",
+  "allowedProductFiles": [
+    "src/styles/management.css",
+    "scripts/dense-ops-system-check.mjs",
+    "src/styles/fund.css",
+    "scripts/fund-ledger-axis-specificity-check.mjs",
+    "scripts/fund-ledger-alignment-check.mjs",
+    "src/styles/settings.css",
+    "scripts/ops-table-fund-standard-check.mjs",
+    "src/styles/tokens.css",
+    "scripts/content-fit-density-check.mjs",
+    "scripts/list-visual-cleanup-check.mjs",
+    "scripts/ops-density-balance-check.mjs",
+    "src/styles/components.css",
+    "src/styles.css",
+    "scripts/platform-shell-balance-check.mjs",
+    "src/styles/overlays.css",
+    "src/styles/brand-skin.css",
+    "src/styles/responsive.css",
+    "src/styles/layout.css"
+  ],
+  "forbiddenPrefixes": [
+    "api/",
+    "server/",
+    "database/"
+  ]
+}

@@ -129,12 +129,6 @@
     justify-self:start;
     justify-content:flex-end;
   }
-  .runtime-app--settings .global-account{width:680px}
-}
-
-
-/* AXE ONE 3.17.8 · identity stays inside the active content rail. */
-@media(min-width:761px){
   .runtime-app--fund .global-account,
   .runtime-app--members .global-account,
   .runtime-app--assets .global-account,

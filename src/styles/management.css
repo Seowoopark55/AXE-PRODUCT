@@ -58,14 +58,8 @@
 .ops-member-identity{min-width:0;display:flex;align-items:center;gap:7px}.ops-member-identity>strong{min-width:0;overflow:hidden;color:var(--ops-title);font-size:11.8px;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.ops-role-badge{height:19px;display:inline-flex;align-items:center;padding:0 6px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:#111820;color:#89949e;font-size:7.8px;font-weight:800;white-space:nowrap}
 .ops-asset-identity{min-width:0;display:flex;align-items:center;gap:6px}.ops-asset-identity>strong{min-width:0;overflow:hidden;color:var(--ops-title);font-size:11.2px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}.ops-inline-tag{height:18px;display:inline-flex;align-items:center;padding:0 5px;border:1px solid rgba(255,255,255,.07);border-radius:999px;background:#111820;color:#7f8a94;font-size:7.5px;font-weight:800;white-space:nowrap}
 
-.ops-lane-head--member,.ops-lane-row--member{grid-template-columns:minmax(0,1fr) 112px 82px 60px}
-.ops-lane-head--asset,.ops-lane-row--asset{grid-template-columns:minmax(0,1.2fr) minmax(0,1.35fr) 88px 82px 60px}
-.ops-lane-head--return,.ops-lane-row--return{grid-template-columns:minmax(0,1.45fr) minmax(0,1.1fr) 118px}
-.ops-lane-head--account,.ops-lane-row--account{grid-template-columns:minmax(0,1fr) minmax(160px,1.45fr) 88px 60px}
-
 .ops-mgmt-badge{min-width:48px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:#111820;color:#8f9aa4;font-size:9px;font-weight:800;white-space:nowrap}.ops-mgmt-badge.is-green{border-color:rgba(77,207,142,.18);background:rgba(77,207,142,.055);color:#73daa4}.ops-mgmt-badge.is-amber{border-color:rgba(228,178,75,.22);background:rgba(228,178,75,.065);color:#e1ba69}.ops-mgmt-badge.is-red{border-color:rgba(224,92,92,.20);background:rgba(224,92,92,.045);color:#df9696}
 .ops-mgmt-action{min-width:54px;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:#0d1319;color:#a6afb8;font-size:9.2px;font-weight:800;cursor:pointer;white-space:nowrap}.ops-mgmt-action:hover{border-color:rgba(228,178,75,.22);color:#e3c582;background:#12191f}.ops-mgmt-action:disabled{opacity:.28;cursor:not-allowed}.ops-mgmt-action.is-assign{border-color:rgba(228,178,75,.27);background:rgba(228,178,75,.055);color:#e5bd67}
-.ops-mgmt-empty{padding:24px 12px;color:#747d86;font-size:9.8px;text-align:center}
 
 /* Account review is intentionally folded into the same 680px contract. */
 .ops-account-review{width:min(680px,100%);margin:0 0 8px 0;overflow:hidden;border:1px solid rgba(228,178,75,.16);border-radius:10px;background:#0c1117}
@@ -80,25 +74,6 @@
    Do not stretch operational boards to a shared canvas. Each board is sized
    from its real information lanes so unused width does not become visual air. */
 @media(min-width:761px){
-  .ops-mgmt-page--members .ops-mgmt-workspace{width:520px;max-width:100%}
-  .ops-mgmt-page--members .ops-mgmt-board{width:520px;max-width:100%}
-  .ops-mgmt-page--members .ops-lane-head--member,
-  .ops-mgmt-page--members .ops-lane-row--member{grid-template-columns:220px 96px 72px 56px;gap:7px;padding-left:9px;padding-right:9px}
-
-  .ops-mgmt-page--assets .ops-mgmt-tabs-row{width:570px;max-width:100%}
-  .ops-mgmt-page--assets .ops-mgmt-board{width:570px;max-width:100%}
-  .ops-mgmt-page--assets .ops-lane-head--asset,
-  .ops-mgmt-page--assets .ops-lane-row--asset{grid-template-columns:158px 174px 74px 68px 56px;gap:7px;padding-left:9px;padding-right:9px}
-  .ops-mgmt-page--assets.is-returns .ops-mgmt-board{width:540px}
-  .ops-mgmt-page--assets .ops-lane-head--return,
-  .ops-mgmt-page--assets .ops-lane-row--return{grid-template-columns:210px 150px 120px;gap:8px;padding-left:9px;padding-right:9px}
-
-  .ops-mgmt-page--accounts .ops-mgmt-workspace{width:540px;max-width:100%}
-  .ops-mgmt-page--accounts .ops-mgmt-board,
-  .ops-mgmt-page--accounts .ops-account-review{width:540px;max-width:100%}
-  .ops-mgmt-page--accounts .ops-lane-head--account,
-  .ops-mgmt-page--accounts .ops-lane-row--account{grid-template-columns:150px 184px 72px 56px;gap:7px;padding-left:9px;padding-right:9px}
-
   .ops-mgmt-page--members .ops-lane-head,
   .ops-mgmt-page--assets .ops-lane-head,
   .ops-mgmt-page--accounts .ops-lane-head{height:28px}
@@ -119,6 +94,18 @@
 }
 
 @media(max-width:760px){
+  /* Baseline compatibility: the member header is hidden on mobile, but Stage 2
+     geometry records its historical computed template. Keep that inert value
+     scoped to mobile instead of letting the legacy four-lane rule compete on desktop. */
+  .ops-lane-head--member{grid-template-columns:minmax(0,1fr) 112px 82px 60px}
+  /* Baseline compatibility: account header is hidden on mobile, but its historical
+     four-track computed template is recorded by Stage 2 geometry. Keep it inert
+     on mobile instead of letting a legacy four-lane rule compete on desktop. */
+  .ops-lane-head--account{grid-template-columns:minmax(0,1fr) minmax(160px,1.45fr) 88px 60px}
+  /* Baseline compatibility: asset/return headers are hidden on mobile, but
+     Stage 2 geometry records their historical pre-expansion templates. */
+  .ops-lane-head--asset{grid-template-columns:minmax(0,1.2fr) minmax(0,1.35fr) 88px 82px 60px}
+  .ops-lane-head--return{grid-template-columns:minmax(0,1.45fr) minmax(0,1.1fr) 118px}
   .ops-mgmt-summary{grid-template-columns:1fr 1fr}.ops-mgmt-summary article:nth-child(2){border-right:0}.ops-mgmt-summary article:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
   .ops-mgmt-workspace,.ops-mgmt-board,.ops-mgmt-tabs-row,.ops-account-review{width:100%}
   .ops-mgmt-section-head{align-items:flex-start;flex-direction:column}.ops-mgmt-section-head>div>span{white-space:normal}.ops-mgmt-section-head .ops-action-secondary{align-self:stretch}
@@ -126,42 +113,6 @@
   .ops-mgmt-toolbar{align-items:stretch;flex-direction:column}.ops-mgmt-filters{flex-wrap:wrap}.ops-mgmt-toolbar-note{white-space:normal}.ops-mgmt-search{width:min(100%,210px)}
   .ops-lane-head{display:none}.ops-lane-row{grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px;padding:9px 10px}.ops-lane-row>.ops-lane-cell{grid-column:1}.ops-lane-row>.ops-lane-cell.is-center,.ops-lane-row>.ops-lane-cell.is-right{justify-content:flex-start}.ops-lane-row>.ops-lane-cell:last-child{grid-column:2;grid-row:1 / span 6;align-self:center;justify-content:flex-end}
   .ops-account-review article{grid-template-columns:minmax(0,1fr) auto}.ops-account-review-actions{grid-column:1/-1;justify-content:flex-start}
-}
-
-
-/* AXE ONE 3.17.6 · propagate FUND compact rail to other management pages */
-@media(min-width:761px){
-  .main--members .ops-mgmt-page,
-  .main--members .ops-mgmt-summary,
-  .main--members .ops-mgmt-workspace,
-  .main--members .ops-mgmt-board{
-    width:520px;
-    max-width:100%;
-    margin-left:0;
-    margin-right:auto;
-  }
-
-  .main--assets .ops-mgmt-page,
-  .main--assets .ops-mgmt-summary,
-  .main--assets .ops-mgmt-tabs-row,
-  .main--assets .ops-mgmt-board{
-    width:570px;
-    max-width:100%;
-    margin-left:0;
-    margin-right:auto;
-  }
-  .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:540px;max-width:100%}
-
-  .main--accounts .ops-mgmt-page,
-  .main--accounts .ops-mgmt-summary,
-  .main--accounts .ops-mgmt-workspace,
-  .main--accounts .ops-account-review,
-  .main--accounts .ops-mgmt-board{
-    width:540px;
-    max-width:100%;
-    margin-left:0;
-    margin-right:auto;
-  }
 }
 
 
@@ -182,7 +133,7 @@
   .main--assets .ops-mgmt-board,
   .main--accounts .ops-mgmt-board,
   .main--accounts .ops-account-review{
-    width:636px;
+    width:var(--ops-rail-standard);
     max-width:100%;
     margin-left:0;
     margin-right:auto;
@@ -247,7 +198,7 @@
   /* FUND ledger-head rhythm for section headings/actions. */
   .main--members .ops-mgmt-section-head,
   .main--accounts .ops-mgmt-section-head{
-    width:636px;
+    width:var(--ops-rail-standard);
     max-width:100%;
     min-height:40px;
     margin:0 0 7px 0;
@@ -305,55 +256,8 @@
     height:2px;
     background:var(--gold);
   }
-
-  /* Fill the shared 636px board instead of leaving a narrow cluster inside it. */
-  .main--members .ops-lane-head--member,
-  .main--members .ops-lane-row--member{
-    grid-template-columns:300px 110px 90px 75px;
-    gap:7px;
-    padding-left:9px;
-    padding-right:9px;
-  }
-  .main--assets .ops-lane-head--asset,
-  .main--assets .ops-lane-row--asset{
-    grid-template-columns:180px 190px 80px 70px 70px;
-    gap:7px;
-    padding-left:9px;
-    padding-right:9px;
-  }
-  .main--assets .ops-lane-head--return,
-  .main--assets .ops-lane-row--return{
-    grid-template-columns:250px 200px 152px;
-    gap:8px;
-    padding-left:9px;
-    padding-right:9px;
-  }
-  .main--accounts .ops-lane-head--account,
-  .main--accounts .ops-lane-row--account{
-    grid-template-columns:180px 250px 90px 77px;
-    gap:7px;
-    padding-left:9px;
-    padding-right:9px;
-  }
 }
 
-
-/* AXE ONE 3.20.1 · OPERATIONS COLUMN ALIGNMENT R1 */
-@media(min-width:761px){
-  .main--members .ops-lane-head--member>span:nth-child(3),
-  .main--members .ops-lane-head--member>span:nth-child(4),
-  .main--assets .ops-lane-head--asset>span:nth-child(4),
-  .main--assets .ops-lane-head--asset>span:nth-child(5),
-  .main--accounts .ops-lane-head--account>span:nth-child(3),
-  .main--accounts .ops-lane-head--account>span:nth-child(4){text-align:center}
-
-  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(3),
-  .main--members .ops-lane-row--member>.ops-lane-cell:nth-child(4),
-  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(4),
-  .main--assets .ops-lane-row--asset>.ops-lane-cell:nth-child(5),
-  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(3),
-  .main--accounts .ops-lane-row--account>.ops-lane-cell:nth-child(4){justify-content:center;text-align:center}
-}
 .runtime-account-detail{padding:16px 18px 18px}.runtime-account-detail dl{margin:0 0 14px;display:grid;border:1px solid var(--line-soft);border-radius:10px;overflow:hidden}.runtime-account-detail dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:center;min-height:42px;padding:0 12px;border-bottom:1px solid var(--line-soft)}.runtime-account-detail dl>div:last-child{border-bottom:0}.runtime-account-detail dt{color:#7f8b97;font-size:10px;font-weight:800}.runtime-account-detail dd{margin:0;color:#e7edf3;font-size:11px;font-weight:800}.runtime-account-detail .runtime-modal-hint{margin-bottom:14px}.ops-mgmt-action.is-review{border-color:rgba(228,178,75,.22);color:#d7b365}.axe-fund-history-action.is-correction{border-color:rgba(228,178,75,.18);color:#caa45d}
 
 /* AXE ONE 3.21.0 · PLATFORM OWNER */
@@ -361,10 +265,10 @@
 .platform-page .page-header{min-height:0;margin-bottom:12px}.platform-page .page-header h1{margin:6px 0 0;font-size:32px;line-height:1.05;letter-spacing:-.035em}.platform-page .page-header p{margin:7px 0 0;color:var(--muted);font-size:12.5px;line-height:1.5}.platform-page .page-eyebrow{display:block;color:#b58d3f;font-size:8px;font-weight:950;letter-spacing:.15em}
 .platform-page .ops-mgmt-summary{width:760px;max-width:100%;margin-bottom:10px}.platform-page .ops-mgmt-summary article{padding:12px 14px}.platform-page .ops-mgmt-summary span{font-size:8.5px}.platform-page .ops-mgmt-summary strong{font-size:17px}.platform-page .ops-mgmt-summary small{font-size:7.8px}
 .platform-board{width:760px;max-width:100%;overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#0c1117}
-.platform-board .ops-mgmt-search{width:220px}.platform-company-head,.platform-company-row{display:grid;grid-template-columns:180px 72px 92px 118px 130px 74px;gap:8px;align-items:center;padding-left:10px;padding-right:10px}
-.platform-company-head{height:29px;border-bottom:1px solid var(--line-soft);background:#0d1319;color:#64717d;font-size:8.4px;font-weight:850}.platform-company-head>span:nth-child(2),.platform-company-head>span:last-child{text-align:center}
-.platform-company-row{min-height:56px;border-bottom:1px solid rgba(255,255,255,.045)}.platform-company-row:last-child{border-bottom:0}.platform-company-row>div:nth-child(2),.platform-company-row>div:last-child{display:flex;justify-content:center}.platform-company-copy,.platform-plan,.platform-period,.platform-owner{min-width:0;display:grid;gap:2px}.platform-company-copy strong,.platform-plan strong,.platform-period strong,.platform-owner strong{overflow:hidden;color:var(--ops-title);font-size:10.6px;text-overflow:ellipsis;white-space:nowrap}.platform-company-copy span,.platform-plan span,.platform-period span,.platform-owner span{overflow:hidden;color:#6e7a85;font-size:8.3px;text-overflow:ellipsis;white-space:nowrap}.platform-plan strong{color:#d2b36d}.platform-period strong{font-variant-numeric:tabular-nums}
-@media(max-width:760px){.platform-page,.platform-page .ops-mgmt-summary,.platform-board{width:100%}.platform-company-head{display:none}.platform-company-row{grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;padding:10px}.platform-company-row>div{grid-column:1}.platform-company-row>div:nth-child(2),.platform-company-row>div:last-child{grid-column:2;justify-content:flex-end}.platform-company-row>div:nth-child(2){grid-row:1}.platform-company-row>div:last-child{grid-row:2 / span 3}}
+.platform-board .ops-mgmt-search{width:220px}
+.platform-company-head{height:29px;border-bottom:1px solid var(--line-soft);background:#0d1319;color:#64717d;font-size:8.4px;font-weight:850}
+.platform-company-row{border-bottom:1px solid rgba(255,255,255,.045)}.platform-company-row:last-child{border-bottom:0}.platform-company-copy{min-width:0}
+@media(max-width:760px){.platform-page,.platform-page .ops-mgmt-summary,.platform-board{width:100%}}
 
 /* AXE ONE 3.21.0 · FUND LEDGER EVIDENCE */
 .runtime-ledger-evidence{display:grid;gap:9px;padding:12px;border:1px solid rgba(228,178,75,.14);border-radius:10px;background:#0a1015}
@@ -437,7 +341,7 @@
   .main--accounts .ops-mgmt-workspace,
   .main--accounts .ops-account-review,
   .main--accounts .ops-mgmt-board{
-    width:636px;
+    width:var(--ops-rail-standard);
     max-width:100%;
     margin-left:0;
     margin-right:auto;
@@ -451,7 +355,7 @@
   .main--assets .ops-lane-row--asset{
     grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr) minmax(0,.96fr) minmax(0,.72fr) minmax(0,1.02fr) minmax(0,.72fr) minmax(0,.58fr);
   }
-  .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:636px;max-width:100%}
+  .main--assets .ops-mgmt-page.is-returns .ops-mgmt-board{width:var(--ops-rail-standard);max-width:100%}
   .main--assets .ops-lane-head--return,
   .main--assets .ops-lane-row--return{
     grid-template-columns:minmax(96px,1fr) 84px 70px minmax(98px,1.05fr) 76px 86px;
@@ -467,20 +371,20 @@
   .main--assets .ops-lane-row,
   .main--accounts .ops-lane-head,
   .main--accounts .ops-lane-row{
-    gap:4px;
-    padding-left:8px;
-    padding-right:8px;
+    gap:var(--ops-table-gap);
+    padding-left:var(--ops-table-cell-pad-inline);
+    padding-right:var(--ops-table-cell-pad-inline);
   }
   .main--members .ops-lane-head,
   .main--assets .ops-lane-head,
   .main--accounts .ops-lane-head{
-    height:27px;
+    height:var(--ops-table-header-height);
     font-size:8.5px;
   }
   .main--members .ops-lane-row,
   .main--assets .ops-lane-row,
   .main--accounts .ops-lane-row{
-    min-height:40px;
+    min-height:var(--ops-table-row-height);
   }
 
   .main--members .ops-lane-head>span,
@@ -533,10 +437,10 @@
   .main--members .ops-mgmt-action,
   .main--assets .ops-mgmt-action,
   .main--accounts .ops-mgmt-action{
-    min-width:42px;
+    min-width:var(--ops-table-action-min-width);
     height:25px;
-    padding:0 6px;
-    font-size:8.4px;
+    padding:0 var(--ops-table-action-pad-inline);
+    font-size:var(--ops-table-action-font-size);
   }
 }
 
@@ -549,6 +453,8 @@
 /* Platform company management keeps its wider 760px rail because it has eight
    business columns, but follows the same header/value center-axis contract. */
 .platform-company-head,.platform-company-row{
+  display:grid;
+  align-items:center;
   grid-template-columns:110px 115px 44px 64px 82px 122px 94px 54px;
   gap:7px;
   padding-left:9px;
@@ -595,6 +501,7 @@
   .platform-company-head{display:none}
   .platform-company-row{grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;padding:10px}
   .platform-company-row>div{grid-column:1;display:block;text-align:left}
+  .platform-company-row>div:nth-child(2){grid-column:2;grid-row:1;display:flex;justify-content:flex-end}
   .platform-company-row>div:nth-child(4){grid-column:2;grid-row:1;display:flex;justify-content:flex-end}
   .platform-company-row>div:last-child{grid-column:2;grid-row:2 / span 5;display:flex;justify-content:flex-end;align-self:center}
   .platform-company-row>div:nth-child(2)::before{content:'Discord  ';color:#66727d;font-size:8px}
