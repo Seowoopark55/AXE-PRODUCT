@@ -22,7 +22,7 @@
       "detail": []
     }
   ],
-  "batch": "PHASE-1.3-ACCESS-GATE-PREMIUM-FRAME-R4",
+  "batch": "PHASE-1.4-ACCESS-GATE-CALM-PREMIUM-R6",
   "allowed": [
     "src/styles/management.css",
     "scripts/dense-ops-system-check.mjs",
@@ -52,7 +52,8 @@
     "src/ui/layoutStudio.js",
     "src/styles/access-gate.css",
     "public/brand/axe-login-frame-v1.png",
-    "README.md"
+    "README.md",
+    "public/brand/axe-login-calm-v1.png"
   ],
   "changed": [
     "README.md",

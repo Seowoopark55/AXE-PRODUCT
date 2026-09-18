@@ -70,7 +70,7 @@
       "ok": true
     },
     {
-      "name": "src/styles/access-gate.css -> public/brand/axe-login-frame-v1.png",
+      "name": "src/styles/access-gate.css -> public/brand/axe-login-calm-v1.png",
       "ok": true
     },
     {
@@ -146,7 +146,7 @@
     "src/styles/responsive.css",
     "src/styles/brand-skin.css",
     "src/styles/access-gate.css",
-    "public/brand/axe-login-frame-v1.png",
+    "public/brand/axe-login-calm-v1.png",
     "public/brand/axe-shell-generated-v1.png",
     "src/lib/supabase.js",
     "src/lib/productApi.js",

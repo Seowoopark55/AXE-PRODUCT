@@ -22,305 +22,220 @@
 
 @media(max-width:780px){.runtime-auth.runtime-auth--access{padding:18px 14px 34px}.runtime-access-shell{grid-template-columns:1fr;min-height:0;border-radius:18px}.runtime-access-brand-panel{min-height:250px;padding:28px 24px 24px;border-right:0;border-bottom:1px solid rgba(255,255,255,.065)}.runtime-access-brand-top .product-brand--login{display:block}.runtime-access-brand-top .product-brand strong{font-size:16px}.runtime-access-private{font-size:7.8px}.runtime-access-brand-copy{margin:30px 0 22px}.runtime-access-brand-copy h1{font-size:32px!important}.runtime-access-brand-copy p br{display:none}.runtime-access-steps{display:none}.runtime-access-panel{padding:28px 24px 24px}.runtime-access-trust{margin-top:22px}.runtime-access-footer{bottom:8px}.runtime-access-gate-head,.runtime-access-gate-footer{padding-left:20px;padding-right:20px}.runtime-access-gate-body{padding:24px 20px}.runtime-access-existing{align-items:flex-start;flex-direction:column}.runtime-access-existing button{width:100%}.runtime-access-gate-footer{align-items:flex-start;flex-direction:column;padding-top:13px;padding-bottom:13px}.runtime-access-invite-form label>div,.runtime-access-redeem label>div{grid-template-columns:1fr}.runtime-access-invite-form label button,.runtime-access-redeem label button{width:100%}}
 
-/* AXE ONE · Premium Login Frame R5
-   Balanced scale: more breathing room, lower visual fatigue, live HTML controls. */
+/* AXE ONE · Calm Premium Login R6
+   Compact login-first composition on a low-glare branded background. */
 .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){
   padding:0;
-  background:#05080a;
+  background:#05080b;
 }
 .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate):before{
-  background:radial-gradient(circle at 50% 45%,rgba(197,145,57,.035),transparent 48%);
+  background:linear-gradient(rgba(2,5,8,.12),rgba(2,5,8,.12));
   opacity:1;
 }
 .runtime-access-stage{
   position:relative;
   z-index:1;
-  width:min(1320px,92vw,calc(88vh * 1.776833));
-  height:auto;
+  width:min(1380px,96vw,calc(92vh * 1.776833));
   aspect-ratio:1672/941;
   min-width:0;
   min-height:0;
-  background:linear-gradient(rgba(3,6,8,.08),rgba(3,6,8,.08)),url('/brand/axe-login-frame-v1.png') center/100% 100% no-repeat;
+  background:linear-gradient(rgba(3,6,9,.14),rgba(3,6,9,.14)),url('/brand/axe-login-calm-v1.png') center/100% 100% no-repeat;
 }
-.runtime-access-stage .runtime-access-shell{
+.runtime-access-stage .runtime-access-shell--calm{
   position:absolute;
-  inset:9.6% 12.4% 12.7% 11%;
-  width:auto;
+  left:34.05%;
+  top:17.2%;
+  width:31.15%;
+  height:62.15%;
   min-height:0;
-  display:grid;
-  grid-template-columns:52.7% 47.3%;
+  display:block;
   overflow:hidden;
   border:0;
-  border-radius:20px;
-  background:transparent;
+  border-radius:18px;
+  background:rgba(7,11,15,.10);
   box-shadow:none;
 }
-.runtime-access-stage .runtime-access-brand-panel{
-  padding:7.4% 9.2% 6.6%;
-  border-right:0;
-  background:linear-gradient(90deg,rgba(3,6,8,.11),rgba(3,6,8,.02));
+.runtime-access-stage .runtime-access-panel--calm{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  padding:8.2% 9.8% 7.6%;
+  background:linear-gradient(180deg,rgba(8,12,16,.12),rgba(5,8,12,.16));
 }
-.runtime-access-stage .runtime-access-brand-top{display:block}
-.runtime-access-stage .runtime-access-brand-top .product-brand--login{margin:0}
-.runtime-access-stage .runtime-access-brand-top .product-brand strong{
-  color:#f3f0e9;
-  font-size:clamp(17px,1.18vw,22px);
-  letter-spacing:.11em;
-}
-.runtime-access-stage .runtime-access-brand-top .product-brand small{
-  margin-top:7px;
-  color:#c69a4e;
-  font-size:clamp(8px,.58vw,10px);
-  font-weight:800;
-  letter-spacing:.08em;
-}
-.runtime-access-stage .runtime-access-brand-copy{
-  margin:auto 0;
-  max-width:510px;
-}
-.runtime-access-stage .runtime-access-brand-copy h1{
-  margin:0 0 clamp(15px,1.45vw,24px)!important;
-  color:#f3f1ed!important;
-  font-size:clamp(28px,1.95vw,36px)!important;
-  font-weight:900;
-  line-height:1.14!important;
-  letter-spacing:-.045em;
-  text-shadow:0 1px 24px rgba(0,0,0,.22);
-}
-.runtime-access-stage .runtime-access-brand-copy h1 em{
-  color:#e5b96d;
-  font-style:normal;
-}
-.runtime-access-stage .runtime-access-brand-copy p{
-  margin:0!important;
-  color:#a9afb4!important;
-  font-size:clamp(10.5px,.72vw,12.5px)!important;
-  line-height:1.72!important;
-}
-.runtime-access-features{
+.runtime-access-brand-compact{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:0;
-  padding-top:18px;
-  border-top:1px solid rgba(255,255,255,.075);
-}
-.runtime-access-features>span{
-  min-width:0;
-  display:grid;
+  justify-items:center;
   gap:3px;
-  padding:0 15px;
-  border-left:1px solid rgba(255,255,255,.055);
+  margin-bottom:7.2%;
+  text-align:center;
 }
-.runtime-access-features>span:first-child{padding-left:0;border-left:0}
-.runtime-access-features>span:last-child{padding-right:0}
-.runtime-access-features i{
-  margin-bottom:3px;
-  color:#c69a4e;
-  font-size:clamp(7px,.48vw,9px);
-  font-style:normal;
+.runtime-access-brand-compact strong{
+  color:#eeeae3;
+  font-size:clamp(13px,.92vw,16px);
   font-weight:900;
-  letter-spacing:.08em;
+  letter-spacing:.18em;
 }
-.runtime-access-features b{
-  overflow:hidden;
-  color:#c7c9ca;
-  font-size:clamp(8.5px,.62vw,10.5px);
-  font-weight:850;
-  white-space:nowrap;
-}
-.runtime-access-features small{
-  overflow:hidden;
-  color:#6f767c;
-  font-size:clamp(7.5px,.52vw,9px);
-  line-height:1.4;
-  white-space:nowrap;
-}
-.runtime-access-stage .runtime-access-panel{
-  padding:7.6% 8.7% 6.6%;
-  background:linear-gradient(180deg,rgba(7,12,16,.2),rgba(5,9,12,.1));
+.runtime-access-brand-compact small{
+  color:#8f7954;
+  font-size:clamp(7.5px,.48vw,8.5px);
+  font-weight:750;
+  letter-spacing:.04em;
 }
 .runtime-access-stage .runtime-access-panel-head{
-  gap:8px;
-  margin-bottom:clamp(16px,1.3vw,22px);
+  display:grid;
+  gap:7px;
+  margin:0 0 6.3%;
+  text-align:center;
 }
-.runtime-access-stage .runtime-access-panel-head>span{
-  position:relative;
-  padding-top:13px;
-  color:#aaaeb2;
-  font-size:clamp(9.5px,.68vw,11.5px);
-  font-weight:700;
-  letter-spacing:0;
-}
-.runtime-access-stage .runtime-access-panel-head>span:before{
-  content:"";
-  position:absolute;
-  top:0;
-  left:0;
-  width:31px;
-  height:2px;
-  border-radius:2px;
-  background:#d8a958;
-  box-shadow:0 0 12px rgba(216,169,88,.3);
-}
+.runtime-access-stage .runtime-access-panel-head>span{display:none}
 .runtime-access-stage .runtime-access-panel-head h2{
-  color:#f4f1ec;
-  font-size:clamp(24px,1.6vw,31px);
+  margin:0;
+  color:#f0ede7;
+  font-size:clamp(21px,1.5vw,27px);
   font-weight:900;
   line-height:1.18;
-  letter-spacing:-.04em;
+  letter-spacing:-.035em;
 }
 .runtime-access-stage .runtime-access-panel-head p{
-  max-width:470px;
-  color:#9da4aa!important;
-  font-size:clamp(10.5px,.7vw,12px)!important;
-  line-height:1.65!important;
+  max-width:360px;
+  margin:0 auto!important;
+  color:#8b9298!important;
+  font-size:clamp(10px,.65vw,11.5px)!important;
+  line-height:1.58!important;
 }
 .runtime-access-stage .runtime-access-discord{
-  height:clamp(54px,4.2vw,62px);
-  grid-template-columns:38px 1fr 22px;
-  gap:14px;
-  padding:0 18px;
-  border:1px solid rgba(230,178,83,.52);
-  border-radius:14px;
-  background:linear-gradient(180deg,rgba(48,36,18,.92),rgba(27,22,14,.92));
-  color:#f0c36f;
-  box-shadow:inset 0 0 0 1px rgba(255,224,158,.03),0 0 18px rgba(188,130,35,.035);
+  width:100%;
+  height:clamp(48px,3.65vw,56px);
+  grid-template-columns:30px 1fr 18px;
+  gap:10px;
+  padding:0 14px;
+  border:1px solid rgba(181,143,77,.48);
+  border-radius:11px;
+  background:rgba(34,27,18,.78);
+  color:#e2bd79;
+  box-shadow:none;
 }
 .runtime-access-stage .runtime-access-discord:hover{
-  transform:translateY(-1px);
-  border-color:rgba(244,194,98,.86);
-  background:linear-gradient(180deg,rgba(58,42,20,.94),rgba(31,25,14,.94));
-  box-shadow:0 12px 34px rgba(0,0,0,.28),0 0 24px rgba(209,155,57,.08);
+  transform:none;
+  border-color:rgba(201,160,88,.64);
+  background:rgba(42,33,21,.84);
+  box-shadow:none;
 }
 .runtime-access-stage .runtime-access-discord-mark{
-  width:34px;
-  height:34px;
-  border-radius:11px;
-  box-shadow:0 7px 18px rgba(88,101,242,.18);
+  width:28px;
+  height:28px;
+  border-radius:9px;
+  box-shadow:none;
 }
-.runtime-access-stage .runtime-access-discord-mark:before{left:8px;top:9px;width:14px;height:10px}
-.runtime-access-stage .runtime-access-discord-mark>i{top:14px}
-.runtime-access-stage .runtime-access-discord-mark>i:first-child{left:12px}
-.runtime-access-stage .runtime-access-discord-mark>i:last-child{right:12px}
-.runtime-access-stage .runtime-access-discord strong{font-size:clamp(11.5px,.72vw,13px)}
-.runtime-access-stage .runtime-access-discord>em{color:#d3a650;font-size:18px}
-.runtime-access-stage .runtime-access-divider{height:clamp(36px,3.2vw,46px)}
-.runtime-access-stage .runtime-access-divider:before{background:rgba(255,255,255,.08)}
+.runtime-access-stage .runtime-access-discord-mark:before{left:7px;top:8px;width:12px;height:9px}
+.runtime-access-stage .runtime-access-discord-mark>i{top:12px}
+.runtime-access-stage .runtime-access-discord-mark>i:first-child{left:11px}
+.runtime-access-stage .runtime-access-discord-mark>i:last-child{right:11px}
+.runtime-access-stage .runtime-access-discord strong{font-size:clamp(10.5px,.67vw,12px)}
+.runtime-access-stage .runtime-access-discord>em{color:#9d824f;font-size:15px}
+.runtime-access-stage .runtime-access-divider{height:clamp(30px,2.25vw,36px)}
+.runtime-access-stage .runtime-access-divider:before{background:rgba(255,255,255,.055)}
 .runtime-access-stage .runtime-access-divider span{
-  padding:0 14px;
-  background:#091016;
-  color:#7d8388;
-  font-size:clamp(9px,.63vw,10.5px);
+  padding:0 10px;
+  background:#0b1014;
+  color:#676e75;
+  font-size:clamp(8px,.52vw,9px);
 }
 .runtime-access-stage .runtime-access-invite-toggle{
-  min-height:clamp(56px,4.2vw,64px);
+  width:100%;
+  min-height:clamp(48px,3.7vw,56px);
   display:grid;
-  grid-template-columns:42px minmax(0,1fr) 18px;
-  gap:13px;
-  padding:11px 15px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:13px;
-  background:rgba(13,19,24,.76);
-  backdrop-filter:blur(2px);
+  grid-template-columns:30px minmax(0,1fr) 16px;
+  gap:10px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.085);
+  border-radius:10px;
+  background:rgba(12,17,22,.62);
+  backdrop-filter:none;
 }
 .runtime-access-stage .runtime-access-invite-toggle:hover{
-  border-color:rgba(223,176,88,.22);
-  background:rgba(18,24,29,.9);
+  border-color:rgba(181,143,77,.20);
+  background:rgba(15,20,25,.74);
 }
-.runtime-access-invite-icon{
-  position:relative;
-  width:40px;
-  height:40px;
-  border:1px solid rgba(255,255,255,.105);
-  border-radius:11px;
-  background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.008));
+.runtime-access-stage .runtime-access-invite-icon{
+  width:28px;
+  height:28px;
+  border-radius:8px;
 }
-.runtime-access-invite-icon:before{
-  content:"";
-  position:absolute;
-  left:10px;
-  top:12px;
-  width:18px;
-  height:13px;
-  border:1.5px solid #a1a8ad;
-  border-radius:2px;
-}
-.runtime-access-invite-icon:after{
-  content:"";
-  position:absolute;
-  left:12px;
-  top:13px;
-  width:14px;
-  height:8px;
-  border-bottom:1.5px solid #a1a8ad;
-  transform:rotate(-35deg) skewX(20deg);
-  opacity:.75;
-}
-.runtime-access-stage .runtime-access-invite-copy{gap:4px}
+.runtime-access-stage .runtime-access-invite-icon:before{left:7px;top:8px;width:13px;height:10px}
+.runtime-access-stage .runtime-access-invite-icon:after{left:8px;top:10px;width:11px;height:6px}
+.runtime-access-stage .runtime-access-invite-copy{gap:2px}
 .runtime-access-stage .runtime-access-invite-copy b{
-  color:#d3d5d5;
-  font-size:clamp(11px,.7vw,12.5px);
+  color:#c5c8ca;
+  font-size:clamp(9.5px,.62vw,11px);
 }
 .runtime-access-stage .runtime-access-invite-copy small{
-  color:#7c8389;
-  font-size:clamp(10px,.6vw,11px);
-  line-height:1.45;
+  color:#6e757b;
+  font-size:clamp(8px,.52vw,9.3px);
+  line-height:1.38;
 }
-.runtime-access-stage .runtime-access-invite-toggle>i{color:#a4abb0;font-size:17px}
-.runtime-access-stage .runtime-access-invite-form label>span{font-size:10.5px}
-.runtime-access-stage .runtime-access-invite-form input{height:47px;font-size:12px}
-.runtime-access-stage .runtime-access-invite-form label button{height:47px;font-size:10.5px}
-.runtime-access-stage .runtime-access-collapse{font-size:9.5px}
+.runtime-access-stage .runtime-access-invite-toggle>i{color:#858c91;font-size:14px}
+.runtime-access-stage .runtime-access-invite-form label>span{font-size:9.4px}
+.runtime-access-stage .runtime-access-invite-form input{height:40px;font-size:10.5px}
+.runtime-access-stage .runtime-access-invite-form label button{height:40px;font-size:9.5px}
+.runtime-access-stage .runtime-access-collapse{font-size:8.8px}
+.runtime-access-stage .runtime-access-invite-ready{
+  margin:0 0 10px;
+  padding:9px 10px;
+  border-color:rgba(181,143,77,.13);
+  background:rgba(181,143,77,.02);
+}
+.runtime-access-stage .runtime-access-invite-ready strong{font-size:9.8px}
+.runtime-access-stage .runtime-access-invite-ready small{font-size:8.3px}
+.runtime-access-stage .runtime-access-inline-error{margin-top:8px;font-size:9px}
 .runtime-access-stage .runtime-access-trust{
-  gap:12px;
+  display:grid;
+  gap:8px;
   margin-top:auto;
-  padding-top:clamp(17px,1.5vw,24px);
-  border-top:1px solid rgba(255,255,255,.075);
+  padding-top:5.8%;
+  border-top:1px solid rgba(255,255,255,.055);
 }
 .runtime-access-stage .runtime-access-privacy,
 .runtime-access-stage .runtime-access-trust-row{
-  align-items:center;
-  gap:11px;
+  align-items:flex-start;
+  gap:8px;
 }
 .runtime-access-stage .runtime-access-privacy>i,
 .runtime-access-stage .runtime-access-trust-row>i{
-  width:20px;
-  flex:0 0 20px;
-  color:#d0a457;
-  font-size:13px;
+  width:15px;
+  flex:0 0 15px;
+  padding-top:1px;
+  color:#8f7b57;
+  font-size:10px;
 }
-.runtime-access-stage .runtime-access-privacy>span{gap:3px}
+.runtime-access-stage .runtime-access-privacy>span{gap:1px}
 .runtime-access-stage .runtime-access-privacy strong{
-  color:#b9bdc0;
-  font-size:clamp(11.5px,.76vw,13px);
+  color:#9fa5a9;
+  font-size:clamp(9px,.58vw,10.2px);
 }
 .runtime-access-stage .runtime-access-privacy small,
 .runtime-access-stage .runtime-access-trust-row small{
-  color:#7c8389;
-  font-size:clamp(10.5px,.7vw,12px);
-  line-height:1.5;
+  color:#686f75;
+  font-size:clamp(8px,.5vw,9px);
+  line-height:1.42;
 }
 .runtime-access-stage .runtime-access-privacy.is-minimal>i,
-.runtime-access-stage .runtime-access-trust-row>i{color:#d3a957}
-.runtime-access-stage .runtime-access-invite-ready{font-size:inherit}
-.runtime-access-stage .runtime-access-invite-ready strong{font-size:11px}
-.runtime-access-stage .runtime-access-invite-ready small{font-size:9.3px}
-.runtime-access-stage .runtime-access-inline-error{font-size:10px}
+.runtime-access-stage .runtime-access-trust-row>i{color:#8ba08d}
 
 @media(max-width:900px){
-  .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){padding:20px 14px 34px;background:radial-gradient(circle at 50% 0,rgba(198,146,61,.085),transparent 38%),#05080a}
-  .runtime-access-stage{width:100%;height:auto;min-height:0;background:none}
-  .runtime-access-stage .runtime-access-shell{position:relative;inset:auto;width:min(620px,100%);margin:0 auto;grid-template-columns:1fr;border:1px solid rgba(215,166,78,.22);border-radius:20px;background:#090d11;box-shadow:0 28px 80px rgba(0,0,0,.48)}
-  .runtime-access-stage .runtime-access-brand-panel{min-height:0;padding:26px 24px 22px;border-right:0;border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(145deg,rgba(197,145,57,.05),transparent 58%),#090d11}
-  .runtime-access-stage .runtime-access-brand-copy{margin:30px 0 20px;max-width:none}
-  .runtime-access-stage .runtime-access-brand-copy h1{font-size:28px!important}
-  .runtime-access-stage .runtime-access-brand-copy p{font-size:11.5px!important}
-  .runtime-access-stage .runtime-access-brand-copy p br{display:block}
-  .runtime-access-features{display:none}
-  .runtime-access-stage .runtime-access-panel{padding:28px 24px 24px;background:#0b1015}
-  .runtime-access-stage .runtime-access-panel-head h2{font-size:27px}
-  .runtime-access-stage .runtime-access-panel-head p{font-size:11.3px!important}
-  .runtime-access-stage .runtime-access-discord{height:60px}
-  .runtime-access-stage .runtime-access-invite-toggle{min-height:66px}
-  .runtime-access-stage .runtime-access-trust{margin-top:24px}
+  .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){padding:20px 14px 30px;background:#06090c}
+  .runtime-access-stage{width:100%;height:auto;aspect-ratio:auto;background:none}
+  .runtime-access-stage .runtime-access-shell--calm{position:relative;left:auto;top:auto;width:min(430px,100%);height:auto;margin:0 auto;border:1px solid rgba(181,143,77,.20);border-radius:18px;background:#0a0e12;box-shadow:0 22px 60px rgba(0,0,0,.36)}
+  .runtime-access-stage .runtime-access-panel--calm{height:auto;padding:28px 24px 24px;background:#0a0e12}
+  .runtime-access-brand-compact{margin-bottom:22px}
+  .runtime-access-brand-compact strong{font-size:15px}
+  .runtime-access-brand-compact small{font-size:8px}
+  .runtime-access-stage .runtime-access-panel-head{margin-bottom:20px}
+  .runtime-access-stage .runtime-access-panel-head h2{font-size:24px}
+  .runtime-access-stage .runtime-access-panel-head p{font-size:11px!important}
+  .runtime-access-stage .runtime-access-discord{height:52px}
+  .runtime-access-stage .runtime-access-invite-toggle{min-height:54px}
+  .runtime-access-stage .runtime-access-trust{margin-top:22px;padding-top:18px}
+  .runtime-access-stage .runtime-access-privacy strong{font-size:10px}
+  .runtime-access-stage .runtime-access-privacy small,.runtime-access-stage .runtime-access-trust-row small{font-size:8.8px}
 }

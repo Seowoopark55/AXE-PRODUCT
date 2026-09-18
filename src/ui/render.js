@@ -98,18 +98,14 @@ function renderLogin(state) {
   const privacy=state.discordAuthMinimal
     ? `<span class="runtime-access-privacy is-minimal"><i>✓</i><span><strong>Discord 기본 프로필로 확인</strong><small>이메일 권한을 요청하지 않습니다.</small></span></span>`
     : `<span class="runtime-access-privacy"><i>◇</i><span><strong>Discord 계정으로 본인 확인</strong><small>로그인 승인 화면에 표시되는 계정 권한만 사용합니다.</small></span></span>`;
-  return `<section class="runtime-auth runtime-auth--access"><div class="runtime-access-stage"><div class="runtime-access-shell">
-    <section class="runtime-access-brand-panel">
-      <div class="runtime-access-brand-top"><div class="product-brand product-brand--login"><div><strong>AXE ONE</strong><small>회사 운영 콘솔</small></div></div></div>
-      <div class="runtime-access-brand-copy"><h1>회사를 움직이는<br><em>하나의 콘솔.</em></h1><p>AXE ONE은 Discord 기반의 회사 운영 콘솔입니다.<br>승인된 구성원만 자신의 회사 공간에 접근할 수 있습니다.</p></div>
-      <div class="runtime-access-features" aria-label="AXE ONE 특징"><span><i>01</i><b>하나의 공간에서</b><small>팀 운영을 연결</small></span><span><i>02</i><b>안전한 접근</b><small>회사별 권한 확인</small></span><span><i>03</i><b>효율적인 운영</b><small>필요한 기능을 한곳에</small></span></div>
-    </section>
-    <section class="runtime-access-panel">
-      <div class="runtime-access-panel-head"><span>환영합니다.</span><h2>${hasInvite?'초대 확인 후 로그인':'AXE ONE 로그인'}</h2><p>${hasInvite?'초대 링크가 확인되었습니다. Discord 계정으로 본인을 확인하면 회사 연결을 이어서 진행합니다.':'Discord 계정으로 본인을 확인하고 등록된 회사 운영 공간으로 연결합니다.'}</p></div>
+  return `<section class="runtime-auth runtime-auth--access"><div class="runtime-access-stage"><div class="runtime-access-shell runtime-access-shell--calm">
+    <section class="runtime-access-panel runtime-access-panel--calm">
+      <div class="runtime-access-brand-compact"><strong>AXE ONE</strong><small>회사 운영 콘솔</small></div>
+      <div class="runtime-access-panel-head"><h2>${hasInvite?'초대 확인 후 로그인':'AXE ONE 로그인'}</h2><p>${hasInvite?'초대 링크가 확인되었습니다. Discord 계정으로 본인을 확인하면 회사 연결을 이어서 진행합니다.':'승인된 구성원만 회사 운영 공간에 접근할 수 있습니다.'}</p></div>
       ${hasInvite?`<div class="runtime-access-invite-ready"><span class="runtime-access-ticket-icon">✓</span><div><strong>초대 링크가 확인되었습니다.</strong><small>로그인 후 초대권을 확인하고 회사 연결을 진행합니다.</small></div></div>`:''}
       <button class="runtime-access-discord" data-action="discord-login" ${state.loading?'disabled':''}><span class="runtime-access-discord-mark" aria-hidden="true"><i></i><i></i></span><strong>${hasInvite?'Discord로 초대 확인':'Discord로 로그인'}</strong><em>→</em></button>
-      <div class="runtime-access-divider"><span>처음이신가요?</span></div>
-      ${inviteOpen?`<form class="runtime-access-invite-form" data-form="invite-login"><label><span>초대 코드</span><div><input data-invite-code-input name="invite_code" maxlength="96" placeholder="XXXX-XXXX-XXXX" autocomplete="off" required><button type="submit">초대 확인</button></div></label><button type="button" class="runtime-access-collapse" data-action="hide-invite-code">입력 취소</button></form>`:`<button type="button" class="runtime-access-invite-toggle" data-action="show-invite-code"><span class="runtime-access-invite-icon" aria-hidden="true"></span><span class="runtime-access-invite-copy"><b>초대 코드를 가지고 있어요</b><small>처음 초대받은 경우 초대 코드를 입력해 회사 연결을 시작합니다.</small></span><i>→</i></button>`}
+      <div class="runtime-access-divider"><span>처음 초대받으셨나요?</span></div>
+      ${inviteOpen?`<form class="runtime-access-invite-form" data-form="invite-login"><label><span>초대 코드</span><div><input data-invite-code-input name="invite_code" maxlength="96" placeholder="XXXX-XXXX-XXXX" autocomplete="off" required><button type="submit">초대 확인</button></div></label><button type="button" class="runtime-access-collapse" data-action="hide-invite-code">입력 취소</button></form>`:`<button type="button" class="runtime-access-invite-toggle" data-action="show-invite-code"><span class="runtime-access-invite-icon" aria-hidden="true"></span><span class="runtime-access-invite-copy"><b>초대 코드를 가지고 있어요</b><small>처음 초대받은 경우 회사 연결을 시작합니다.</small></span><i>→</i></button>`}
       ${state.inviteError?`<div class="runtime-access-inline-error">${esc(state.inviteError)}</div>`:''}
       <div class="runtime-access-trust">${privacy}<span class="runtime-access-trust-row"><i>✓</i><small>등록된 멤버 또는 유효한 초대권이 있어야 접근할 수 있습니다.</small></span></div>
     </section>
