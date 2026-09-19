@@ -39,20 +39,27 @@ const MODBOOK_GROUPS=Object.freeze({
 });
 const splitModbookLabels=value=>String(value||'').split(/[,，、]/u).map(label=>label.trim()).filter(Boolean);
 const MODBOOK_KNOWN_CATEGORIES=new Set(Object.values(MODBOOK_GROUPS).flat());
-// A small number of legacy rows have category='접두' or '접미' rather than an
-// applicable field. For these only, the existing parts field may explicitly
-// enumerate recognized application fields (e.g. 'SMG, 라이플'). Treat those
-// labels as *display-only* category hints; never change the company DB row.
-// Ambiguous parts (ingredients or unknown labels) remain in 분류 미확인.
-const modbookCategories=row=>{
+// These two option-keywords are supported by verified legacy screenshots:
+// 돌판의 (채집 effects) and 냄비의 (요리 effects). Do not guess categories from
+// arbitrary materials/effects, or use the item's name as a category hint.
+// If a new legacy record cannot be classified safely, keep it in 분류 미확인.
+const MODBOOK_VERIFIED_OPTION_HINTS=Object.freeze(['채집','요리']);
+const modbookClassification=row=>{
  const stored=splitModbookLabels(row?.category);
  const recognized=stored.filter(label=>MODBOOK_KNOWN_CATEGORIES.has(label));
- if(recognized.length)return [...new Set(recognized)];
+ if(recognized.length)return {categories:[...new Set(recognized)],source:'category'};
  if(stored.length===0||(stored.length===1&&stored[0]===row?.type)){
   const partLabels=splitModbookLabels(row?.parts);
-  if(partLabels.length&&partLabels.every(label=>MODBOOK_KNOWN_CATEGORIES.has(label)))return [...new Set(partLabels)];
+  if(partLabels.length&&partLabels.every(label=>MODBOOK_KNOWN_CATEGORIES.has(label)))
+   return {categories:[...new Set(partLabels)],source:'parts'};
+  const effects=[row?.option1,row?.option2,row?.option3].filter(Boolean).join(' ');
+  const explicit=MODBOOK_VERIFIED_OPTION_HINTS.filter(label=>effects.includes(label));
+  if(explicit.length)return {categories:explicit,source:'options'};
  }
- return stored;
+ return {categories:stored,source:'unclassified'};
+};
+const modbookCategories=row=>{
+ return modbookClassification(row).categories;
 };
 const modbookGroups=row=>{
  const values=modbookCategories(row);
@@ -86,12 +93,11 @@ const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,
 const detailFields=(table,row,data,info,owner)=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
-  const rawLabels=splitModbookLabels(row.category);
-  const recognized=rawLabels.filter(value=>MODBOOK_KNOWN_CATEGORIES.has(value));
-  const hints=modbookCategories(row);
-  if(!recognized.length&&hints.some(value=>MODBOOK_KNOWN_CATEGORIES.has(value))){
+  const classification=modbookClassification(row);
+  if(['parts','options'].includes(classification.source)){
    const field=fields.find(([label])=>label==='적용 분야');
-   if(field)field[1]=`${hints.join(', ')} (필요 부품 표기 기준 · 분류 확인 필요)`;
+   const explanation=classification.source==='parts'?'필요 부품 표기 기준 · 분류 확인 필요':'옵션 효과 기준 · 원본 분류값은 변경되지 않음';
+   if(field)field[1]=`${classification.categories.join(', ')} (${explanation})`;
   }
   const price=fields.find(([label])=>label==='최근 거래가격');
   if(price&&price[1]!=='—'&&Number.isFinite(Number(row.recent_price)))price[1]=`${Number(row.recent_price).toLocaleString('ko-KR')}원`;
