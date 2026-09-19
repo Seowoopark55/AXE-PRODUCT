@@ -59,7 +59,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
-  info: { table:'info_crafts', query:'', selectedId:'', showInactive:false, loading:false, loaded:false, error:'', data:{} },
+  info: { table:'info_crafts', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', data:{} },
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -954,7 +954,9 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.selectedId='';state.info.query='';render();return;}
+  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  const infoFilter=event.target.closest('[data-info-filter]');
+  if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=infoFilter.dataset.infoValue;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
   const fundTab=event.target.closest('[data-fund-tab]');
@@ -1343,6 +1345,7 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
+    if(event.target.matches('[data-info-filter-select]')){const field=event.target.dataset.infoFilterSelect;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=event.target.value;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
     if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';render();return;}
     if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;state.fundLedgerPage=1;await withMutation(loadFundSnapshot);return;}
     if(event.target.matches('[data-fund-weekly-month]')){state.fundWeeklyMonth=event.target.value;state.fundMonthlyRows=[];await loadFundWeeklyMonth();return;}
