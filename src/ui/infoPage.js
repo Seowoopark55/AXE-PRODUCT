@@ -10,6 +10,16 @@ const CONFIG = Object.freeze({
   modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['recent_price','최근 거래가격'],['recent_date','최근 거래일'],['price_note','가격 비고'],['note','비고']]],
 });
 const TOP_TABS=[['info_crafts','제작법'],['info_processes','생산'],['info_quests','퀘스트'],['info_skill_ranks','스킬 등급'],['modbook_catalog','개조서']];
+// Stage 10: lightweight, consistent line symbols for the five top-level categories.
+// These are presentation-only; no data or navigation semantics change.
+const INFO_TAB_ICONS=Object.freeze({
+ info_crafts:'<path d="m14 6 4 4M11 9l7-7 4 4-7 7M2 22l9-9M3 18l3 3"/>',
+ info_processes:'<path d="M3 21V9l6 4V9l6 4V5h6v16H3Z"/><path d="M7 17h2m3 0h2m3 0h2"/>',
+ info_quests:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6m-6 4h3"/>',
+ info_skill_ranks:'<circle cx="12" cy="8" r="5"/><path d="m8.5 12-2 9 5.5-3 5.5 3-2-9"/>',
+ modbook_catalog:'<path d="M4 5.5C7 4 10 4 12 6c2-2 5-2 8-.5V20c-3-1.5-6-1.5-8 .5-2-2-5-2-8-.5V5.5Z"/><path d="M12 6v14.5"/>',
+});
+const infoTabIcon=table=>`<svg class="axe-info-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${INFO_TAB_ICONS[table]||''}</svg>`;
 const ALL='__all__', UNSET='__unset__';
 const escapeText=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const fieldValue=(row,key)=>row[key]===null||row[key]===undefined||row[key]===''?'—':String(row[key]);
@@ -271,8 +281,7 @@ export function renderInfoPage(state){
  const q=String(info.query||'').trim();
  const searching=Boolean(q);
  const categories=TOP_TABS.map(([key,label])=>{
-  const count=visibleRows(data,key,info,owner).length;
-  return `<button type="button" data-info-table="${key}" class="${!searching&&tabTable===key?'is-active':''}" aria-current="${!searching&&tabTable===key?'true':'false'}">${label}<small>${count}</small></button>`;
+  return `<button type="button" data-info-table="${key}" class="${!searching&&tabTable===key?'is-active':''}" aria-current="${!searching&&tabTable===key?'true':'false'}">${infoTabIcon(key)}<span>${escapeText(label)}</span></button>`;
  }).join('');
  const filters=searching?null:categoryFilters(tabTable,info,data,owner);
  const matches=searching?searchInformation(data,q,info,owner):[];

@@ -6,11 +6,11 @@
 .axe-info-header>button{height:33px;padding:0 12px;border:1px solid #29333e;border-radius:8px;background:#11171d;color:#aab4bd;font-size:11px}
 /* A single quiet navigation rail replaces the six large category cards. */
 .axe-info-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:stretch;gap:2px;min-width:0;border-bottom:1px solid #303943}
-.axe-info-tabs>button{position:relative;min-width:0;min-height:41px;padding:0 6px 2px;border:0;border-radius:6px 6px 0 0;background:transparent;color:#9aa6b3;font-size:11px;font-weight:760;white-space:nowrap;transition:color .12s,background .12s}
-.axe-info-tabs>button small{margin-left:6px;font-size:9px;font-weight:700;color:#74808c}
+.axe-info-tabs>button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:41px;padding:0 6px 2px;border:0;border-radius:6px 6px 0 0;background:transparent;color:#9aa6b3;font-size:11px;font-weight:760;white-space:nowrap;transition:color .12s,background .12s}
+.axe-info-tab-icon{width:14px;height:14px;flex:0 0 14px;display:block;opacity:.88}
+.axe-info-tabs>button.is-active .axe-info-tab-icon{opacity:1}
 .axe-info-tabs>button:hover{color:#e8e0d2;background:rgba(255,255,255,.028)}
 .axe-info-tabs>button.is-active{color:#edc47b;background:rgba(213,163,67,.052)}
-.axe-info-tabs>button.is-active small{color:#c39b56}
 .axe-info-tabs>button.is-active:after{content:"";position:absolute;left:11px;right:11px;bottom:-1px;height:2px;border-radius:2px;background:#d3a450}
 .axe-info-tabs>button:focus-visible,.axe-info-row:focus-visible{outline:2px solid #d3a450;outline-offset:-2px}
 .axe-info-toolbar{display:flex;align-items:center;gap:12px;min-width:0}
@@ -110,3 +110,4 @@
 .axe-info-detail header span.axe-info-type-badge--prefix{color:#b7d6ff;border-color:rgba(100,152,220,.45);background:rgba(65,122,192,.14)}
 .axe-info-detail header span.axe-info-type-badge--suffix{color:#ffd1d1;border-color:rgba(220,113,113,.45);background:rgba(180,77,77,.14)}
 .axe-info-type-badge .axe-info-chip-icon{width:11px;height:11px;flex-basis:11px}
+
