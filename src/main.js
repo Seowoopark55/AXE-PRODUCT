@@ -59,7 +59,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
-  info: { table:'info_crafts', craftGroup:'__all__', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', data:{} },
+  info: { table:'info_crafts', craftGroup:'근접무기', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', data:{} },
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -954,9 +954,12 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='__all__';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
-  if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary'].includes(field))return;state.info[field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':'filterSecondary']=infoFilter.dataset.infoValue;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';state.info.query='';state.info.selectedId='';render();return;}
+  if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':'filterSecondary';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';state.info.query='';state.info.selectedId='';render();return;}
+  // A global result opens its source category; the search text is cleared only after navigation.
+  const infoResult=event.target.closest('[data-info-result-table]');
+  if(infoResult){const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
   const fundTab=event.target.closest('[data-fund-tab]');
