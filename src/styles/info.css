@@ -95,3 +95,18 @@
 .axe-info-subfilter--exception .axe-info-chips>button{border-style:dashed;color:#a5a3a0}
 @media(max-width:760px){.axe-info-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:450px){.axe-info-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Stage 8: restrained symbols and type-specific accent, isolated to modbook filters/details. */
+.axe-info-subfilter--modbook .axe-info-chips>button{gap:6px}
+.axe-info-chip-icon{width:13px;height:13px;flex:0 0 13px;display:inline-block;vertical-align:middle}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--prefix{border-color:rgba(90,140,194,.38);color:#a8caee;background:rgba(64,112,172,.055)}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--prefix.is-active{border-color:#6d9cda;color:#d7e9ff;background:rgba(78,131,198,.19)}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--prefix.is-active small{color:#b7d5f7}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--suffix{border-color:rgba(193,92,92,.36);color:#e8b2b2;background:rgba(165,71,71,.055)}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--suffix.is-active{border-color:#d07a7a;color:#ffe0e0;background:rgba(172,73,73,.2)}
+.axe-info-subfilter--modbook .axe-info-chips>button.axe-info-chip--suffix.is-active small{color:#f2bcbc}
+.axe-info-type-badge{display:inline-flex;gap:4px;align-items:center;margin-left:6px;padding:3px 7px;border:1px solid;border-radius:5px;font-size:10px;font-weight:750;vertical-align:middle}
+.axe-info-detail header span.axe-info-type-badge--prefix{color:#b7d6ff;border-color:rgba(100,152,220,.45);background:rgba(65,122,192,.14)}
+.axe-info-detail header span.axe-info-type-badge--suffix{color:#ffd1d1;border-color:rgba(220,113,113,.45);background:rgba(180,77,77,.14)}
+.axe-info-type-badge .axe-info-chip-icon{width:11px;height:11px;flex-basis:11px}

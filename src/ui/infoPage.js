@@ -37,7 +37,23 @@ const MODBOOK_GROUPS=Object.freeze({
  '생활':['벌목','채광','채집','낚시','요리','제련','제작','감정','절도'],
  '전투':['체력','이동속도'],
 });
-const modbookCategories=row=>String(row?.category||'').split(/[,，、]/u).map(value=>value.trim()).filter(Boolean);
+const splitModbookLabels=value=>String(value||'').split(/[,，、]/u).map(label=>label.trim()).filter(Boolean);
+const MODBOOK_KNOWN_CATEGORIES=new Set(Object.values(MODBOOK_GROUPS).flat());
+// A small number of legacy rows have category='접두' or '접미' rather than an
+// applicable field. For these only, the existing parts field may explicitly
+// enumerate recognized application fields (e.g. 'SMG, 라이플'). Treat those
+// labels as *display-only* category hints; never change the company DB row.
+// Ambiguous parts (ingredients or unknown labels) remain in 분류 미확인.
+const modbookCategories=row=>{
+ const stored=splitModbookLabels(row?.category);
+ const recognized=stored.filter(label=>MODBOOK_KNOWN_CATEGORIES.has(label));
+ if(recognized.length)return [...new Set(recognized)];
+ if(stored.length===0||(stored.length===1&&stored[0]===row?.type)){
+  const partLabels=splitModbookLabels(row?.parts);
+  if(partLabels.length&&partLabels.every(label=>MODBOOK_KNOWN_CATEGORIES.has(label)))return [...new Set(partLabels)];
+ }
+ return stored;
+};
 const modbookGroups=row=>{
  const values=modbookCategories(row);
  const groups=Object.entries(MODBOOK_GROUPS).filter(([,types])=>values.some(value=>types.includes(value))).map(([group])=>group);
@@ -70,6 +86,13 @@ const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,
 const detailFields=(table,row,data,info,owner)=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
+  const rawLabels=splitModbookLabels(row.category);
+  const recognized=rawLabels.filter(value=>MODBOOK_KNOWN_CATEGORIES.has(value));
+  const hints=modbookCategories(row);
+  if(!recognized.length&&hints.some(value=>MODBOOK_KNOWN_CATEGORIES.has(value))){
+   const field=fields.find(([label])=>label==='적용 분야');
+   if(field)field[1]=`${hints.join(', ')} (필요 부품 표기 기준 · 분류 확인 필요)`;
+  }
   const price=fields.find(([label])=>label==='최근 거래가격');
   if(price&&price[1]!=='—'&&Number.isFinite(Number(row.recent_price)))price[1]=`${Number(row.recent_price).toLocaleString('ko-KR')}원`;
  }
@@ -85,12 +108,22 @@ const detailFields=(table,row,data,info,owner)=>{
  }
  return renderFields(fields);
 };
-const chipRow=(title,field,values,selected,rows,valueOf)=>{
+// Restrained monochrome line symbols (not OS-dependent emoji) keep the AXE ONE tone.
+const MODBOOK_ICONS=Object.freeze({
+ '무기':'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+ '생활':'<path d="M20 4c-9 0-15 4-15 11a5 5 0 0 0 5 5c7 0 11-6 10-16Z"/><path d="M4 21c2-5 6-9 12-12"/>',
+ '전투':'<path d="m12 2 8 4v6c0 5-3 8-8 10-5-2-8-5-8-10V6l8-4Z"/><path d="m9 12 2 2 4-4"/>',
+ '접두':'<path d="M7 12h10M11 8l-4 4 4 4"/>',
+ '접미':'<path d="M7 12h10M13 8l4 4-4 4"/>',
+});
+const modbookIcon=value=>MODBOOK_ICONS[value]?`<svg class="axe-info-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MODBOOK_ICONS[value]}</svg>`:'';
+const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false}={})=>{
  const items=values.map(value=>{
   const count=rows.filter(row=>{const category=valueOf(row);return Array.isArray(category)?category.includes(value):category===value;}).length;
-  return `<button type="button" data-info-filter="${field}" data-info-value="${escapeText(value)}" class="${selected===value?'is-active':''}" aria-pressed="${selected===value?'true':'false'}">${escapeText(showFilterName(value))}<small>${count}</small></button>`;
+  const tone=modbook&&field==='secondary'?(value==='접두'?' axe-info-chip--prefix':value==='접미'?' axe-info-chip--suffix':''):'';
+  return `<button type="button" data-info-filter="${field}" data-info-value="${escapeText(value)}" class="${selected===value?'is-active':''}${tone}" aria-pressed="${selected===value?'true':'false'}">${modbook?modbookIcon(value):''}${escapeText(showFilterName(value))}<small>${count}</small></button>`;
  }).join('');
- return `<div class="axe-info-subfilter"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
+ return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
 };
 const weaponPartDetails=(recipe,data,info,owner)=>{
  const craft=visibleRows(data,'info_crafts',info,owner).find(row=>String(row.item_name)===String(recipe.item_name));
@@ -161,7 +194,7 @@ export function categoryFilters(table,info,data,owner){
   const hasUnclassified=shown.some(row=>modbookGroups(row).includes('분류 확인 필요'));
   const groups=groupNames.filter(group=>shown.some(row=>modbookGroups(row).includes(group)));
   const group=([...groups,...(hasUnclassified?['분류 확인 필요']:[])].includes(primary)?primary:groups[0]||(hasUnclassified?'분류 확인 필요':'무기'));
-  controls+=chipRow('개조서 분야','primary',groups,group,shown,modbookGroups);
+  controls+=chipRow('개조서 분야','primary',groups,group,shown,modbookGroups,{modbook:true});
   if(hasUnclassified){
    const unclassifiedCount=shown.filter(row=>modbookGroups(row).includes('분류 확인 필요')).length;
    controls+=`<div class="axe-info-subfilter axe-info-subfilter--exception"><span class="axe-info-subfilter__label">분류 확인</span><div class="axe-info-chips"><button type="button" data-info-filter="primary" data-info-value="분류 확인 필요" class="${group==='분류 확인 필요'?'is-active':''}" aria-pressed="${group==='분류 확인 필요'?'true':'false'}">분류 미확인<small>${unclassifiedCount}</small></button></div></div>`;
@@ -169,12 +202,12 @@ export function categoryFilters(table,info,data,owner){
   shown=shown.filter(row=>modbookGroups(row).includes(group));
   const types=['접두','접미'].filter(type=>shown.some(row=>row.type===type));
   const type=types.includes(secondary)?secondary:types[0];
-  if(types.length>1)controls+=chipRow('개조 위치','secondary',types,type,shown,row=>row.type);
+  if(types.length>1)controls+=chipRow('개조 위치','secondary',types,type,shown,row=>row.type,{modbook:true});
   shown=shown.filter(row=>row.type===type);
   const categories=group==='분류 확인 필요'?['분류 미확인']:
    MODBOOK_GROUPS[group].filter(category=>shown.some(row=>modbookCategories(row).includes(category)));
   const category=categories.includes(info.modbookCategory)?info.modbookCategory:categories[0];
-  if(categories.length>1)controls+=chipRow('세부 분류','modbookCategory',categories,category,shown,modbookCategories);
+  if(categories.length>1)controls+=chipRow('세부 분류','modbookCategory',categories,category,shown,modbookCategories,{modbook:true});
   if(group!=='분류 확인 필요')shown=shown.filter(row=>modbookCategories(row).includes(category));
   heading=`개조서 · ${group} · ${type||''}${group==='분류 확인 필요'?'':` · ${category||''}`}`;
  }
@@ -241,7 +274,7 @@ export function renderInfoPage(state){
  const rows=searching?matches:filters.rows;
  const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
  const detailTitle=selected?itemName(table,selected,data):'';
- const details=selected?`<section class="axe-info-detail" aria-label="상세 정보"><header><span>상세 정보</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><dl>${table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)}</dl></section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected?`<section class="axe-info-detail" aria-label="상세 정보"><header><span>상세 정보${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><dl>${table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)}</dl></section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
