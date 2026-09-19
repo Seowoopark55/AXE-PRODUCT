@@ -511,10 +511,22 @@ export async function getDiscordCompanyConfig(companyId) {
   assertClient();
   const result = await supabase
     .from('discord_company_config')
-    .select('company_id,notification_channel_id,command_channel_id,admin_role_id,member_role_id,created_at,updated_at')
+    .select('company_id,notification_channel_id,command_channel_id,ai_channel_id,admin_role_id,member_role_id,created_at,updated_at')
     .eq('company_id', companyId)
     .maybeSingle();
   return unwrap(result, 'Discord 회사 설정을 불러오지 못했습니다.');
+}
+
+// WEB authenticated session + existing company-admin RLS; never expose a BOT runtime key.
+export async function saveCompanyAiChannel(companyId, channelId, userId) {
+  assertClient();
+  const result = await supabase
+    .from('discord_company_config')
+    .update({ ai_channel_id: channelId || null, updated_by: userId })
+    .eq('company_id', companyId)
+    .select('company_id,ai_channel_id,updated_at')
+    .single();
+  return unwrap(result, 'AI 전용 채널을 저장하지 못했습니다.');
 }
 
 export async function saveDiscordCompanyConfig(companyId, patch, userId) {
@@ -532,7 +544,7 @@ export async function saveDiscordCompanyConfig(companyId, patch, userId) {
       },
       { onConflict: 'company_id' }
     )
-    .select('company_id,notification_channel_id,command_channel_id,admin_role_id,member_role_id,created_at,updated_at')
+    .select('company_id,notification_channel_id,command_channel_id,ai_channel_id,admin_role_id,member_role_id,created_at,updated_at')
     .single();
 
   return unwrap(result, 'Discord 회사 설정을 저장하지 못했습니다.');

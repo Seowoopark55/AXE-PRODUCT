@@ -6,7 +6,7 @@ import {
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
-  getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveDiscordCompanyConfig,
+  getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveCompanyAiChannel, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
@@ -975,6 +975,23 @@ async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
 }
 
 async function saveModuleSettingsData(form,data){
+  // Validate against the currently connected company's synced Discord channel list.
+  const aiChannelId=String(data.get('ai_channel_id')||'').trim();
+  if(aiChannelId){
+    const connectedGuildId=String(state.discordConnection?.guild_id||'');
+    const channel=(state.discordChannels||[]).find(c=>String(c.channel_id)===aiChannelId
+      && String(c.guild_id)===connectedGuildId && c.is_text_based===true);
+    if(!channel) throw new Error('현재 회사에서 사용할 수 있는 AI 전용 텍스트 채널을 선택해 주세요.');
+    // Avoid processing an existing functional channel twice (normal BOT command + AI message).
+    const used=(state.modules||[]).filter(m=>m.enabled).flatMap(m=>
+      Object.entries(m.settings||{}).filter(([key])=>key.endsWith('channel_id')).map(([,value])=>String(value||'')));
+    if(used.includes(aiChannelId)) throw new Error('AI 전용 채널은 기존 기능 채널과 다르게 지정해 주세요.');
+  }
+  const beforeAiChannelId=String(state.discordCompanyConfig?.ai_channel_id||'');
+  if(aiChannelId!==beforeAiChannelId){
+    if(!state.discordCompanyConfig) throw new Error('Discord 회사 설정을 먼저 완료해 주세요.');
+    await saveCompanyAiChannel(state.companyId,aiChannelId,state.session.user.id);
+  }
   for(const mod of state.modules){
     const settings={...(mod.settings||{})};
     for(const key of ['status_channel_id','three_channel_id','ten_channel_id','record_channel_id','channel_id','order_channel_id','account_lookup_channel_id']){

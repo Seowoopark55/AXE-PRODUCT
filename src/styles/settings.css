@@ -200,3 +200,8 @@
   .ops-cooking-menu-name strong,.ops-cooking-menu-detail{text-align:left}
   .ops-cooking-menu-price{justify-content:flex-start}.ops-cooking-menu-order{text-align:left}
 }
+
+/* AI channel: standalone WEB setting, not a live module until AI response is wired. */
+.ops-settings-ai-status{justify-self:center;color:#d7b66f;font-size:10px;white-space:nowrap}
+.ops-settings-ai-row .ops-settings-module-copy small{white-space:normal;line-height:1.25}
+@media(max-width:700px){.ops-settings-ai-row .ops-settings-ai-status{grid-column:2;grid-row:1}}
