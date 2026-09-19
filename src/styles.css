@@ -6,11 +6,10 @@
 @import './styles/fund.css';
 @import './styles/management.css';
 @import './styles/settings.css';
-@import './styles/layout-studio.css';
 @import './styles/overlays.css';
 @import './styles/responsive.css';
 @import './styles/brand-skin.css';
-@import './styles/access-gate.css';
+@import './styles/info.css';
 
 /* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}
@@ -70,6 +69,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
   .runtime-app .main{position:relative;min-height:calc(100vh - 118px);padding:12px 16px 72px;overflow:hidden;border:1px solid rgba(213,163,67,.06);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.006),rgba(255,255,255,.002) 52%,rgba(0,0,0,.022)),#080b0f}
   .runtime-app .global-account{box-sizing:border-box;width:668px;max-width:100%;padding-left:16px;padding-right:16px}
   .runtime-app--settings .global-account{width:712px}
+  .main>.axe-fund,.main>.ops-mgmt-page,.main>.ops-settings-page{margin-left:0;margin-right:auto}
   .product-brand strong{color:#f0e7d5}.product-brand small{color:#9c8050}
   .nav-item.is-active{background:rgba(213,163,67,.068)!important;color:#f0d59e!important;box-shadow:inset 2px 0 rgba(213,163,67,.9)!important}
   .nav-item.is-active .nav-item__icon{color:#e0ad4b!important}
@@ -154,7 +154,6 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-demo-builder-head{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;border-bottom:1px solid #202a33;background:rgba(255,255,255,.008)}
 .setup-demo-builder-head>div{display:grid;gap:2px}.setup-demo-builder-head strong{color:#d3d9de;font-size:12px}.setup-demo-builder-head span{color:#69747d;font-size:9.5px}.setup-demo-builder-head em{padding:4px 7px;border-radius:999px;background:rgba(213,163,67,.06);color:#a98950;font-size:8.5px;font-style:normal;font-weight:900}
 .setup-demo-category-row,.setup-demo-create-row{display:grid;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.05)}
-.setup-demo-category-group{border-bottom:1px solid rgba(255,255,255,.055)}.setup-demo-category-group:last-of-type{border-bottom:0}.setup-demo-category-head{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:rgba(213,163,67,.018);border-bottom:1px solid rgba(255,255,255,.045)}.setup-demo-category-head>span{display:grid;gap:2px}.setup-demo-category-head strong{color:#c8d0d6;font-size:10.8px}.setup-demo-category-head small{color:#68737c;font-size:8.6px}.setup-demo-category-head em{color:#9a8359;font-size:8px;font-style:normal;font-weight:900;white-space:nowrap}
 .setup-demo-category-row{grid-template-columns:1fr minmax(230px,48%);background:rgba(213,163,67,.018)}
 .setup-demo-category-row>span,.setup-demo-create-copy{display:grid;gap:2px}.setup-demo-category-row strong,.setup-demo-create-copy strong{color:#aeb7bf;font-size:10.5px}.setup-demo-category-row small,.setup-demo-create-copy small{color:#606b74;font-size:8.8px}
 .setup-demo-category-row input,.setup-demo-channel-input{height:38px;border:1px solid #29343e;border-radius:8px;background:#0d1319;color:#dce2e7;outline:0}
@@ -168,7 +167,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .setup-demo-generation-result{padding:12px 14px 14px;border-top:1px solid rgba(111,193,145,.12);background:linear-gradient(180deg,rgba(111,193,145,.03),transparent)}
 .setup-demo-generation-title{display:flex;align-items:center;gap:9px;margin-bottom:9px}.setup-demo-generation-title>i{width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(111,193,145,.22);border-radius:8px;background:rgba(111,193,145,.06);color:#85c09d;font-style:normal;font-size:11px}.setup-demo-generation-title>span{display:grid;gap:2px}.setup-demo-generation-title strong{color:#bcd3c5;font-size:10.5px}.setup-demo-generation-title small{color:#61746a;font-size:8.8px}
 .setup-demo-generation-result ul{list-style:none;display:grid;gap:5px;margin:0;padding:0}.setup-demo-generation-result li{min-height:37px;display:grid;grid-template-columns:24px 1fr;align-items:center;gap:8px;padding:0 9px;border:1px solid rgba(111,193,145,.08);border-radius:8px;background:rgba(8,14,11,.35)}.setup-demo-generation-result li>b{width:20px;height:20px;display:grid;place-items:center;border-radius:6px;background:rgba(111,193,145,.055);color:#79ab8d;font-size:8px}.setup-demo-generation-result li>span{display:flex;align-items:center;justify-content:space-between;gap:10px}.setup-demo-generation-result li strong{color:#abb7b0;font-size:10px}.setup-demo-generation-result li small{color:#5f6e65;font-size:8.5px}
-@media(max-width:760px){.setup-demo-channel-mode{grid-template-columns:1fr}.setup-demo-category-row,.setup-demo-create-row{grid-template-columns:1fr}.setup-demo-create-row>em{display:none}.setup-demo-builder-head,.setup-demo-category-head{align-items:flex-start;padding-top:10px;padding-bottom:10px}.setup-demo-category-row input,.setup-demo-channel-input{width:100%}.setup-demo-generation-result li>span{display:grid;gap:2px}}
+@media(max-width:760px){.setup-demo-channel-mode{grid-template-columns:1fr}.setup-demo-category-row,.setup-demo-create-row{grid-template-columns:1fr}.setup-demo-create-row>em{display:none}.setup-demo-builder-head{align-items:flex-start;padding-top:10px;padding-bottom:10px}.setup-demo-category-row input,.setup-demo-channel-input{width:100%}.setup-demo-generation-result li>span{display:grid;gap:2px}}
 
 
 /* AXE ONE 3.19.3 · GUIDED MEMBER IMPORT + FIXED FOOTER R1
@@ -234,6 +233,25 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
     justify-self:auto!important;
     justify-content:flex-end!important;
   }
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{
+    margin-left:32px!important;
+    margin-right:auto!important;
+  }
+}
+@media(min-width:761px) and (max-width:1280px){
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:16px!important}
+}
+@media(min-width:761px) and (max-width:980px){
+  .runtime-app .main>.axe-fund,
+  .runtime-app .main>.ops-mgmt-page,
+  .runtime-app .main>.ops-settings-page,
+  .runtime-app .main>.platform-page{margin-left:0!important}
 }
 
 

@@ -5,14 +5,12 @@ const fund=fs.readFileSync(new URL('../src/styles/fund.css',import.meta.url),'ut
 const layout=fs.readFileSync(new URL('../src/styles/layout.css',import.meta.url),'utf8');
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const settings=fs.readFileSync(new URL('../src/styles/settings.css',import.meta.url),'utf8');
-const tokens=fs.readFileSync(new URL('../src/styles/tokens.css',import.meta.url),'utf8');
 
 const checks=[
-  ['standard operational rail token remains 636px', tokens, /--ops-rail-standard:636px;/],
-  ['fund ledger uses standard reference rail', fund, /main--fund \.axe-fund-ledger\{[\s\S]*?width:var\(--ops-rail-standard\)/],
-  ['members use standard FUND reference rail', management, /main--members \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/],
-  ['assets use standard FUND reference rail', management, /main--assets \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/],
-  ['accounts use standard FUND reference rail', management, /main--accounts \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/],
+  ['fund ledger uses compact 636px reference rail', fund, /main--fund \.axe-fund-ledger\{[\s\S]*?width:636px/],
+  ['members use 636px FUND reference rail', management, /main--members \.ops-mgmt-page,[\s\S]*?width:636px/],
+  ['assets use 636px FUND reference rail', management, /main--assets \.ops-mgmt-page,[\s\S]*?width:636px/],
+  ['accounts use 636px FUND reference rail', management, /main--accounts \.ops-mgmt-page,[\s\S]*?width:636px/],
   ['member lanes include role column', management, /grid-template-columns:minmax\(0,\.90fr\) minmax\(0,1\.10fr\) minmax\(0,\.90fr\) minmax\(0,\.86fr\) minmax\(0,\.72fr\) minmax\(0,\.58fr\)/],
   ['asset lanes include acquisition column', management, /grid-template-columns:minmax\(0,\.92fr\) minmax\(0,1\.08fr\) minmax\(0,\.96fr\) minmax\(0,\.72fr\) minmax\(0,1\.02fr\) minmax\(0,\.72fr\) minmax\(0,\.58fr\)/],
   ['account lanes include role column', management, /grid-template-columns:minmax\(0,\.95fr\) minmax\(0,\.78fr\) minmax\(0,1\.38fr\) minmax\(0,\.72fr\) minmax\(0,\.58fr\)/],

@@ -2,7 +2,7 @@ import './styles.css';
 import { envReady } from './lib/supabase.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, claimDiscordMemberships, redeemCompanyInvite, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
+  listCompanies, createCompany, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
@@ -15,75 +15,17 @@ import {
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
-  removeSuggestionAttachments, deleteSuggestion,
+  removeSuggestionAttachments, deleteSuggestion, getGameInformation,
 } from './lib/productApi.js';
 import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
-import { LAYOUT_STUDIO_DEFAULTS, loadLayoutStudioProfile, saveLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue } from './ui/layoutStudio.js';
 
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','layout'];
-
-const PENDING_INVITE_KEY = 'axe_one_pending_invite_v1';
-
-function normalizeInviteCode(value) {
-  return String(value || '').trim();
-}
-function readPendingInviteCode() {
-  try { return normalizeInviteCode(sessionStorage.getItem(PENDING_INVITE_KEY)); } catch { return ''; }
-}
-function writePendingInviteCode(value) {
-  const code=normalizeInviteCode(value);
-  try { if(code) sessionStorage.setItem(PENDING_INVITE_KEY,code); else sessionStorage.removeItem(PENDING_INVITE_KEY); } catch {}
-  return code;
-}
-function clearPendingInviteCode() {
-  try { sessionStorage.removeItem(PENDING_INVITE_KEY); } catch {}
-}
-function captureInviteFromUrl() {
-  let captured='';
-  try {
-    const url=new URL(window.location.href);
-    captured=normalizeInviteCode(url.searchParams.get('invite'));
-    if(captured){
-      writePendingInviteCode(captured);
-      url.searchParams.delete('invite');
-      const clean=`${url.pathname}${url.search}${url.hash}`;
-      window.history.replaceState(window.history.state,'',clean);
-    }
-  } catch {}
-  return captured || readPendingInviteCode();
-}
-function inviteCompanyId(result) {
-  if(Array.isArray(result)) return inviteCompanyId(result[0]);
-  if(!result || typeof result!=='object') return '';
-  return String(result.company_id || result.joined_company_id || result.target_company_id || '').trim();
-}
-function isFatalInviteError(message) {
-  return /expired|만료|revoked|취소|exhaust|used up|invalid|not found|찾을 수|unavailable|이용할 수 없는/i.test(String(message||''));
-}
-function friendlyInviteError(error) {
-  const raw=String(error?.message||error||'');
-  if(/expired|만료/i.test(raw)) return '초대권의 유효기간이 만료되었습니다. 새 초대권을 요청해 주세요.';
-  if(/revoked|취소/i.test(raw)) return '취소된 초대권입니다. 새 초대권을 요청해 주세요.';
-  if(/exhaust|used up|모두 사용/i.test(raw)) return '이미 모두 사용된 초대권입니다. 새 초대권을 요청해 주세요.';
-  if(/unavailable|이용할 수 없는/i.test(raw)) return '현재 이용할 수 없는 회사의 초대권입니다.';
-  if(/invalid|not found|찾을 수|invite/i.test(raw)) return '초대 코드를 확인할 수 없습니다. 코드를 다시 확인해 주세요.';
-  return '초대권을 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-}
-
-const initialInviteCode = captureInviteFromUrl();
+const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info'];
 
 const state = {
   envReady,
-  discordAuthMinimal: String(import.meta.env.VITE_SUPABASE_DISCORD_AUTH_PROVIDER || '').trim().startsWith('custom:'),
-  pendingInviteCode: initialInviteCode,
-  inviteSource: initialInviteCode ? 'link' : '',
-  inviteCodeOpen: false,
-  inviteError: '',
-  inviteAttemptedCode: '',
-  inviteRedeemed: false,
   session: null,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
@@ -113,11 +55,11 @@ const state = {
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
   platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', currentSubscription:null,
-  layoutStudio:loadLayoutStudioProfile(), layoutStudioSaved:loadLayoutStudioProfile(), layoutStudioDirty:false, layoutStudioAdvanced:false,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
+  info: { table:'info_crafts', query:'', selectedId:'', showInactive:false, loading:false, loaded:false, error:'', data:{} },
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -134,8 +76,6 @@ const state = {
   error: '',
   notice: '',
 };
-
-applyLayoutStudioProfile(LAYOUT_STUDIO_DEFAULTS);
 
 let noticeTimer = null;
 let mutationBusy = false;
@@ -358,6 +298,7 @@ function createSetupDemoState(){
     memberRole:'회사원',
     modules:demoModules,
     channelMode:'quick',
+    categoryName:'AXE ONE',
     channelsGenerated:false,
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     channels:{fund:'#공금현황판',ammo3:'#3시-총알',ammo10:'#10시-총알',outlaw:'#전적-등록',modbook:'#개조서',pinball:'#핀볼-모집',cooking:'#요리-주문',accountLookup:'#계좌조회'},
@@ -394,6 +335,7 @@ function createSetupGuideState(step = 0){
     memberRoleId:String(cfg.member_role_id||''),
     modules:moduleMap,
     channelMode:'quick',
+    categoryName:'AXE ONE',
     generatedChannels:{fund:'공금현황판',ammo3:'3시-총알',ammo10:'10시-총알',outlaw:'전적-등록',modbook:'개조서',pinball:'핀볼-모집',cooking:'요리-주문',accountLookup:'계좌조회'},
     directChannels:{
       fund:String(settingsByKey.fund?.status_channel_id||''),
@@ -445,25 +387,19 @@ function openSetupGuide(step = 0){
   render();
 }
 
-function setupGuideChannelCategory(key){
-  if(['ammo3','ammo10','pinball','outlaw'].includes(String(key))) return 'AXE ONE · 무법지대';
-  if(['fund','accountLookup'].includes(String(key))) return 'AXE ONE · 회사운영';
-  return 'AXE ONE · 편의기능';
-}
-
 function setupGuideChannelPlan(){
   const modules=state.setupGuide?.modules||{};
   const rows=[];
-  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text',categoryName:setupGuideChannelCategory('fund')});
+  if(modules.fund)rows.push({key:'fund',moduleKey:'fund',settingKey:'status_channel_id',label:'공금 관리',name:state.setupGuide.generatedChannels?.fund||'공금현황판',type:'text'});
   if(modules.ammo){
-    rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알',categoryName:setupGuideChannelCategory('ammo3')});
-    rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알',categoryName:setupGuideChannelCategory('ammo10')});
+    rows.push({key:'ammo3',moduleKey:'ammo',settingKey:'three_channel_id',label:'총알 관리 · 3시',name:state.setupGuide.generatedChannels?.ammo3||'3시-총알'});
+    rows.push({key:'ammo10',moduleKey:'ammo',settingKey:'ten_channel_id',label:'총알 관리 · 10시',name:state.setupGuide.generatedChannels?.ammo10||'10시-총알'});
   }
-  if(modules.pinball)rows.push({key:'pinball',moduleKey:'pinball',settingKey:'channel_id',label:'핀볼 모집',name:state.setupGuide.generatedChannels?.pinball||'핀볼-모집',categoryName:setupGuideChannelCategory('pinball')});
-  if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록',categoryName:setupGuideChannelCategory('outlaw')});
-  if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서',categoryName:setupGuideChannelCategory('modbook')});
-  if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문',categoryName:setupGuideChannelCategory('cooking')});
-  if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회',categoryName:setupGuideChannelCategory('accountLookup')});
+  if(modules.outlaw)rows.push({key:'outlaw',moduleKey:'outlaw',settingKey:'record_channel_id',label:'무법지대 전적',name:state.setupGuide.generatedChannels?.outlaw||'전적-등록'});
+  if(modules.modbook)rows.push({key:'modbook',moduleKey:'modbook',settingKey:'channel_id',label:'개조서 조회 · 가격',name:state.setupGuide.generatedChannels?.modbook||'개조서'});
+  if(modules.pinball)rows.push({key:'pinball',moduleKey:'pinball',settingKey:'channel_id',label:'핀볼 모집',name:state.setupGuide.generatedChannels?.pinball||'핀볼-모집'});
+  if(modules.cooking)rows.push({key:'cooking',moduleKey:'cooking',settingKey:'order_channel_id',label:'요리 주문',name:state.setupGuide.generatedChannels?.cooking||'요리-주문'});
+  if(modules.assets)rows.push({key:'accountLookup',moduleKey:'assets',settingKey:'account_lookup_channel_id',label:'계좌 조회',name:state.setupGuide.generatedChannels?.accountLookup||'계좌조회'});
   return rows;
 }
 
@@ -506,6 +442,7 @@ async function saveSetupGuideModules(){
   const previous=state.setupGuide;
   const next=createSetupGuideState(4);
   next.channelMode=previous.channelMode||'quick';
+  next.categoryName=previous.categoryName||'AXE ONE';
   next.generatedChannels={...(previous.generatedChannels||next.generatedChannels)};
   state.setupGuide=next;
 }
@@ -750,36 +687,20 @@ async function loadCompanyData() {
   }
 }
 
-async function redeemPendingInvite({force=false,throwOnError=false}={}) {
-  const code=normalizeInviteCode(state.pendingInviteCode || readPendingInviteCode());
-  if(!code || !state.session?.user) return null;
-  if(!force && state.inviteAttemptedCode===code) return null;
-  state.inviteAttemptedCode=code;
-  state.inviteError='';
+async function loadGameInfo(){
+  state.info.loading=true;
+  state.info.error='';
+  render();
   try {
-    const result=await redeemCompanyInvite(code);
-    const targetCompanyId=inviteCompanyId(result);
-    clearPendingInviteCode();
-    state.pendingInviteCode='';
-    state.inviteSource='';
-    state.inviteCodeOpen=false;
-    state.inviteRedeemed=true;
-    if(targetCompanyId){
-      state.companyId=targetCompanyId;
-      localStorage.setItem('axe_product_company_id',targetCompanyId);
-    }
-    await claimDiscordMemberships().catch(()=>({}));
-    return result || { status:'redeemed' };
-  } catch(error) {
-    const message=friendlyInviteError(error);
-    state.inviteError=message;
-    if(isFatalInviteError(error?.message||error)){
-      clearPendingInviteCode();
-      state.pendingInviteCode='';
-      state.inviteSource='';
-    }
-    if(throwOnError) throw new Error(message);
-    return null;
+    const data=await getGameInformation(Boolean(state.platformAdmin));
+    state.info.data=data;
+    state.info.loaded=true;
+  } catch(error){
+    state.info.error=String(error?.message||error||'게임 정보를 불러오지 못했습니다.');
+    state.info.loaded=false;
+  } finally {
+    state.info.loading=false;
+    render();
   }
 }
 
@@ -788,10 +709,8 @@ async function refreshAll() {
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
-    applyLayoutStudioProfile(state.platformAdmin?state.layoutStudio:LAYOUT_STUDIO_DEFAULTS);
-    if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
+    if(!state.platformAdmin && state.page==='platform'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
-    await redeemPendingInvite();
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
@@ -1033,7 +952,11 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  const infoTab=event.target.closest('[data-info-table]');
+  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.selectedId='';state.info.query='';render();return;}
+  const infoRow=event.target.closest('[data-info-id]');
+  if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;state.memberPage=1;render();return;}
@@ -1078,14 +1001,8 @@ root.addEventListener('click', async event => {
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
-  if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='layout';applyLayoutStudioProfile(state.layoutStudio);localStorage.setItem('axe_product_page','layout');render();return;}
+  if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
-  if(action==='layout-preset'){if(!state.platformAdmin)return;state.layoutStudio=applyLayoutStudioPreset(state.layoutStudio,String(actionEl.dataset.layoutType||''),String(actionEl.dataset.layoutValue||''));state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
-  if(action==='layout-adjust'){if(!state.platformAdmin)return;state.layoutStudio=adjustLayoutStudioValue(state.layoutStudio,String(actionEl.dataset.layoutKey||''),Number(actionEl.dataset.layoutDelta||0));state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
-  if(action==='layout-toggle-advanced'){if(!state.platformAdmin)return;state.layoutStudioAdvanced=!state.layoutStudioAdvanced;render();return;}
-  if(action==='layout-reset-default'){if(!state.platformAdmin)return;state.layoutStudio={...LAYOUT_STUDIO_DEFAULTS};state.layoutStudioDirty=true;applyLayoutStudioProfile(state.layoutStudio);render();return;}
-  if(action==='layout-revert'){if(!state.platformAdmin)return;state.layoutStudio=loadLayoutStudioProfile();state.layoutStudioSaved={...state.layoutStudio};state.layoutStudioDirty=false;applyLayoutStudioProfile(state.layoutStudio);render();return;}
-  if(action==='layout-save'){if(!state.platformAdmin)return;state.layoutStudio=saveLayoutStudioProfile(state.layoutStudio);state.layoutStudioSaved={...state.layoutStudio};state.layoutStudioDirty=false;applyLayoutStudioProfile(state.layoutStudio);setNotice('레이아웃 설정을 현재 브라우저에 저장했습니다.');return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
   if(action==='test-center-select'){
     if(!state.platformAdmin||!state.testCenter)return;
@@ -1127,8 +1044,6 @@ root.addEventListener('click', async event => {
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
-  if(action==='show-invite-code'){state.inviteCodeOpen=true;state.inviteError='';render();requestAnimationFrame(()=>root.querySelector('[data-invite-code-input]')?.focus());return;}
-  if(action==='hide-invite-code'){state.inviteCodeOpen=false;state.inviteError='';render();return;}
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
   if(action==='open-create-company'){const role=currentMembership(state)?.role;if((state.companies||[]).length&&role!=='owner'&&!state.platformAdmin){setError('새 회사 등록은 현재 회사 OWNER만 시작할 수 있습니다. 기존 회사 팀원은 새 회사를 만들 필요가 없습니다.');return;}state.modal={type:'create-company'};render();return;}
   if(action==='copy-registration-info'){
@@ -1142,7 +1057,7 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       await claimDiscordMemberships();
       await loadCompanies();
-      if(!state.companies.length) throw new Error('아직 회사 접근 권한이 확인되지 않습니다. 초대 코드를 입력하거나 대표·관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
+      if(!state.companies.length) throw new Error('아직 멤버 등록이 확인되지 않습니다. 대표 또는 관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
       if(!state.companyId||!state.companies.some(company=>company.id===state.companyId)) state.companyId=state.companies[0].id;
       localStorage.setItem('axe_product_company_id',state.companyId);
       state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
@@ -1196,12 +1111,14 @@ root.addEventListener('click', async event => {
     if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan();
+      const category=String(state.setupGuide.categoryName||'AXE ONE').trim();
+      if(!category)throw new Error('카테고리 이름을 입력해 주세요.');
       if(plan.some(row=>!String(row.name||'').trim()))throw new Error('생성할 채널 이름을 모두 입력해 주세요.');
       const normalizedNames=plan.map(row=>String(row.name||'').trim().toLocaleLowerCase('ko-KR'));
       if(new Set(normalizedNames).size!==normalizedNames.length)throw new Error('같은 채널명을 두 번 사용할 수 없습니다. 채널명을 다르게 지정해 주세요.');
       let result;
       try{
-        result=await createGuidedSetupChannels(state.companyId,'AXE ONE',plan.map(row=>({key:row.key,name:row.name,type:row.type||'text',category_name:row.categoryName})));
+        result=await createGuidedSetupChannels(state.companyId,category,plan.map(row=>({key:row.key,name:row.name,type:row.type||'text'})));
       }catch(error){
         const message=String(error?.message||error||'');
         if(Number(error?.statusCode||0)===403 || /채널 관리 권한/.test(message)){
@@ -1426,6 +1343,7 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
+    if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';render();return;}
     if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;state.fundLedgerPage=1;await withMutation(loadFundSnapshot);return;}
     if(event.target.matches('[data-fund-weekly-month]')){state.fundWeeklyMonth=event.target.value;state.fundMonthlyRows=[];await loadFundWeeklyMonth();return;}
     if(event.target.matches('[data-fund-filter]')){state.fundFilters[event.target.dataset.fundFilter]=event.target.value;state.fundLedgerPage=1;render();return;}
@@ -1438,6 +1356,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-asset-modal-status]')){const holder=root.querySelector('[data-asset-holder]');if(event.target.value==='미배정'&&holder)holder.value='';return;}
     if(event.target.matches('[data-guide-role]')){if(!state.setupGuide)return;state.setupGuide[event.target.dataset.guideRole]=String(event.target.value||'');render();return;}
     if(event.target.matches('[data-guide-direct-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideDirectChannel||'');state.setupGuide.directChannels=state.setupGuide.directChannels||{};state.setupGuide.directChannels[key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-guide-category-name]')){if(!state.setupGuide)return;state.setupGuide.categoryName=String(event.target.value||'').trim()||'AXE ONE';render();return;}
     if(event.target.matches('[data-guide-generated-channel]')){if(!state.setupGuide)return;const key=String(event.target.dataset.guideGeneratedChannel||'');state.setupGuide.generatedChannels=state.setupGuide.generatedChannels||{};state.setupGuide.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();render();return;}
     if(event.target.matches('[data-guide-member-filter]')){if(!state.setupGuide)return;state.setupGuide.memberFilterRoleId=String(event.target.value||'');state.setupGuide.memberListLoaded=false;state.setupGuide.memberCandidates=[];state.setupGuide.memberSelected=[];if(state.setupGuide.memberFilterRoleId)await withMutation(loadSetupGuideMembers);else render();return;}
     if(event.target.matches('[data-guide-member-target-role]')){if(!state.setupGuide)return;state.setupGuide.memberTargetRole=String(event.target.value||'')==='admin'?'admin':'member';render();return;}
@@ -1449,6 +1368,7 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-support-attachment-input]')){addQuestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-suggestion-attachment-input]')){addSuggestionPendingFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-setup-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupChannel||'');state.setupDemo.channels=state.setupDemo.channels||{};const map={'공금현황판':'fund','3시-총알':'ammo3','10시-총알':'ammo10','전적-등록':'outlaw','개조서':'modbook','핀볼-모집':'pinball','요리-주문':'cooking','계좌조회':'accountLookup'};state.setupDemo.channels[map[key]||key]=String(event.target.value||'');render();return;}
+    if(event.target.matches('[data-setup-category-name]')){if(!state.setupDemo)return;state.setupDemo.categoryName=String(event.target.value||'').trim()||'AXE ONE';state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-generated-channel]')){if(!state.setupDemo)return;const key=String(event.target.dataset.setupGeneratedChannel||'');state.setupDemo.generatedChannels=state.setupDemo.generatedChannels||{};state.setupDemo.generatedChannels[key]=String(event.target.value||'').replace(/^#+/,'').trim();state.setupDemo.channelsGenerated=false;render();return;}
     if(event.target.matches('[data-setup-member-filter]')){
       if(!state.setupDemo)return;
@@ -1465,6 +1385,7 @@ root.addEventListener('change', async event => {
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {
+  if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';const pos=event.target.selectionStart;render();const el=root.querySelector('[data-info-query]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;state.accountPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
@@ -1507,33 +1428,6 @@ root.addEventListener('drop', event=>{
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
-    if(type==='invite-login'){
-      const code=normalizeInviteCode(data.get('invite_code'));
-      if(!code)throw new Error('초대 코드를 입력해 주세요.');
-      state.pendingInviteCode=writePendingInviteCode(code);
-      state.inviteSource='code';
-      state.inviteAttemptedCode='';
-      state.inviteError='';
-      await signInWithDiscord();
-      return;
-    }
-    if(type==='invite-redeem'){
-      const code=normalizeInviteCode(data.get('invite_code'));
-      if(!code)throw new Error('초대 코드를 입력해 주세요.');
-      state.pendingInviteCode=writePendingInviteCode(code);
-      state.inviteSource='code';
-      state.inviteAttemptedCode='';
-      await redeemPendingInvite({force:true,throwOnError:true});
-      await loadCompanies();
-      if(!state.companies.length)throw new Error('초대권은 확인됐지만 회사 접근 권한을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.');
-      if(!state.companyId||!state.companies.some(company=>company.id===state.companyId))state.companyId=state.companies[0].id;
-      localStorage.setItem('axe_product_company_id',state.companyId);
-      state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
-      await loadCompanyData();
-      state.ready=true;
-      setNotice('초대가 확인되었습니다. 회사 운영 콘솔에 연결했습니다.');
-      return;
-    }
     if(type==='test-center-company'){
       if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');
       const name=String(data.get('name')||'').trim();

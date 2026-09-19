@@ -35,8 +35,7 @@ expect('test preview step uses the shared preview module list',render.includes('
 expect('test preview can toggle newly added shared modules',main.includes("if(action==='setup-demo-toggle-module')")&&main.includes('state.setupDemo.modules[key]=!Boolean(state.setupDemo.modules[key])'));
 expect('test preview channel plan also includes modbook and pinball',render.includes("if(modules.modbook)channelPlan.push")&&render.includes("if(modules.pinball)channelPlan.push"));
 
-const liveAccessGate=render.slice(render.indexOf('function renderOnboarding'),render.indexOf('function renderAuthed'));
-expect('first-run stays access-gated with invite or company-side registration only',liveAccessGate.includes('data-form="invite-redeem"')&&liveAccessGate.includes('check-member-registration')&&!liveAccessGate.includes('open-create-company')&&!liveAccessGate.includes('회사 검색'));
+expect('first-run stays registration-gated with no company search/join code',render.includes('이미 이용 중인 회사의 팀원입니다')&&render.includes('등록되기 전에는 AXE ONE에 진입할 수 없습니다.')&&!render.includes('data-form="join-company"'));
 expect('registration verification still claims before company listing',main.indexOf('await claimDiscordMemberships();',main.indexOf("if(action==='check-member-registration')"))<main.indexOf('await loadCompanies();',main.indexOf("if(action==='check-member-registration')")));
 expect('server re-verifies selected Discord members before registration',registerMembers.includes('// Re-scan on the server so the browser cannot submit arbitrary Discord IDs.')&&registerMembers.includes('findSelectedRoleMembers(guildId, roleId, selectedIds)'));
 expect('inactive historical members are not silently reactivated',registerMembers.includes('requires_manual_reactivation')&&main.includes('퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요'));
@@ -44,7 +43,7 @@ expect('test center remains non-writing for member registration check',main.incl
 
 
 expect('existing non-owner does not see additional company action',render.includes("(currentMembership(state)?.role==='owner'||state.platformAdmin)")&&main.includes("role!=='owner'&&!state.platformAdmin"));
-expect('direct member registration API remains available while member-page CTA is removed',render.includes("pageHeader('MEMBERS','멤버 관리','','')")&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
+expect('direct member registration is available to company admins',render.includes('data-action="open-member-register"')&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
 expect('direct member registration revalidates company admin server-side',registerMember.includes('await requireCompanyAdmin(token, user.id, companyId)'));
 expect('direct member registration verifies actual Discord guild membership',registerMember.includes("/guilds/${guildId}/members/${discordUserId}"));
 expect('direct member registration fails clearly when Discord is not connected',registerMember.includes("status(409)")&&registerMember.includes('먼저 회사 설정에서 Discord 서버를 연결해 주세요.'));

@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const mgmt=fs.readFileSync(new URL('../src/styles/management.css',import.meta.url),'utf8');
-const tokens=fs.readFileSync(new URL('../src/styles/tokens.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 
 const checks=[
@@ -13,7 +12,7 @@ const checks=[
   ['member name-discord-role centers are balanced',mgmt.includes('minmax(0,.90fr) minmax(0,1.10fr) minmax(0,.90fr) minmax(0,.86fr) minmax(0,.72fr) minmax(0,.58fr)')],
   ['asset columns use balanced fractional distribution',mgmt.includes('minmax(0,.92fr) minmax(0,1.08fr) minmax(0,.96fr) minmax(0,.72fr) minmax(0,1.02fr) minmax(0,.72fr) minmax(0,.58fr)')],
   ['account columns use focused five-lane distribution',mgmt.includes('minmax(0,.95fr) minmax(0,.78fr) minmax(0,1.38fr) minmax(0,.72fr) minmax(0,.58fr)')],
-  ['operational rail remains 636px',tokens.includes('--ops-rail-standard:636px;')&&/main--members \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(mgmt)&&/main--assets \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(mgmt)&&/main--accounts \.ops-mgmt-page,[\s\S]*?width:var\(--ops-rail-standard\)/.test(mgmt)],
+  ['operational rail remains 636px',/main--members \.ops-mgmt-page,[\s\S]*?width:636px/.test(mgmt)&&/main--assets \.ops-mgmt-page,[\s\S]*?width:636px/.test(mgmt)&&/main--accounts \.ops-mgmt-page,[\s\S]*?width:636px/.test(mgmt)],
   ['mobile action lane spans expanded fields',mgmt.includes('grid-row:1 / span 6;align-self:center;justify-content:flex-end')],
 ];
 let passed=0;

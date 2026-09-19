@@ -1,5 +1,31 @@
 import { supabase } from './supabase.js';
 
+// Shared, read-only information catalogue. The six existing axe_product tables
+// remain the single source of truth for WEB and BOT.
+const INFO_TABLES = Object.freeze([
+  'info_crafts', 'info_craft_materials', 'info_material_recipes',
+  'info_processes', 'info_quests', 'info_skill_ranks',
+]);
+
+export async function getGameInformation(includeInactive = false) {
+  assertClient();
+  const entries = await Promise.all(INFO_TABLES.map(async table => {
+    let query = supabase.from(table).select('*').order('sort_order').order('id');
+    if (!includeInactive) query = query.eq('is_active', true);
+    const result = await query;
+    if (result.error) throw new Error(`${table}: ${result.error.message}`);
+    return [table, result.data || []];
+  }));
+  const data = Object.fromEntries(entries);
+  // A retired craft must not leave its still-active ingredient rows visible
+  // to ordinary viewers. No database rows are changed by this read filter.
+  if (!includeInactive) {
+    const activeCraftIds = new Set(data.info_crafts.map(row => String(row.id)));
+    data.info_craft_materials = data.info_craft_materials.filter(row => activeCraftIds.has(String(row.craft_id)));
+  }
+  return data;
+}
+
 function assertClient() {
   if (!supabase) throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
 }

@@ -8,14 +8,14 @@ const files={
   notify:read('api/suggestions/notify.js'), pages:read('src/styles/pages.css'), management:read('src/styles/management.css')
 };
 const checks=[];const failures=[];const expect=(label,ok)=>{checks.push([label,!!ok]);if(!ok)failures.push(label);};
-expect('suggestions route is valid and sidebar nav exists', files.main.includes("'suggestions'") && files.render.includes("navItem(state,'suggestions','건의게시판')"));
+expect('suggestions route is valid and shared support tab exists', files.main.includes("'suggestions'") && files.render.includes('supportTabNav(state) + renderSuggestions(state)') && files.render.includes('data-page="suggestions"'));
 expect('legacy feedback modal/contact UI removed', !files.render.includes('feedbackModal') && !files.render.includes('회신 Discord') && !files.main.includes("type==='feedback'"));
 expect('customer list is author-scoped in SQL', /where s\.company_id = p_company_id[\s\S]{0,180}s\.created_by_user_id = auth\.uid\(\)/.test(files.sql));
 expect('detail blocks same-company non-author', files.sql.includes("v_s.created_by_user_id is distinct from auth.uid()") && files.sql.includes('작성자와 AXE PRODUCT 운영자만 볼 수 있습니다.'));
 expect('platform global suggestion queue exists', files.api.includes('getPlatformSuggestions') && files.render.includes('renderPlatformSuggestionQueue') && files.sql.includes('platform_suggestion_list'));
 expect('platform-only answer/status path exists', files.sql.includes('platform admin required') && files.main.includes("action==='suggestion-status'") && files.render.includes('답변 등록 · 완료 처리'));
 expect('author follow-up reopens pending', files.sql.includes("status='pending'") && files.render.includes('추가 메시지 보내기'));
-expect('customer unread badge and dashboard notice exist', files.render.includes("key==='suggestions'?Number(state.suggestionBoard?.counts?.unread||0)") && files.render.includes('건의 답변 도착'));
+expect('customer unread badge and dashboard notice exist', files.render.includes('Number(state.suggestionBoard?.counts?.unread||0)') && files.render.includes('supportTabNav(state)') && files.render.includes('건의 답변 도착'));
 expect('private image bucket and attachment RPCs exist', files.sql.includes('axe-suggestion-attachments') && files.api.includes('uploadSuggestionAttachment') && files.api.includes('attachSuggestionFile'));
 expect('upload paste drop inputs wired', files.render.includes('data-suggestion-attachment-input') && files.render.includes('data-suggestion-attachment-drop') && files.main.includes("['suggestion-create','suggestion-thread'].includes(state.modal?.type)"));
 expect('shared in-app image lightbox used', files.render.includes('open-support-image') && files.render.includes('supportAttachmentGallery(q.attachments)'));

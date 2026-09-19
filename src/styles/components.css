@@ -104,6 +104,3 @@
 .badge--amber{background:var(--amber-soft);color:#eabd66}
 .badge--neutral{background:rgba(255,255,255,.045);color:#8b96a2}
 .text-action{padding:0;border:0;background:transparent;color:#d4aa55;font-size:9px;font-weight:800;cursor:pointer}
-/* OPERATIONAL TABLE STANDARD --------------------------------------------
-   Shared empty-state treatment. Feature-specific empty states may opt out. */
-.ops-mgmt-empty,.axe-fund-ledger-empty{padding:24px 12px;color:#747d86;font-size:9.8px;text-align:center}

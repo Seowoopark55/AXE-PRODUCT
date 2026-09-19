@@ -3,8 +3,6 @@ import { requireCompanyAdmin, requireUser, getCompanyDiscordConnection } from '.
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_CHANNELS = 8;
-const MAX_CATEGORIES = 3;
-const RECOMMENDED_CATEGORY_ORDER = ['AXE ONE · 무법지대', 'AXE ONE · 회사운영', 'AXE ONE · 편의기능'];
 
 function cleanName(value, fallback = '') {
   const name = String(value || '').trim().replace(/\s+/g, ' ');
@@ -53,9 +51,8 @@ export default async function handler(req, res) {
       .map((item) => ({
         key: String(item?.key || '').trim().slice(0, 40),
         name: cleanName(item?.name),
-        category_name: cleanName(item?.category_name, categoryName),
       }))
-      .filter((item) => item.key && item.name && item.category_name);
+      .filter((item) => item.key && item.name);
 
     const normalizedKeys = channels.map((item) => item.key.toLowerCase());
     const normalizedNames = channels.map((item) => item.name.toLocaleLowerCase('ko-KR'));
@@ -66,42 +63,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '같은 채널명을 두 번 생성할 수 없습니다. 채널명을 다르게 지정해 주세요.' });
     }
 
-    const categoryNames = [...new Set(channels.map((item) => item.category_name))].sort((a, b) => {
-      const ai = RECOMMENDED_CATEGORY_ORDER.indexOf(a);
-      const bi = RECOMMENDED_CATEGORY_ORDER.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b, 'ko-KR');
-      if (ai === -1) return 1;
-      if (bi === -1) return -1;
-      return ai - bi;
-    });
-    if (categoryNames.length > MAX_CATEGORIES) {
-      return res.status(400).json({ error: `카테고리는 최대 ${MAX_CATEGORIES}개까지 자동 생성할 수 있습니다.` });
-    }
-
     const existing = await discordJson(`/guilds/${guildId}/channels`);
     const existingRows = Array.isArray(existing) ? existing : [];
-    const categoryMap = new Map();
-    const categoryResults = [];
 
-    for (const name of categoryNames) {
-      let category = existingRows.find((row) => Number(row?.type) === 4 && String(row?.name || '') === name) || null;
-      let created = false;
-      if (!category) {
-        category = await discordJson(`/guilds/${guildId}/channels`, {
-          method: 'POST',
-          headers: { 'X-Audit-Log-Reason': encodeURIComponent('AXE ONE guided setup') },
-          body: JSON.stringify({ name, type: 4 }),
-        });
-        created = true;
-      }
-      categoryMap.set(name, category);
-      categoryResults.push({ id: String(category.id), name: String(category.name || name), created });
+    let category = existingRows.find((row) => Number(row?.type) === 4 && String(row?.name || '') === categoryName) || null;
+    let categoryCreated = false;
+    if (!category) {
+      category = await discordJson(`/guilds/${guildId}/channels`, {
+        method: 'POST',
+        headers: { 'X-Audit-Log-Reason': encodeURIComponent('AXE ONE guided setup') },
+        body: JSON.stringify({ name: categoryName, type: 4 }),
+      });
+      categoryCreated = true;
     }
 
     const results = [];
     for (const item of channels) {
-      const category = categoryMap.get(item.category_name);
-      let row = existingRows.find((entry) => Number(entry?.type) === 0 && String(entry?.parent_id || '') === String(category?.id || '') && String(entry?.name || '') === item.name) || null;
+      let row = existingRows.find((entry) => Number(entry?.type) === 0 && String(entry?.parent_id || '') === String(category.id) && String(entry?.name || '') === item.name) || null;
       let created = false;
       if (!row) {
         row = await discordJson(`/guilds/${guildId}/channels`, {
@@ -115,20 +93,12 @@ export default async function handler(req, res) {
         });
         created = true;
       }
-      results.push({
-        key: item.key,
-        id: String(row.id),
-        name: String(row.name || item.name),
-        type: 'text',
-        created,
-        category: { id: String(category.id), name: String(category.name || item.category_name) },
-      });
+      results.push({ key: item.key, id: String(row.id), name: String(row.name || item.name), type: 'text', created });
     }
 
     return res.status(200).json({
       guild_id: guildId,
-      category: categoryResults[0] || null,
-      categories: categoryResults,
+      category: { id: String(category.id), name: String(category.name || categoryName), created: categoryCreated },
       channels: results,
     });
   } catch (error) {
