@@ -19,7 +19,7 @@ const includesFilterAll=html=>/data-info-value="__all__"|<option[^>]*>전체 \(/
 const source=readFileSync('src/main.js','utf8');
 const checks=[
  ['all original rows present in synthetic fixture',Object.values(data).reduce((n,rows)=>n+rows.length,0)===290],
- ['four top-level tabs without separate materials or combination tab',(view().match(/data-info-table=/g)||[]).length===4],
+ ['five top-level tabs, including company-scoped modbooks, without a separate materials tab',(view().match(/data-info-table=/g)||[]).length===5],
  ['craft browse has no 전체 and defaults to knife',browse('info_crafts').rows.length===1&&!includesFilterAll(view())],
  ['craft firearm subtabs are direct chips without 전체',browse('info_crafts',{craftGroup:'총기류'}).rows.length===6&&!includesFilterAll(view({craftGroup:'총기류'}))],
  ['weapons combination records and linked ingredients remain reachable',browse('info_crafts',{craftGroup:'무기부품'}).rows.length===2&&view({craftGroup:'무기부품',selectedId:'1'}).includes('견습생의 도구')],

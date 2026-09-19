@@ -15,7 +15,7 @@ import {
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
-  removeSuggestionAttachments, deleteSuggestion, getGameInformation,
+  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks,
 } from './lib/productApi.js';
 import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
 
@@ -59,7 +59,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
-  info: { table:'info_crafts', craftGroup:'근접무기', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', data:{} },
+  info: { table:'info_crafts', craftGroup:'근접무기', modbookCategory:'', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', modbookError:'', companyId:null, data:{} },
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -87,6 +87,19 @@ let sessionRecoveryBusy = false;
 let lastSessionRecoveryAt = 0;
 let manualSignOutUntil = 0;
 let sessionHealthTimer = null;
+let infoLoadSequence = 0;
+
+function resetScopedGameInfo(){
+  ++infoLoadSequence;
+  state.info.loaded=false;
+  state.info.loading=false;
+  state.info.error='';
+  state.info.modbookError='';
+  state.info.companyId=null;
+  state.info.selectedId='';
+  state.info.query='';
+  state.info.data={};
+}
 
 function subscriptionEffectiveStatus(row){
   if(!row) return 'active';
@@ -514,6 +527,7 @@ function setNotice(message) {
 }
 function setError(error) { state.error = String(error?.message || error || '오류가 발생했습니다.'); render(); }
 function clearCompanyData() {
+  resetScopedGameInfo();
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
@@ -525,9 +539,11 @@ function clearCompanyData() {
 }
 
 async function loadCompanies() {
+  const previousCompanyId=state.companyId;
   state.companies = await listCompanies();
   if (!state.companies.length) { state.companyId=null; localStorage.removeItem('axe_product_company_id'); clearCompanyData(); return; }
   if (!state.companies.some(c=>c.id===state.companyId)) state.companyId=state.companies[0].id;
+  if (previousCompanyId!==state.companyId) resetScopedGameInfo();
   localStorage.setItem('axe_product_company_id', state.companyId);
 }
 
@@ -688,23 +704,40 @@ async function loadCompanyData() {
 }
 
 async function loadGameInfo(){
+  const request=++infoLoadSequence;
+  const companyId=String(state.companyId||'');
+  const userId=state.session?.user?.id;
   state.info.loading=true;
   state.info.error='';
+  state.info.modbookError='';
   render();
   try {
     const data=await getGameInformation(Boolean(state.platformAdmin));
-    state.info.data=data;
+    let modbooks=[];
+    let modbookError='';
+    try {
+      modbooks=await getCompanyModbooks(companyId, Boolean(state.platformAdmin));
+    }catch(error){
+      modbookError=String(error?.message||error||'개조서를 불러오지 못했습니다.');
+    }
+    if(request!==infoLoadSequence||String(state.companyId||'')!==companyId||state.session?.user?.id!==userId)return;
+    state.info.data={...data,modbook_catalog:modbooks};
+    state.info.companyId=companyId;
+    state.info.modbookError=modbookError;
     state.info.loaded=true;
   } catch(error){
+    if(request!==infoLoadSequence)return;
     state.info.error=String(error?.message||error||'게임 정보를 불러오지 못했습니다.');
     state.info.loaded=false;
   } finally {
+    if(request!==infoLoadSequence)return;
     state.info.loading=false;
     render();
   }
 }
 
 async function refreshAll() {
+  resetScopedGameInfo();
   if (!state.session?.user) { state.ready=true; render(); return; }
   state.loading=true; state.error=''; render();
   try {
@@ -716,6 +749,7 @@ async function refreshAll() {
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
     applyPlatformCompanyVisibility();
     await loadCompanyData();
+    if(state.page==='info')await loadGameInfo();
     state.ready=true;
     const saved=savedSetupGuideProgress();
     if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
@@ -954,12 +988,12 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
-  if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':'filterSecondary';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';state.info.query='';state.info.selectedId='';render();return;}
+  if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary','modbookCategory'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':field==='secondary'?'filterSecondary':'modbookCategory';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';if(field!=='modbookCategory')state.info.modbookCategory='';state.info.query='';state.info.selectedId='';render();return;}
   // A global result opens its source category; the search text is cleared only after navigation.
   const infoResult=event.target.closest('[data-info-result-table]');
-  if(infoResult){const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
+  if(infoResult){const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
   const fundTab=event.target.closest('[data-fund-tab]');
@@ -1044,7 +1078,7 @@ root.addEventListener('click', async event => {
     state.modal={type:'setup-demo',returnToTestCenter:true};
     render();return;
   }
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(state.page==='info'&&state.companyId===next)await loadGameInfo();return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
@@ -1349,7 +1383,7 @@ root.addEventListener('click', async event => {
 root.addEventListener('change', async event => {
   try{
     if(event.target.matches('[data-info-filter-select]')){const field=event.target.dataset.infoFilterSelect;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=event.target.value;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
-    if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';render();return;}
+    if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';await loadGameInfo();return;}
     if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;state.fundLedgerPage=1;await withMutation(loadFundSnapshot);return;}
     if(event.target.matches('[data-fund-weekly-month]')){state.fundWeeklyMonth=event.target.value;state.fundMonthlyRows=[];await loadFundWeeklyMonth();return;}
     if(event.target.matches('[data-fund-filter]')){state.fundFilters[event.target.dataset.fundFilter]=event.target.value;state.fundLedgerPage=1;render();return;}

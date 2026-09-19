@@ -89,3 +89,9 @@
 .axe-info-row--search strong{max-width:100%}
 @media(max-width:760px){.axe-info-row--search .axe-info-row__path{width:100%;margin-left:0;text-align:left}}
 @media(max-width:450px){.axe-info-search-hint{display:none}}
+
+/* Stage 7: retain the existing tab rail while adding the company-scoped modbook view. */
+.axe-info-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+.axe-info-subfilter--exception .axe-info-chips>button{border-style:dashed;color:#a5a3a0}
+@media(max-width:760px){.axe-info-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:450px){.axe-info-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}

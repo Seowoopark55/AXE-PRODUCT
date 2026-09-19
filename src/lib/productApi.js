@@ -26,6 +26,31 @@ export async function getGameInformation(includeInactive = false) {
   return data;
 }
 
+// Company-owned modbook data is intentionally NOT part of the shared info
+// catalogue. The explicit company filter complements (never replaces) the
+// existing modbook_catalog company-member RLS policy. No writes or new grants.
+export async function getCompanyModbooks(companyId, includeInactive = false) {
+  assertClient();
+  const id = String(companyId || '').trim();
+  if (!id) return [];
+  const rows = [];
+  // Supabase/PostgREST can cap a single result page. Fetch all of the current
+  // company's rows so a growing catalog is not silently truncated.
+  for (let offset = 0; ; offset += 500) {
+    let query = supabase.from('modbook_catalog')
+      .select('id,company_id,type,category,name,parts,option1,option2,option3,success_rate,recent_price,recent_date,price_note,note,sort_order,active')
+      .eq('company_id', id)
+      .order('sort_order').order('id')
+      .range(offset, offset + 499);
+    if (!includeInactive) query = query.eq('active', true);
+    const result = await query;
+    if (result.error) throw new Error(`개조서: ${result.error.message}`);
+    rows.push(...(result.data || []));
+    if ((result.data || []).length < 500) break;
+  }
+  return rows;
+}
+
 function assertClient() {
   if (!supabase) throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
 }
