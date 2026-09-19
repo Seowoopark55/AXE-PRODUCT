@@ -1,7 +1,56 @@
-/* Scoped AXE ONE game information layout; existing operation pages unchanged. */
-.axe-info{display:grid;gap:13px;min-width:0}.axe-info-header{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:61px}.axe-info-header h1{font-size:30px;margin:5px 0 0}.axe-info-header p{font-size:11px;color:var(--muted);margin:8px 0 0}.axe-info-header>button{height:33px;padding:0 12px;border:1px solid #29333e;border-radius:8px;background:#11171d;color:#aab4bd;font-size:11px}
-.axe-info-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.axe-info-tabs>button{min-height:39px;border:1px solid #29323b;border-radius:8px;background:#0f141a;color:#a8b2bc;font-size:11px;font-weight:850}.axe-info-tabs>button small{margin-left:6px;font-size:9px;color:#737f8a}.axe-info-tabs>button.is-active{border-color:rgba(213,163,67,.42);background:rgba(213,163,67,.08);color:#e6c27a}
-.axe-info-toolbar{display:flex;gap:10px;align-items:center}.axe-info-toolbar>input{height:37px;min-width:0;flex:1;padding:0 12px;border:1px solid #303b46;border-radius:8px;background:#0e141a;color:#e6eaf0;font-size:12px}.axe-info-toolbar label{display:flex;align-items:center;gap:5px;color:#99a4ae;font-size:10px;white-space:nowrap}.axe-info-owner-note{font-size:10px;color:#ac9164}.axe-info-error{padding:12px;border:1px solid rgba(232,116,116,.3);border-radius:8px;color:#e3a5a5;font-size:11px}.axe-info-error button{margin-left:8px;background:transparent;border:0;color:#e7bd72;text-decoration:underline}
-.axe-info-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);gap:10px;min-width:0}.axe-info-list,.axe-info-detail{min-width:0;border:1px solid #28323c;border-radius:10px;background:#0c1218}.axe-info-list{display:grid;align-content:start;gap:3px;max-height:500px;overflow:auto;padding:7px}.axe-info-list>span{padding:8px;font-size:10px;color:#8c98a5}.axe-info-row{min-width:0;display:grid;gap:4px;padding:10px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;color:#ccd4dc}.axe-info-row strong{font-size:12px;overflow-wrap:anywhere}.axe-info-row small{font-size:10px;color:#85919d}.axe-info-row em,.axe-info-detail em{font-size:9px;color:#cfaa65;font-style:normal}.axe-info-row:hover,.axe-info-row.is-active{border-color:#38414a;background:#151b22}.axe-info-detail{padding:16px;align-self:start}.axe-info-detail header{display:grid;gap:7px;padding-bottom:12px;border-bottom:1px solid #27313a}.axe-info-detail header span{font-size:10px;color:#947d55}.axe-info-detail header strong{font-size:17px;overflow-wrap:anywhere}.axe-info-detail dl{display:grid;gap:10px;margin:15px 0 0}.axe-info-detail dl>div{display:grid;grid-template-columns:105px minmax(0,1fr);gap:10px}.axe-info-detail dt{color:#81909d;font-size:10px}.axe-info-detail dd{margin:0;color:#e0e5ea;font-size:11px;overflow-wrap:anywhere}.axe-info-empty{font-size:11px;color:#8895a0;padding:14px}
+/* AXE ONE common game information: scoped presentation only; other pages unchanged. */
+.axe-info{display:grid;gap:14px;min-width:0}
+.axe-info-header{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:61px}
+.axe-info-header h1{font-size:30px;margin:5px 0 0}
+.axe-info-header p{font-size:11px;color:var(--muted);margin:8px 0 0}
+.axe-info-header>button{height:33px;padding:0 12px;border:1px solid #29333e;border-radius:8px;background:#11171d;color:#aab4bd;font-size:11px}
+/* A single quiet navigation rail replaces the six large category cards. */
+.axe-info-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:stretch;gap:2px;min-width:0;border-bottom:1px solid #303943}
+.axe-info-tabs>button{position:relative;min-width:0;min-height:41px;padding:0 6px 2px;border:0;border-radius:6px 6px 0 0;background:transparent;color:#9aa6b3;font-size:11px;font-weight:760;white-space:nowrap;transition:color .12s,background .12s}
+.axe-info-tabs>button small{margin-left:6px;font-size:9px;font-weight:700;color:#74808c}
+.axe-info-tabs>button:hover{color:#e8e0d2;background:rgba(255,255,255,.028)}
+.axe-info-tabs>button.is-active{color:#edc47b;background:rgba(213,163,67,.052)}
+.axe-info-tabs>button.is-active small{color:#c39b56}
+.axe-info-tabs>button.is-active:after{content:"";position:absolute;left:11px;right:11px;bottom:-1px;height:2px;border-radius:2px;background:#d3a450}
+.axe-info-tabs>button:focus-visible,.axe-info-row:focus-visible{outline:2px solid #d3a450;outline-offset:-2px}
+.axe-info-toolbar{display:flex;align-items:center;gap:12px;min-width:0}
+.axe-info-toolbar>input{height:37px;min-width:0;flex:1;padding:0 12px;border:1px solid #303b46;border-radius:8px;background:#0e141a;color:#e6eaf0;font-size:12px}
+.axe-info-toolbar>input:focus{outline:none;border-color:rgba(213,163,67,.65)}
+.axe-info-toolbar label{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;color:#99a4ae;font-size:10px;white-space:nowrap;cursor:pointer}
+.axe-info-toolbar label input{margin:0;accent-color:#cba354}
+.axe-info-owner-note{font-size:10px;color:#877b69;text-align:right}
+.axe-info-error{padding:12px;border:1px solid rgba(232,116,116,.3);border-radius:8px;color:#e3a5a5;font-size:11px}
+.axe-info-error button{margin-left:8px;background:transparent;border:0;color:#e7bd72;text-decoration:underline}
+/* Navigation list and information detail always occupy their own clear pane. */
+.axe-info-content{display:grid;grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);gap:12px;align-items:start;min-width:0}
+.axe-info-list,.axe-info-detail{min-width:0;border:1px solid #28323c;border-radius:10px;background:#0c1218;overflow:hidden}
+.axe-info-list{display:flex;flex-direction:column}
+.axe-info-list__heading{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 15px;border-bottom:1px solid #222b34;color:#c8d0d9;font-size:11px;font-weight:780}
+.axe-info-list__heading small{font-size:10px;color:#83909e;font-weight:650}
+.axe-info-list__items{max-height:min(54vh,500px);overflow-y:auto;overscroll-behavior:contain;padding:5px 7px}
+.axe-info-row{width:100%;min-width:0;min-height:41px;display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0;padding:9px 11px;border:0;border-left:2px solid transparent;border-radius:5px;background:transparent;text-align:left;color:#cdd5dd}
+.axe-info-row+.axe-info-row{border-top:1px solid rgba(46,57,67,.35)}
+.axe-info-row strong{font-size:12px;font-weight:730;line-height:1.4;overflow-wrap:anywhere}
+.axe-info-row em,.axe-info-detail em{flex-shrink:0;font-size:9px;color:#cfaa65;font-style:normal}
+.axe-info-row:hover{background:#141c24;color:#f0f3f5}
+.axe-info-row.is-active{border-left-color:#cfa250;background:rgba(213,163,67,.075);color:#f0d3a0}
+.axe-info-detail{min-height:355px;padding:17px 19px;align-self:stretch}
+.axe-info-detail header{display:grid;gap:8px;padding-bottom:15px;border-bottom:1px solid #27313a}
+.axe-info-detail header span,.axe-info-detail__eyebrow{font-size:10px;color:#a28b62;font-weight:700}
+.axe-info-detail header strong{font-size:17px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}
+.axe-info-detail dl{display:grid;gap:0;margin:9px 0 0}
+.axe-info-detail dl>div{display:grid;grid-template-columns:minmax(88px,32%) minmax(0,1fr);align-items:start;gap:12px;padding:10px 0}
+.axe-info-detail dl>div+div{border-top:1px solid rgba(39,49,58,.55)}
+.axe-info-detail dt{color:#82909d;font-size:10px;line-height:1.55}
+.axe-info-detail dd{margin:0;color:#e0e5ea;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.axe-info-detail--empty{display:flex;flex-direction:column}
+.axe-info-detail__placeholder{flex:1;min-height:255px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;text-align:center}
+.axe-info-detail__placeholder-mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid #303b45;border-radius:11px;color:#7c8b98;font-size:20px}
+.axe-info-detail__placeholder strong{font-size:12px;color:#aab5bf}
+.axe-info-detail__placeholder p{margin:0;font-size:10px;color:#75818d;line-height:1.8}
+.axe-info-empty{font-size:11px;color:#8895a0;padding:16px 12px}
+/* Existing question/suggestion tabs: preserve the Stage 1 support layout. */
 .axe-support-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 12px}.axe-support-tabs button{min-height:39px;background:#10161c;border:1px solid #29343f;border-radius:8px;color:#9ca8b4;font-weight:800;font-size:12px}.axe-support-tabs button.is-active{color:#eac57b;border-color:rgba(213,163,67,.4);background:rgba(213,163,67,.065)}.axe-support-tabs em{font-size:9px;font-style:normal;margin-left:6px;color:#eac57b}
-@media(max-width:760px){.axe-info-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.axe-info-content{grid-template-columns:minmax(0,1fr)}.axe-info-list{max-height:285px}.axe-info-header h1{font-size:27px}}
+@media(max-width:1120px){.axe-info-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.axe-info-content{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}}
+@media(max-width:760px){.axe-info-header h1{font-size:27px}.axe-info-content{grid-template-columns:minmax(0,1fr)}.axe-info-list__items{max-height:285px}.axe-info-detail{min-height:260px}.axe-info-detail__placeholder{min-height:180px}}
+@media(max-width:450px){.axe-info-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.axe-info-toolbar{flex-wrap:wrap}.axe-info-toolbar>input{flex-basis:100%}}
