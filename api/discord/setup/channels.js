@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     const connection = await getCompanyDiscordConnection(token, companyId);
     const guildId = String(connection.guild_id || '');
 
-    const categoryName = cleanName(req.body?.category_name, 'LAC ONE');
+    const categoryName = cleanName(req.body?.category_name, 'LAC HUB');
     const requested = Array.isArray(req.body?.channels) ? req.body.channels.slice(0, MAX_CHANNELS) : [];
     const channels = requested
       .map((item) => ({
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     if (!category) {
       category = await discordJson(`/guilds/${guildId}/channels`, {
         method: 'POST',
-        headers: { 'X-Audit-Log-Reason': encodeURIComponent('LAC ONE guided setup') },
+        headers: { 'X-Audit-Log-Reason': encodeURIComponent('LAC HUB guided setup') },
         body: JSON.stringify({ name: categoryName, type: 4 }),
       });
       categoryCreated = true;
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
       if (!row) {
         row = await discordJson(`/guilds/${guildId}/channels`, {
           method: 'POST',
-          headers: { 'X-Audit-Log-Reason': encodeURIComponent('LAC ONE guided setup') },
+          headers: { 'X-Audit-Log-Reason': encodeURIComponent('LAC HUB guided setup') },
           body: JSON.stringify({
             name: item.name,
             type: 0,

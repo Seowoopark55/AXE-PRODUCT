@@ -695,7 +695,7 @@
 }
 
 
-/* LAC ONE 3.26.16 · FUND ledger center-axis specificity fix R1
+/* LAC HUB 3.26.16 · FUND ledger center-axis specificity fix R1
    Root cause: 3.26.13 used nth-child selectors to left/right-align header
    cells.  The later 3.26.14 generic `>span` selector had lower specificity,
    so the body centered correctly while NAME / ACCOUNT / ENTRY / TYPE /

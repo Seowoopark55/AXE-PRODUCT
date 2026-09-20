@@ -1,4 +1,4 @@
-// LAC ONE: scale only data-table typography, not the overall site or login.
+// LAC HUB: scale only data-table typography, not the overall site or login.
 // Each table cell continues using its existing relative text-size hierarchy.
 export const LAYOUT_STUDIO_STORAGE_KEY = 'lac_one_table_type_scale_v1';
 const LEGACY_WHOLE_SITE_SCALE_KEY = 'lac_one_type_scale_v1';

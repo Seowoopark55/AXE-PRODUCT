@@ -1,4 +1,4 @@
-/* LAC ONE: balanced typography scale; no visual changes at the 100% baseline. */
+/* LAC HUB: balanced typography scale; no visual changes at the 100% baseline. */
 :root { --lac-type-scale:1; }
 .lac-type-panel { max-width:580px; }
 .lac-type-panel>header { min-height:68px; }

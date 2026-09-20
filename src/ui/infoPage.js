@@ -1,4 +1,4 @@
-// LAC ONE shared information catalogue — read-only presentation.
+// LAC HUB shared information catalogue — read-only presentation.
 // UI categories never modify source records, craft IDs, or linked ingredients.
 const CONFIG = Object.freeze({
   info_crafts: ['제작법','item_name',[['category','분류'],['success_rate','성공률'],['craft_rank','제작 등급'],['obtain_place','획득 장소'],['note','비고']]],
@@ -124,7 +124,7 @@ const detailFields=(table,row,data,info,owner)=>{
  }
  return renderFields(fields);
 };
-// Restrained monochrome line symbols (not OS-dependent emoji) keep the LAC ONE tone.
+// Restrained monochrome line symbols (not OS-dependent emoji) keep the LAC HUB tone.
 const MODBOOK_ICONS=Object.freeze({
  '무기':'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
  '생활':'<path d="M20 4c-9 0-15 4-15 11a5 5 0 0 0 5 5c7 0 11-6 10-16Z"/><path d="M4 21c2-5 6-9 12-12"/>',
@@ -302,5 +302,5 @@ export function renderInfoPage(state){
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const modbookError=info.modbookError&&(tabTable==='modbook_catalog'||searching)?`<div class="axe-info-error">개조서 조회 실패: ${escapeText(info.modbookError)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
- return `<section class="axe-info"><header class="axe-info-header"><div><span class="page-eyebrow">LAC ONE / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 생산 · 퀘스트 · 스킬 · 현재 회사 개조서를 찾아보세요.</p></div><button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button></header><div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 생산 · 퀘스트 · 스킬 · 개조서 전체 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div><nav class="axe-info-tabs" aria-label="게임 정보 종류">${categories}</nav>${!searching&&filters.controls?`<div class="axe-info-subfilters">${filters.controls}</div>`:''}${error}${modbookError}${info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?'<div class="runtime-inline-loading">정보를 불러오려면 새로고침을 눌러 주세요.</div>':`<div class="axe-info-content"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>${ownerNote}`}</section>`;
+ return `<section class="axe-info"><header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 생산 · 퀘스트 · 스킬 · 현재 회사 개조서를 찾아보세요.</p></div><button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button></header><div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 생산 · 퀘스트 · 스킬 · 개조서 전체 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div><nav class="axe-info-tabs" aria-label="게임 정보 종류">${categories}</nav>${!searching&&filters.controls?`<div class="axe-info-subfilters">${filters.controls}</div>`:''}${error}${modbookError}${info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?'<div class="runtime-inline-loading">정보를 불러오려면 새로고침을 눌러 주세요.</div>':`<div class="axe-info-content"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>${ownerNote}`}</section>`;
 }

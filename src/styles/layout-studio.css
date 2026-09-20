@@ -1,4 +1,4 @@
-/* LAC ONE Layout Studio · PLATFORM OWNER local calibration tool */
+/* LAC HUB Layout Studio · PLATFORM OWNER local calibration tool */
 .layout-studio-page{width:min(880px,100%);margin:0 auto 0 0}
 .layout-studio-page .page-header{min-height:0;margin-bottom:12px}.layout-studio-page .page-header h1{margin:6px 0 0;font-size:calc((32px) * var(--lac-type-scale, 1));line-height:1.05;letter-spacing:-.035em}.layout-studio-page .page-eyebrow{display:block;color:#b58d3f;font-size:calc((8px) * var(--lac-type-scale, 1));font-weight:950;letter-spacing:.15em}
 .layout-studio-note{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;padding:10px 12px;border:1px solid rgba(228,178,75,.14);border-radius:10px;background:rgba(228,178,75,.028);color:#8e887d;font-size:calc((9px) * var(--lac-type-scale, 1));line-height:1.5}.layout-studio-note b{color:#d5b56b}.layout-studio-note svg{width:13px;flex:0 0 auto;margin-top:1px;color:#c49845}

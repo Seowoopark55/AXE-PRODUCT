@@ -1,4 +1,4 @@
-/* LAC ONE common game information: scoped presentation only; other pages unchanged. */
+/* LAC HUB common game information: scoped presentation only; other pages unchanged. */
 .axe-info{display:grid;gap:14px;min-width:0}
 .axe-info-header{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:61px}
 .axe-info-header h1{font-size:calc((30px) * var(--lac-type-scale, 1));margin:5px 0 0}
