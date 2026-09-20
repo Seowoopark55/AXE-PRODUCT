@@ -1,6 +1,8 @@
 # LAC ONE WEB · rebrand staging
 
-Current customer-facing brand is LAC ONE. Internal technical names and the existing Vercel URL are retained. For the scope and caveats of the rebrand, see `LAC_ONE_REBRAND_README.md`.
+Current customer-facing brand is LAC ONE. Internal technical names and the existing Vercel URL are retained. For the current UI-restoration notes, see `LAC_ONE_REBRAND_R2_README.md`.
+
+**Current R2 note:** The historical 3.26.19 notes below describe the unmodified source baseline; the LAC ONE brand and repaired login/Studio necessarily change the WEB display files.
 
 ---
 

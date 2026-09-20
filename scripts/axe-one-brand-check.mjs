@@ -21,7 +21,7 @@ if(!main.includes('LAC ONE 멤버 등록 요청')) failures.push('registration c
 if(!/schema:\s*['\"]axe_product['\"]/.test(supabase)) failures.push('internal Supabase schema changed unexpectedly');
 if(!server.includes("'Accept-Profile': 'axe_product'")) failures.push('internal API schema profile changed unexpectedly');
 if(!html.includes('/icons/lac-one.svg')) failures.push('legacy browser icon is still linked');
-if(read('src/styles.css').includes("url('/brand/axe-shell-generated-v1.png')")) failures.push('legacy side wallpaper is still active');
-if(read('src/styles/access-gate.css').includes("url('/brand/axe-login-calm-v1.png')")) failures.push('legacy login wallpaper is still active');
+if(!read('src/styles.css').includes("url('/brand/lac-one-shell-clean.png')")) failures.push('original-style cleaned side wallpaper is not active');
+if(!read('src/styles/access-gate.css').includes("url('/brand/lac-one-login-calm.png')")) failures.push('original-style cleaned login wallpaper is not active');
 if(failures.length){console.error('LAC ONE BRAND CHECK: FAIL');for(const f of failures)console.error(' - '+f);process.exit(1);}
 console.log('LAC ONE BRAND CHECK: PASS');

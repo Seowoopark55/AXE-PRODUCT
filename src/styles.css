@@ -10,8 +10,10 @@
 @import './styles/responsive.css';
 @import './styles/brand-skin.css';
 @import './styles/info.css';
+@import './styles/access-gate.css';
+@import './styles/layout-studio.css';
 
-/* LAC ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
+/* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}
 body{margin:0;background:#070a0e;color:#e8edf2;overflow-x:hidden;}
 button,select,input,textarea{font:inherit}
@@ -51,12 +53,14 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .member-profile-form>label{align-self:start}.member-profile-form .member-profile-inline.is-full{grid-column:1/-1}.member-profile-form .member-profile-inline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}.member-profile-form .member-profile-inline label{display:grid;gap:6px;min-width:0;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-form textarea[name="member_note"]{min-height:82px;max-height:160px}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px 28px;gap:6px}.member-profile-label{height:16px;display:flex;align-items:center;gap:5px;color:#9eabb6;font-size:10.5px;font-weight:800}.member-profile-label em{color:#697581;font-size:8.5px;font-style:normal;font-weight:600}
 @media(max-width:700px){.member-profile-form .member-profile-inline{grid-template-columns:1fr}.member-profile-form .member-profile-name-field{grid-template-rows:16px 38px auto}}
 
-/* LAC ONE rebrand · understated dark / gold ambient background.
-   CSS-only background avoids any legacy brand mark baked into old PNG assets. */
+/* AXE ONE 3.18.11 · GENERATED AMBIENT SHELL R1
+   Apply the newly generated high-quality AXE side-shell artwork directly as the
+   desktop brand backdrop. The decorative image lives outside the app frame and
+   the central shared console remains the operational focus. */
 html{min-height:100%;background:#030507}
 body{position:relative;min-height:100vh;background:#030507;color:var(--text)}
 #app{min-height:100%;background:transparent!important;position:relative;z-index:1}
-body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 2% 48%,rgba(200,148,59,.14),transparent 27%),radial-gradient(ellipse at 96% 42%,rgba(177,131,57,.12),transparent 27%),linear-gradient(117deg,#090c10 0%,#101318 12%,#030507 33%,#030507 67%,#111318 89%,#080b0f 100%);opacity:1}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:url('/brand/lac-one-shell-clean.png') center center/cover no-repeat,#030507;opacity:1}
 body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at center,rgba(3,5,7,0) 0%,rgba(3,5,7,.04) 52%,rgba(3,5,7,.18) 100%),linear-gradient(90deg,rgba(3,5,7,.03) 0%,rgba(3,5,7,0) 14%,rgba(3,5,7,0) 86%,rgba(3,5,7,.03) 100%)}
 @media(min-width:761px){
   .runtime-app{box-sizing:border-box;width:min(1120px,calc(100vw - 240px));min-width:940px;min-height:calc(100vh - 36px);margin:18px auto;border:1px solid rgba(213,163,67,.14);border-radius:18px;background:#080b0f;box-shadow:0 26px 78px rgba(0,0,0,.52),0 0 0 1px rgba(213,163,67,.02);overflow:hidden}
@@ -363,7 +367,74 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;back
 .test-center-footer{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;border-top:1px solid #1d252c;background:#090d11}.test-center-footer span{color:#59646d;font-size:8.8px}
 @media(max-width:820px){.test-center-backdrop{padding:8px}.test-center-shell{width:100%;height:100%;border-radius:12px}.test-center-layout{grid-template-columns:1fr}.test-center-nav{display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:1px solid #1d252c}.test-center-nav>span{display:none}.test-center-nav button{min-width:150px;margin:0}.test-center-stage{padding:12px}.test-center-dashboard__kpis{grid-template-columns:repeat(2,1fr)}.test-center-dashboard__grid{grid-template-columns:1fr}.test-center-footer span{display:none}}
 
-/* LAC ONE: text-based accent on the wide desktop margins; no legacy bitmap or logo. */
-@media(min-width:1281px){
-  body::before{content:"LAC\A ONE";white-space:pre;display:flex;align-items:center;box-sizing:border-box;padding-left:clamp(12px,2.1vw,40px);font-family:Inter,Pretendard,system-ui,sans-serif;font-size:clamp(21px,2.6vw,40px);line-height:1.12;font-weight:900;letter-spacing:.09em;color:rgba(210,169,91,.18);text-shadow:0 0 34px rgba(212,161,69,.09);}
+
+/* LAC ONE layout-studio operational overrides: only active for non-default profiles.
+   Default pages keep their exact existing source CSS and screen geometry. */
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-lane-head,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-lane-head,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-lane-head,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-columns,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-columns {
+  height:var(--ops-table-header-height); font-size:var(--ops-table-header-font-size);
+  gap:var(--ops-table-gap);
 }
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-lane-row,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-lane-row,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-lane-row,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-row,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-row {
+  min-height:var(--ops-table-row-height);gap:var(--ops-table-gap);
+}
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-lane-copy strong,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-lane-copy strong,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-lane-copy strong,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-person strong,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-entry>strong,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-money,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-name {
+  font-size:var(--ops-table-primary-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .ops-lane-copy span,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-account,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-detail {
+  font-size:var(--ops-table-secondary-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .ops-lane-head,
+html[data-layout-studio-active="true"] .runtime-app .axe-fund-ledger-columns,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-columns {
+  font-size:var(--ops-table-header-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .ops-mgmt-action,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-action .axe-fund-history-action,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-menu-row .ops-mgmt-action {
+  min-width:var(--ops-table-action-min-width);font-size:var(--ops-table-action-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .ops-mgmt-badge,
+html[data-layout-studio-active="true"] .runtime-app .ops-lane-status,
+html[data-layout-studio-active="true"] .runtime-app .ops-cooking-order-badge {
+  font-size:var(--ops-table-status-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .ops-mgmt-filter,
+html[data-layout-studio-active="true"] .runtime-app .ops-mgmt-tabs button,
+html[data-layout-studio-active="true"] .runtime-app .axe-fund-ledger-filters {
+  font-size:var(--ops-table-control-font-size);
+}
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-mgmt-page,
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-mgmt-summary,
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-mgmt-workspace,
+html[data-layout-studio-active="true"] .runtime-app .main--members .ops-mgmt-board,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-mgmt-page,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-mgmt-summary,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-mgmt-workspace,
+html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-mgmt-board,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-mgmt-page,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-mgmt-summary,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-mgmt-workspace,
+html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-mgmt-board,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-summary,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-tabs,
+html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger {
+  width:min(var(--ops-rail-standard),100%); max-width:100%;
+}
+@media(max-width:760px){html[data-layout-studio-active="true"] .runtime-app .main--members .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-row{min-height:0}}

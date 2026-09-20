@@ -1,4 +1,5 @@
 import './styles.css';
+import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady } from './lib/supabase.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
@@ -22,7 +23,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info'];
+const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','layout'];
 
 const state = {
   envReady,
@@ -66,6 +67,7 @@ const state = {
   supportImageViewer: null,
   companyMenuOpen: false,
   accountMenuOpen: false,
+  layoutDraft: loadLayoutStudioProfile(), layoutSaved: loadLayoutStudioProfile(), layoutDirty: false, layoutAdvanced: false,
   modal: null,
   setupDemo: null,
   testCenter: null,
@@ -76,6 +78,8 @@ const state = {
   error: '',
   notice: '',
 };
+
+applyLayoutStudioProfile(state.layoutSaved);
 
 let noticeTimer = null;
 let mutationBusy = false;
@@ -742,7 +746,7 @@ async function refreshAll() {
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
-    if(!state.platformAdmin && state.page==='platform'){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
+    if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
     await loadCompanies();
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
@@ -1056,6 +1060,13 @@ root.addEventListener('click', async event => {
   if(action==='suggestion-category'){state.suggestionCategory=String(actionEl.dataset.suggestionCategory||'all');state.suggestionPage=1;render();return;}
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
+  if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='layout';localStorage.setItem('axe_product_page','layout');state.layoutSaved=loadLayoutStudioProfile();state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='layout-toggle-advanced'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutAdvanced=!state.layoutAdvanced;render();return;}
+  if(action==='layout-preset'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=applyLayoutStudioPreset(state.layoutDraft,String(actionEl.dataset.layoutType||''),String(actionEl.dataset.layoutValue||''));state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='layout-adjust'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=adjustLayoutStudioValue(state.layoutDraft,String(actionEl.dataset.layoutKey||''),Number(actionEl.dataset.layoutDelta||0));state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='layout-save'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutSaved=saveLayoutStudioProfile(state.layoutDraft);state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='layout-revert'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='layout-reset-default'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=clearLayoutStudioProfile();state.layoutSaved={...state.layoutDraft};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}

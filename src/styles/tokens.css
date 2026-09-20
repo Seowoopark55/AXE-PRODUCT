@@ -29,6 +29,20 @@
   --ops-meta:#6f757c;
   --ops-gold:#d4b46b;
   --ops-gold-bright:#f0c360;
+  /* Layout Studio tokens; values match this version's normal operational table defaults. */
+  --ops-table-header-font-size:8.5px;
+  --ops-table-primary-font-size:10.2px;
+  --ops-table-secondary-font-size:9px;
+  --ops-table-control-font-size:9.6px;
+  --ops-table-status-font-size:8.3px;
+  --ops-table-action-font-size:8.4px;
+  --ops-table-header-height:27px;
+  --ops-table-row-height:40px;
+  --ops-table-gap:4px;
+  --ops-table-cell-pad-inline:8px;
+  --ops-rail-standard:636px;
+  --ops-table-action-min-width:42px;
+  --ops-table-action-pad-inline:6px;
   --ops-font-primary:12.5px;
   --ops-font-secondary:10.5px;
   --ops-font-support:9.5px;

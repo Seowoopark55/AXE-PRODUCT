@@ -14,6 +14,10 @@
       "ok": true
     },
     {
+      "name": "src/ui/infoPage.js",
+      "ok": true
+    },
+    {
       "name": "src/ui/layoutStudio.js",
       "ok": true
     },
@@ -91,6 +95,50 @@
     },
     {
       "name": "scripts/guided-setup-typography-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage1-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage10-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage2-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage3-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage4-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage5-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage6-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage7-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage8-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-catalog-stage9-check.mjs",
+      "ok": true
+    },
+    {
+      "name": "scripts/info-stage6-preview.mjs",
       "ok": true
     },
     {

@@ -1,4 +1,5 @@
 import { renderInfoPage } from './infoPage.js';
+import { detectLayoutStudioPreset } from './layoutStudio.js';
 
 const ROLE_LABEL = { owner: 'OWNER', admin: 'ADMIN', manager: 'MANAGER', member: 'MEMBER' };
 const ROLE_KO = { owner: '대표', admin: '관리자', manager: '매니저', member: '멤버' };
@@ -94,11 +95,20 @@ function renderEnvironmentMissing() {
 }
 
 function renderLogin(state) {
-  return `<section class="runtime-auth"><div class="runtime-auth-card">
-    <div class="product-brand product-brand--login"><div><strong>LAC ONE</strong><small>OPERATIONS CONSOLE</small></div></div>
-    <h1>회사를 움직이는 하나의 콘솔.</h1><p>Discord 기반의 회사 운영을 더 간결하고 체계적으로.</p>
-    <button class="runtime-login-button" data-action="discord-login" ${state.loading ? 'disabled' : ''}>Discord로 로그인</button>
-  </div></section>`;
+  // Preserve the designed calm-login background and compact central card.
+  // Authentication continues through the existing Discord OAuth action only.
+  return `<section class="runtime-auth runtime-auth--access">
+    <div class="runtime-access-stage">
+      <div class="runtime-access-shell runtime-access-shell--calm">
+        <div class="runtime-access-panel runtime-access-panel--calm">
+          <div class="runtime-access-brand-compact"><strong>LAC ONE</strong><small>LAC 회사 운영 플랫폼</small></div>
+          <div class="runtime-access-panel-head"><h2>다시 오신 걸 환영해요.</h2><p>Discord 계정으로 로그인해 주세요.</p></div>
+          <button type="button" class="runtime-access-discord" data-action="discord-login" ${state.loading ? 'disabled' : ''}><span class="runtime-access-discord-mark" aria-hidden="true"><i></i><i></i></span><strong>Discord로 로그인</strong><em aria-hidden="true">→</em></button>
+          <div class="runtime-access-trust"><div class="runtime-access-privacy"><i aria-hidden="true">✓</i><span><strong>등록된 회사만 이용할 수 있어요.</strong><small>로그인 후 소속 회사의 운영 공간으로 이동합니다.</small></span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>`;
 }
 
 function onboardingDiscordIdentity(state) {
@@ -154,7 +164,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-layout-studio" role="menuitem"><span class="runtime-account-menu__icon">${icon('settings')}</span><span><strong>레이아웃 스튜디오</strong><small>글자 크기 · 표 간격 조절</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -184,6 +194,32 @@ function renderAuthed(state) {
   </div>`;
 }
 
+
+function renderLayoutStudio(state) {
+  const p=state.layoutDraft || {};
+  const choice=(type,options)=>`<div class="layout-studio-choice ${options.length===3?'is-three':''}">${options.map(([key,label])=>`<button type="button" class="${detectLayoutStudioPreset(p,type)===key?'is-active':''}" data-action="layout-preset" data-layout-type="${type}" data-layout-value="${key}">${label}</button>`).join('')}</div>`;
+  const sections=[
+    ['글자 크기','text',[['small','작게'],['default','기본'],['comfortable','조금 크게'],['large','크게']]],
+    ['행 간격','density',[['compact','촘촘'],['default','기본'],['relaxed','여유']]],
+    ['표 너비','width',[['compact','조금 좁게'],['default','기본 유지'],['wide','조금 넓게']]],
+    ['상태 · 관리 요소','action',[['compact','작게'],['default','기본'],['large','크게']]],
+  ];
+  const advanced=[['headerFont','표 제목 글자 크기',.1],['primaryFont','기본 글자 크기',.1],['secondaryFont','보조 글자 크기',.1],['controlFont','검색 · 필터 글자 크기',.1],['statusFont','상태 글자 크기',.1],['actionFont','버튼 글자 크기',.1],['rowHeight','행 높이',1],['headerHeight','제목 행 높이',1],['gap','열 간격',1],['cellPad','셀 좌우 여백',1],['railWidth','표 너비',4],['actionMinWidth','관리 버튼 너비',1]];
+  return `<section class="layout-studio-page">
+    <header class="page-header"><div><span class="page-eyebrow">LAC ONE · PLATFORM OWNER</span><h1>레이아웃 스튜디오</h1><p>글자 크기와 표 간격을 보면서 조절할 수 있습니다.</p></div></header>
+    <div class="layout-studio-note">브라우저에서만 적용·저장됩니다. 다른 사용자나 회사의 화면에는 영향을 주지 않습니다.</div>
+    <div class="layout-studio-grid">
+      <section class="layout-studio-panel"><header><div><strong>화면 조절</strong><span>변경 사항을 미리 보고 저장하세요.</span></div></header>
+        ${sections.map(([label,type,options])=>`<div class="layout-studio-section"><div class="layout-studio-section__head"><div><strong>${label}</strong></div><span class="layout-studio-current">${options.find(([k])=>k===detectLayoutStudioPreset(p,type))?.[1] || '직접 설정'}</span></div>${choice(type,options)}</div>`).join('')}
+        <button type="button" class="layout-studio-advanced-toggle" data-action="layout-toggle-advanced" aria-expanded="${state.layoutAdvanced?'true':'false'}">세부 설정 <b>${state.layoutAdvanced?'−':'+'}</b></button>
+        ${state.layoutAdvanced?`<div class="layout-studio-advanced">${advanced.map(([key,label,step])=>`<div class="layout-studio-adjust"><div><strong>${label}</strong><small>${key}</small></div><div class="layout-studio-stepper"><button type="button" data-action="layout-adjust" data-layout-key="${key}" data-layout-delta="-${step}" aria-label="${label} 줄이기">−</button><span>${esc(p[key])}${key.endsWith('Font')||key.endsWith('Height')||key.endsWith('Width')||key==='gap'||key==='cellPad'?'px':''}</span><button type="button" data-action="layout-adjust" data-layout-key="${key}" data-layout-delta="${step}" aria-label="${label} 늘리기">+</button></div></div>`).join('')}</div>`:''}
+        <footer class="layout-studio-actions"><span class="layout-studio-saved ${state.layoutDirty?'is-dirty':''}">${state.layoutDirty?'저장되지 않은 변경 사항':'현재 설정 저장됨'}</span><div><button type="button" data-action="layout-reset-default">기본값</button><button type="button" data-action="layout-revert">되돌리기</button><button type="button" class="is-primary" data-action="layout-save">저장</button></div></footer>
+      </section>
+      <section class="layout-studio-preview"><header><div><strong>실시간 미리보기</strong><span>표가 실제로 어떻게 보이는지 확인하세요.</span></div></header><div class="layout-studio-preview-body"><div class="layout-preview-board"><div class="layout-preview-toolbar"><div class="layout-preview-tabs"><span>전체 멤버</span><span>활성 멤버</span></div><div class="layout-preview-search">이름 검색</div></div><div class="layout-preview-head"><span>이름</span><span>역할</span><span>계좌</span><span>상태</span><span>참여</span><span>관리</span></div>${[['김하늘','관리자','주 계좌'],['이도현','멤버','개인 계좌'],['박서연','멤버','개인 계좌']].map(([name,role,acct])=>`<div class="layout-preview-row"><span class="layout-preview-primary">${name}</span><span class="layout-preview-secondary">${role}</span><span class="layout-preview-secondary">${acct}</span><span class="layout-preview-status">활성</span><span class="layout-preview-secondary">등록됨</span><span class="layout-preview-action">관리</span></div>`).join('')}</div><p class="layout-studio-preview-tip">글자 · 간격은 미리보기와 실제 운영 표에 함께 반영됩니다.</p></div></section>
+    </div>
+  </section>`;
+}
+
 function navItem(state,key,label){ const badge=key==='questions'?Number(state.questionBoard?.counts?.unread||0)+Number(state.suggestionBoard?.counts?.unread||0):0; const active=state.page===key||(key==='questions'&&state.page==='suggestions'); return `<button class="nav-item ${active?'is-active':''}" data-page="${key}"><span class="nav-item__icon">${icon(key)}</span><span>${label}</span>${badge?`<em class="nav-item__badge">${badge>99?'99+':badge}</em>`:''}</button>`; }
 function supportTabNav(state){ const q=Number(state.questionBoard?.counts?.unread||0),s=Number(state.suggestionBoard?.counts?.unread||0);return `<nav class="axe-support-tabs" aria-label="문의와 건의"><button type="button" class="${state.page==='questions'?'is-active':''}" data-page="questions">질문게시판${q?`<em>${q>99?'99+':q}</em>`:''}</button><button type="button" class="${state.page==='suggestions'?'is-active':''}" data-page="suggestions">건의게시판${s?`<em>${s>99?'99+':s}</em>`:''}</button></nav>`; }
 function pageHeader(kicker,title,desc,action=''){ const compact=!String(desc||'').trim(); return `<header class="page-header${compact?' page-header--compact':''}"><div><span class="page-eyebrow">${esc(kicker)}</span><h1>${esc(title)}</h1>${compact?'':`<p>${esc(desc)}</p>`}</div>${action?`<div class="page-header__actions">${action}</div>`:''}</header>`; }
@@ -192,6 +228,7 @@ function empty(text){ return `<div class="ops-mgmt-empty">${esc(text)}</div>`; }
 
 function renderPage(state) {
   if (state.page === 'platform') return state.platformAdmin ? renderPlatform(state) : renderPermission(state);
+  if (state.page === 'layout') return state.platformAdmin ? renderLayoutStudio(state) : renderPermission(state);
   if (state.page === 'questions') return supportTabNav(state) + renderQuestions(state);
   if (state.page === 'suggestions') return supportTabNav(state) + renderSuggestions(state);
   // Public information is accessible to signed-in company members, not only operators.

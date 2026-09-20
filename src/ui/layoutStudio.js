@@ -51,6 +51,7 @@ export function clearLayoutStudioProfile(){
 export function applyLayoutStudioProfile(profile){
   const p=normalizeLayoutStudioProfile(profile);
   const style=document.documentElement.style;
+  document.documentElement.dataset.layoutStudioActive=Object.keys(LAYOUT_STUDIO_DEFAULTS).some(key=>Math.abs(p[key]-LAYOUT_STUDIO_DEFAULTS[key])>.001)?'true':'false';
   style.setProperty('--ops-table-header-font-size',`${p.headerFont}px`);
   style.setProperty('--ops-table-primary-font-size',`${p.primaryFont}px`);
   style.setProperty('--ops-table-secondary-font-size',`${p.secondaryFont}px`);
