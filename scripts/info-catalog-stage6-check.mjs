@@ -39,4 +39,4 @@ const checks=[
 ];
 let passed=0;for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${name}`);if(ok)passed++;}
 assert.equal(passed,checks.length,`${passed}/${checks.length} passed`);
-console.log(`AXE ONE INFO STAGE 6: ${passed}/${checks.length} PASS`);
+console.log(`LAC ONE INFO STAGE 6: ${passed}/${checks.length} PASS`);

@@ -22,7 +22,7 @@
 
 @media(max-width:780px){.runtime-auth.runtime-auth--access{padding:18px 14px 34px}.runtime-access-shell{grid-template-columns:1fr;min-height:0;border-radius:18px}.runtime-access-brand-panel{min-height:250px;padding:28px 24px 24px;border-right:0;border-bottom:1px solid rgba(255,255,255,.065)}.runtime-access-brand-top .product-brand--login{display:block}.runtime-access-brand-top .product-brand strong{font-size:16px}.runtime-access-private{font-size:7.8px}.runtime-access-brand-copy{margin:30px 0 22px}.runtime-access-brand-copy h1{font-size:32px!important}.runtime-access-brand-copy p br{display:none}.runtime-access-steps{display:none}.runtime-access-panel{padding:28px 24px 24px}.runtime-access-trust{margin-top:22px}.runtime-access-footer{bottom:8px}.runtime-access-gate-head,.runtime-access-gate-footer{padding-left:20px;padding-right:20px}.runtime-access-gate-body{padding:24px 20px}.runtime-access-existing{align-items:flex-start;flex-direction:column}.runtime-access-existing button{width:100%}.runtime-access-gate-footer{align-items:flex-start;flex-direction:column;padding-top:13px;padding-bottom:13px}.runtime-access-invite-form label>div,.runtime-access-redeem label>div{grid-template-columns:1fr}.runtime-access-invite-form label button,.runtime-access-redeem label button{width:100%}}
 
-/* AXE ONE · Calm Premium Login R6
+/* LAC ONE · Calm Premium Login R6
    Compact login-first composition on a low-glare branded background. */
 .runtime-auth.runtime-auth--access:not(.runtime-auth--access-gate){
   padding:0;
@@ -39,7 +39,7 @@
   aspect-ratio:1672/941;
   min-width:0;
   min-height:0;
-  background:linear-gradient(rgba(3,6,9,.14),rgba(3,6,9,.14)),url('/brand/axe-login-calm-v1.png') center/100% 100% no-repeat;
+  background:radial-gradient(ellipse at 18% 47%,rgba(164,125,66,.10),transparent 28%),radial-gradient(ellipse at 82% 55%,rgba(126,94,52,.08),transparent 31%),linear-gradient(115deg,transparent 5%,rgba(198,153,75,.12) 5.12%,transparent 5.3%,transparent 89%,rgba(198,153,75,.15) 89.12%,transparent 89.3%),linear-gradient(150deg,#0a0d11 3%,#14191e 31%,#070a0e 67%,#101318 100%);
 }
 .runtime-access-stage .runtime-access-shell--calm{
   position:absolute;
@@ -238,4 +238,12 @@
   .runtime-access-stage .runtime-access-trust{margin-top:22px;padding-top:18px}
   .runtime-access-stage .runtime-access-privacy strong{font-size:10px}
   .runtime-access-stage .runtime-access-privacy small,.runtime-access-stage .runtime-access-trust-row small{font-size:8.8px}
+}
+
+/* LAC ONE desktop login backdrop. Pure CSS, because prior source artwork contained the former mark. */
+@media(min-width:781px){
+  .runtime-access-stage{isolation:isolate;border:1px solid rgba(194,150,75,.10);border-radius:19px;box-shadow:inset 0 0 0 1px rgba(216,171,87,.05),0 25px 80px rgba(0,0,0,.4);}
+  .runtime-access-stage::before{content:"LAC\A ONE";white-space:pre;position:absolute;left:5%;top:39%;z-index:0;font:900 clamp(22px,2.35vw,42px)/1.17 Inter,Pretendard,system-ui,sans-serif;letter-spacing:.12em;color:rgba(207,169,102,.45);text-shadow:0 0 40px rgba(215,158,62,.1);pointer-events:none;}
+  .runtime-access-stage::after{content:"";position:absolute;inset:9% 8% 10%;z-index:0;pointer-events:none;border:1px solid rgba(193,150,79,.13);border-radius:22px;background:linear-gradient(120deg,transparent 18%,rgba(216,173,94,.06) 18.1%,transparent 18.25%,transparent 80%,rgba(216,173,94,.06) 80.1%,transparent 80.25%);}
+  .runtime-access-stage .runtime-access-shell--calm{z-index:1;}
 }

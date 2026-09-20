@@ -2,9 +2,9 @@ import fs from 'node:fs';
 const css = fs.readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 const render = fs.readFileSync(new URL('../src/ui/render.js', import.meta.url), 'utf8');
 const checks = [
-  ['marker exists', css.includes('GENERATED AMBIENT SHELL R1')],
-  ['generated image used', css.includes("url('/brand/axe-shell-generated-v1.png')")],
-  ['cover background used', css.includes('center center/cover no-repeat')],
+  ['LAC ONE background marker exists', css.includes('LAC ONE rebrand')],
+  ['legacy AXE image unused', !css.includes("url('/brand/axe-shell-generated-v1.png')")],
+  ['CSS-only wallpaper used', css.includes('radial-gradient(ellipse at 2% 48%')],
   ['central app width preserved', css.includes('width:min(1120px,calc(100vw - 240px))')],
   ['desktop centered margin', css.includes('margin:18px auto')],
   ['body overlay exists', css.includes('radial-gradient(circle at center')],

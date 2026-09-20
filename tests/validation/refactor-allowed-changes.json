@@ -1,5 +1,5 @@
 {
-  "batch": "PHASE-1.4-ACCESS-GATE-CALM-PREMIUM-R6",
+  "batch": "LAC-ONE-WEB-REBRAND-2026-09-20",
   "allowedProductFiles": [
     "src/styles/management.css",
     "scripts/dense-ops-system-check.mjs",
@@ -30,7 +30,24 @@
     "src/styles/access-gate.css",
     "public/brand/axe-login-frame-v1.png",
     "README.md",
-    "public/brand/axe-login-calm-v1.png"
+    "public/brand/axe-login-calm-v1.png",
+    "api/suggestions/notify.js",
+    "api/support/notify.js",
+    "scripts/axe-one-brand-check.mjs",
+    "scripts/generated-ambient-shell-check.mjs",
+    "scripts/integrated-ui-check.mjs",
+    "scripts/member-identity-ux-check.mjs",
+    "scripts/onboarding-catalog-check.mjs",
+    "scripts/operations-ux-check.mjs",
+    "scripts/questions-board-check.mjs",
+    "scripts/source-check.mjs",
+    "scripts/suggestions-board-check.mjs",
+    "src/lib/productApi.js",
+    "index.html",
+    "public/icons/lac-one.svg",
+    ".env.example",
+    "src/styles/info.css",
+    "src/ui/infoPage.js"
   ],
   "forbiddenPrefixes": [
     "server/",

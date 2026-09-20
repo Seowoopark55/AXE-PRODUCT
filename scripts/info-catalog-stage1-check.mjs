@@ -22,4 +22,4 @@ assert(render.includes('supportTabNav(state) + renderQuestions(state)'));
 assert(render.includes('supportTabNav(state) + renderSuggestions(state)'));
 assert(render.indexOf("if (state.page === 'info') return renderInfoPage(state);") < render.indexOf('if (!canAdmin(state))'));
 assert(main.includes('getGameInformation') && api.includes('INFO_TABLES') && !api.includes('platform_info_set_active('));
-console.log('AXE ONE INFO STAGE 1: 10/10 PASS (read-only layout, member access, XSS escape, support tabs, 6-table read)');
+console.log('LAC ONE INFO STAGE 1: 10/10 PASS (read-only layout, member access, XSS escape, support tabs, 6-table read)');

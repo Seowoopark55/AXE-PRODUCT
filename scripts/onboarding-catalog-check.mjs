@@ -16,4 +16,4 @@ check(render.includes("catalogPending&&state.settingsTab==='basic'"),'save is di
 check(render.includes("${catalogPending?'disabled':''}"),'module tab is disabled while catalog is pending');
 check(render.includes("Discord 정보 불러오는 중..."),'role selects do not look empty while syncing');
 
-if(!process.exitCode) console.log('AXE ONE WEB onboarding catalog readiness check: PASS');
+if(!process.exitCode) console.log('LAC ONE WEB onboarding catalog readiness check: PASS');

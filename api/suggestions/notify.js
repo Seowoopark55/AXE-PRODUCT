@@ -65,9 +65,9 @@ export default async function handler(req, res) {
       method: 'POST',
       body: JSON.stringify({
         content: [
-          '**AXE ONE 건의에 답변이 등록되었습니다.**',
+          '**LAC ONE 건의에 답변이 등록되었습니다.**',
           `> ${String(target?.title || '건의').slice(0, 160)}`,
-          `회사: ${String(target?.company_name || 'AXE ONE')}`,
+          `회사: ${String(target?.company_name || 'LAC ONE')}`,
           `${appUrl}`,
           '사이트 로그인 후 **건의게시판**에서 답변을 확인해 주세요.',
         ].join('\n'),

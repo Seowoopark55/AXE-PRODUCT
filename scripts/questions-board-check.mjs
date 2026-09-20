@@ -23,7 +23,7 @@ ok('legacy usage guide launcher removed', !main.includes("action==='open-guide'"
 ok('question board is available to active members', render.indexOf("state.page === 'questions'") < render.indexOf("if (!canAdmin(state))"));
 ok('question board creates questions on site', api.includes('web_support_create_question') && main.includes("type==='support-question-create'"));
 ok('question thread supports platform answer and author follow-up', api.includes('web_support_add_message') && render.includes('추가 질문 보내기') && render.includes('답변 등록 · 완료 처리') && migration.includes('추가 질문은 최초 질문 작성자만 등록할 수 있습니다.'));
-ok('only platform owner path can answer', supportMigration.includes("'viewer_can_answer', v_platform") && render.includes('답변은 AXE ONE 운영자만 등록할 수 있습니다.'));
+ok('only platform owner path can answer', supportMigration.includes("'viewer_can_answer', v_platform") && render.includes('답변은 LAC ONE 운영자만 등록할 수 있습니다.'));
 ok('my questions scope exists', supportMigration.includes("'mine', count(*) filter") && supportMigration.includes('as is_mine') && render.includes('data-action="question-scope"') && render.includes('내 질문'));
 ok('question creation closes without reopening detail', main.includes("state.modal=null; state.questionScope='mine';") && !main.includes('if(questionId) await openSupportQuestion(questionId);'));
 ok('question list is bounded and paged', render.includes('questions:5') && render.includes("renderDataPager('questions'"));

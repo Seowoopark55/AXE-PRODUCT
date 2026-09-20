@@ -23,7 +23,7 @@ expect('platform replies upload into suggestion company tenant', files.main.incl
 expect('author or platform delete path exists', files.sql.includes('web_suggestion_delete') && files.main.includes("action==='delete-suggestion'") && files.render.includes('건의 삭제'));
 expect('category and status filters exist', files.render.includes('data-suggestion-category="improvement"') && files.render.includes('data-suggestion-status="checking"'));
 expect('board is bounded to five rows per page', files.render.includes('suggestions:5') && files.render.includes("renderDataPager('suggestions'"));
-expect('Discord is notification-only and linked id is automatic', files.notify.includes('AXE ONE 건의에 답변이 등록되었습니다.') && files.sql.includes('discord_user_id') && !files.render.includes('name="contact"'));
+expect('Discord is notification-only and linked id is automatic', files.notify.includes('LAC ONE 건의에 답변이 등록되었습니다.') && files.sql.includes('discord_user_id') && !files.render.includes('name="contact"'));
 expect('creation closes and does not auto-open thread', files.main.includes("state.modal=null; state.suggestionStatus='all'; state.suggestionCategory='all'; state.suggestionPage=1;") && !/type==='suggestion-create'[\s\S]{0,900}openSuggestion\(/.test(files.main));
 expect('suggestions remain accessible before subscription lock', files.render.indexOf("state.page === 'suggestions'") < files.render.indexOf('subscriptionState'));
 expect('platform dashboard counts private suggestions', files.render.includes('platformSuggestionCount') && files.render.includes('건의 · 제보'));

@@ -1,3 +1,9 @@
+# LAC ONE WEB · rebrand staging
+
+Current customer-facing brand is LAC ONE. Internal technical names and the existing Vercel URL are retained. For the scope and caveats of the rebrand, see `LAC_ONE_REBRAND_README.md`.
+
+---
+
 # AXE ONE WEB STAGING 3.26.19 · MEMBER / ACCOUNT BALANCE R1
 
 Baseline: AXE ONE WEB STAGING 3.26.18.

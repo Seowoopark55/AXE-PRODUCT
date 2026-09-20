@@ -27,4 +27,4 @@ const tests=[
   ['support tab presentation remains',css.includes('.axe-support-tabs button.is-active')],
 ];
 for (const [name,ok] of tests){console.log(`${ok?'PASS':'FAIL'} ${name}`);assert(ok,name);}
-console.log(`AXE ONE INFO STAGE 2: ${tests.length}/${tests.length} PASS`);
+console.log(`LAC ONE INFO STAGE 2: ${tests.length}/${tests.length} PASS`);

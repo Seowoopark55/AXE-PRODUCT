@@ -79,10 +79,10 @@ expect('Cooking guide SET baseline field removed', !render.includes('name="set_g
 expect('Cooking menu modal ignores backdrop click', main.includes("['cooking-menu'].includes(state.modal?.type)"));
 
 if(failures.length){
-  console.error('AXE ONE INTEGRATED UI CHECK: FAIL');
+  console.error('LAC ONE INTEGRATED UI CHECK: FAIL');
   for(const [label,ok] of checks) console.error(`${ok?' PASS':' FAIL'} ${label}`);
   process.exit(1);
 }
-console.log('AXE ONE INTEGRATED UI CHECK: PASS');
+console.log('LAC ONE INTEGRATED UI CHECK: PASS');
 console.log(`${checks.length}/${checks.length} checks passed.`);
 for(const [label] of checks) console.log(` - ${label}: PASS`);

@@ -31,4 +31,4 @@ const tests=[
  ['main click/select changes reset dependent filters',fs.readFileSync('src/main.js','utf8').includes('data-info-filter-select')&&fs.readFileSync('src/main.js','utf8').includes("state.info.filterSecondary='__all__'")],
 ];
 for (const [name,ok] of tests){console.log(`${ok?'PASS':'FAIL'} ${name}`);assert(ok,name);}
-console.log(`AXE ONE INFO STAGE 3: ${tests.length}/${tests.length} PASS`);
+console.log(`LAC ONE INFO STAGE 3: ${tests.length}/${tests.length} PASS`);

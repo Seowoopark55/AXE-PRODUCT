@@ -50,4 +50,4 @@ const tests=[
 let passed=0;
 for(const [name,condition] of tests){console.log(`${condition?'PASS':'FAIL'} ${name}`);if(condition)passed++;}
 assert.equal(passed,tests.length,`${passed}/${tests.length} passed`);
-console.log(`AXE ONE INFO STAGE 4: ${passed}/${tests.length} PASS`);
+console.log(`LAC ONE INFO STAGE 4: ${passed}/${tests.length} PASS`);

@@ -11,7 +11,7 @@ const checks=[
   ['fund ledger returns to 636px reference rail',fund.includes('.main--fund .axe-fund-ledger{\n    width:636px;')],
   ['fund summary and ledger share the same rail rule',fund.includes('.main--fund .axe-fund-summary,\n  .main--fund .axe-fund-tabs,\n  .main--fund .axe-fund-ledger{\n    width:636px;')],
   ['ledger row is compact',fund.includes('.main--fund .axe-fund-ledger-row{\n    min-height:40px;')],
-  ['all ledger headers and values share one center axis',fund.includes('AXE ONE 3.26.16 · FUND ledger center-axis specificity fix R1') && fund.includes('.main--fund .axe-fund-ledger-columns>span:nth-child(n),\n  .main--fund .axe-fund-ledger-row>[data-label]{\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    text-align:center;')],
+  ['all ledger headers and values share one center axis',fund.includes('LAC ONE 3.26.16 · FUND ledger center-axis specificity fix R1') && fund.includes('.main--fund .axe-fund-ledger-columns>span:nth-child(n),\n  .main--fund .axe-fund-ledger-row>[data-label]{\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    text-align:center;')],
   ['money is centered under its header',fund.includes('.main--fund .axe-fund-ledger-money,\n  .main--fund .axe-fund-ledger-action,') && fund.includes('.main--fund .axe-fund-ledger-money{\n    width:100%;\n    text-align:center;')],
 ];
 let passed=0;

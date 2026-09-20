@@ -30,4 +30,4 @@ const tests=[
 let pass=0;
 for(const [name,ok] of tests){console.log(`${ok?'PASS':'FAIL'} ${name}`);if(ok)pass++;}
 assert.equal(pass,tests.length,`${pass}/${tests.length} checks`);
-console.log(`AXE ONE INFO STAGE 9: ${pass}/${tests.length} PASS (synthetic only)`);
+console.log(`LAC ONE INFO STAGE 9: ${pass}/${tests.length} PASS (synthetic only)`);
