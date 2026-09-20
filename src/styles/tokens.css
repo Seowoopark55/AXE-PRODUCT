@@ -30,12 +30,12 @@
   --ops-gold:#d4b46b;
   --ops-gold-bright:#f0c360;
   /* Layout Studio tokens; values match this version's normal operational table defaults. */
-  --ops-table-header-font-size:8.5px;
-  --ops-table-primary-font-size:10.2px;
-  --ops-table-secondary-font-size:9px;
-  --ops-table-control-font-size:9.6px;
-  --ops-table-status-font-size:8.3px;
-  --ops-table-action-font-size:8.4px;
+  --ops-table-header-font-size:calc((8.5px) * var(--lac-type-scale, 1));
+  --ops-table-primary-font-size:calc((10.2px) * var(--lac-type-scale, 1));
+  --ops-table-secondary-font-size:calc((9px) * var(--lac-type-scale, 1));
+  --ops-table-control-font-size:calc((9.6px) * var(--lac-type-scale, 1));
+  --ops-table-status-font-size:calc((8.3px) * var(--lac-type-scale, 1));
+  --ops-table-action-font-size:calc((8.4px) * var(--lac-type-scale, 1));
   --ops-table-header-height:27px;
   --ops-table-row-height:40px;
   --ops-table-gap:4px;

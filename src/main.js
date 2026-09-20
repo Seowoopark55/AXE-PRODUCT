@@ -3,7 +3,7 @@ import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfi
 import { envReady } from './lib/supabase.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
+  listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
@@ -27,6 +27,7 @@ const validPages = ['dashboard','fund','members','assets','accounts','questions'
 
 const state = {
   envReady,
+  loginCreateCode: sessionStorage.getItem('lac_one_pending_create_code') || '',
   session: null,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
@@ -67,7 +68,7 @@ const state = {
   supportImageViewer: null,
   companyMenuOpen: false,
   accountMenuOpen: false,
-  layoutDraft: loadLayoutStudioProfile(), layoutSaved: loadLayoutStudioProfile(), layoutDirty: false, layoutAdvanced: false,
+  layoutDraft: loadLayoutStudioProfile(), layoutSaved: loadLayoutStudioProfile(), layoutDirty: false, layoutAdvanced: false, issuedCompanyCode: '',
   modal: null,
   setupDemo: null,
   testCenter: null,
@@ -1112,6 +1113,8 @@ root.addEventListener('click', async event => {
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
+  if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
+  if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
   if(action==='open-create-company'){const role=currentMembership(state)?.role;if((state.companies||[]).length&&role!=='owner'&&!state.platformAdmin){setError('새 회사 등록은 현재 회사 OWNER만 시작할 수 있습니다. 기존 회사 팀원은 새 회사를 만들 필요가 없습니다.');return;}state.modal={type:'create-company'};render();return;}
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
@@ -1381,7 +1384,7 @@ root.addEventListener('click', async event => {
   if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
-    if(action==='logout'){clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
+    if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
@@ -1453,6 +1456,8 @@ root.addEventListener('change', async event => {
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {
+  if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
+  if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
   if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';const pos=event.target.selectionStart;render();const el=root.querySelector('[data-info-query]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
@@ -1519,8 +1524,18 @@ root.addEventListener('submit', async event => {
       else setNotice(result?.status==='existing'?'이미 등록된 Discord 멤버입니다. 멤버 목록에서 확인해 주세요.':'멤버를 등록했습니다. 해당 팀원은 등록 확인 후 바로 회사에 연결됩니다.');
       return;
     }
+    if(type==='issue-company-code'){
+      if(!state.platformAdmin)throw new Error('서비스 운영자만 개설 코드를 발급할 수 있습니다.');
+      state.issuedCompanyCode=await issueCompanyCreateCode(String(data.get('company_name')||'').trim(),Number(data.get('hours')||24));
+      render();return;
+    }
     if(type==='create-company'){
-      const created=await createCompany(String(data.get('name')||'').trim());
+      const requestedName=String(data.get('name')||'').trim();
+      const createCode=String(data.get('create_code')||'').trim();
+      if(!requestedName||!createCode)throw new Error('회사 이름과 개설 코드를 입력해 주세요.');
+      await redeemCompanyCreateCode(createCode,requestedName);
+      const created=await createCompany(requestedName);
+      state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');
       if(!created?.id)throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
       state.companyId=created.id;
       localStorage.setItem('axe_product_company_id',created.id);
