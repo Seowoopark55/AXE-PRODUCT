@@ -6,6 +6,7 @@ Correction: original generated black/gold outer wallpaper and compact 1672x941 p
 
 Studio: original upload contains `src/ui/layoutStudio.js` and `src/styles/layout-studio.css` but no studio route, UI or handlers. This release restores a PLATFORM OWNER-only account menu, studio page, live settings, local save/revert/reset and persisted visual tokens. Storage key is the original one, and no DB writes are added.
 
+Preserved: DB `axe_product`, API, environment keys, browser storage keys, company/permissions, and old BOT/NET.
 
 Deploy to WEB STAGING via whole-folder GitHub copy/overwrite. Check premium login, background on desktop, account menu (PLATFORM OWNER), font + row + table width changed in Studio and preserved after reload. Non-owner accounts must not see Studio.
 
