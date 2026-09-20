@@ -165,7 +165,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-layout-studio" role="menuitem"><span class="runtime-account-menu__icon">${icon('settings')}</span><span><strong>레이아웃 스튜디오</strong><small>전체 글씨 크기 조절</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-layout-studio" role="menuitem"><span class="runtime-account-menu__icon">${icon('settings')}</span><span><strong>레이아웃 스튜디오</strong><small>표 안의 글씨 크기 조절</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -199,14 +199,14 @@ function renderAuthed(state) {
 function renderLayoutStudio(state) {
   const p = state.layoutDraft || {fontScale:100};
   return `<section class="layout-studio-page">
-    <header class="page-header"><div><span class="page-eyebrow">LAC ONE · PLATFORM OWNER</span><h1>글씨 크기</h1><p>전체 화면의 글씨 비율을 함께 조절합니다.</p></div></header>
-    <div class="layout-studio-note">제목 · 내용 · 표 · 버튼의 기본 크기 비율은 유지됩니다. 설정은 이 브라우저에만 저장됩니다.</div>
+    <header class="page-header"><div><span class="page-eyebrow">LAC ONE · PLATFORM OWNER</span><h1>표 글씨 크기</h1><p>공금 · 멤버 · 자산 등 표 안의 글씨만 함께 조절합니다.</p></div></header>
+    <div class="layout-studio-note">사이트 메뉴 · 페이지 제목 · 로그인 화면은 그대로 유지됩니다. 표 안의 글씨 비율만 함께 커집니다. 설정은 이 브라우저에 저장됩니다.</div>
     <section class="layout-studio-panel lac-type-panel">
-      <header><div><strong>글씨 전체 크기</strong><span>표의 작은 안내 글씨도 함께 커집니다.</span></div><b class="lac-type-percent" data-layout-scale-label>${p.fontScale}%</b></header>
-      <div class="lac-type-controls"><input type="range" min="90" max="150" step="5" value="${p.fontScale}" data-layout-scale aria-label="사이트 전체 글씨 크기"><div class="lac-type-scale-labels"><span>90% · 작게</span><span>100% · 기본</span><span>150% · 크게</span></div></div>
+      <header><div><strong>표 안의 글씨 크기</strong><span>표 머리글 · 날짜 · 이름 · 금액 · 상태 · 표 안의 버튼</span></div><b class="lac-type-percent" data-layout-scale-label>${p.fontScale}%</b></header>
+      <div class="lac-type-controls"><input type="range" min="90" max="150" step="5" value="${p.fontScale}" data-layout-scale aria-label="데이터 표 안의 글씨 크기"><div class="lac-type-scale-labels"><span>90% · 작게</span><span>100% · 기본</span><span>150% · 크게</span></div></div>
       <footer class="layout-studio-actions"><span class="layout-studio-saved ${state.layoutDirty?'is-dirty':''}">${state.layoutDirty?'저장되지 않은 변경 사항':'현재 설정 저장됨'}</span><div><button type="button" data-action="layout-reset-default">기본값</button><button type="button" data-action="layout-revert">되돌리기</button><button type="button" class="is-primary" data-action="layout-save">저장</button></div></footer>
     </section>
-    <p class="lac-type-hint">미리보기: 실제 화면에서 확인한 뒤 저장하세요. 글씨가 커져 가로폭이 부족한 표는 스크롤할 수 있습니다.</p>
+    <p class="lac-type-hint">공금내역 · 멤버 현황 · 자산 현황 표에서 확인한 뒤 저장하세요. 글씨가 커져 칸이 좁아지면 표 안에서 가로로 스크롤할 수 있습니다.</p>
   </section>`;
 }
 

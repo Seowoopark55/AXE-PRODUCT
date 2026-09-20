@@ -439,3 +439,45 @@ html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger
   width:min(var(--ops-rail-standard),100%); max-width:100%;
 }
 @media(max-width:760px){html[data-layout-studio-active="true"] .runtime-app .main--members .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--assets .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--accounts .ops-lane-row,html[data-layout-studio-active="true"] .runtime-app .main--fund .axe-fund-ledger-row{min-height:0}}
+
+/* LAC ONE R4 · TABLE-ONLY TYPOGRAPHY
+   Leave the original login, menus, headings, filters and page width untouched.
+   Reuse existing per-cell size ratios with a local custom property. */
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-head, .ops-lane-row,
+  .axe-fund-ledger-columns, .axe-fund-ledger-row,
+  .axe-fund-history-row, .axe-fund-review-columns, .axe-fund-review-row,
+  .ops-account-review article, .ops-cooking-menu-columns, .ops-cooking-menu-row
+) {
+  --lac-type-scale: var(--lac-table-scale, 1);
+}
+/* Only table geometry grows with its own text; never enlarge the site canvas. */
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-head, .axe-fund-ledger-columns, .axe-fund-review-columns, .ops-cooking-menu-columns
+) {height:auto;min-height:calc(30px * var(--lac-table-scale, 1));}
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-row, .axe-fund-ledger-row, .axe-fund-history-row,
+  .axe-fund-review-row, .ops-account-review article, .ops-cooking-menu-row
+) {height:auto;min-height:calc(48px * var(--lac-table-scale, 1));}
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-row, .axe-fund-ledger-row, .axe-fund-history-row,
+  .axe-fund-review-row, .ops-account-review article, .ops-cooking-menu-row
+) :is(button, select, input, .ops-mgmt-badge, .ops-lane-status, .axe-fund-ledger-tag) {
+  min-height:calc(24px * var(--lac-table-scale, 1));
+}
+/* Wide rows stay inside their original card with horizontal scrolling. */
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-mgmt-board, .axe-fund-ledger, .axe-fund-review-list, .ops-account-review
+) {overflow-x:auto;}
+@media(min-width:761px) {
+  html[data-lac-table-scale-active="true"] .runtime-app :is(
+    .ops-lane-head, .ops-lane-row, .axe-fund-ledger-columns, .axe-fund-ledger-row,
+    .axe-fund-review-columns, .axe-fund-review-row
+  ) {min-width:max(100%, calc(590px * var(--lac-table-scale, 1)));}
+}
+@media(max-width:760px) {
+  html[data-lac-table-scale-active="true"] .runtime-app :is(
+    .ops-lane-head, .ops-lane-row, .axe-fund-ledger-columns, .axe-fund-ledger-row,
+    .axe-fund-review-columns, .axe-fund-review-row
+  ) {min-width:0;}
+}

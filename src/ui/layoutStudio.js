@@ -1,7 +1,7 @@
-// A single balanced type scale for the whole LAC ONE interface.
-// Legacy per-cell settings are deliberately not read; otherwise a user's old
-// overrides would continue to distort the intended typography hierarchy.
-export const LAYOUT_STUDIO_STORAGE_KEY = 'lac_one_type_scale_v1';
+// LAC ONE: scale only data-table typography, not the overall site or login.
+// Each table cell continues using its existing relative text-size hierarchy.
+export const LAYOUT_STUDIO_STORAGE_KEY = 'lac_one_table_type_scale_v1';
+const LEGACY_WHOLE_SITE_SCALE_KEY = 'lac_one_type_scale_v1';
 export const LAYOUT_STUDIO_DEFAULTS = Object.freeze({fontScale: 100});
 
 export function normalizeLayoutStudioProfile(input = {}) {
@@ -9,8 +9,13 @@ export function normalizeLayoutStudioProfile(input = {}) {
   return {fontScale: Number.isFinite(raw) ? Math.min(150, Math.max(90, Math.round(raw / 5) * 5)) : 100};
 }
 export function loadLayoutStudioProfile() {
-  try { return normalizeLayoutStudioProfile(JSON.parse(localStorage.getItem(LAYOUT_STUDIO_STORAGE_KEY) || '{}')); }
-  catch { return {...LAYOUT_STUDIO_DEFAULTS}; }
+  try {
+    const saved = localStorage.getItem(LAYOUT_STUDIO_STORAGE_KEY);
+    // If the old whole-site slider was used, retain the selected percentage,
+    // but from this release it affects only data tables.
+    const previous = saved ?? localStorage.getItem(LEGACY_WHOLE_SITE_SCALE_KEY);
+    return previous ? normalizeLayoutStudioProfile(JSON.parse(previous)) : {...LAYOUT_STUDIO_DEFAULTS};
+  } catch { return {...LAYOUT_STUDIO_DEFAULTS}; }
 }
 export function saveLayoutStudioProfile(profile) {
   const next = normalizeLayoutStudioProfile(profile);
@@ -19,28 +24,24 @@ export function saveLayoutStudioProfile(profile) {
 }
 export function clearLayoutStudioProfile() {
   localStorage.removeItem(LAYOUT_STUDIO_STORAGE_KEY);
+  localStorage.removeItem(LEGACY_WHOLE_SITE_SCALE_KEY);
   return {...LAYOUT_STUDIO_DEFAULTS};
 }
 export function applyLayoutStudioProfile(profile) {
   const next = normalizeLayoutStudioProfile(profile);
-  const el = document.documentElement;
-  el.style.setProperty('--lac-type-scale', String(next.fontScale / 100));
-  el.dataset.layoutStudioActive = next.fontScale === 100 ? 'false' : 'true';
-  const scale = next.fontScale / 100;
-  const sizeTokens = {
-    '--ops-table-header-font-size':8.5,'--ops-table-primary-font-size':10.2,
-    '--ops-table-secondary-font-size':9,'--ops-table-control-font-size':9.6,
-    '--ops-table-status-font-size':8.3,'--ops-table-action-font-size':8.4,
-    '--ops-font-primary':12.5,'--ops-font-secondary':10.5,
-    '--ops-font-support':9.5,'--ops-font-control':10.8
-  };
-  for (const [key, base] of Object.entries(sizeTokens)) el.style.setProperty(key, `${Number((base * scale).toFixed(3))}px`);
+  const root = document.documentElement;
+  // R3's --lac-type-scale was applied to hundreds of unrelated site elements.
+  // Reset it and scope it exclusively to the data-table rows in CSS.
+  root.style.setProperty('--lac-type-scale', '1');
+  root.style.setProperty('--lac-table-scale', String(next.fontScale / 100));
+  root.dataset.layoutStudioActive = 'false'; // disable legacy page-wide layout overrides
+  root.dataset.lacTableScaleActive = next.fontScale === 100 ? 'false' : 'true';
   return next;
 }
-// Legacy exports are harmless compatibility shims for old local scripts.
+// Backward-compatible exports for existing route and button wiring.
 export function applyLayoutStudioPreset(profile, type, value) {
   if (type !== 'text') return normalizeLayoutStudioProfile(profile);
-  return normalizeLayoutStudioProfile({fontScale: ({small: 90, default: 100, comfortable: 120, large: 140})[value] ?? profile.fontScale});
+  return normalizeLayoutStudioProfile({fontScale: ({small:90, default:100, comfortable:120, large:140})[value] ?? profile.fontScale});
 }
 export function adjustLayoutStudioValue(profile, key, delta) {
   return key === 'fontScale' ? normalizeLayoutStudioProfile({fontScale: Number(profile.fontScale) + Number(delta)}) : normalizeLayoutStudioProfile(profile);
