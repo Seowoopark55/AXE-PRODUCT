@@ -465,19 +465,23 @@ html[data-lac-table-scale-active="true"] .runtime-app :is(
 ) :is(button, select, input, .ops-mgmt-badge, .ops-lane-status, .axe-fund-ledger-tag) {
   min-height:calc(24px * var(--lac-table-scale, 1));
 }
-/* Wide rows stay inside their original card with horizontal scrolling. */
+/* R5: Typography changes must never create a second horizontal scroll rail.
+   Keep the original per-screen compact column templates (their tracks are
+   already minmax(0, ...)), and let the content shrink inside the existing card.
+   Extra-long content still uses the existing ellipsis/detail affordances. */
 html[data-lac-table-scale-active="true"] .runtime-app :is(
-  .ops-mgmt-board, .axe-fund-ledger, .axe-fund-review-list, .ops-account-review
-) {overflow-x:auto;}
-@media(min-width:761px) {
-  html[data-lac-table-scale-active="true"] .runtime-app :is(
-    .ops-lane-head, .ops-lane-row, .axe-fund-ledger-columns, .axe-fund-ledger-row,
-    .axe-fund-review-columns, .axe-fund-review-row
-  ) {min-width:max(100%, calc(590px * var(--lac-table-scale, 1)));}
-}
-@media(max-width:760px) {
-  html[data-lac-table-scale-active="true"] .runtime-app :is(
-    .ops-lane-head, .ops-lane-row, .axe-fund-ledger-columns, .axe-fund-ledger-row,
-    .axe-fund-review-columns, .axe-fund-review-row
-  ) {min-width:0;}
-}
+  .ops-mgmt-workspace, .ops-mgmt-board, .ops-mgmt-list,
+  .axe-fund-ledger, .axe-fund-ledger-list,
+  .axe-fund-review-list, .ops-account-review
+) { overflow-x: hidden; }
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-head, .ops-lane-row,
+  .axe-fund-ledger-columns, .axe-fund-ledger-row,
+  .axe-fund-review-columns, .axe-fund-review-row
+) { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+html[data-lac-table-scale-active="true"] .runtime-app :is(
+  .ops-lane-head, .ops-lane-row,
+  .axe-fund-ledger-columns, .axe-fund-ledger-row
+) > * { min-width: 0; }
+/* On smaller screens the pre-existing card layout is preserved; this rule
+   only prevents R4's artificial desktop widths from returning. */
