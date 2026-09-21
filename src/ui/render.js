@@ -79,7 +79,7 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
   `;
 }
 
@@ -167,7 +167,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${state.platformAdmin?`<button type="button" data-action="open-platform-admin" role="menuitem"><span class="runtime-account-menu__icon">${icon('platform')}</span><span><strong>서비스 관리</strong><small>PLATFORM OWNER 전용</small></span></button><button type="button" data-action="open-layout-studio" role="menuitem"><span class="runtime-account-menu__icon">${icon('settings')}</span><span><strong>레이아웃 스튜디오</strong><small>표 안의 글씨 크기 조절</small></span></button><button type="button" data-action="open-test-center" role="menuitem"><span class="runtime-account-menu__icon">${icon('check')}</span><span><strong>테스트 센터</strong><small>첫 접속 · 초기설정 미리보기</small></span></button><i></i>`:''}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -197,6 +197,32 @@ function renderAuthed(state) {
   </div>`;
 }
 
+
+
+// Platform administration has its own shell. It must never inherit a selected
+// company's sidebar, company header, membership label, or company context.
+function renderManagementCenter(state) {
+  if (!state.session?.user || state.platformAdmin !== true) return renderPermission(state);
+  const username = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || 'Discord 사용자';
+  return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
+    <header class="platform-center__header">
+      <button type="button" class="platform-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="28" height="28"><span><strong>LAC HUB</strong><small>관리 센터</small></span></button>
+      <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span><button type="button" class="global-hub-return" data-action="go-hub">← HUB 메인</button><button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
+    </header>
+    <div class="platform-center__workspace">
+      <div class="platform-center__intro"><span>PLATFORM MANAGEMENT</span><h1>관리 센터</h1><p>회사와 콘텐츠의 운영 설정을 관리합니다. 회사 내부의 멤버·공금·자산 정보는 회사 관리 콘텐츠에서 이용하세요.</p></div>
+      <nav class="platform-center__nav" aria-label="플랫폼 관리 화면">
+        <button type="button" class="${state.page === 'platform' ? 'is-active':''}" data-action="open-platform-admin">회사별 구독 · 콘텐츠 운영</button>
+        <button type="button" class="${state.page === 'layout' ? 'is-active':''}" data-action="open-layout-studio">표 글씨 크기</button>
+        <button type="button" data-action="open-test-center">테스트 센터</button>
+        <span>이용권 발급 · 등록은 추후 연결</span>
+      </nav>
+      <main class="main main--${esc(state.page)} platform-center__main">${renderPage(state)}</main>
+    </div>
+    ${renderModal(state)}
+    ${renderSupportImageViewer(state)}
+  </div>`;
+}
 
 function renderLayoutStudio(state) {
   const p = state.layoutDraft || {fontScale:100};
@@ -667,7 +693,7 @@ function renderPlatform(state){
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
-  const tabs=`<nav class="platform-service-tabs" aria-label="서비스 관리 구분"><button type="button" class="${view==='companies'?'is-active':''}" data-action="platform-view" data-platform-view="companies"><span>회사 관리</span><em>${all.length}</em></button><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button><button type="button" class="${view==='contents'?'is-active':''}" data-action="platform-view" data-platform-view="contents"><span>콘텐츠 운영</span></button></nav>`;
+  const tabs=`<nav class="platform-service-tabs" aria-label="서비스 관리 구분"><button type="button" class="${view==='companies'?'is-active':''}" data-action="platform-view" data-platform-view="companies"><span>회사별 구독 관리</span><em>${all.length}</em></button><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button><button type="button" class="${view==='contents'?'is-active':''}" data-action="platform-view" data-platform-view="contents"><span>콘텐츠 운영</span></button></nav>`;
   const content=view==='support'?renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
   return `<div class="platform-page">${pageHeader('PLATFORM OWNER','서비스 관리','',`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`)}${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}${tabs}<div class="platform-service-view">${content}</div></div>`;
 }
