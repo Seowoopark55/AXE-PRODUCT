@@ -217,17 +217,14 @@ function renderStandaloneGameInfo(state) {
   return `<div class="runtime-app runtime-app--game-info game-center" data-game-scene="${scene}">
     <header class="game-center__header">
       <button type="button" class="game-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="30" height="30"><strong>LAC HUB</strong><span>/</span><b>게임 정보</b></button>
-      <div class="game-center__actions"><span class="game-center__company">선택 회사: ${esc(company.name)}</span><button type="button" data-action="open-company-console">회사 관리로 이동</button><button type="button" class="game-center__back" data-action="go-hub">← HUB 메인</button></div>
+      <div class="game-center__actions"><button type="button" class="game-center__back" data-action="go-hub">← HUB 메인</button></div>
     </header>
     <main class="game-center__body">
       <section class="game-center__hero" aria-labelledby="game-info-heading">
         <div class="game-center__hero-copy">
-          <span class="game-center__eyebrow">LAC HUB · LOS SANTOS ROLEPLAY</span>
           <h1 id="game-info-heading">게임 정보</h1>
           <p>도시의 제작법과 생산, 퀘스트, 스킬 등급까지.<br>선택한 회사의 개조서와 함께 필요한 정보를 찾아보세요.</p>
         </div>
-        <button type="button" class="game-center__refresh" data-action="info-refresh">↻ 새로고침</button>
-        <span class="game-center__hero-sign" aria-hidden="true">REAL LIFE, ANOTHER STORY</span>
       </section>
       ${renderInfoPage(state,{standalone:true})}
       <p class="game-center__context">게임 정보는 독립 콘텐츠입니다. 회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.</p>

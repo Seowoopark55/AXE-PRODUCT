@@ -14,7 +14,8 @@ assert.doesNotMatch(hub,/class="hub-feature__enter"[^>]*data-action/,'Arrow is n
 const standalone=html({page:'game-info'});
 assert.match(standalone,/class="runtime-app runtime-app--game-info game-center"/);
 assert.match(standalone,/class="axe-info"/,'Existing real game information UI reused');
-assert.match(standalone,/선택 회사: LAC 회사/);
+assert.doesNotMatch(standalone,/선택 회사: LAC 회사/,'Standalone header is intentionally simplified; company-scoped data remains');
+assert.match(standalone,/class="game-center__back" data-action="go-hub"/);
 assert.match(standalone,/data-action="go-hub"/);
 assert.doesNotMatch(standalone,/class="workspace-shell"|class="sidebar"|class="company-switcher"/,'Company management navigation must not leak into standalone game info');
 const oldInfo=html({page:'info'});
