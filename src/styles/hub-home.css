@@ -27,9 +27,9 @@
 .hub-onboarding-back{position:fixed;z-index:3;top:18px;left:18px;border:1px solid #39424b;border-radius:9px;padding:9px 12px;background:#141a20;color:#f1d39a;cursor:pointer;font-size:12px}
 /* Desktop HUB fits one viewport without cutting real card text or scrolling the page. */
 @media (min-width:1100px) and (min-height:700px) and (max-height:980px){
-.hub-home{min-height:100dvh}.hub-topbar__inner{min-height:54px;padding-top:5px;padding-bottom:5px}
+.hub-home{height:100dvh;min-height:100dvh;overflow:clip}.hub-topbar__inner{min-height:54px;padding-top:5px;padding-bottom:5px}
 .hub-body{padding-top:clamp(10px,1.6vh,16px);padding-bottom:4px}
-.hub-hero{min-height:clamp(208px,29.5dvh,264px)}
+.hub-hero{min-height:clamp(197px,28.5dvh,254px)}
 .hub-hero__copy{padding:22px 46px}.hub-hero h1{font-size:clamp(31px,3vw,39px);margin:9px 0}.hub-hero__actions{margin-top:16px}
 .hub-contents__title{margin-bottom:9px}.hub-contents__title h2{margin-top:0;font-size:20px}
 .hub-feature__visual{height:clamp(92px,13.5dvh,126px)}.hub-feature__content{min-height:78px;padding:9px 13px 10px}
