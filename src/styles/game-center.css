@@ -1,0 +1,12 @@
+/* Phase 5: independent user-facing game-information workspace. */
+.game-center{color:#e9edf1;background:#0e141b}
+.game-center__header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 24px;border-bottom:1px solid #303844;background:#111820}
+.game-center__brand{display:inline-flex;gap:11px;align-items:center;border:0;background:transparent;color:#e9cf9e;font-size:19px;cursor:pointer;text-align:left}
+.game-center__brand img{object-fit:contain}.game-center__brand span{color:#66717d}.game-center__brand b{font-size:17px;color:#eff1f4}
+.game-center__actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;color:#a8b3c0;font-size:12px}
+.game-center__actions button{border:1px solid #48515e;border-radius:8px;padding:9px 12px;background:#1a232d;color:#eed4a6;cursor:pointer;font-weight:700}
+.game-center__body{width:min(1080px,calc(100% - 48px));margin:0 auto;padding:25px 0 52px}
+.game-center__context{margin-bottom:13px;font-size:12px;color:#a8b4c0;line-height:1.6}
+.game-center button:focus-visible{outline:2px solid #e5c286;outline-offset:2px}
+@media(min-width:761px){.runtime-app.game-center{width:min(1260px,calc(100vw - 40px));min-width:0;min-height:calc(100vh - 36px)} }
+@media(max-width:760px){.game-center__header{padding:12px;align-items:flex-start;flex-direction:column}.game-center__body{width:calc(100% - 24px);padding:18px 0 40px}.game-center__brand{font-size:17px}}

@@ -21,5 +21,5 @@ assert.match(noCompany,/data-action="open-company-start"/);
 assert.doesNotMatch(noCompany,/data-action="open-hub-game-info"|data-action="open-platform-admin"/);
 assert.match(noCompany,/LAC BUILD/);
 const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-assert.match(main,/if\(action==='open-hub-game-info'\)[\s\S]*?navigatePrimaryScreen\('info'\)/);
+assert.match(main,/if\(action==='open-hub-game-info'\)[\s\S]*?navigatePrimaryScreen\('game-info'\)/);
 console.log('HUB phase 3 visual integration: PASS (independent assets, company scoping, operator-only entry, pending content, legacy route).');

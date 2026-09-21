@@ -79,7 +79,7 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'game-info' ? ((state.companies||[]).some(company=>company.id===state.companyId) ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
   `;
 }
 
@@ -198,6 +198,23 @@ function renderAuthed(state) {
 }
 
 
+
+
+// HUB game information is a standalone CONTENT screen. The shared read-only
+// catalogue remains renderInfoPage; company-owned modbooks still use the
+// selected company's ID and its existing RLS in the product API.
+function renderStandaloneGameInfo(state) {
+  const company=currentCompany(state);
+  if (!state.session?.user || !company) return renderHubHome(state);
+  return `<div class="runtime-app runtime-app--game-info game-center">
+    <header class="game-center__header">
+      <button type="button" class="game-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="30" height="30"><strong>LAC HUB</strong><span>/</span><b>게임 정보</b></button>
+      <div class="game-center__actions"><span>선택 회사: ${esc(company.name)}</span><button type="button" data-action="open-company-console">회사 관리로 이동</button><button type="button" data-action="go-hub">← HUB 메인</button></div>
+    </header>
+    <main class="game-center__body"><div class="game-center__context">게임 정보는 독립 콘텐츠입니다. 회사별 개조서는 현재 선택한 회사의 자료만 표시합니다.</div>${renderInfoPage(state)}</main>
+    ${renderModal(state)}
+  </div>`;
+}
 
 // Platform administration has its own shell. It must never inherit a selected
 // company's sidebar, company header, membership label, or company context.

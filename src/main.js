@@ -24,7 +24,7 @@ import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen 
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['hub','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','layout'];
+const validPages = ['hub','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','game-info','layout'];
 
 const state = {
   envReady,
@@ -529,6 +529,7 @@ function allowedHistoryPage(target) {
   if (!state.session?.user) return 'hub';
   if (target === 'hub') return target;
   if (target === 'company-start') return state.companies.length ? 'hub' : target;
+  if (target === 'game-info') return companyAvailable ? target : 'hub';
   if (['platform', 'layout'].includes(target)) return state.platformAdmin ? target : 'hub';
   return companyAvailable ? target : 'hub';
 }
@@ -551,7 +552,7 @@ function installPrimaryScreenHistory() {
     render();
     // Existing page loaders remain scoped to the selected company. Only lazy
     // loading for the restored view is needed; never re-run OAuth on Back/Forward.
-    if (state.page === 'info' && !state.info.loaded && !state.info.loading) {
+    if (['info','game-info'].includes(state.page) && !state.info.loaded && !state.info.loading) {
       void loadGameInfo();
     }
   });
@@ -815,7 +816,7 @@ async function refreshAll() {
     applyPlatformCompanyVisibility();
     state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
-    if(state.page==='info')await loadGameInfo();
+    if(['info','game-info'].includes(state.page))await loadGameInfo();
     if(state.page==='platform' && state.platformView==='contents' && state.platformAdmin) await loadPlatformContentSettings();
     state.ready=true;
     const saved=savedSetupGuideProgress();
@@ -1072,6 +1073,21 @@ async function saveModuleSettingsData(form,data){
 }
 
 root.addEventListener('click', async event => {
+  // Users may already see the whole content grid. In that case, scrolling alone
+  // appears inert: move focus and briefly emphasize the target as real feedback.
+  const browse=event.target.closest('[data-action="browse-hub-contents"]');
+  if(browse){
+    event.preventDefault();
+    const target=root.querySelector('#hub-contents');
+    if(target){
+      target.classList.remove('hub-contents--emphasized');
+      void target.offsetWidth;
+      target.classList.add('hub-contents--emphasized');
+      target.focus({preventScroll:true});
+      target.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    }
+    return;
+  }
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
@@ -1176,8 +1192,8 @@ root.addEventListener('click', async event => {
   if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-hub-game-info'){
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){navigatePrimaryScreen('company-start');render();return;}
-    navigatePrimaryScreen('info');localStorage.setItem('axe_product_page','info');
-    if(!state.info.loaded) await loadGameInfo();
+    navigatePrimaryScreen('game-info');
+    if(!state.info.loaded || String(state.info.companyId||'')!==String(state.companyId||'')) await loadGameInfo();
     render();return;
   }
   if(action==='open-company-console'){
@@ -1189,7 +1205,7 @@ root.addEventListener('click', async event => {
     if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);
     render();return;
   }
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(state.page==='info'&&state.companyId===next)await loadGameInfo();return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(['info','game-info'].includes(state.page)&&state.companyId===next)await loadGameInfo();return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}

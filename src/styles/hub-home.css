@@ -20,3 +20,18 @@
 @media (max-width:1050px){.hub-topbar__inner{padding:9px 22px;gap:15px;flex-wrap:wrap}.hub-nav{gap:14px}.hub-body{padding:16px 22px}.hub-hero{min-height:290px}.hub-features{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-toolbar{flex-wrap:wrap}.hub-toolbar__hint{display:none}}
 @media (max-width:600px){.hub-topbar__inner{gap:10px;padding:10px 15px}.hub-wordmark strong{font-size:18px}.hub-wordmark img{width:28px;height:28px}.hub-nav{order:3;width:100%;gap:24px}.hub-account{margin-left:auto;gap:5px}.hub-account__name{display:none}.hub-account button{padding:6px}.hub-body{padding:12px 13px 20px}.hub-hero{min-height:320px;background-position:63% center}.hub-hero__shade{background:linear-gradient(90deg,rgba(9,14,20,.91),rgba(9,14,20,.64) 72%,rgba(9,14,20,.33))}.hub-hero__copy{padding:26px 19px}.hub-hero h1{font-size:29px}.hub-toolbar{padding:12px;align-items:flex-start}.hub-toolbar__lead{flex-wrap:wrap;gap:7px}.hub-toolbar__actions{justify-content:flex-start}.hub-features{grid-template-columns:1fr;gap:11px}.hub-feature__visual{height:145px}.hub-contents__title{align-items:start;flex-direction:column;gap:3px}.hub-footer{flex-direction:column}.hub-company-menu{flex-wrap:wrap}}
 @media (prefers-reduced-motion:reduce){.hub-feature{transition:none}}
+
+/* Phase 5: one large hit target per available service, no nested buttons. */
+.hub-feature--interactive{display:block;appearance:none;width:100%;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.hub-feature--interactive:focus-visible{outline:2px solid #e9c990;outline-offset:3px}
+.hub-feature__visual{display:block}
+.hub-feature__name{display:block;font-size:18px;letter-spacing:-.02em;margin:0 0 5px;color:#f5f4f2;font-weight:800}
+.hub-feature__description{display:block;font-size:12px;line-height:1.45;color:#b4bdc7}
+.hub-feature__content>span:first-child{min-width:0}
+.hub-feature__enter{margin-left:auto}
+.hub-feature--pending{cursor:default}
+.hub-contents{scroll-margin-top:20px;border-radius:10px}
+.hub-contents:focus{outline:none}
+.hub-contents--emphasized{animation:hub-content-spotlight 1.3s ease-out}
+@keyframes hub-content-spotlight{0%{box-shadow:0 0 0 3px rgba(233,201,144,.9);background:rgba(233,201,144,.08)}100%{box-shadow:0 0 0 0 rgba(233,201,144,0);background:transparent}}
+@media(prefers-reduced-motion:reduce){.hub-contents--emphasized{animation:none;outline:2px solid #e9c990}}

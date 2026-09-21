@@ -487,3 +487,5 @@ html[data-lac-table-scale-active="true"] .runtime-app :is(
 ) > * { min-width: 0; }
 /* On smaller screens the pre-existing card layout is preserved; this rule
    only prevents R4's artificial desktop widths from returning. */
+
+@import './styles/game-center.css';

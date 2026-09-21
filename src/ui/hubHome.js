@@ -9,11 +9,13 @@ const ASSETS = '/hub/';
 
 function contentCard({title,description,image,tag,tagType='',action='',disabled=false,footnote=''}) {
   const stateClass=tagType ? ` hub-feature__tag--${tagType}` : '';
-  const button=action ? `<button type="button" class="hub-feature__enter" data-action="${action}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">→</button>` : `<span class="hub-feature__pending" aria-label="${esc(title)} 연결 준비 중">준비 중</span>`;
-  return `<article class="hub-feature${disabled?' hub-feature--pending':''}">
-    <div class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${tag}</span></div>
-    <div class="hub-feature__content"><div><h3>${esc(title)}</h3><p>${esc(description)}</p>${footnote?`<small>${esc(footnote)}</small>`:''}</div>${button}</div>
-  </article>`;
+  // Each available card is ONE native button. The arrow is decorative and never
+  // the only click target; upcoming services are not advertised as working links.
+  const active=Boolean(action && !disabled);
+  const open=active ? `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">` : `<article class="hub-feature hub-feature--pending">`;
+  const close=active ? '</button>' : '</article>';
+  return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
+    <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span>${footnote?`<small>${esc(footnote)}</small>`:''}</span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
 }
 
 export function renderHubHome(state) {
@@ -29,13 +31,13 @@ export function renderHubHome(state) {
   return `<div class="hub-home">
     <header class="hub-topbar"><div class="hub-topbar__inner">
       <span class="hub-wordmark"><img src="${ASSETS}mark.png" alt="" width="32" height="32"><strong>LAC HUB</strong></span>
-      <nav class="hub-nav" aria-label="통합 플랫폼"><span class="hub-nav__current" aria-current="page">홈</span><a href="#hub-contents">콘텐츠</a><button type="button" data-action="${companyAction}">내 회사</button></nav>
+      <nav class="hub-nav" aria-label="통합 플랫폼"><span class="hub-nav__current" aria-current="page">홈</span><button type="button" data-action="browse-hub-contents">콘텐츠</button><button type="button" data-action="${companyAction}">내 회사</button></nav>
       <div class="hub-account"><span class="hub-account__name">${displayName}</span>${owner?'<button type="button" class="hub-admin-link" data-action="open-platform-admin">관리 센터</button>':''}<button type="button" class="hub-logout" data-action="logout">로그아웃</button></div>
     </div></header>
     <main class="hub-body">
-      <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><span class="hub-kicker">PLAY · CREATE · CONNECT</span><h1 id="hub-headline">즐기는 순간부터<br><em>함께 만드는 내일</em>까지</h1><p>게임 정보부터 회사 운영과 창작 도구까지.<br>LAC HUB에서 필요한 콘텐츠를 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${current?'내 회사로 이동':'회사 등록 · 가입'} <span aria-hidden="true">→</span></button><a class="hub-cta hub-cta--outline" href="#hub-contents">콘텐츠 둘러보기 <span aria-hidden="true">↘</span></a></div></div></section>
+      <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><span class="hub-kicker">PLAY · CREATE · CONNECT</span><h1 id="hub-headline">즐기는 순간부터<br><em>함께 만드는 내일</em>까지</h1><p>게임 정보부터 회사 운영과 창작 도구까지.<br>LAC HUB에서 필요한 콘텐츠를 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${current?'내 회사로 이동':'회사 등록 · 가입'} <span aria-hidden="true">→</span></button><button type="button" class="hub-cta hub-cta--outline" data-action="browse-hub-contents">콘텐츠 둘러보기 <span aria-hidden="true">↘</span></button></div></div></section>
       <div class="hub-toolbar"><div class="hub-toolbar__lead"><span class="hub-toolbar__eyebrow">MY SPACE</span><strong>${current?esc(current.name):'내 회사'}</strong><span class="hub-toolbar__hint">${current?'선택된 회사':'회사에 가입하지 않아도 무료 콘텐츠를 이용할 수 있어요.'}</span></div><div class="hub-toolbar__actions">${companiesMenu}<button type="button" class="hub-small-button hub-small-button--primary" data-action="${companyAction}">${companyLabel} →</button>${canCreate?'<button type="button" class="hub-small-button" data-action="open-create-company">+ 새 회사</button>':''}</div></div>
-      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><span class="hub-kicker">EXPLORE LAC HUB</span><h2 id="hub-contents-title">콘텐츠 둘러보기</h2></div><p>나에게 필요한 서비스를 선택해 보세요.</p></div>
+      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title" tabindex="-1"><div class="hub-contents__title"><div><span class="hub-kicker">EXPLORE LAC HUB</span><h2 id="hub-contents-title">콘텐츠 둘러보기</h2></div><p>나에게 필요한 서비스를 선택해 보세요.</p></div>
         <div class="hub-features">
           ${contentCard({title:HUB_CONTENT.company.name,description:HUB_CONTENT.company.description,image:'company.webp',tag:current?'이용 가능':'회사 선택 필요',tagType:current?'available':'neutral',action:companyAction})}
           ${contentCard({title:'게임 정보',description:'게임과 관련된 정보와 자료를 확인하세요.',image:'game.webp',tag:current?'회사 멤버 이용':'회사 선택 필요',tagType:current?'available':'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'기존 회사별 정보 권한 유지':'현재 회사 가입 후 이용'})}
