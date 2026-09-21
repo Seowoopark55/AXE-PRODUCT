@@ -14,7 +14,7 @@ const assertSingleHero=(html)=>assert.equal((html.match(/class="hub-cta hub-cta-
 const newUser=home();
 assert.match(newUser,/<button type="button" class="hub-cta hub-cta--primary" data-action="open-company-start">\+ 회사 생성/);
 assertSingleHero(newUser);
-assert.doesNotMatch(newUser,/hub-toolbar|MY SPACE|hub-nav|hub-account__company|\+ 새 회사|data-action="open-create-company"/);
+assert.doesNotMatch(newUser,/hub-toolbar|MY SPACE|hub-nav|\+ 새 회사|data-action="open-create-company"/);
 assert.match(shell(),/\+ 회사 생성/);
 
 // The creation RPC may return true for a company member (or a platform owner).
@@ -22,7 +22,7 @@ assert.match(shell(),/\+ 회사 생성/);
 for(const creatorEligible of [true,false]){
   const member=home({...joined,canCreateCompany:creatorEligible});
   assert.match(member,/<button type="button" class="hub-cta hub-cta--primary" data-action="open-company-console">내 회사로 이동/);
-  assert.match(member,/<div class="hub-account"><span class="hub-account__company" title="현재 회사: AXE"><span>내 회사<\/span><strong>AXE<\/strong>/);
+  assert.match(member,/<span class="hub-account__company" title="현재 회사: AXE"><span>소속 회사<\/span><strong>AXE<\/strong>/);
   assert.doesNotMatch(member,/hub-toolbar|MY SPACE|hub-nav|\+ 회사 생성|\+ 새 회사|data-action="open-create-company"/);
   assertSingleHero(member);
   assert.equal((member.match(/data-action="open-company-console"/g)||[]).length,2,'hero and company card only');

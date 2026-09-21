@@ -9,7 +9,7 @@ const strip=renderHubNewsStrip(B);
 assert.equal((strip.match(/data-notice-id=/g)||[]).length,3,'only three real announcements previewed');
 assert.doesNotMatch(strip,/실제 공지 4/);
 assert.match(strip,/서비스 문의<\/strong><small>/);
-assert.match(strip,/LAC HUB 운영자가 등록한 전체 공지/);
+assert.match(strip,/게임 내 공식 공지와 별개인 LAC HUB 사이트 안내/);
 const few=renderHubNewsStrip({...B,hubBoard:{...B.hubBoard,notices:[N('a','하나의 공지')]}});
 assert.equal((few.match(/data-notice-id=/g)||[]).length,1);
 assert.doesNotMatch(few,/실제 공지 2|가상 공지/);

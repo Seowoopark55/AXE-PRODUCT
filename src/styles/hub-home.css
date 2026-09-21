@@ -3,21 +3,44 @@
 .hub-home *{box-sizing:border-box}
 .hub-home button,.hub-home a{font-family:inherit}
 .hub-home button:focus-visible,.hub-home a:focus-visible{outline:2px solid #e9c990;outline-offset:3px}
-.hub-topbar{background:#121820;border-bottom:1px solid rgba(239,228,208,.1)}
+.hub-topbar{position:relative;z-index:12;background:#121820;border-bottom:1px solid rgba(239,228,208,.1)}
 .hub-topbar__inner{max-width:1440px;min-height:64px;margin:auto;padding:8px 34px;display:flex;align-items:center;gap:20px}
 .hub-wordmark{display:flex;align-items:center;gap:9px;white-space:nowrap}.hub-wordmark img{object-fit:contain}.hub-wordmark strong{font-family:Georgia,serif;font-size:21px;letter-spacing:.04em;color:#eed2a3}
-.hub-account{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-left:auto;min-width:0;color:#cad0d8;font-size:12px;white-space:nowrap}.hub-account__name{max-width:145px;overflow:hidden;text-overflow:ellipsis}.hub-account button{font-size:12px;background:none;border:1px solid #39414e;color:#d0d4d8;border-radius:8px;padding:8px 11px}.hub-account .hub-admin-link{color:#dfbc80;border-color:#746040}.hub-account .hub-logout{border-color:transparent}
-/* Current company belongs in the account area; the home hero handles company entry. */
-.hub-account__company{display:inline-flex;align-items:center;gap:7px;max-width:245px;min-width:0;padding:7px 10px;border:1px solid #40505b;border-radius:9px;background:#1b242e;color:#e5ebf0;font-size:12px;line-height:1.35}
-.hub-account__company>span:first-child{font-size:10px;color:#aeb8c3;flex-shrink:0}
-.hub-account__company strong{min-width:0;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#eed1a1}
+/* One familiar account menu for all signed-in members. Admin tools are separate. */
+.hub-account{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;min-width:0;color:#d9dfe6;font-size:12px}
+.hub-account__profile{position:relative;min-width:0}
+.hub-account__trigger{display:flex;align-items:center;gap:10px;list-style:none;min-height:43px;max-width:270px;padding:4px 10px 4px 5px;border:1px solid #3b4b58;border-radius:13px;background:linear-gradient(130deg,#24303c,#19232e);box-shadow:inset 0 1px 0 #ffffff12;color:#e8ebef;cursor:pointer}
+.hub-account__trigger::-webkit-details-marker,.hub-account__company-switch>summary::-webkit-details-marker{display:none}
+.hub-account__trigger:hover,.hub-account__profile[open]>.hub-account__trigger{border-color:#b09368;background:linear-gradient(130deg,#2b3541,#1d2935)}
+.hub-account__trigger>svg{flex-shrink:0;color:#d9b781;transition:transform .16s}
+.hub-account__profile[open]>.hub-account__trigger>svg{transform:rotate(180deg)}
+.hub-account__avatar{display:grid;place-items:center;flex-shrink:0;width:35px;height:35px;overflow:hidden;border:1px solid #91734b;border-radius:10px;background:linear-gradient(140deg,#493925,#242e39);color:#ffe2ac;font-weight:850;font-size:15px}
+.hub-account__avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.hub-account__avatar--large{width:41px;height:41px;border-radius:12px}
+.hub-account__identity{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;max-width:155px;line-height:1.15}
+.hub-account__identity strong{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#f1f1f0}
+.hub-account__identity small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 7px;border:1px solid #7b6440;border-radius:100px;background:#3b3126;color:#f1d5a7;font-size:9px;font-weight:750;line-height:1.1}
+.hub-account__menu{position:absolute;right:0;top:calc(100% + 9px);z-index:18;width:265px;max-width:calc(100vw - 24px);padding:12px;border:1px solid #536171;border-radius:14px;background:linear-gradient(145deg,#202b36,#151e28);box-shadow:0 18px 46px #000a, inset 0 1px 0 #ffffff10;white-space:normal}
+.hub-account__menu-head{display:flex;align-items:center;gap:10px;padding:2px 1px 12px;margin-bottom:10px;border-bottom:1px solid #3c4854}
+.hub-account__menu-head>span:last-child{display:flex;flex-direction:column;min-width:0;gap:4px}
+.hub-account__menu-head small{color:#95a5b4;font-size:10px}
+.hub-account__menu-head strong{min-width:0;overflow-wrap:anywhere;color:#f0eee9;font-size:13px}
+.hub-account__company{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:10px;border:1px solid #485667;border-radius:9px;background:#111b26;color:#e6edf4;line-height:1.25}
+.hub-account__company>span:first-child{flex-shrink:0;color:#9fabb7;font-size:10px}
+.hub-account__company strong{min-width:0;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:auto;color:#f0c993;font-size:12px}
+.hub-account__company--empty{justify-content:center;color:#9da9b6}
 .hub-account__company-switch{position:relative;min-width:0}
 .hub-account__company-switch>summary{cursor:pointer;list-style:none}
-.hub-account__company-switch>summary::-webkit-details-marker{display:none}
-.hub-account__company-menu{position:absolute;z-index:10;top:calc(100% + 7px);right:0;min-width:170px;max-width:min(300px,90vw);padding:6px;border:1px solid #43505d;border-radius:10px;background:#141b24;box-shadow:0 12px 30px #0008;white-space:normal}
-.hub-account .hub-account__company-menu button{display:block;width:100%;text-align:left;border:0;padding:9px 10px;overflow-wrap:anywhere}
-.hub-account .hub-account__company-menu button[aria-current=true]{color:#edcc96;background:#2b2c2a}
-.hub-account__company-switch>summary:focus-visible{outline:2px solid #e9c990;outline-offset:3px}
+.hub-account__company-switch>summary svg{width:12px;height:12px;color:#d4b783}
+.hub-account__company-menu{display:grid;gap:3px;padding:5px 0 0;max-height:180px;overflow-y:auto}
+.hub-account .hub-account__company-menu button{display:block;width:100%;text-align:left;border:0;padding:8px 10px;overflow-wrap:anywhere;background:#1b2835;color:#dce4eb}
+.hub-account .hub-account__company-menu button[aria-current=true]{color:#edcc96;background:#373229}
+.hub-account .hub-logout{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:10px;padding:10px;border:1px solid #384552;border-radius:9px;background:#171f29;color:#c8d2da;font-size:11px;text-align:left}
+.hub-account .hub-logout:hover{border-color:#a48a61;color:#f1d9b0}
+.hub-account__admin-divider{width:1px;height:26px;background:#39414a;flex-shrink:0;margin-left:2px}
+.hub-account .hub-admin-link{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;padding:0;border:1px solid #766042;border-radius:10px;background:#292722;color:#e9c78f;cursor:pointer}
+.hub-account .hub-admin-link:hover{border-color:#e8c795;background:#3a3125}
+.hub-account__profile>summary:focus-visible,.hub-account__company-switch>summary:focus-visible{outline:2px solid #e9c990;outline-offset:3px}
 .hub-body{max-width:1440px;margin:auto;padding:18px 34px 16px}
 .hub-hero{position:relative;min-height:306px;border:1px solid #35404b;border-radius:16px;overflow:hidden;display:flex;align-items:center;background:#141b24 url('/hub/hero.webp') center center/cover no-repeat}
 .hub-hero__shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,14,20,.91) 0%,rgba(9,14,20,.8) 24%,rgba(9,14,20,.44) 52%,rgba(9,14,20,.03) 100%)}
@@ -39,7 +62,7 @@
 @media (min-width:1100px) and (max-height:699px){.hub-body{padding-top:9px}.hub-hero{min-height:205px}.hub-feature__visual{height:90px}.hub-feature__content{min-height:75px;padding:8px 12px}.hub-footer{margin-top:9px}}
 
 @media (max-width:1050px){.hub-topbar__inner{padding:9px 22px;gap:15px;flex-wrap:wrap}.hub-body{padding:16px 22px}.hub-hero{min-height:290px}.hub-features{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.hub-topbar__inner{gap:10px;padding:10px 15px}.hub-wordmark strong{font-size:18px}.hub-wordmark img{width:28px;height:28px}.hub-account{width:100%;gap:6px;flex-wrap:wrap}.hub-account__name{display:none}.hub-account__company{max-width:min(225px,100%)}.hub-account button{padding:6px}.hub-body{padding:12px 13px 20px}.hub-hero{min-height:320px;background-position:63% center}.hub-hero__shade{background:linear-gradient(90deg,rgba(9,14,20,.91),rgba(9,14,20,.64) 72%,rgba(9,14,20,.33))}.hub-hero__copy{padding:26px 19px}.hub-hero h1{font-size:29px}.hub-features{grid-template-columns:1fr;gap:11px}.hub-feature__visual{height:145px}.hub-contents__title{align-items:start;flex-direction:column;gap:3px}.hub-footer{flex-direction:column}}
+@media (max-width:600px){.hub-topbar__inner{gap:10px;padding:10px 15px}.hub-wordmark strong{font-size:18px}.hub-wordmark img{width:28px;height:28px}.hub-account{width:auto;gap:7px;flex-wrap:nowrap}.hub-account__trigger{padding:3px 6px 3px 3px;gap:7px}.hub-account__identity{max-width:105px}.hub-account__menu{width:min(265px,calc(100vw - 24px))}.hub-account .hub-admin-link{width:32px;height:32px}.hub-account__admin-divider{height:22px;margin:0}.hub-body{padding:12px 13px 20px}.hub-hero{min-height:320px;background-position:63% center}.hub-hero__shade{background:linear-gradient(90deg,rgba(9,14,20,.91),rgba(9,14,20,.64) 72%,rgba(9,14,20,.33))}.hub-hero__copy{padding:26px 19px}.hub-hero h1{font-size:29px}.hub-features{grid-template-columns:1fr;gap:11px}.hub-feature__visual{height:145px}.hub-contents__title{align-items:start;flex-direction:column;gap:3px}.hub-footer{flex-direction:column}}
 @media (prefers-reduced-motion:reduce){.hub-feature{transition:none}}
 
 /* Phase 5: one large hit target per available service, no nested buttons. */
