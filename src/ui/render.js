@@ -221,8 +221,13 @@ function renderStandaloneGameInfo(state) {
     </header>
     <main class="game-center__body">
       <section class="game-center__hero" aria-labelledby="game-info-heading">
-        <div class="game-center__hero-copy"><span class="game-center__eyebrow">LAC HUB · GAME INFORMATION</span><h1 id="game-info-heading">게임 정보</h1><p>제작법부터 생산, 퀘스트, 스킬 등급과 개조서까지.<br>필요한 정보를 한곳에서 확인하세요.</p></div>
+        <div class="game-center__hero-copy">
+          <span class="game-center__eyebrow">LAC HUB · LOS SANTOS ROLEPLAY</span>
+          <h1 id="game-info-heading">게임 정보</h1>
+          <p>도시의 제작법과 생산, 퀘스트, 스킬 등급까지.<br>선택한 회사의 개조서와 함께 필요한 정보를 찾아보세요.</p>
+        </div>
         <button type="button" class="game-center__refresh" data-action="info-refresh">↻ 새로고침</button>
+        <span class="game-center__hero-sign" aria-hidden="true">REAL LIFE, ANOTHER STORY</span>
       </section>
       ${renderInfoPage(state)}
       <p class="game-center__context">게임 정보는 독립 콘텐츠입니다. 회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.</p>
