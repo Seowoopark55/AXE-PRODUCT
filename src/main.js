@@ -1087,7 +1087,7 @@ root.addEventListener('click', async event => {
   if(action==='test-center-company-back'){if(!state.platformAdmin||!state.testCenter)return;state.testCenter.screen='preview';render();return;}
   if(action==='test-center-copy-info'){
     if(!state.platformAdmin||!state.testCenter)return;
-    const text=`LAC HUB 멤버 등록 요청\nDiscord 이름: ${state.testCenter.fakeDiscordName}\nDiscord ID: ${state.testCenter.fakeDiscordId}`;
+    const text=`회사 관리 멤버 등록 요청\nDiscord 이름: ${state.testCenter.fakeDiscordName}\nDiscord ID: ${state.testCenter.fakeDiscordId}`;
     try{await navigator.clipboard.writeText(text);setNotice('테스트용 등록 정보를 복사했습니다. 실제 회사 데이터에는 반영되지 않습니다.');}catch{setNotice('테스트 모드입니다. 실제 데이터에는 아무 변화가 없습니다.');}
     return;
   }
@@ -1141,7 +1141,7 @@ root.addEventListener('click', async event => {
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
-    const text=`LAC HUB 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
+    const text=`회사 관리 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
     try{await navigator.clipboard.writeText(text);setNotice('대표에게 전달할 등록 정보를 복사했습니다.');}catch{setError('등록 정보를 복사하지 못했습니다. Discord ID를 직접 전달해 주세요.');}
     return;
   }
@@ -1215,7 +1215,7 @@ root.addEventListener('click', async event => {
         const message=String(error?.message||error||'');
         if(Number(error?.statusCode||0)===403 || /채널 관리 권한/.test(message)){
           state.setupGuide.permissionIssue='manage_channels';
-          state.setupGuide.permissionMessage='LAC HUB이 Discord 채널을 자동 생성하려면 현재 연결된 서버에서 채널 관리 권한 승인이 필요합니다.';
+          state.setupGuide.permissionMessage='회사 관리에서 Discord 채널을 자동 생성하려면 현재 연결된 서버에서 채널 관리 권한 승인이 필요합니다.';
           render();
           return;
         }
@@ -1235,7 +1235,7 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       const plan=setupGuideChannelPlan(); const map={};
       for(const row of plan){const id=String(state.setupGuide.directChannels?.[row.key]||'');if(!id)throw new Error(`${row.label}에 연결할 Discord 채널을 선택해 주세요.`);map[row.key]=id;}
-      await persistSetupGuideChannels(map);await loadQuestionBoard();state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 LAC HUB 기능에 연결했습니다.');
+      await persistSetupGuideChannels(map);await loadQuestionBoard();state.setupGuide=createSetupGuideState(5);await persistSetupGuideProgress(5);setNotice('기존 Discord 채널을 회사 관리 기능에 연결했습니다.');
     });return;
   }
   if(action==='setup-guide-load-members'){

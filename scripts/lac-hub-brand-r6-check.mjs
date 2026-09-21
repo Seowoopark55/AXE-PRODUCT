@@ -9,7 +9,7 @@ const html = read('index.html');
 assert.match(html, /<title>LAC HUB<\/title>/);
 assert.match(html, /content="LAC HUB"/);
 assert.match(read('src/ui/render.js'), /<strong>LAC HUB<\/strong>/);
-assert.match(read('src/main.js'), /LAC HUB 멤버 등록 요청/);
+assert.match(read('src/main.js'), /회사 관리 멤버 등록 요청/);
 assert.match(read('api/discord/setup/channels.js'), /'LAC HUB'/);
 assert.match(read('public/icons/lac-one.svg'), /aria-label="LAC HUB"/);
 assert.match(read('src/ui/layoutStudio.js'), /lac_one_table_type_scale_v1/);
