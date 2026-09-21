@@ -1174,6 +1174,12 @@ root.addEventListener('click', async event => {
   }
   if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
   if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}navigatePrimaryScreen('company-start');render();return;}
+  if(action==='open-hub-game-info'){
+    if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){navigatePrimaryScreen('company-start');render();return;}
+    navigatePrimaryScreen('info');localStorage.setItem('axe_product_page','info');
+    if(!state.info.loaded) await loadGameInfo();
+    render();return;
+  }
   if(action==='open-company-console'){
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){
       navigatePrimaryScreen('company-start');render();return;

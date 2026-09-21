@@ -5,6 +5,17 @@ function esc(value) {
     .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
 
+const ASSETS = '/hub/';
+
+function contentCard({title,description,image,tag,tagType='',action='',disabled=false,footnote=''}) {
+  const stateClass=tagType ? ` hub-feature__tag--${tagType}` : '';
+  const button=action ? `<button type="button" class="hub-feature__enter" data-action="${action}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">→</button>` : `<span class="hub-feature__pending" aria-label="${esc(title)} 연결 준비 중">준비 중</span>`;
+  return `<article class="hub-feature${disabled?' hub-feature--pending':''}">
+    <div class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${tag}</span></div>
+    <div class="hub-feature__content"><div><h3>${esc(title)}</h3><p>${esc(description)}</p>${footnote?`<small>${esc(footnote)}</small>`:''}</div>${button}</div>
+  </article>`;
+}
+
 export function renderHubHome(state) {
   const companies = state.companies || [];
   const current = companies.find(company => company.id === state.companyId) || null;
@@ -12,29 +23,27 @@ export function renderHubHome(state) {
   const displayName = esc(metadata.full_name || metadata.name || metadata.global_name || 'Discord 사용자');
   const owner = state.platformAdmin === true;
   const canCreate = state.canCreateCompany === true;
+  const companyAction = current ? 'open-company-console' : 'open-company-start';
+  const companyLabel = current ? '회사 관리 열기' : '회사 등록 · 가입 안내';
+  const companiesMenu = companies.length > 1 ? `<div class="hub-company-menu"><span>회사 변경</span>${companies.map(company => `<button type="button" data-action="switch-company" data-company-id="${esc(company.id)}" ${company.id === state.companyId ? 'aria-current="true"' : ''}>${esc(company.name)}</button>`).join('')}</div>` : '';
   return `<div class="hub-home">
-    <header class="hub-topbar">
-      <span class="hub-wordmark"><strong>LAC HUB</strong><small>통합 플랫폼</small></span>
-      <div class="hub-account"><span>${displayName}</span>${owner ? '<span class="hub-owner">서비스 운영자</span>' : ''}<button type="button" data-action="logout">로그아웃</button></div>
-    </header>
+    <header class="hub-topbar"><div class="hub-topbar__inner">
+      <span class="hub-wordmark"><img src="${ASSETS}mark.png" alt="" width="32" height="32"><strong>LAC HUB</strong></span>
+      <nav class="hub-nav" aria-label="통합 플랫폼"><span class="hub-nav__current" aria-current="page">홈</span><a href="#hub-contents">콘텐츠</a><button type="button" data-action="${companyAction}">내 회사</button></nav>
+      <div class="hub-account"><span class="hub-account__name">${displayName}</span>${owner?'<button type="button" class="hub-admin-link" data-action="open-platform-admin">관리 센터</button>':''}<button type="button" class="hub-logout" data-action="logout">로그아웃</button></div>
+    </div></header>
     <main class="hub-body">
-      <section class="hub-intro"><span class="hub-eyebrow">YOUR WORKSPACE</span><h1>필요한 기능을 한곳에서</h1><p>Discord 계정으로 콘텐츠를 이용하고, 회사 운영 공간을 관리할 수 있습니다.</p></section>
-      <section class="hub-company" aria-label="회사 선택 및 등록">
-        <div><span class="hub-section-label">회사 공간</span><h2>${current ? esc(current.name) : '소속 회사 없음'}</h2><p>${current ? '선택한 회사의 운영 공간입니다.' : '회사에 소속되지 않아도 HUB 메인을 이용할 수 있습니다.'}</p></div>
-        <div class="hub-company-actions">
-          ${companies.length > 1 || (companies.length && !current) ? `<div class="hub-company-list" aria-label="회사 변경">${companies.map(company => `<button type="button" data-action="switch-company" data-company-id="${esc(company.id)}" ${company.id === state.companyId ? 'aria-current="true"' : ''}>${esc(company.name)}</button>`).join('')}</div>` : ''}
-          ${!companies.length ? '<button type="button" class="hub-btn hub-btn--secondary" data-action="open-company-start">회사 등록 · 가입 안내</button>' : ''}
-          ${canCreate ? '<button type="button" class="hub-btn hub-btn--secondary" data-action="open-create-company">+ 새 회사</button>' : ''}
-          ${owner ? '<button type="button" class="hub-btn hub-btn--secondary" data-action="open-platform-admin">서비스 관리</button>' : ''}
+      <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><span class="hub-kicker">PLAY · CREATE · CONNECT</span><h1 id="hub-headline">즐기는 순간부터<br><em>함께 만드는 내일</em>까지</h1><p>게임 정보부터 회사 운영과 창작 도구까지.<br>LAC HUB에서 필요한 콘텐츠를 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${current?'내 회사로 이동':'회사 등록 · 가입'} <span aria-hidden="true">→</span></button><a class="hub-cta hub-cta--outline" href="#hub-contents">콘텐츠 둘러보기 <span aria-hidden="true">↘</span></a></div></div></section>
+      <div class="hub-toolbar"><div class="hub-toolbar__lead"><span class="hub-toolbar__eyebrow">MY SPACE</span><strong>${current?esc(current.name):'내 회사'}</strong><span class="hub-toolbar__hint">${current?'선택된 회사':'회사에 가입하지 않아도 무료 콘텐츠를 이용할 수 있어요.'}</span></div><div class="hub-toolbar__actions">${companiesMenu}<button type="button" class="hub-small-button hub-small-button--primary" data-action="${companyAction}">${companyLabel} →</button>${canCreate?'<button type="button" class="hub-small-button" data-action="open-create-company">+ 새 회사</button>':''}</div></div>
+      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><span class="hub-kicker">EXPLORE LAC HUB</span><h2 id="hub-contents-title">콘텐츠 둘러보기</h2></div><p>나에게 필요한 서비스를 선택해 보세요.</p></div>
+        <div class="hub-features">
+          ${contentCard({title:HUB_CONTENT.company.name,description:HUB_CONTENT.company.description,image:'company.webp',tag:current?'이용 가능':'회사 선택 필요',tagType:current?'available':'neutral',action:companyAction})}
+          ${contentCard({title:'게임 정보',description:'게임과 관련된 정보와 자료를 확인하세요.',image:'game.webp',tag:current?'회사 멤버 이용':'회사 선택 필요',tagType:current?'available':'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'기존 회사별 정보 권한 유지':'현재 회사 가입 후 이용'})}
+          ${contentCard({title:HUB_CONTENT.build.name,description:HUB_CONTENT.build.description,image:'build.webp',tag:'무료',tagType:'free',disabled:true,footnote:'HUB 연결 준비 중 · 기존 독립 사이트 유지'})}
+          ${contentCard({title:HUB_CONTENT.cook.name,description:HUB_CONTENT.cook.description,image:'cook.webp',tag:'통합 예정',tagType:'neutral',disabled:true,footnote:'서비스 준비 중'})}
         </div>
       </section>
-      <div class="hub-row-heading"><div><span class="hub-section-label">CONTENTS</span><h2>콘텐츠</h2></div><span>이용 가능한 서비스와 연결 예정인 서비스를 확인하세요.</span></div>
-      <section class="hub-cards" aria-label="콘텐츠 목록">
-        <article class="hub-content-card"><span class="hub-card-index">01 · OPERATIONS</span><div class="hub-card-status">기존 서비스</div><h3>${HUB_CONTENT.company.name}</h3><p>${HUB_CONTENT.company.description}</p><div class="hub-card-footer"><span>${current ? '선택 회사로 이동' : '회사 등록 또는 가입 필요'}</span>${current ? '<button type="button" class="hub-btn hub-btn--primary" data-action="open-company-console">회사 관리 열기 →</button>' : '<button type="button" class="hub-btn hub-btn--secondary" data-action="open-company-start">회사 안내 보기 →</button>'}</div></article>
-        <article class="hub-content-card"><span class="hub-card-index">02 · BUILDER</span><div class="hub-card-status hub-card-status--free">무료 이용 정책 확정</div><h3>${HUB_CONTENT.build.name}</h3><p>${HUB_CONTENT.build.description}</p><div class="hub-card-footer"><span>회사 가입 없이 이용 · 연결 준비 중</span><span class="hub-btn hub-btn--disabled" aria-label="LAC BUILD 연결 준비 중">연결 준비 중</span></div></article>
-        <article class="hub-content-card"><span class="hub-card-index">03 · COOKING</span><div class="hub-card-status hub-card-status--planned">통합 예정</div><h3>${HUB_CONTENT.cook.name}</h3><p>${HUB_CONTENT.cook.description}</p><div class="hub-card-footer"><span>이용 정책 추후 결정</span><span class="hub-btn hub-btn--disabled">준비 중</span></div></article>
-      </section>
-      <section class="hub-license" aria-label="이용권 등록 상태"><div><span class="hub-section-label">ACCESS PASS</span><h2>회사별 콘텐츠 이용권</h2><p>회사 관리 이용권 등록은 다음 단계에서 연결합니다. 이용권 등록은 HUB 메인에서 제공될 예정입니다.</p></div><span class="hub-license-pending">등록 기능 준비 중</span></section>
+      <footer class="hub-footer"><span>LAC HUB · PLAY TOGETHER</span><span>회사 관리 · 게임 정보 · LAC BUILD · LAC COOK</span></footer>
     </main>
   </div>`;
 }
