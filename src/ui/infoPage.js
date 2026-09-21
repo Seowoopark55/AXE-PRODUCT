@@ -100,6 +100,30 @@ const itemName=(table,row,data)=>{
  return String(row[CONFIG[table][1]]||'이름 없음');
 };
 const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,value])=>`<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('');
+// Standalone detail presentation: reorganize *existing* DB fields into readable
+// groups. Never synthesize game values or infer prices/conditions from artwork.
+const standaloneDetailSections=htmlFields=>{
+ const sections=[['기본 정보','primary',[]],['제작 · 조건 · 보상','requirements',[]],['참고 정보','notes',[]]];
+ const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
+ for(const match of htmlFields.matchAll(fieldRe)){
+  const label=match[1].replace(/<[^>]+>/g,'');
+  const group=/비고|메모|설명|가격 비고|최근 거래일/.test(label)?2:/재료|부품|투입|수량|조건|포인트|보상|성공률|제작법|옵션|획득 장소|획득처|제작 등급/.test(label)?1:0;
+  const level=/비고|메모|설명/.test(label)?'is-narrative':'';
+  sections[group][2].push(`<div class="axe-info-detail__datum ${level}"><dt>${match[1]}</dt><dd>${match[2]}</dd></div>`);
+ }
+ return `<div class="game-detail-sections">${sections.filter(group=>group[2].length).map(([title,key,rows])=>`<section class="game-detail-section game-detail-section--${key}"><h3>${title}</h3><dl>${rows.join('')}</dl></section>`).join('')}</div>`;
+};
+const itemListSubtitle=(table,row)=>{
+ if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
+ if(table==='info_material_recipes')return '무기부품 · 조합';
+ if(table==='info_processes')return [row.job,row.process_type].filter(Boolean).join(' · ');
+ if(table==='info_quests')return [row.job,row.rank].filter(Boolean).join(' · ');
+ if(table==='info_skill_ranks')return [row.skill,row.rank].filter(Boolean).join(' · ');
+ if(table==='modbook_catalog')return [row.type,modbookCategories(row).slice(0,2).join(', ')].filter(Boolean).join(' · ');
+ return '';
+};
+const listDecor=(table,title,subtitle,search=false)=>`<span class="game-list-symbol" aria-hidden="true">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
+
 const detailFields=(table,row,data,info,owner)=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
@@ -289,15 +313,17 @@ export function renderInfoPage(state,{standalone=false}={}){
  const rows=searching?matches:filters.rows;
  const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
  const detailTitle=selected?itemName(table,selected,data):'';
- const details=selected?`<section class="axe-info-detail" aria-label="상세 정보"><header><span>상세 정보${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><dl>${table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)}</dl></section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const existingFields=selected?(table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)):'';
+ const detailHeading=selected?`<header><span>상세 정보${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio':''}" aria-label="상세 정보">${detailHeading}${standalone?standaloneDetailSections(existingFields):`<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
-   return `<button type="button" class="axe-info-row axe-info-row--search" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}"><strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
+   return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
   }
   const id=String(entry.id),active=id===String(info.selectedId||'');
   const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):itemName(table,entry,data);
-  return `<button type="button" class="axe-info-row ${active?'is-active':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}"><strong>${escapeText(title)}</strong>${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
+  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,itemListSubtitle(table,entry)):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';

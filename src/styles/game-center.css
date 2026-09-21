@@ -88,6 +88,41 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .axe-info-detail__placeholder p{font-size:11px;color:#bdc8d1}
 .game-center .axe-info-owner-note{font-size:10px;color:#8c9baa}
 .game-center .game-center__context{display:none}
+/* PHASE 12 — detail craft, limited to the standalone Game Info shell.
+   This enhances existing row/field presentation; outer proportions stay owned
+   by Phase 11's single game-center.css layout. */
+.game-center .axe-info-list__heading{background:linear-gradient(90deg,rgba(28,39,48,.96),rgba(15,24,32,.94));letter-spacing:.01em}
+.game-center .axe-info-list__items{padding:8px 9px}
+.game-center .axe-info-row--studio{min-height:54px;margin-bottom:6px;padding:7px 32px 7px 9px;gap:10px;border-radius:8px;background:linear-gradient(110deg,rgba(30,44,56,.94),rgba(20,31,42,.98));transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.game-center .axe-info-row--studio .game-list-symbol{display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;border:1px solid rgba(190,155,106,.28);border-radius:8px;color:#d3b384;background:linear-gradient(160deg,rgba(189,149,93,.14),rgba(9,17,25,.2))}
+.game-center .axe-info-row--studio .axe-info-tab-icon{width:17px;height:17px;flex:0 0 auto}
+.game-center .axe-info-row--studio .game-list-label{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.game-center .axe-info-row--studio .game-list-label strong{font-size:12px;font-weight:790;line-height:1.28;color:#f1f1ee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.game-center .axe-info-row--studio .game-list-label small{font-size:10px;font-weight:520;line-height:1.28;color:#a3b3bf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.game-center .axe-info-row--studio.is-active{background:linear-gradient(110deg,rgba(100,77,46,.50),rgba(42,42,39,.71));border-color:#e0b673;box-shadow:inset 3px 0 #f0c483,0 2px 11px rgba(0,0,0,.14)}
+.game-center .axe-info-row--studio.is-active .game-list-symbol{border-color:#d3a766;background:rgba(196,145,72,.2);color:#ffdb9c}
+.game-center .axe-info-row--studio.is-active .game-list-label strong{color:#ffe1ae}
+.game-center .axe-info-row--studio:hover{transform:translateX(2px)}
+.game-center .axe-info-row--studio:focus-visible{outline:2px solid #f2cb8a;outline-offset:2px}
+.game-center .axe-info-detail--studio{padding:0 12px 12px;background:linear-gradient(180deg,rgba(9,17,25,.12),rgba(14,24,32,.94) 49%,#101a23 72%)}
+.game-center .axe-info-detail--studio header{flex:0 0 34%;min-height:112px;gap:8px;padding:12px 9px 15px}
+.game-center .axe-info-detail--studio header strong{font-size:25px;line-height:1.2;letter-spacing:-.025em;text-shadow:0 2px 12px #05080c}
+.game-center .axe-info-detail--studio .game-detail-sections{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;margin-top:10px;padding-bottom:5px}
+.game-center .axe-info-detail--studio .game-detail-section{min-width:0;border:1px solid rgba(102,123,136,.46);border-radius:9px;background:linear-gradient(135deg,rgba(23,37,47,.97),rgba(16,28,38,.94));box-shadow:0 8px 16px rgba(0,0,0,.12);overflow:hidden}
+.game-center .axe-info-detail--studio .game-detail-section h3{display:flex;align-items:center;gap:8px;padding:9px 12px 8px;margin:0;border-bottom:1px solid rgba(145,163,172,.15);font-size:11px;font-weight:820;color:#ecc995;letter-spacing:.02em}
+.game-center .axe-info-detail--studio .game-detail-section h3::before{content:'';width:3px;height:12px;border-radius:2px;background:#d2a461}
+.game-center .axe-info-detail--studio .game-detail-section dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;padding:3px 8px 7px}
+.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;min-height:54px;margin:0;padding:8px 9px;border:0;border-bottom:1px solid rgba(120,142,154,.15);border-radius:0;background:transparent}
+.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-last-child(-n+2){border-bottom:0}
+.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-child(even){border-left:1px solid rgba(120,142,154,.15)}
+.game-center .axe-info-detail--studio .game-detail-section dt{font-size:10px;font-weight:720;line-height:1.3;color:#d4ac78}
+.game-center .axe-info-detail--studio .game-detail-section dd{font-size:12px;font-weight:600;line-height:1.48;color:#eef1f1;overflow-wrap:anywhere}
+.game-center .axe-info-detail--studio .game-detail-section--requirements{border-color:rgba(155,124,78,.51);background:linear-gradient(120deg,rgba(41,39,33,.96),rgba(17,29,38,.96))}
+.game-center .axe-info-detail--studio .game-detail-section--notes dl{grid-template-columns:1fr}
+.game-center .axe-info-detail--studio .game-detail-section--notes .axe-info-detail__datum{border-left:0;border-bottom:0}
+@media(max-height:850px) and (min-width:1100px){.game-center .axe-info-row--studio{min-height:49px}.game-center .axe-info-detail--studio header{flex-basis:30%}.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum{min-height:45px;padding:6px 8px}}
+@media(max-width:740px){.game-center .axe-info-detail--studio header{flex-basis:auto;min-height:130px}.game-center .axe-info-row--studio{min-height:51px}}
+@media(prefers-reduced-motion:reduce){.game-center .axe-info-row--studio{transition:none}.game-center .axe-info-row--studio:hover{transform:none}}
 /* One-view desktop. On low heights/mobile, allow page scroll instead of clipping. */
 @media(min-width:1100px) and (min-height:755px){body:has(.runtime-app--game-info.game-center){overflow-y:hidden}body:has(.runtime-app--game-info.game-center) #app{height:100dvh;min-height:0;overflow:hidden}.runtime-app--game-info.game-center{height:calc(100dvh - 26px);max-height:900px;min-height:0;margin-bottom:14px}.game-center .game-center__body{overflow:hidden}}
 @media(max-width:1099px), (max-height:754px){body:has(.runtime-app--game-info.game-center){overflow-y:auto}.runtime-app--game-info.game-center{min-height:0;height:auto;grid-template-rows:52px auto}.game-center .game-center__body{display:flex;flex-direction:column;gap:10px;overflow:visible}.game-center .game-center__hero{height:245px;flex:0 0 auto}.game-center .axe-info{display:flex;flex-direction:column;gap:9px}.game-center .axe-info-toolbar{top:-75px}.game-center .axe-info-tabs{flex:0 0 50px}.game-center .axe-info-content{height:460px;flex:0 0 auto}}
