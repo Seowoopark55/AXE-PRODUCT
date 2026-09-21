@@ -16,11 +16,6 @@
 @import './styles/hub-home.css';
 @import './styles/platform-center.css';
 @import './styles/game-center.css';
-@import './styles/game-center-premium.css';
-@import './styles/game-center-v2.css';
-@import './styles/game-center-compact.css';
-@import './styles/game-center-density.css';
-@import './styles/game-center-composition.css';
 
 /* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}
