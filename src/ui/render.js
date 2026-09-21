@@ -1,4 +1,5 @@
 import { renderInfoPage } from './infoPage.js';
+import { renderHubHome } from './hubHome.js';
 import { detectLayoutStudioPreset } from './layoutStudio.js';
 
 const ROLE_LABEL = { owner: 'OWNER', admin: 'ADMIN', manager: 'MANAGER', member: 'MEMBER' };
@@ -78,7 +79,7 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : !state.companies?.length && !state.platformAdmin ? renderOnboarding(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
   `;
 }
 
@@ -148,7 +149,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
 
 function renderOnboarding(state) {
   const discord=onboardingDiscordIdentity(state);
-  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
+  return `<button type="button" class="hub-onboarding-back" data-action="go-hub">← HUB 메인</button><section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
 }
 
 function renderAuthed(state) {
@@ -157,7 +158,7 @@ function renderAuthed(state) {
   const connected = state.discordConnection?.status === 'connected';
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
-      <button type="button" class="global-home-zone" data-action="go-dashboard" aria-label="홈으로 이동">
+      <button type="button" class="global-home-zone" data-action="go-hub" aria-label="HUB 메인으로 이동">
         <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>LAC HUB</strong><small>OPERATIONS CONSOLE</small></span></span>
       </button>
       <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">

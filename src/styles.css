@@ -13,6 +13,7 @@
 @import './styles/access-gate.css';
 @import './styles/layout-studio.css';
 @import './styles/lac-type-scale.css';
+@import './styles/hub-home.css';
 
 /* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}

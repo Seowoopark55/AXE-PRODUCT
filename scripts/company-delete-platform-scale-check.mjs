@@ -20,7 +20,7 @@ const checks=[
   ['delete company parent row', sql.includes('delete from axe_product.companies')],
   ['authenticated grant only', sql.includes('grant execute on function axe_product.platform_admin_delete_company(uuid,text) to authenticated')],
   ['scale CSS', css.includes('.platform-service-view') && css.includes('.platform-company-list{min-height:336px}')],
-  ['platform owner survives zero companies', render.includes('!state.companies?.length && !state.platformAdmin') && render.includes("state.platformAdmin?'PLATFORM OWNER':'-'")],
+  ['platform owner survives zero companies', render.includes("state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state)") && render.includes("state.platformAdmin?'PLATFORM OWNER':'-'")],
 ];
 let pass=0;
 for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'} - ${name}`);if(ok)pass++;}

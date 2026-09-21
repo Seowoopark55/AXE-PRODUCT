@@ -23,7 +23,7 @@ import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } fr
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','layout'];
+const validPages = ['hub','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','layout'];
 
 const state = {
   envReady,
@@ -42,7 +42,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: 'dashboard',
+  page: 'hub',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
@@ -754,6 +754,7 @@ async function refreshAll() {
     if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
     await loadCompanies();
+    if(state.page==='company-start' && state.companies.length)state.page='hub';
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
     applyPlatformCompanyVisibility();
@@ -1012,7 +1013,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  if(pageBtn){ if(pageBtn.dataset.page==='hub'){state.page='hub';state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -1109,6 +1110,17 @@ root.addEventListener('click', async event => {
     state.setupDemo.connected=step>=2;
     if(step>=5) state.setupDemo.channelsGenerated=true;
     state.modal={type:'setup-demo',returnToTestCenter:true};
+    render();return;
+  }
+  if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;state.page='hub';state.modal=null;render();return;}
+  if(action==='open-company-start'){if(state.companies.length){state.page='hub';render();return;}state.page='company-start';render();return;}
+  if(action==='open-company-console'){
+    if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){
+      state.page='company-start';render();return;
+    }
+    state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
+    if(!state.fundSnapshot)await withMutation(loadFundSnapshot);
+    if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);
     render();return;
   }
   if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(state.page==='info'&&state.companyId===next)await loadGameInfo();return;}
