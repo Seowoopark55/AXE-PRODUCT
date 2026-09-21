@@ -1199,6 +1199,10 @@ root.addEventListener('click', async event => {
   if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
   if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
   if(action==='open-create-company'){
+    // UI and direct-action guard: a user with an assigned company cannot
+    // create another one from the HUB/company console, even when the RPC
+    // reports eligibility because this account has never been the creator.
+    if(state.companies.length){setError('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');return;}
     // Recheck at click time so an old tab or a stale UI cannot open the form.
     try { state.canCreateCompany=await canCreateCompany(); state.companyCreatePermissionError=false; }
     catch(error){state.canCreateCompany=false;state.companyCreatePermissionError=true;setError(error);return;}
@@ -1653,6 +1657,7 @@ root.addEventListener('submit', async event => {
       render();return;
     }
     if(type==='create-company'){
+      if(state.companies.length)throw new Error('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');
       // Check again before reserving a code; the DB checks once more at INSERT.
       state.canCreateCompany=await canCreateCompany();
       if(!state.canCreateCompany)throw new Error('이미 회사를 생성한 계정은 추가 회사를 등록할 수 없습니다.');

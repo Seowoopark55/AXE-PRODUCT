@@ -157,6 +157,8 @@ function renderAuthed(state) {
   const membership = currentMembership(state);
   const connected = state.discordConnection?.status === 'connected';
   const platformScreen = ['platform', 'layout'].includes(state.page);
+  // A new company can be registered only through companyless first-run onboarding;
+  // the assigned company's console must not expose another creation CTA.
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
       <button type="button" class="global-home-zone" data-action="${platformScreen?'go-hub':'open-company-console'}" aria-label="${platformScreen?'LAC HUB 메인':'회사 관리 대시보드'}로 이동">
@@ -179,7 +181,6 @@ function renderAuthed(state) {
             </button>
             ${state.companyMenuOpen?`<div class="runtime-company-menu" role="listbox">${(state.companies||[]).map(c=>`<button type="button" class="${c.id===state.companyId?'is-current':''}" data-action="switch-company" data-company-id="${esc(c.id)}"><span>${esc(c.name)}</span>${c.id===state.companyId?'<em>현재</em>':''}</button>`).join('')}</div>`:''}
           </div>
-          ${state.canCreateCompany===true?`<div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>`:''}
         </section>
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}

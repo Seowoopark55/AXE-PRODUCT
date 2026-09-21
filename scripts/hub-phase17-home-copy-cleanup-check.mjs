@@ -9,7 +9,9 @@ for(const state of [base,{...base,platformAdmin:false,companies:[],companyId:nul
   assert.match(html,/게임 정보와 다양한 편의 기능을<br>LAC HUB에서 만나보세요/);
   assert.doesNotMatch(html,/PLAY · CREATE · CONNECT|즐기는 순간부터|함께 만드는 내일/);
   assert.doesNotMatch(html,/data-action="browse-hub-contents"|hub-cta--outline/);
-  assert.match(html,/<nav class="hub-nav"[^>]*><span[^>]*>홈<\/span><button[^>]*>내 회사<\/button><\/nav>/);
+  // Phase 18: the duplicated top-level company navigation is replaced by a
+  // single hero CTA; the account area now displays the selected company.
+  assert.doesNotMatch(html,/class="hub-nav"/);
   assert.match(html,/<h2 id="hub-contents-title">콘텐츠<\/h2>/);
   for(const label of ['회사 관리','게임 정보','LAC BUILD','LAC COOK'])assert.ok(html.includes(label),label);
   assert.equal((html.match(/class="hub-feature hub-feature--interactive"/g)||[]).length,state.companies.length?2:2);

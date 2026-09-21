@@ -42,7 +42,8 @@ expect('inactive historical members are not silently reactivated',registerMember
 expect('test center remains non-writing for member registration check',main.includes("if(action==='test-center-member-check')")&&!main.match(/if\(action==='test-center-member-check'\)[\s\S]{0,500}claimDiscordMemberships\(/));
 
 
-expect('company action uses DB creation eligibility instead of company membership',render.includes('state.canCreateCompany===true?`<div class="company-quick-actions')&&api.includes("supabase.rpc('lac_can_create_company')"));
+expect('company creation is offered only in onboarding, not an existing company console',!render.includes('state.canCreateCompany===true?`<div class="company-quick-actions')&&render.includes('canCreateCompany?`<button')&&api.includes("supabase.rpc('lac_can_create_company')"));
+expect('configured-company action and submission reject second company',main.includes("if(state.companies.length){setError('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.')")&&main.includes("if(state.companies.length)throw new Error('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.')"));
 expect('first-run creation CTA respects DB eligibility',render.includes('canCreateCompany:state.canCreateCompany===true')&&render.includes('canCreateCompany?`<button'));
 expect('click and submission recheck eligibility before code redemption',main.includes("if(action==='open-create-company'){ ".trim())&&main.includes('state.canCreateCompany=await canCreateCompany();')&&main.includes('if(!state.canCreateCompany)throw new Error('));
 expect('direct member registration is available to company admins',render.includes('data-action="open-member-register"')&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));

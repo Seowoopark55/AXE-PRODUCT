@@ -11,7 +11,8 @@ for(const name of ['회사 관리','게임 정보','LAC BUILD','LAC COOK'])asser
 assert.match(html,/data-action="open-company-console"/);
 assert.match(html,/data-action="open-hub-game-info"/);
 assert.match(html,/data-action="open-platform-admin"/);
-assert.match(html,/data-action="open-create-company"/);
+// Phase 18: company members must not see an additional create CTA in HUB.
+assert.doesNotMatch(html,/data-action="open-create-company"/);
 assert.doesNotMatch(html,/data-action="open-build"|data-action="open-cook"/);
 assert.doesNotMatch(html,/라크 게임즈/);
 assert.match(html,/실제 회사/);
