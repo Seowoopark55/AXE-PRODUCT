@@ -1,3 +1,4 @@
+import { renderHubNewsStrip } from './hubBoard.js';
 import { HUB_CONTENT } from '../platform/catalog.js';
 
 function esc(value) {
@@ -41,7 +42,8 @@ export function renderHubHome(state) {
     </div></header>
     <main class="hub-body">
       <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><span class="hub-kicker">LAC HUB</span><h1 id="hub-headline">LAC를 즐기는<br><em>더 편리한 방법</em></h1><p>게임 정보와 다양한 편의 기능을<br>LAC HUB에서 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${companyLabel} <span aria-hidden="true">→</span></button></div></div></section>
-      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><span class="hub-kicker">EXPLORE LAC HUB</span><h2 id="hub-contents-title">콘텐츠</h2></div><p>나에게 필요한 서비스를 선택해 보세요.</p></div>
+      ${renderHubNewsStrip(state)}
+      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div></div>
         <div class="hub-features">
           ${contentCard({title:HUB_CONTENT.company.name,description:HUB_CONTENT.company.description,image:'company.webp',tag:current?'이용 가능':'회사 선택 필요',tagType:current?'available':'neutral',action:companyAction})}
           ${contentCard({title:'게임 정보',description:'게임과 관련된 정보와 자료를 확인하세요.',image:'game.webp',tag:current?'회사 멤버 이용':'회사 선택 필요',tagType:current?'available':'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'기존 회사별 정보 권한 유지':'현재 회사 가입 후 이용'})}

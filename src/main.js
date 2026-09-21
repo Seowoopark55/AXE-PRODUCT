@@ -1,6 +1,7 @@
 import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady } from './lib/supabase.js';
+import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
   listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
@@ -24,7 +25,7 @@ import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen 
 const root = document.querySelector('#app');
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['hub','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','game-info','layout'];
+const validPages = ['hub','hub-board','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','game-info','layout'];
 
 const state = {
   envReady,
@@ -62,6 +63,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
+  hubBoard:{notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,error:'',userId:null},
   info: { table:'info_crafts', craftGroup:'근접무기', modbookCategory:'', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', modbookError:'', companyId:null, data:{} },
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
@@ -527,7 +529,7 @@ function navigatePrimaryScreen(page) {
 function allowedHistoryPage(target) {
   const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
   if (!state.session?.user) return 'hub';
-  if (target === 'hub') return target;
+  if (target === 'hub' || target === 'hub-board') return target;
   if (target === 'company-start') return state.companies.length ? 'hub' : target;
   if (target === 'game-info') return companyAvailable ? target : 'hub';
   if (['platform', 'layout'].includes(target)) return state.platformAdmin ? target : 'hub';
@@ -550,6 +552,7 @@ function installPrimaryScreenHistory() {
       localStorage.setItem('axe_product_page', state.page);
     }
     render();
+    if (state.page === 'hub-board') void loadHubBoard();
     // Existing page loaders remain scoped to the selected company. Only lazy
     // loading for the restored view is needed; never re-run OAuth on Back/Forward.
     if (['info','game-info'].includes(state.page) && !state.info.loaded && !state.info.loading) {
@@ -735,6 +738,54 @@ async function openSuggestion(suggestionId) {
   if(String(suggestion.company_id||'')===String(state.companyId||'')) await loadSuggestionBoard();
 }
 
+// LAC HUB board has no company_id dependency; the DB policies enforce author/admin privacy.
+function clearHubBoardFiles(){
+  for(const item of state.hubBoard.files){try{URL.revokeObjectURL(item.url);}catch{}}
+  state.hubBoard.files=[];
+}
+function syncHubBoardPreviews(){
+  const container=root.querySelector('.hub-board__previews');
+  if(!container)return;
+  container.replaceChildren();
+  for(const item of state.hubBoard.files){
+    const frame=document.createElement('div');frame.className='hub-board__preview';
+    const img=document.createElement('img');img.src=item.url;img.alt='첨부 예정 사진';
+    const button=document.createElement('button');button.type='button';button.dataset.action='hub-board-file-remove';button.dataset.fileId=item.id;button.setAttribute('aria-label','첨부 제거');button.textContent='×';
+    frame.append(img,button);container.append(frame);
+  }
+}
+function addHubBoardFiles(files){
+  const selected=checkHubBoardFiles([...state.hubBoard.files.map(item=>item.file),...Array.from(files||[])]);
+  const previous=state.hubBoard.files.length;
+  for(const file of selected.slice(previous))state.hubBoard.files.push({id:crypto.randomUUID(),file,url:URL.createObjectURL(file)});
+  syncHubBoardPreviews();
+}
+async function loadHubBoard(){
+  if(!state.session?.user)return;
+  const userId=state.session.user.id;
+  if(state.hubBoard.userId!==userId){clearHubBoardFiles();state.hubBoard={notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,error:'',userId};}
+  try{
+    const board=await loadHubBoardList(state.platformAdmin);
+    if(state.session?.user?.id!==userId)return;
+    state.hubBoard.notices=board.notices;state.hubBoard.tickets=board.tickets;state.hubBoard.error='';
+  }catch(error){state.hubBoard.error=String(error?.message||error||'게시판을 불러오지 못했습니다.');}
+  if(state.page==='hub'||state.page==='hub-board')render();
+}
+async function openHubBoardTicket(ticketId){
+  const id=String(ticketId||'');
+  if(!id)return;
+  clearHubBoardFiles();state.hubBoard.mode='detail';state.hubBoard.ticket=null;render();
+  const ticket=await loadHubTicket(id);
+  if(state.page!=='hub-board'||state.hubBoard.mode!=='detail')return;
+  ticket.attachments=await Promise.all(ticket.attachments.map(async item=>({...item,signedUrl:await hubBoardImageUrl(item.storage_path).catch(()=>'')})));
+  state.hubBoard.ticket=ticket;render();
+}
+async function storeHubBoardFiles(ticketId,messageId){
+  const files=state.hubBoard.files.map(item=>item.file);
+  if(!files.length)return;
+  await uploadHubBoardFiles(ticketId,messageId,state.session.user.id,files);
+  clearHubBoardFiles();
+}
 async function loadCompanyData() {
   await loadBaseCompanyData();
   if (!canAdmin(state)) { await Promise.all([loadQuestionBoard(),loadSuggestionBoard()]); return; }
@@ -812,7 +863,7 @@ async function refreshAll() {
     await loadCompanies();
     if(state.page==='company-start' && state.companies.length)state.page='hub';
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
-    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
+    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);
     applyPlatformCompanyVisibility();
     state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
@@ -1174,6 +1225,29 @@ root.addEventListener('click', async event => {
     render();return;
   }
   if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
+  if(action==='hub-board-open'||action==='hub-board-compose'){
+    clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode=action==='hub-board-compose'?'compose':'list';state.hubBoard.tab='support';
+    navigatePrimaryScreen('hub-board');render();if(action==='hub-board-open')await loadHubBoard();return;
+  }
+  if(action==='hub-board-tab'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';render();return;}
+  if(action==='hub-board-cancel'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.ticket=null;render();return;}
+  if(action==='hub-board-notice'){
+    const id=String(actionEl.dataset.noticeId||'');
+    if(state.page!=='hub-board')navigatePrimaryScreen('hub-board');
+    clearHubBoardFiles();state.hubBoard.tab='notices';state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
+  }
+  if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;clearHubBoardFiles();state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
+  if(action==='hub-board-ticket'){
+    navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;
+  }
+  if(action==='hub-board-image'){
+    await withMutation(async()=>{const url=await hubBoardImageUrl(String(actionEl.dataset.imagePath||''));window.open(url,'_blank','noopener,noreferrer');});return;
+  }
+  if(action==='hub-board-file-remove'){
+    const id=String(actionEl.dataset.fileId||'');const file=state.hubBoard.files.find(item=>item.id===id);
+    if(file){try{URL.revokeObjectURL(file.url);}catch{}state.hubBoard.files=state.hubBoard.files.filter(item=>item.id!==id);syncHubBoardPreviews();}
+    return;
+  }
   if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-hub-game-info'){
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){navigatePrimaryScreen('company-start');render();return;}
@@ -1540,6 +1614,9 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
+    if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
+    if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;render();return;}
+    if(event.target.matches('[data-hub-board-status]')){if(!state.platformAdmin)return;const ticketId=String(event.target.dataset.ticketId||'');await withMutation(async()=>{await setHubTicketStatus(ticketId,event.target.value);await openHubBoardTicket(ticketId);await loadHubBoard();});return;}
     if(event.target.matches('[data-info-filter-select]')){const field=event.target.dataset.infoFilterSelect;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=event.target.value;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
     if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';await loadGameInfo();return;}
     if(event.target.matches('[data-fund-ledger-month]')){state.fundMonth=event.target.value;state.fundLedgerPage=1;await withMutation(loadFundSnapshot);return;}
@@ -1607,19 +1684,22 @@ document.addEventListener('keydown', event=>{
 root.addEventListener('paste', event=>{
   const files=Array.from(event.clipboardData?.files||[]).filter(f=>f.type?.startsWith('image/'));
   if(!files.length)return;
+  if(state.page==='hub-board' && event.target.closest('.hub-board__form')){event.preventDefault();try{addHubBoardFiles(files);}catch(error){setError(error);}return;}
   if(event.target.closest('[data-ledger-evidence-drop]')){event.preventDefault();addLedgerPendingFiles(files);return;}
   if(['support-question-create','support-question'].includes(state.modal?.type)){event.preventDefault();addQuestionPendingFiles(files);return;}
   if(['suggestion-create','suggestion-thread'].includes(state.modal?.type)){event.preventDefault();addSuggestionPendingFiles(files);}
 });
-root.addEventListener('dragover', event=>{if(event.target.closest('[data-ledger-evidence-drop],[data-support-attachment-drop],[data-suggestion-attachment-drop]'))event.preventDefault();});
+root.addEventListener('dragover', event=>{if(event.target.closest('[data-hub-board-drop],[data-ledger-evidence-drop],[data-support-attachment-drop],[data-suggestion-attachment-drop]'))event.preventDefault();});
 root.addEventListener('drop', event=>{
   const supportDrop=event.target.closest('[data-support-attachment-drop]');
   const suggestionDrop=event.target.closest('[data-suggestion-attachment-drop]');
   const ledgerDrop=event.target.closest('[data-ledger-evidence-drop]');
-  if(!supportDrop&&!suggestionDrop&&!ledgerDrop)return;
+  const hubDrop=event.target.closest('[data-hub-board-drop]');
+  if(!supportDrop&&!suggestionDrop&&!ledgerDrop&&!hubDrop)return;
   event.preventDefault();
   const files=Array.from(event.dataTransfer?.files||[]).filter(f=>f.type?.startsWith('image/'));
   if(!files.length)return;
+  if(hubDrop){try{addHubBoardFiles(files);}catch(error){setError(error);}return;}
   if(supportDrop)addQuestionPendingFiles(files);
   else if(suggestionDrop)addSuggestionPendingFiles(files);
   else addLedgerPendingFiles(files);
@@ -1628,6 +1708,28 @@ root.addEventListener('drop', event=>{
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   await withMutation(async()=>{
+    if(type==='hub-board-ticket'){
+      if(state.page!=='hub-board')throw new Error('게시판에서 작성해 주세요.');
+      const contentKey=String(data.get('content_key')||'');const category=String(data.get('category')||'');
+      const title=String(data.get('title')||'').trim();const body=String(data.get('body')||'').trim();
+      checkHubBoardFiles(state.hubBoard.files.map(item=>item.file));
+      const ticketId=await createHubTicket({contentKey,category,title,body});
+      try{await storeHubBoardFiles(ticketId,null);}catch(error){state.hubBoard.mode='list';await loadHubBoard();setNotice('글은 등록됐지만 사진 첨부에 실패했습니다. 글을 열고 추가 답변에 사진을 다시 첨부해 주세요.');throw error;}
+      await loadHubBoard();await openHubBoardTicket(ticketId);setNotice('문의가 등록됐습니다.');return;
+    }
+    if(type==='hub-board-reply'){
+      const ticketId=String(state.hubBoard.ticket?.id||'');
+      if(!ticketId)throw new Error('게시글을 먼저 선택해 주세요.');
+      const body=String(data.get('body')||'').trim();checkHubBoardFiles(state.hubBoard.files.map(item=>item.file));
+      const messageId=await replyHubTicket(ticketId,body);
+      try{await storeHubBoardFiles(ticketId,messageId);}catch(error){await openHubBoardTicket(ticketId);setNotice('답변은 등록됐지만 사진 첨부에 실패했습니다.');throw error;}
+      await openHubBoardTicket(ticketId);await loadHubBoard();setNotice('답변을 등록했습니다.');return;
+    }
+    if(type==='hub-board-notice'){
+      if(!state.platformAdmin)throw new Error('운영자만 공지를 등록할 수 있습니다.');
+      await publishHubNotice(String(data.get('title')||'').trim(),String(data.get('body')||'').trim());
+      state.hubBoard.mode='list';state.hubBoard.tab='notices';await loadHubBoard();setNotice('공지사항을 등록했습니다.');return;
+    }
     if(type==='test-center-company'){
       if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');
       const name=String(data.get('name')||'').trim();

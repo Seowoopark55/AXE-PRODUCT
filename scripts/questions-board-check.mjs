@@ -18,7 +18,7 @@ const pages=read('src/styles/pages.css');
 const management=read('src/styles/management.css');
 
 ok('questions page is a first-class route', main.includes("'questions'") && render.includes("state.page === 'questions'"));
-ok('support nav retains question board via shared entry and separate tab', render.includes("navItem(state,'questions','문의 · 건의')") && render.includes('supportTabNav(state) + renderQuestions(state)'));
+ok('historic question board stays reachable through HUB archive and separate tab', !render.includes("navItem(state,'questions','문의 · 건의')") && render.includes('supportTabNav(state) + renderQuestions(state)') && read('src/ui/hubBoard.js').includes('data-page="questions"'));
 ok('legacy usage guide launcher removed', !main.includes("action==='open-guide'") && !render.includes('사용 가이드') && !render.includes('guideCenterModal'));
 ok('question board is available to active members', render.indexOf("state.page === 'questions'") < render.indexOf("if (!canAdmin(state))"));
 ok('question board creates questions on site', api.includes('web_support_create_question') && main.includes("type==='support-question-create'"));

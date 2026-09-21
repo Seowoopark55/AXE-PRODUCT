@@ -1,3 +1,4 @@
+import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderHubHome } from './hubHome.js';
 import { detectLayoutStudioPreset } from './layoutStudio.js';
@@ -79,7 +80,7 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'game-info' ? ((state.companies||[]).some(company=>company.id===state.companyId) ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : state.page === 'game-info' ? ((state.companies||[]).some(company=>company.id===state.companyId) ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
   `;
 }
 
@@ -185,7 +186,7 @@ function renderAuthed(state) {
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
           <span class="sidebar-nav__label spaced">정보 · 설정</span>${navItem(state,'info','게임 정보')}${navItem(state,'settings','회사 설정')}
-          <span class="sidebar-nav__label spaced">지원</span>${navItem(state,'questions','문의 · 건의')}
+          
         </nav>
         <footer class="sidebar-footer">
           <div class="connection-status ${connected?'':'is-off'}"><i></i><div><strong>Discord ${connected?'연결됨':'미연결'}</strong><small>${esc(state.discordConnection?.guild_name || '연결 필요')}</small></div></div>
