@@ -5,7 +5,7 @@ import {readPrimaryScreen,recordPrimaryScreen} from '../src/platform/screenHisto
 const base={envReady:true,ready:true,loading:false,session:{user:{id:'u1',user_metadata:{full_name:'LAC 이용자'}}},companies:[{id:'c1',name:'LAC 회사'}],companyId:'c1',memberships:[{user_id:'u1',role:'member'}],platformAdmin:false,canCreateCompany:false,modal:null,info:{table:'info_crafts',data:{},loaded:false,loading:false,error:'',modbookError:'',companyId:null,query:'',filterPrimary:'__all__',filterSecondary:'__all__'},error:'',notice:''};
 const html=(extra)=>{const root={innerHTML:''};renderShell(root,{...base,...extra});return root.innerHTML;};
 const hub=html({page:'hub'});
-assert.equal((hub.match(/data-action="browse-hub-contents"/g)||[]).length,2,'Both header and hero browse buttons act');
+assert.doesNotMatch(hub,/data-action="browse-hub-contents"/,'Redundant content browsing buttons were retired');
 assert.match(hub,/<button type="button" class="hub-feature hub-feature--interactive" data-action="open-company-console"/);
 assert.match(hub,/<button type="button" class="hub-feature hub-feature--interactive" data-action="open-hub-game-info"/);
 assert.equal((hub.match(/class="hub-feature hub-feature--interactive"/g)||[]).length,2,'Only connected services are actionable');
@@ -28,6 +28,6 @@ recordPrimaryScreen(stack,'game-info');
 assert.equal(readPrimaryScreen(stack.state),'game-info','Browser history recognizes standalone page');
 const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 assert.match(main,/if\(action==='open-hub-game-info'\)[\s\S]*?navigatePrimaryScreen\('game-info'\)/);
-assert.match(main,/if\(browse\)[\s\S]*?scrollIntoView/);
+assert.doesNotMatch(main,/browse-hub-contents|hub-contents--emphasized/);
 assert.match(main,/\['info','game-info'\]\.includes\(state\.page\) && !state\.info\.loaded/);
-console.log('PHASE 5 PASS: browse feedback, native whole-card actions, pending cards inert, independent game shell, old info preserved, company scope, browser history.');
+console.log('PHASE 5 PASS: redundant browse action removed, native whole-card actions, pending cards inert, independent game shell, old info preserved, company scope, browser history.');

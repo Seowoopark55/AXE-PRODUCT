@@ -1073,21 +1073,6 @@ async function saveModuleSettingsData(form,data){
 }
 
 root.addEventListener('click', async event => {
-  // Users may already see the whole content grid. In that case, scrolling alone
-  // appears inert: move focus and briefly emphasize the target as real feedback.
-  const browse=event.target.closest('[data-action="browse-hub-contents"]');
-  if(browse){
-    event.preventDefault();
-    const target=root.querySelector('#hub-contents');
-    if(target){
-      target.classList.remove('hub-contents--emphasized');
-      void target.offsetWidth;
-      target.classList.add('hub-contents--emphasized');
-      target.focus({preventScroll:true});
-      target.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
-    }
-    return;
-  }
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
