@@ -229,7 +229,7 @@ function renderStandaloneGameInfo(state) {
         <button type="button" class="game-center__refresh" data-action="info-refresh">↻ 새로고침</button>
         <span class="game-center__hero-sign" aria-hidden="true">REAL LIFE, ANOTHER STORY</span>
       </section>
-      ${renderInfoPage(state)}
+      ${renderInfoPage(state,{standalone:true})}
       <p class="game-center__context">게임 정보는 독립 콘텐츠입니다. 회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.</p>
     </main>
     ${renderModal(state)}
