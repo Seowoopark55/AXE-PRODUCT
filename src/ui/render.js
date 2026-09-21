@@ -177,7 +177,7 @@ function renderAuthed(state) {
             </button>
             ${state.companyMenuOpen?`<div class="runtime-company-menu" role="listbox">${(state.companies||[]).map(c=>`<button type="button" class="${c.id===state.companyId?'is-current':''}" data-action="switch-company" data-company-id="${esc(c.id)}"><span>${esc(c.name)}</span>${c.id===state.companyId?'<em>현재</em>':''}</button>`).join('')}</div>`:''}
           </div>
-          ${(currentMembership(state)?.role==='owner'||state.platformAdmin)?`<div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>`:''}
+          ${state.platformAdmin?`<div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>`:''}
         </section>
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}

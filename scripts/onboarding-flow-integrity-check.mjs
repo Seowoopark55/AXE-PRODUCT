@@ -42,7 +42,8 @@ expect('inactive historical members are not silently reactivated',registerMember
 expect('test center remains non-writing for member registration check',main.includes("if(action==='test-center-member-check')")&&!main.match(/if\(action==='test-center-member-check'\)[\s\S]{0,500}claimDiscordMemberships\(/));
 
 
-expect('existing non-owner does not see additional company action',render.includes("(currentMembership(state)?.role==='owner'||state.platformAdmin)")&&main.includes("role!=='owner'&&!state.platformAdmin"));
+expect('only platform admin sees additional company action for an existing company',render.includes('state.platformAdmin?`<div class=\"company-quick-actions')&&main.includes("if((state.companies||[]).length&&!state.platformAdmin){setError("));
+expect('regular account cannot bypass additional company guard by submitting form',main.includes("if((state.companies||[]).length&&!state.platformAdmin)throw new Error('이미 소속 회사가 있는 일반 계정은 추가 회사를 등록할 수 없습니다.');"));
 expect('direct member registration is available to company admins',render.includes('data-action="open-member-register"')&&render.includes('data-form="member-register"')&&api.includes("'/api/discord/setup/register-member'"));
 expect('direct member registration revalidates company admin server-side',registerMember.includes('await requireCompanyAdmin(token, user.id, companyId)'));
 expect('direct member registration verifies actual Discord guild membership',registerMember.includes("/guilds/${guildId}/members/${discordUserId}"));

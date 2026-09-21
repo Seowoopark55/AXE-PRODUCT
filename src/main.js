@@ -1115,7 +1115,7 @@ root.addEventListener('click', async event => {
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
   if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
   if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
-  if(action==='open-create-company'){const role=currentMembership(state)?.role;if((state.companies||[]).length&&role!=='owner'&&!state.platformAdmin){setError('새 회사 등록은 현재 회사 OWNER만 시작할 수 있습니다. 기존 회사 팀원은 새 회사를 만들 필요가 없습니다.');return;}state.modal={type:'create-company'};render();return;}
+  if(action==='open-create-company'){if((state.companies||[]).length&&!state.platformAdmin){setError('이미 소속 회사가 있는 일반 계정은 추가 회사 등록을 시작할 수 없습니다. 회사 개설이 필요하면 서비스 운영자에게 문의해 주세요.');return;}state.modal={type:'create-company'};render();return;}
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
@@ -1530,6 +1530,7 @@ root.addEventListener('submit', async event => {
       render();return;
     }
     if(type==='create-company'){
+      if((state.companies||[]).length&&!state.platformAdmin)throw new Error('이미 소속 회사가 있는 일반 계정은 추가 회사를 등록할 수 없습니다.');
       const requestedName=String(data.get('name')||'').trim();
       const createCode=String(data.get('create_code')||'').trim();
       if(!requestedName||!createCode)throw new Error('회사 이름과 개설 코드를 입력해 주세요.');
