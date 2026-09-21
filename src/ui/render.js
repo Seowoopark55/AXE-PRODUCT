@@ -160,7 +160,7 @@ function renderAuthed(state) {
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
       <button type="button" class="global-home-zone" data-action="${platformScreen?'go-hub':'open-company-console'}" aria-label="${platformScreen?'LAC HUB 메인':'회사 관리 대시보드'}로 이동">
-        <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>${platformScreen?'서비스 관리':'회사 관리'}</strong><small>${platformScreen?'LAC HUB · PLATFORM':'OPERATIONS CONSOLE'}</small></span></span>
+        <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>${platformScreen?'서비스 관리':'회사 관리'}</strong>${platformScreen?'<small>LAC HUB · PLATFORM</small>':''}</span></span>
       </button>
       <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">
         <button type="button" class="global-hub-return" data-action="go-hub" aria-label="LAC HUB 통합 메인으로 돌아가기">← LAC HUB</button>

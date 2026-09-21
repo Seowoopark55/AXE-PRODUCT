@@ -524,27 +524,36 @@ function navigatePrimaryScreen(page) {
   state.page = page;
 }
 
+function allowedHistoryPage(target) {
+  const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
+  if (!state.session?.user) return 'hub';
+  if (target === 'hub') return target;
+  if (target === 'company-start') return state.companies.length ? 'hub' : target;
+  if (['platform', 'layout'].includes(target)) return state.platformAdmin ? target : 'hub';
+  return companyAvailable ? target : 'hub';
+}
+
 function installPrimaryScreenHistory() {
+  // Restore the target before the first authenticated render, so a restored
+  // company route is never briefly painted and then replaced by HUB (or vice versa).
   const initial = initializePrimaryScreenHistory(window.history);
-  if (initial !== 'hub') {
-    const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
-    if ((initial === 'dashboard' && companyAvailable) ||
-        (initial === 'company-start' && !state.companies.length) ||
-        (['platform', 'layout'].includes(initial) && state.platformAdmin)) state.page = initial;
-    render();
-  }
+  state.page = initial;
   window.addEventListener('popstate', event => {
     const target = readPrimaryScreen(event.state);
-    if (!target) return; // An older unrelated browser entry remains the browser's responsibility.
-    const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
-    state.page = !state.session?.user ||
-      (target === 'dashboard' && !companyAvailable) ||
-      (['platform', 'layout'].includes(target) && !state.platformAdmin) ||
-      (target === 'company-start' && state.companies.length) ? 'hub' : target;
+    if (!target) return; // An unrelated browser entry remains the browser's responsibility.
+    state.page = allowedHistoryPage(target);
     state.accountMenuOpen = false;
     state.companyMenuOpen = false;
     state.modal = null;
+    if (state.page !== 'hub' && state.page !== 'company-start') {
+      localStorage.setItem('axe_product_page', state.page);
+    }
     render();
+    // Existing page loaders remain scoped to the selected company. Only lazy
+    // loading for the restored view is needed; never re-run OAuth on Back/Forward.
+    if (state.page === 'info' && !state.info.loaded && !state.info.loading) {
+      void loadGameInfo();
+    }
   });
 }
 
@@ -788,6 +797,7 @@ async function refreshAll() {
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
     applyPlatformCompanyVisibility();
+    state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
     if(state.page==='info')await loadGameInfo();
     state.ready=true;
@@ -959,8 +969,10 @@ function installSessionResumeRecovery(){
 
 async function boot() {
   if(!envReady){state.ready=true;render();return;}
-  try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
   installPrimaryScreenHistory();
+  // Keep the HUB startup screen until the session and the requested route are ready.
+  render();
+  try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
   installSessionResumeRecovery();
   if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
@@ -1044,7 +1056,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -1183,7 +1195,7 @@ root.addEventListener('click', async event => {
       if(!state.companies.length) throw new Error('아직 멤버 등록이 확인되지 않습니다. 대표 또는 관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
       if(!state.companyId||!state.companies.some(company=>company.id===state.companyId)) state.companyId=state.companies[0].id;
       localStorage.setItem('axe_product_company_id',state.companyId);
-      state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
+      navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');
       await loadCompanyData();
       state.ready=true;
       setNotice('멤버 등록을 확인했습니다. 소속 회사로 연결했습니다.');
@@ -1410,7 +1422,7 @@ root.addEventListener('click', async event => {
   }
   if(action==='dashboard-jump'){
     const page=String(actionEl.dataset.page||'dashboard');
-    if(validPages.includes(page)){state.page=page;localStorage.setItem('axe_product_page',page);}
+    if(validPages.includes(page)){navigatePrimaryScreen(page);localStorage.setItem('axe_product_page',page);}
     if(actionEl.dataset.fundTab){state.fundTab=String(actionEl.dataset.fundTab);localStorage.setItem('axe_product_fund_tab',state.fundTab);}
     if(actionEl.dataset.settingsTab){state.settingsTab=String(actionEl.dataset.settingsTab);localStorage.setItem('axe_product_settings_tab',state.settingsTab);}
     if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot);

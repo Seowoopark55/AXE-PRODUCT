@@ -195,3 +195,7 @@
 .global-hub-return:hover{border-color:rgba(213,163,67,.45);background:#181811}
 .global-hub-return:focus-visible{outline:2px solid #d9b566;outline-offset:2px}
 @media(max-width:760px){.global-hub-return{padding:7px 8px;font-size:11px}.runtime-account-trigger{min-width:0}}
+
+/* Company-content branding: one clear heading, no redundant English subtitle. */
+.runtime-app:not(.runtime-app--platform):not(.runtime-app--layout) .global-home-zone .product-brand strong{font-size:calc(23px * var(--lac-type-scale, 1));letter-spacing:.035em;line-height:1.2}
+@media(max-width:760px){.runtime-app:not(.runtime-app--platform):not(.runtime-app--layout) .global-home-zone .product-brand strong{font-size:calc(21px * var(--lac-type-scale, 1))}}

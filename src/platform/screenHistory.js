@@ -2,7 +2,7 @@
 // browser Back/Forward buttons an in-app destination instead of unexpectedly
 // jumping to the preceding (possibly expired) Discord OAuth callback.
 export const SCREEN_HISTORY_KEY = 'lac_hub_primary_screen_v1';
-const SCREENS = new Set(['hub', 'company-start', 'dashboard', 'platform', 'layout']);
+const SCREENS = new Set(['hub', 'company-start', 'dashboard', 'fund', 'members', 'assets', 'accounts', 'questions', 'suggestions', 'settings', 'info', 'platform', 'layout']);
 
 export function readPrimaryScreen(entry) {
   const value = entry && typeof entry === 'object' ? entry[SCREEN_HISTORY_KEY] : null;

@@ -23,12 +23,26 @@ assert.equal(history.length, 2);
 assert.equal(readPrimaryScreen(history.state), 'dashboard');
 assert.equal(readPrimaryScreen(history.back()), 'hub'); // Back stays inside HUB.
 assert.equal(readPrimaryScreen(history.forward()), 'dashboard');
+recordPrimaryScreen(history, 'fund');
+recordPrimaryScreen(history, 'members');
+recordPrimaryScreen(history, 'assets');
+assert.equal(history.length, 5);
+assert.equal(readPrimaryScreen(history.back()), 'members');
+assert.equal(readPrimaryScreen(history.back()), 'fund');
+assert.equal(readPrimaryScreen(history.back()), 'dashboard');
+assert.equal(readPrimaryScreen(history.back()), 'hub'); // Do not jump to OAuth after one Back.
+assert.equal(readPrimaryScreen(history.forward()), 'dashboard');
+assert.equal(readPrimaryScreen(history.forward()), 'fund');
+recordPrimaryScreen(history, 'settings'); // Branching removes old forward entries.
+assert.equal(readPrimaryScreen(history.back()), 'fund');
+assert.equal(readPrimaryScreen(history.forward()), 'settings');
+assert.equal(initializePrimaryScreenHistory(history), 'settings'); // Same-entry reload.
+recordPrimaryScreen(history, 'settings'); // Current page should not add a duplicate entry.
+assert.equal(history.length, 4);
 recordPrimaryScreen(history, 'hub');
-assert.equal(readPrimaryScreen(history.back()), 'dashboard');
-recordPrimaryScreen(history, 'company-start'); // Branching removes the old forward entry.
-assert.equal(readPrimaryScreen(history.back()), 'dashboard');
+recordPrimaryScreen(history, 'company-start');
+assert.equal(readPrimaryScreen(history.back()), 'hub');
 assert.equal(readPrimaryScreen(history.forward()), 'company-start');
-assert.equal(initializePrimaryScreenHistory(history), 'company-start'); // Same-entry reload.
 assert.equal(readPrimaryScreen(null), null);
 assert.throws(() => recordPrimaryScreen(history, 'logout'), /Invalid HUB screen/);
-console.log('HUB history: PASS (browser Back/Forward, company entry, reload, state preservation).');
+console.log('HUB history: PASS (category-by-category Back/Forward, company entry, reload, state preservation).');
