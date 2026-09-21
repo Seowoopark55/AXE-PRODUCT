@@ -1225,10 +1225,12 @@ root.addEventListener('click', async event => {
     render();return;
   }
   if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
+  if(action==='hub-board-notices'){clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';navigatePrimaryScreen('hub-board');await loadHubBoard();state.hubBoard.tab='notices';render();return;}
   if(action==='hub-board-open'||action==='hub-board-compose'){
     clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode=action==='hub-board-compose'?'compose':'list';state.hubBoard.tab='support';
     navigatePrimaryScreen('hub-board');render();if(action==='hub-board-open')await loadHubBoard();return;
   }
+  if(action==='hub-board-quick'){const category=String(actionEl.dataset.boardCategory||'all');state.hubBoard.filterCategory=state.hubBoard.filterCategory===category?'all':category;state.hubBoard.mode='list';state.hubBoard.tab='support';render();return;}
   if(action==='hub-board-tab'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';render();return;}
   if(action==='hub-board-cancel'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.ticket=null;render();return;}
   if(action==='hub-board-notice'){
@@ -1615,7 +1617,7 @@ root.addEventListener('click', async event => {
 root.addEventListener('change', async event => {
   try{
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
-    if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;render();return;}
+    if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
     if(event.target.matches('[data-hub-board-status]')){if(!state.platformAdmin)return;const ticketId=String(event.target.dataset.ticketId||'');await withMutation(async()=>{await setHubTicketStatus(ticketId,event.target.value);await openHubBoardTicket(ticketId);await loadHubBoard();});return;}
     if(event.target.matches('[data-info-filter-select]')){const field=event.target.dataset.infoFilterSelect;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=event.target.value;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
     if(event.target.matches('[data-info-inactive]')){state.info.showInactive=Boolean(event.target.checked);state.info.selectedId='';await loadGameInfo();return;}
@@ -1660,6 +1662,7 @@ root.addEventListener('change', async event => {
   }catch(error){setError(error);}
 });
 root.addEventListener('input', event => {
+  if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
   if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';const pos=event.target.selectionStart;render();const el=root.querySelector('[data-info-query]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
