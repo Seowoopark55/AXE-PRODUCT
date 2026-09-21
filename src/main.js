@@ -19,6 +19,7 @@ import {
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks,
 } from './lib/productApi.js';
 import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
+import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
 const now = new Date();
@@ -518,6 +519,35 @@ function suppressBrowserFormHistory() {
     field.setAttribute('spellcheck','false');
   });
 }
+function navigatePrimaryScreen(page) {
+  recordPrimaryScreen(window.history, page);
+  state.page = page;
+}
+
+function installPrimaryScreenHistory() {
+  const initial = initializePrimaryScreenHistory(window.history);
+  if (initial !== 'hub') {
+    const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
+    if ((initial === 'dashboard' && companyAvailable) ||
+        (initial === 'company-start' && !state.companies.length) ||
+        (['platform', 'layout'].includes(initial) && state.platformAdmin)) state.page = initial;
+    render();
+  }
+  window.addEventListener('popstate', event => {
+    const target = readPrimaryScreen(event.state);
+    if (!target) return; // An older unrelated browser entry remains the browser's responsibility.
+    const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
+    state.page = !state.session?.user ||
+      (target === 'dashboard' && !companyAvailable) ||
+      (['platform', 'layout'].includes(target) && !state.platformAdmin) ||
+      (target === 'company-start' && state.companies.length) ? 'hub' : target;
+    state.accountMenuOpen = false;
+    state.companyMenuOpen = false;
+    state.modal = null;
+    render();
+  });
+}
+
 function render() { renderShell(root, state); suppressBrowserFormHistory(); }
 function setNotice(message) {
   state.notice = String(message || ''); state.error = ''; render();
@@ -871,7 +901,7 @@ function discordOAuthErrorMessage(code) {
 async function handleDiscordOAuthReturn() {
   const raw=String(location.hash||'').replace(/^#/,''); if(!raw)return;
   const params=new URLSearchParams(raw); const token=params.get('discord_link'); const error=params.get('discord_error');
-  if(!token&&!error)return; history.replaceState(null,'',`${location.pathname}${location.search}`);
+  if(!token&&!error)return; history.replaceState(history.state,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
   const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
@@ -930,6 +960,7 @@ function installSessionResumeRecovery(){
 async function boot() {
   if(!envReady){state.ready=true;render();return;}
   try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
+  installPrimaryScreenHistory();
   installSessionResumeRecovery();
   if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
@@ -1013,7 +1044,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(pageBtn.dataset.page==='hub'){state.page='hub';state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; state.page=pageBtn.dataset.page; localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -1066,14 +1097,14 @@ root.addEventListener('click', async event => {
   if(action==='suggestion-category'){state.suggestionCategory=String(actionEl.dataset.suggestionCategory||'all');state.suggestionPage=1;render();return;}
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
-  if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='layout';localStorage.setItem('axe_product_page','layout');state.layoutSaved=loadLayoutStudioProfile();state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
+  if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('layout');localStorage.setItem('axe_product_page','layout');state.layoutSaved=loadLayoutStudioProfile();state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-toggle-advanced'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutAdvanced=!state.layoutAdvanced;render();return;}
   if(action==='layout-preset'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=applyLayoutStudioPreset(state.layoutDraft,String(actionEl.dataset.layoutType||''),String(actionEl.dataset.layoutValue||''));state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-adjust'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=adjustLayoutStudioValue(state.layoutDraft,String(actionEl.dataset.layoutKey||''),Number(actionEl.dataset.layoutDelta||0));state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-save'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutSaved=saveLayoutStudioProfile(state.layoutDraft);state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-revert'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-reset-default'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=clearLayoutStudioProfile();state.layoutSaved={...state.layoutDraft};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.page='platform';localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -1112,13 +1143,13 @@ root.addEventListener('click', async event => {
     state.modal={type:'setup-demo',returnToTestCenter:true};
     render();return;
   }
-  if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;state.page='hub';state.modal=null;render();return;}
-  if(action==='open-company-start'){if(state.companies.length){state.page='hub';render();return;}state.page='company-start';render();return;}
+  if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
+  if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-company-console'){
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){
-      state.page='company-start';render();return;
+      navigatePrimaryScreen('company-start');render();return;
     }
-    state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');
+    navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');
     if(!state.fundSnapshot)await withMutation(loadFundSnapshot);
     if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);
     render();return;
@@ -1159,7 +1190,7 @@ root.addEventListener('click', async event => {
     });
     return;
   }
-  if(action==='go-dashboard'){state.accountMenuOpen=false;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
+  if(action==='go-dashboard'){state.accountMenuOpen=false;navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
     if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
