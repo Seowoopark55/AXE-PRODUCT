@@ -120,7 +120,7 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
+function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false}={}) {
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
   const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
   const checkAction=testMode?'test-center-member-check':'check-member-registration';
@@ -132,8 +132,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
     <div class="runtime-first-run__grid">
       <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>서비스 운영자에게 회사 개설 코드를 발급받아야 새 운영 공간을 만들 수 있습니다.</p>
         <div class="runtime-first-run__new-flow"><span>개설 코드 확인</span><i>→</i><span>Discord 연결</span><i>→</i><span>초기설정</span></div>
-        <button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">새 회사 등록 시작</button>
-        <small class="runtime-first-run__auto">코드에는 등록할 회사 이름이 지정되어 있습니다.</small>
+        ${canCreateCompany?`<button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">새 회사 등록 시작</button><small class="runtime-first-run__auto">코드에는 등록할 회사 이름이 지정되어 있습니다.</small>`:`<div class="runtime-first-run__warning">${accessError?'회사 생성 권한을 확인하지 못했습니다. 잠시 후 새로고침해 주세요.':'이미 회사를 생성한 계정은 새 회사를 만들 수 없습니다. 다른 회사의 멤버로 등록하는 것은 가능합니다.'}</div>`}
         <div class="runtime-first-run__warning">이미 운영 중인 회사의 팀원이라면 새 회사를 만들지 말고 오른쪽 안내를 따라주세요.</div>
       </article>
       <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 LAC HUB에 진입할 수 없습니다.</p>
@@ -149,7 +148,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck=''}={}) {
 
 function renderOnboarding(state) {
   const discord=onboardingDiscordIdentity(state);
-  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord)}</div></section>`;
+  return `<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
 }
 
 function renderAuthed(state) {
@@ -177,7 +176,7 @@ function renderAuthed(state) {
             </button>
             ${state.companyMenuOpen?`<div class="runtime-company-menu" role="listbox">${(state.companies||[]).map(c=>`<button type="button" class="${c.id===state.companyId?'is-current':''}" data-action="switch-company" data-company-id="${esc(c.id)}"><span>${esc(c.name)}</span>${c.id===state.companyId?'<em>현재</em>':''}</button>`).join('')}</div>`:''}
           </div>
-          ${state.platformAdmin?`<div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>`:''}
+          ${state.canCreateCompany===true?`<div class="company-quick-actions company-quick-actions--single"><button class="accent-action" data-action="open-create-company">+ 새 회사</button></div>`:''}
         </section>
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}

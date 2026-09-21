@@ -1544,6 +1544,14 @@ export async function updateCompanyModuleSettings(companyId, moduleKey, settings
 // ============================================================
 // AXE ONE 3.21.0 — PLATFORM OWNER + LEDGER EVIDENCE
 // ============================================================
+// Only returns whether the currently authenticated account can create a company.
+// The database RPC is authoritative; membership/OWNER status is not a proxy.
+export async function canCreateCompany() {
+  assertClient();
+  const result = await supabase.rpc('lac_can_create_company');
+  return Boolean(unwrap(result, '회사 생성 권한을 확인하지 못했습니다.'));
+}
+
 export async function isPlatformAdmin() {
   assertClient();
   const result = await supabase.rpc('platform_is_admin');

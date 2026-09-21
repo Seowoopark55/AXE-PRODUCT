@@ -11,7 +11,7 @@ import {
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
-  isPlatformAdmin, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany,
+  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
@@ -56,7 +56,7 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
-  platformAdmin:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', currentSubscription:null,
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -747,6 +747,10 @@ async function refreshAll() {
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
+    // Fail closed for creation UI without blocking access to existing companies.
+    state.companyCreatePermissionError=false;
+    try { state.canCreateCompany=await canCreateCompany(); }
+    catch { state.canCreateCompany=false; state.companyCreatePermissionError=true; }
     if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
     await loadCompanies();
@@ -908,7 +912,7 @@ async function recoverSessionOnResume({force=false}={}) {
       if(before!==after || !state.ready){state.ready=false;await refreshAll();}
       return;
     }
-    if(state.session?.user){state.session=null;clearCompanyData();state.ready=true;render();}
+    if(state.session?.user){state.session=null;state.canCreateCompany=false;state.companyCreatePermissionError=false;clearCompanyData();state.ready=true;render();}
   }catch(error){
     console.warn('LAC HUB session recovery skipped after transient error',error);
   }finally{sessionRecoveryBusy=false;}
@@ -933,7 +937,7 @@ async function boot() {
       if(event==='SIGNED_OUT' && Date.now()>manualSignOutUntil){await recoverSessionOnResume({force:true});return;}
       const before=state.session?.user?.id||null; const after=session?.user?.id||null;
       state.session=session;
-      if(before!==after){state.ready=false;await refreshAll();}
+      if(before!==after){state.canCreateCompany=false;state.companyCreatePermissionError=false;state.ready=false;await refreshAll();}
     },0);
   });
 }
@@ -1115,7 +1119,13 @@ root.addEventListener('click', async event => {
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
   if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
   if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
-  if(action==='open-create-company'){if((state.companies||[]).length&&!state.platformAdmin){setError('이미 소속 회사가 있는 일반 계정은 추가 회사 등록을 시작할 수 없습니다. 회사 개설이 필요하면 서비스 운영자에게 문의해 주세요.');return;}state.modal={type:'create-company'};render();return;}
+  if(action==='open-create-company'){
+    // Recheck at click time so an old tab or a stale UI cannot open the form.
+    try { state.canCreateCompany=await canCreateCompany(); state.companyCreatePermissionError=false; }
+    catch(error){state.canCreateCompany=false;state.companyCreatePermissionError=true;setError(error);return;}
+    if(!state.canCreateCompany){setError('이미 회사를 생성한 계정은 새 회사를 추가로 만들 수 없습니다. 기존 회사에 멤버로 가입하는 것은 가능합니다.');return;}
+    state.modal={type:'create-company'};render();return;
+  }
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
@@ -1530,12 +1540,16 @@ root.addEventListener('submit', async event => {
       render();return;
     }
     if(type==='create-company'){
-      if((state.companies||[]).length&&!state.platformAdmin)throw new Error('이미 소속 회사가 있는 일반 계정은 추가 회사를 등록할 수 없습니다.');
+      // Check again before reserving a code; the DB checks once more at INSERT.
+      state.canCreateCompany=await canCreateCompany();
+      if(!state.canCreateCompany)throw new Error('이미 회사를 생성한 계정은 추가 회사를 등록할 수 없습니다.');
       const requestedName=String(data.get('name')||'').trim();
       const createCode=String(data.get('create_code')||'').trim();
       if(!requestedName||!createCode)throw new Error('회사 이름과 개설 코드를 입력해 주세요.');
       await redeemCompanyCreateCode(createCode,requestedName);
       const created=await createCompany(requestedName);
+      // Admin stays eligible; a regular account has now used its one creation.
+      state.canCreateCompany=await canCreateCompany().catch(()=>false);
       state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');
       if(!created?.id)throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
       state.companyId=created.id;
