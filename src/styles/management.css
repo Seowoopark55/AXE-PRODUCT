@@ -406,7 +406,7 @@
 
 
 /* AXE ONE 3.26.4 · scalable PLATFORM service management */
-.platform-service-tabs{width:760px;max-width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px;padding:5px;border:1px solid var(--line);border-radius:11px;background:#0c1117}
+.platform-service-tabs{width:760px;max-width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 10px;padding:5px;border:1px solid var(--line);border-radius:11px;background:#0c1117}
 .platform-service-tabs button{min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid transparent;border-radius:8px;background:transparent;color:#78838d;font-size:calc((9px) * var(--lac-type-scale, 1));font-weight:850;cursor:pointer}
 .platform-service-tabs button:hover{background:rgba(255,255,255,.018);color:#b6bec6}.platform-service-tabs button.is-active{border-color:rgba(228,178,75,.18);background:rgba(228,178,75,.045);color:#e0bd6d}.platform-service-tabs em{min-width:20px;height:19px;display:grid;place-items:center;padding:0 5px;border:1px solid #29333c;border-radius:999px;color:#7f8a94;font-size:calc((7.5px) * var(--lac-type-scale, 1));font-style:normal}.platform-service-tabs button.is-active em{border-color:rgba(228,178,75,.2);color:#d4ac59}
 .platform-service-view{width:760px;max-width:100%;min-height:150px}.platform-service-view>.platform-support-board,.platform-service-view>.platform-board{margin-bottom:0}.platform-company-meta{min-height:30px;padding-left:10px;padding-right:10px}.platform-company-list{min-height:336px}.platform-company-list>.runtime-empty{min-height:336px}
@@ -603,3 +603,18 @@
   .platform-company-row>div:nth-child(6)::before{content:'이용 종료  ';color:#66727d;font-size:calc((8px) * var(--lac-type-scale, 1))}
   .platform-company-row>div:nth-child(7)::before{content:'OWNER  ';color:#66727d;font-size:calc((8px) * var(--lac-type-scale, 1))}
 }
+
+/* LAC HUB phase 2: platform owner content policy storage UI (not an access gate). */
+.lac-content-admin{width:760px;max-width:100%;display:grid;gap:12px}
+.lac-content-warning{display:grid;gap:5px;padding:13px;border:1px solid rgba(228,178,75,.25);border-radius:10px;background:#18150e;color:#bbab8c;font-size:calc(11px * var(--lac-type-scale,1));line-height:1.55}
+.lac-content-warning strong{color:#e6c37b;font-size:calc(12px * var(--lac-type-scale,1))}
+.lac-content-error{color:#f6a2a2}
+.lac-content-admin>header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lac-content-admin>header h2{font-size:calc(16px * var(--lac-type-scale,1));margin:0}
+.lac-content-admin-list{display:grid;gap:8px}
+.lac-content-admin-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;border:1px solid #303940;border-radius:11px;background:#121920}
+.lac-content-admin-name{display:grid;gap:4px}.lac-content-admin-name strong{font-size:calc(14px * var(--lac-type-scale,1))}.lac-content-admin-name small{color:#82919e;font-size:calc(10px * var(--lac-type-scale,1))}
+.lac-content-admin-actions{display:flex;align-items:center;gap:15px}.lac-content-admin-actions label{display:flex;align-items:center;gap:7px;color:#abb6c1;font-size:calc(11px * var(--lac-type-scale,1))}
+.lac-content-toggle{min-width:56px;height:34px;border-radius:8px;border:1px solid #39444e;background:#202831;color:#acb7c1;font-weight:800;font-size:calc(11px * var(--lac-type-scale,1))}
+.lac-content-toggle.is-on{border-color:rgba(228,178,75,.48);background:#332918;color:#eeca77}
+@media(max-width:700px){.lac-content-admin-row,.lac-content-admin-actions{flex-wrap:wrap}.lac-content-admin-actions{gap:8px 14px}.platform-service-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}

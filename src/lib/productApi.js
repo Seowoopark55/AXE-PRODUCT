@@ -1558,6 +1558,24 @@ export async function isPlatformAdmin() {
   return Boolean(unwrap(result, '플랫폼 관리자 권한을 확인하지 못했습니다.'));
 }
 
+// Platform-only RPCs. Client-side owner checks are presentation guards; the
+// SECURITY DEFINER functions themselves verify platform_is_admin().
+export async function listPlatformContentSettings() {
+  assertClient();
+  const result = await supabase.rpc('lac_admin_list_content_settings');
+  return unwrap(result, '콘텐츠 운영 설정을 불러오지 못했습니다.') || [];
+}
+
+export async function updatePlatformContentSetting(contentKey, isPublished, isFree) {
+  assertClient();
+  const result = await supabase.rpc('lac_admin_update_content_setting', {
+    p_content_key: contentKey,
+    p_is_published: isPublished,
+    p_is_free: isFree,
+  });
+  return unwrap(result, '콘텐츠 운영 설정을 저장하지 못했습니다.');
+}
+
 export async function getPlatformCompanies() {
   assertClient();
   const result = await supabase.rpc('platform_admin_list_companies');

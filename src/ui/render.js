@@ -636,11 +636,24 @@ function renderPlatformSuggestionQueue(state){
   return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>건의 · 제보</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
 }
 
+function renderPlatformContentSettings(state) {
+  const rows = state.platformContentSettings;
+  const note = '<div class="lac-content-warning"><strong>설정 저장 단계</strong><span>현재 ON/OFF는 DB에 저장되는 운영 정책입니다. 실제 접근 차단·무료 이용권 판정·독립 BUILD 사이트에는 아직 적용되지 않습니다. 회사 관리 이용도 기존 방식으로 유지됩니다.</span></div>';
+  if (state.platformContentError) return `<section class="lac-content-admin">${note}<p class="lac-content-error">${esc(state.platformContentError)}</p><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">다시 불러오기</button></section>`;
+  if (!Array.isArray(rows)) return `<section class="lac-content-admin">${note}<p>콘텐츠 설정을 불러오는 중입니다.</p></section>`;
+  const items = rows.map(row => `<article class="lac-content-admin-row">
+    <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><small>${esc(row.content_key)}</small></div>
+    <div class="lac-content-admin-actions"><label>콘텐츠 공개 <button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(row.display_name)} 공개 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'ON':'OFF'}</button></label>
+    <label>무료 개방 <button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(row.display_name)} 무료 개방 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'ON':'OFF'}</button></label></div>
+  </article>`).join('');
+  return `<section class="lac-content-admin">${note}<header><h2>콘텐츠 운영</h2><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div></section>`;
+}
+
 function renderPlatform(state){
   const all=state.platformSnapshot||[];
   const q=String(state.platformQuery||'').trim().toLowerCase();
   const filter=String(state.platformStatus||'all');
-  const view=['companies','support','suggestions'].includes(String(state.platformView||''))?String(state.platformView):'companies';
+  const view=['companies','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
   let rows=all.filter(r=>filter==='all'||String(r.effective_status||r.subscription_status)===filter);
   if(q)rows=rows.filter(r=>`${r.company_name||''} ${r.owner_name||''} ${r.guild_name||''} ${r.plan||''} ${platformPlanLabel(r.plan)}`.toLowerCase().includes(q));
   const active=all.filter(r=>!['expired','paused'].includes(String(r.effective_status||r.subscription_status))).length;
@@ -654,8 +667,8 @@ function renderPlatform(state){
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
-  const tabs=`<nav class="platform-service-tabs" aria-label="서비스 관리 구분"><button type="button" class="${view==='companies'?'is-active':''}" data-action="platform-view" data-platform-view="companies"><span>회사 관리</span><em>${all.length}</em></button><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
-  const content=view==='support'?renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):companyBoard;
+  const tabs=`<nav class="platform-service-tabs" aria-label="서비스 관리 구분"><button type="button" class="${view==='companies'?'is-active':''}" data-action="platform-view" data-platform-view="companies"><span>회사 관리</span><em>${all.length}</em></button><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button><button type="button" class="${view==='contents'?'is-active':''}" data-action="platform-view" data-platform-view="contents"><span>콘텐츠 운영</span></button></nav>`;
+  const content=view==='support'?renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
   return `<div class="platform-page">${pageHeader('PLATFORM OWNER','서비스 관리','',`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`)}${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}${tabs}<div class="platform-service-view">${content}</div></div>`;
 }
 // ============================================================

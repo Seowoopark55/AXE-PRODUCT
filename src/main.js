@@ -11,7 +11,7 @@ import {
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
-  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany,
+  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
@@ -57,7 +57,7 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
-  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', currentSubscription:null,
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -780,12 +780,28 @@ async function loadGameInfo(){
   }
 }
 
+async function loadPlatformContentSettings() {
+  if (!state.platformAdmin) {
+    state.platformContentSettings = null;
+    state.platformContentError = '';
+    return;
+  }
+  try {
+    state.platformContentSettings = await listPlatformContentSettings();
+    state.platformContentError = '';
+  } catch (error) {
+    state.platformContentSettings = null;
+    state.platformContentError = String(error?.message || error || '설정 조회 실패');
+  }
+}
+
 async function refreshAll() {
   resetScopedGameInfo();
   if (!state.session?.user) { state.ready=true; render(); return; }
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
+    if (!state.platformAdmin) { state.platformContentSettings=null; state.platformContentError=''; }
     // Fail closed for creation UI without blocking access to existing companies.
     state.companyCreatePermissionError=false;
     try { state.canCreateCompany=await canCreateCompany(); }
@@ -800,6 +816,7 @@ async function refreshAll() {
     state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
     if(state.page==='info')await loadGameInfo();
+    if(state.page==='platform' && state.platformView==='contents' && state.platformAdmin) await loadPlatformContentSettings();
     state.ready=true;
     const saved=savedSetupGuideProgress();
     if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
@@ -1116,7 +1133,7 @@ root.addEventListener('click', async event => {
   if(action==='layout-save'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutSaved=saveLayoutStudioProfile(state.layoutDraft);state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-revert'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-reset-default'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=clearLayoutStudioProfile();state.layoutSaved={...state.layoutDraft};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -1438,7 +1455,41 @@ root.addEventListener('click', async event => {
   if(action==='open-ledger-evidence'){const entryId=String(actionEl.dataset.entryId||'');state.modal={type:'ledger-evidence',entryId};render();return;}
   if(action==='open-ledger-attachment'){const path=String(actionEl.dataset.storagePath||'');if(!path)return;await withMutation(async()=>{const url=await getFundEvidenceSignedUrl(path);window.open(url,'_blank','noopener,noreferrer');});return;}
   if(action==='edit-platform-subscription'){if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}state.modal={type:'platform-subscription',companyId:String(actionEl.dataset.companyId||'')};render();return;}
-  if(action==='platform-view'){if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}const view=String(actionEl.dataset.platformView||'companies');if(!['companies','support','suggestions'].includes(view))return;state.platformView=view;if(view==='support')await withMutation(loadPlatformSupport);else if(view==='suggestions')await withMutation(loadPlatformSuggestions);else render();return;}
+  if(action==='platform-view'){
+    if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
+    const view=String(actionEl.dataset.platformView||'companies');
+    if(!['companies','support','suggestions','contents'].includes(view))return;
+    state.platformView=view;
+    if(view==='support')await withMutation(loadPlatformSupport);
+    else if(view==='suggestions')await withMutation(loadPlatformSuggestions);
+    else if(view==='contents')await withMutation(loadPlatformContentSettings);
+    else render();
+    return;
+  }
+  if(action==='refresh-platform-contents'){
+    if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
+    await withMutation(loadPlatformContentSettings);
+    return;
+  }
+  if(action==='toggle-platform-content'){
+    if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
+    const key=String(actionEl.dataset.contentKey||'');
+    const field=String(actionEl.dataset.field||'');
+    if(!['is_published','is_free'].includes(field))return;
+    const current=(state.platformContentSettings||[]).find(item=>item.content_key===key);
+    if(!current)return;
+    // These flags are configuration only in phase 2; access gates are NOT wired.
+    await withMutation(async()=>{
+      await updatePlatformContentSetting(key,
+        field==='is_published'?!current.is_published:current.is_published,
+        field==='is_free'?!current.is_free:current.is_free);
+      // Reload persisted values rather than assuming a successful optimistic flip.
+      await loadPlatformContentSettings();
+      if (state.platformContentError) throw new Error(state.platformContentError);
+      setNotice('콘텐츠 설정을 저장했습니다. 실제 서비스 접근 정책은 아직 적용되지 않습니다.');
+    });
+    return;
+  }
   if(action==='open-delete-company'){if(!state.platformAdmin){setError('회사 삭제는 PLATFORM OWNER만 할 수 있습니다.');return;}const companyId=String(actionEl.dataset.companyId||'');const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===companyId);if(!row){setError('삭제할 회사를 찾지 못했습니다.');return;}state.modal={type:'company-delete',companyId};render();return;}
   if(action==='edit-member'){state.modal={type:'member',membershipId:actionEl.dataset.membershipId};render();return;}
   if(action==='open-asset'){state.modal={type:'asset',assetId:null};render();return;}
@@ -1451,7 +1502,7 @@ root.addEventListener('click', async event => {
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
-    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
+    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
     if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){
