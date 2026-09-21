@@ -102,16 +102,38 @@ const itemName=(table,row,data)=>{
 const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,value])=>`<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('');
 // Standalone detail presentation: reorganize *existing* DB fields into readable
 // groups. Never synthesize game values or infer prices/conditions from artwork.
-const standaloneDetailSections=htmlFields=>{
- const sections=[['기본 정보','primary',[]],['제작 · 조건 · 보상','requirements',[]],['참고 정보','notes',[]]];
+const standaloneDetailSections=(htmlFields,table)=>{
+ // Only group fields already produced by detailFields/weaponPartDetails. This
+ // layout never adds inferred game data or duplicates any existing DB value.
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
- for(const match of htmlFields.matchAll(fieldRe)){
-  const label=match[1].replace(/<[^>]+>/g,'');
-  const group=/비고|메모|설명|가격 비고|최근 거래일/.test(label)?2:/재료|부품|투입|수량|조건|포인트|보상|성공률|제작법|옵션|획득 장소|획득처|제작 등급/.test(label)?1:0;
-  const level=/비고|메모|설명/.test(label)?'is-narrative':'';
-  sections[group][2].push(`<div class="axe-info-detail__datum ${level}"><dt>${match[1]}</dt><dd>${match[2]}</dd></div>`);
+ const fields=Array.from(htmlFields.matchAll(fieldRe),([,label,value],index)=>({
+  label,value,index,plain:label.replace(/<[^>]+>/g,'')
+ }));
+ const priority=/^(?:분류|직업|등급|제작 등급|가공 종류|접두·접미|적용 분야|획득 장소|획득처|포인트 종류)$/;
+ const materials=/재료|부품|투입/;
+ const target=Math.ceil(fields.length/2);
+ const left=fields.filter(field=>priority.test(field.plain)||materials.test(field.plain));
+ const right=fields.filter(field=>!left.includes(field));
+ // Balance the visible density without severing or changing any source data.
+ while(left.length>target){
+  const candidate=left.findLastIndex(field=>!materials.test(field.plain));
+  const index=candidate<0?left.length-1:candidate;
+  right.unshift(left.splice(index,1)[0]);
  }
- return `<div class="game-detail-sections">${sections.filter(group=>group[2].length).map(([title,key,rows])=>`<section class="game-detail-section game-detail-section--${key}"><h3>${title}</h3><dl>${rows.join('')}</dl></section>`).join('')}</div>`;
+ while(left.length<target&&right.length) left.push(right.shift());
+ left.sort((a,b)=>a.index-b.index);
+ right.sort((a,b)=>a.index-b.index);
+ const datum=field=>{
+  // Show each real ingredient in a small readable chip; these are NOT inventory
+  // counts, fabricated item artwork, or an actionable "craft" control.
+  const value=field.plain==='필요 재료'&&field.value.includes(' · ')
+   ?`<span class="game-detail-materials">${field.value.split(' · ').map(part=>`<span class="game-detail-material">${part}</span>`).join('')}</span>`
+   :field.value;
+  return `<div class="axe-info-detail__datum${/비고|메모|설명|가격 비고/.test(field.plain)?' is-narrative':''}${materials.test(field.plain)?' is-material':''}"><dt>${field.label}</dt><dd>${value}</dd></div>`;
+ };
+ const column=(title,key,entries)=>entries.length?`<section class="game-detail-section game-detail-section--${key}" aria-label="${title}"><h3>${title}</h3><dl>${entries.map(datum).join('')}</dl></section>`:'';
+ const sectionTitle=({info_processes:'생산 · 보상',info_quests:'퀘스트 · 보상',info_skill_ranks:'성장 · 조건',modbook_catalog:'개조 · 효과'})[table]||'제작 · 조건 · 보상';
+ return `<div class="game-detail-sections${right.length?'':' game-detail-sections--single'}">${column('기본 정보','primary',left)}${column(sectionTitle,'requirements',right)}</div>`;
 };
 const itemListSubtitle=(table,row)=>{
  if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
@@ -321,7 +343,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const longestField=Array.from(existingFields.matchAll(/<dd>([\s\S]*?)<\/dd>/g),match=>match[1].replace(/<[^>]*>/g,'').length).reduce((max,n)=>Math.max(max,n),0);
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${detailHeading}${standalone?standaloneDetailSections(existingFields):`<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero">${detailHeading}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;

@@ -88,116 +88,165 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .axe-info-detail__placeholder p{font-size:11px;color:#bdc8d1}
 .game-center .axe-info-owner-note{font-size:10px;color:#8c9baa}
 .game-center .game-center__context{display:none}
-/* PHASE 12 — detail craft, limited to the standalone Game Info shell.
-   This enhances existing row/field presentation; outer proportions stay owned
-   by Phase 11's single game-center.css layout. */
-.game-center .axe-info-list__heading{background:linear-gradient(90deg,rgba(28,39,48,.96),rgba(15,24,32,.94));letter-spacing:.01em}
+/* PHASE 13 — selected-record-first detail fit: retired conflicting height overrides.
+   Phase 14 owns the actual presentation and retains source-value visibility. */
+/* PHASE 14: SINGLE detail design. The former Phase 12/13 flex cards +
+   flattened section + forced density CSS were removed, rather than overridden.
+   Company-embedded Game Info is outside this .game-center scope. */
 .game-center .axe-info-list__items{padding:8px 9px}
-.game-center .axe-info-row--studio{min-height:54px;margin-bottom:6px;padding:7px 32px 7px 9px;gap:10px;border-radius:8px;background:linear-gradient(110deg,rgba(30,44,56,.94),rgba(20,31,42,.98));transition:border-color .16s ease,background .16s ease,transform .16s ease}
-.game-center .axe-info-row--studio .game-list-symbol{display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;border:1px solid rgba(190,155,106,.28);border-radius:8px;color:#d3b384;background:linear-gradient(160deg,rgba(189,149,93,.14),rgba(9,17,25,.2))}
+.game-center .axe-info-row--studio{
+  min-height:52px;margin-bottom:6px;padding:7px 31px 7px 9px;gap:10px;
+  border-radius:8px;background:linear-gradient(110deg,#202e39,#16212b);
+  transition:border-color .16s ease,background .16s ease,transform .16s ease;
+}
+.game-center .axe-info-row--studio .game-list-symbol{
+  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+  border:1px solid rgba(190,155,106,.28);border-radius:8px;
+  color:#d3b384;background:rgba(189,149,93,.12);
+}
 .game-center .axe-info-row--studio .axe-info-tab-icon{width:17px;height:17px;flex:0 0 auto}
 .game-center .axe-info-row--studio .game-list-label{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
-.game-center .axe-info-row--studio .game-list-label strong{font-size:12px;font-weight:790;line-height:1.28;color:#f1f1ee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.game-center .axe-info-row--studio .game-list-label small{font-size:10px;font-weight:520;line-height:1.28;color:#a3b3bf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.game-center .axe-info-row--studio.is-active{background:linear-gradient(110deg,rgba(100,77,46,.50),rgba(42,42,39,.71));border-color:#e0b673;box-shadow:inset 3px 0 #f0c483,0 2px 11px rgba(0,0,0,.14)}
-.game-center .axe-info-row--studio.is-active .game-list-symbol{border-color:#d3a766;background:rgba(196,145,72,.2);color:#ffdb9c}
+.game-center .axe-info-row--studio .game-list-label strong{
+  font-size:12px;font-weight:790;line-height:1.28;color:#f1f1ee;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.game-center .axe-info-row--studio .game-list-label small{
+  font-size:10px;line-height:1.28;color:#a3b3bf;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.game-center .axe-info-row--studio.is-active{
+  background:linear-gradient(110deg,rgba(100,77,46,.50),rgba(42,42,39,.71));
+  border-color:#e0b673;box-shadow:inset 3px 0 #f0c483;
+}
 .game-center .axe-info-row--studio.is-active .game-list-label strong{color:#ffe1ae}
 .game-center .axe-info-row--studio:hover{transform:translateX(2px)}
-.game-center .axe-info-row--studio:focus-visible{outline:2px solid #f2cb8a;outline-offset:2px}
-.game-center .axe-info-detail--studio{padding:0 12px 12px;background:linear-gradient(180deg,rgba(9,17,25,.12),rgba(14,24,32,.94) 49%,#101a23 72%)}
-.game-center .axe-info-detail--studio header{flex:0 0 34%;min-height:112px;gap:8px;padding:12px 9px 15px}
-.game-center .axe-info-detail--studio header strong{font-size:25px;line-height:1.2;letter-spacing:-.025em;text-shadow:0 2px 12px #05080c}
-.game-center .axe-info-detail--studio .game-detail-sections{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;margin-top:10px;padding-bottom:5px}
-.game-center .axe-info-detail--studio .game-detail-section{min-width:0;border:1px solid rgba(102,123,136,.46);border-radius:9px;background:linear-gradient(135deg,rgba(23,37,47,.97),rgba(16,28,38,.94));box-shadow:0 8px 16px rgba(0,0,0,.12);overflow:hidden}
-.game-center .axe-info-detail--studio .game-detail-section h3{display:flex;align-items:center;gap:8px;padding:9px 12px 8px;margin:0;border-bottom:1px solid rgba(145,163,172,.15);font-size:11px;font-weight:820;color:#ecc995;letter-spacing:.02em}
-.game-center .axe-info-detail--studio .game-detail-section h3::before{content:'';width:3px;height:12px;border-radius:2px;background:#d2a461}
-.game-center .axe-info-detail--studio .game-detail-section dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;padding:3px 8px 7px}
-.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;min-height:54px;margin:0;padding:8px 9px;border:0;border-bottom:1px solid rgba(120,142,154,.15);border-radius:0;background:transparent}
-.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-last-child(-n+2){border-bottom:0}
-.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-child(even){border-left:1px solid rgba(120,142,154,.15)}
-.game-center .axe-info-detail--studio .game-detail-section dt{font-size:10px;font-weight:720;line-height:1.3;color:#d4ac78}
-.game-center .axe-info-detail--studio .game-detail-section dd{font-size:12px;font-weight:600;line-height:1.48;color:#eef1f1;overflow-wrap:anywhere}
-.game-center .axe-info-detail--studio .game-detail-section--requirements{border-color:rgba(155,124,78,.51);background:linear-gradient(120deg,rgba(41,39,33,.96),rgba(17,29,38,.96))}
-.game-center .axe-info-detail--studio .game-detail-section--notes dl{grid-template-columns:1fr}
-.game-center .axe-info-detail--studio .game-detail-section--notes .axe-info-detail__datum{border-left:0;border-bottom:0}
-@media(max-height:850px) and (min-width:1100px){.game-center .axe-info-row--studio{min-height:49px}.game-center .axe-info-detail--studio header{flex-basis:30%}.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum{min-height:45px;padding:6px 8px}}
-@media(max-width:740px){.game-center .axe-info-detail--studio header{flex-basis:auto;min-height:130px}.game-center .axe-info-row--studio{min-height:51px}}
-@media(prefers-reduced-motion:reduce){.game-center .axe-info-row--studio{transition:none}.game-center .axe-info-row--studio:hover{transform:none}}
-/* One-view desktop. On low heights/mobile, allow page scroll instead of clipping. */
-@media(min-width:1100px) and (min-height:755px){body:has(.runtime-app--game-info.game-center){overflow-y:hidden}body:has(.runtime-app--game-info.game-center) #app{height:100dvh;min-height:0;overflow:hidden}.runtime-app--game-info.game-center{height:calc(100dvh - 26px);max-height:900px;min-height:0;margin-bottom:14px}.game-center .game-center__body{overflow:hidden}}
-@media(max-width:1099px), (max-height:754px){body:has(.runtime-app--game-info.game-center){overflow-y:auto}.runtime-app--game-info.game-center{min-height:0;height:auto;grid-template-rows:52px auto}.game-center .game-center__body{display:flex;flex-direction:column;gap:10px;overflow:visible}.game-center .game-center__hero{height:245px;flex:0 0 auto}.game-center .axe-info{display:flex;flex-direction:column;gap:9px}.game-center .axe-info-toolbar{top:-75px}.game-center .axe-info-tabs{flex:0 0 50px}.game-center .axe-info-content{height:460px;flex:0 0 auto}}
-@media(max-width:740px){.runtime-app--game-info.game-center{width:calc(100vw - 18px);margin:9px auto;grid-template-rows:auto auto}.game-center .game-center__header{padding:9px 12px;flex-wrap:wrap;gap:8px}.game-center .game-center__brand{font-size:16px}.game-center .game-center__actions{flex-wrap:wrap;justify-content:flex-end}.game-center .game-center__company,.game-center .game-center__actions button{font-size:10px;padding:6px 8px}.game-center .game-center__body{padding:0 9px 12px}.game-center .game-center__hero{height:255px;padding:22px 15px 77px}.game-center .game-center__hero h1{font-size:33px}.game-center .game-center__hero p{font-size:11px}.game-center .game-center__hero-sign{display:none}.game-center .axe-info-toolbar{left:8px;right:8px}.game-center .axe-info-toolbar label{font-size:10px}.game-center .axe-info-tabs{grid-template-columns:repeat(3,minmax(0,1fr));height:auto;flex-basis:auto}.game-center .axe-info-tabs>button{font-size:11px}.game-center .axe-info-subfilter{align-items:flex-start;flex-wrap:wrap;gap:5px}.game-center .axe-info-subfilter__label{flex:0 0 100%}.game-center .axe-info-content{display:flex;flex-direction:column;height:auto;overflow:visible}.game-center .axe-info-list{height:auto;max-height:310px;min-height:190px;flex:0 0 auto}.game-center .axe-info-detail{height:auto;min-height:340px;max-height:none;flex:0 0 auto}}
-@media(max-width:420px){.game-center .axe-info-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.game-center .axe-info-toolbar>input{font-size:11px}.game-center .game-center__hero{height:260px}}
 
-/* PHASE 13 — selected-record-first detail fit. One existing standalone stylesheet.
-   Common records have NO inner scroll. Extremely long source records / narrow
-   displays keep native scrolling as a safety valve rather than clipping data. */
-@media (min-width:1100px) and (min-height:755px) {
- .game-center .axe-info-detail--studio {
-   display:flex;flex-direction:column;overflow:hidden;padding:0 11px 10px;
-   background:linear-gradient(0deg,rgba(11,21,30,.95),rgba(10,19,28,.72) 30%,rgba(9,17,25,.10) 100%);
+/* The art, heading, and real record attributes now own separate regions.
+   No artificial 43%-height title, no vertical card stack, no 3-column squeeze. */
+.game-center .axe-info-detail--studio{
+  display:grid;grid-template-rows:minmax(145px,43%) minmax(0,1fr);
+  align-content:stretch;gap:0;padding:0;overflow:hidden;
+  background:#101923;
+}
+/* Record-size-specific ART allocation: sparse data gets breathing room in the
+   image, while data-rich records reserve more height for real field values. */
+.game-center .axe-info-detail--studio.game-detail--sparse{grid-template-rows:minmax(150px,56%) minmax(0,1fr)}
+.game-center .axe-info-detail--studio.game-detail--regular{grid-template-rows:minmax(145px,46%) minmax(0,1fr)}
+.game-center .axe-info-detail--studio.game-detail--dense{grid-template-rows:minmax(115px,31%) minmax(0,1fr)}
+.game-center .axe-info-detail--studio.game-detail--extended{grid-template-rows:minmax(105px,26%) auto}
+.game-center .axe-info-detail--studio::before{
+  z-index:0;inset:0;height:100%;background-position:center 41%;opacity:.78;
+}
+.game-center .axe-info-detail--studio::after{
+  z-index:0;inset:0;height:100%;background:
+   linear-gradient(180deg,rgba(8,15,22,.07) 0%,rgba(8,15,22,.17) 23%,rgba(8,15,22,.85) 43%,#101923 65%);
+}
+.game-center .axe-info-detail--studio .game-detail-hero{
+  position:relative;z-index:1;min-width:0;min-height:0;
+  display:flex;align-items:flex-end;padding:10px 15px 12px;
+  background:linear-gradient(90deg,rgba(6,12,19,.73),rgba(6,12,19,.14) 66%);
+}
+.game-center .axe-info-detail--studio .game-detail-hero > header{
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;
+  gap:6px;flex:0 0 auto;min-height:0;width:100%;max-height:100%;
+  margin:0;padding:0 0 5px;border:0;
+}
+.game-center .axe-info-detail--studio .game-detail-hero header strong{
+  max-width:100%;font-size:clamp(19px,1.7vw,25px);line-height:1.2;
+  color:#fff5e5;text-shadow:0 2px 13px #030609;
+}
+.game-center .axe-info-detail--studio .game-detail-hero header span{color:#eac28a;font-size:11px}
+.game-center .axe-info-detail--studio .game-detail-sections{
+  position:relative;z-index:1;min-width:0;min-height:0;max-height:100%;
+  display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+  align-items:stretch;gap:8px;margin:0;padding:7px 9px 9px;
+  border-top:1px solid rgba(225,179,108,.34);
+  background:linear-gradient(110deg,rgba(14,25,34,.96),rgba(15,24,33,.88));
+}
+.game-center .axe-info-detail--studio .game-detail-sections--single{grid-template-columns:1fr}
+.game-center .axe-info-detail--studio .game-detail-section{
+  min-width:0;min-height:0;display:flex;flex-direction:column;
+  border:1px solid rgba(107,130,143,.33);border-radius:8px;
+  background:linear-gradient(145deg,rgba(24,39,50,.89),rgba(13,25,35,.76));
+  overflow:hidden;
+}
+.game-center .axe-info-detail--studio .game-detail-section--requirements{
+  border-color:rgba(181,145,95,.42);background:linear-gradient(145deg,rgba(44,38,30,.74),rgba(15,27,36,.86));
+}
+.game-center .axe-info-detail--studio .game-detail-section h3{
+  display:flex;align-items:center;gap:7px;flex:0 0 auto;
+  min-height:29px;margin:0;padding:5px 10px;
+  border-bottom:1px solid rgba(134,155,165,.18);
+  color:#eac58c;font-size:10.5px;font-weight:820;letter-spacing:.02em;
+}
+.game-center .axe-info-detail--studio .game-detail-section h3::before{
+  content:'';width:2px;height:12px;border-radius:2px;background:#d8ab6d;
+}
+.game-center .axe-info-detail--studio .game-detail-section dl{
+  min-width:0;min-height:0;display:grid;grid-template-columns:1fr;
+  align-content:start;gap:0;margin:0;padding:4px 10px 6px;
+}
+.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum{
+  display:grid;grid-template-columns:minmax(60px,.7fr) minmax(0,1.3fr);
+  align-items:start;gap:6px;min-width:0;min-height:33px;
+  margin:0;padding:7px 0;border:0;border-bottom:1px solid rgba(125,147,160,.19);
+  border-radius:0;background:transparent;
+}
+.game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:last-child{border-bottom:0}
+.game-center .axe-info-detail--studio .game-detail-section dt{
+  min-width:0;color:#d7b47e;font-size:10.5px;font-weight:740;line-height:1.35;
+}
+.game-center .axe-info-detail--studio .game-detail-section dd{
+  min-width:0;margin:0;color:#eff0ee;font-size:11.8px;
+  font-weight:670;line-height:1.4;overflow-wrap:anywhere;
+}
+.game-center .axe-info-detail--studio .game-detail-section .is-narrative{
+  grid-template-columns:1fr;gap:4px;
+}
+.game-center .axe-info-detail--studio .game-detail-section .is-material{
+  grid-template-columns:1fr;gap:4px;
+}
+.game-center .axe-info-detail--studio .game-detail-materials{
+  display:flex;flex-wrap:wrap;gap:5px;min-width:0;
+}
+.game-center .axe-info-detail--studio .game-detail-material{
+  display:inline-flex;align-items:center;gap:6px;min-width:0;
+  padding:5px 7px;border:1px solid rgba(201,165,108,.28);border-radius:6px;
+  background:rgba(11,20,28,.56);color:#eee0c7;font-size:10.5px;
+}
+.game-center .axe-info-detail--studio .game-detail-material::before{
+  content:'';flex:0 0 5px;width:5px;height:5px;border:1px solid #d7aa69;
+  transform:rotate(45deg);
+}
+/* Phase 13's long-record safety is retained, but normal details never
+   scroll independently. The value count is based only on real DB fields. */
+@media(min-width:1100px) and (min-height:755px){
+ .game-center .axe-info-detail--studio.game-detail--dense .game-detail-section dl,
+ .game-center .axe-info-detail--studio.game-detail--extended .game-detail-section dl{
+   grid-template-columns:repeat(2,minmax(0,1fr));gap:0 8px;
  }
- .game-center .axe-info-detail--studio header {
-   flex:1 1 auto;min-height:88px;max-height:none;
-   margin:0;padding:12px 6px 11px;gap:5px;
-   justify-content:flex-end;
+ .game-center .axe-info-detail--studio.game-detail--dense .game-detail-section .axe-info-detail__datum,
+ .game-center .axe-info-detail--studio.game-detail--extended .game-detail-section .axe-info-detail__datum{
+   grid-template-columns:1fr;gap:3px;min-height:40px;padding:6px 0;
  }
- .game-center .axe-info-detail--studio header strong {font-size:clamp(18px,1.6vw,23px)}
- /* Section frames are dissolved into one integrated information shelf. */
- .game-center .axe-info-detail--studio .game-detail-sections {
-   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-   gap:5px 7px;align-content:start;min-height:0;flex:0 0 auto;
-   margin:8px 0 0;padding:0 0 1px;
- }
- .game-center .axe-info-detail--studio .game-detail-section,
- .game-center .axe-info-detail--studio .game-detail-section dl {display:contents}
- .game-center .axe-info-detail--studio .game-detail-section h3 {
-   grid-column:1/-1;display:flex;gap:6px;margin:3px 0 0;padding:1px 3px 2px;
-   border:0;background:transparent;color:#e6bd82;font-size:10px;font-weight:790;
- }
- .game-center .axe-info-detail--studio .game-detail-section h3::before {height:10px;width:2px}
- .game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum {
-   display:grid;grid-template-columns:minmax(55px,.52fr) minmax(0,1fr);
-   align-items:center;column-gap:7px;row-gap:1px;
-   min-height:34px;margin:0;padding:6px 8px;
-   border:1px solid rgba(111,140,157,.36);border-radius:6px;
-   background:rgba(19,33,44,.89);overflow:hidden;
- }
- .game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-child(even),
- .game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum:nth-last-child(-n+2) {
-   border:1px solid rgba(111,140,157,.36);
- }
- .game-center .axe-info-detail--studio .game-detail-section dt {font-size:10.5px;line-height:1.2;color:#c9a675}
- .game-center .axe-info-detail--studio .game-detail-section dd {
-   min-width:0;font-size:12px;line-height:1.3;font-weight:640;overflow-wrap:anywhere;
- }
- .game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum.is-narrative {
-   grid-column:1/-1;grid-template-columns:1fr;row-gap:4px;
- }
- .game-center .axe-info-detail--studio.game-detail--dense header {min-height:73px}
- .game-center .axe-info-detail--studio.game-detail--dense .game-detail-sections {
-   grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 5px;margin-top:6px;
- }
- .game-center .axe-info-detail--studio.game-detail--dense .axe-info-detail__datum {
-   grid-template-columns:1fr;align-content:center;min-height:31px;padding:4px 7px;gap:2px;
- }
- .game-center .axe-info-detail--studio.game-detail--extended header {min-height:62px;flex:0 0 62px;padding:5px}
- .game-center .axe-info-detail--studio.game-detail--extended .game-detail-sections {
-   grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:5px;
- }
- .game-center .axe-info-detail--studio.game-detail--extended .axe-info-detail__datum {
-   grid-template-columns:1fr;min-height:28px;padding:3px 6px;gap:1px;
- }
- /* Do not silently truncate unusually long records or extreme field counts. */
+ .game-center .axe-info-detail--studio.game-detail--dense .game-detail-section dl>.is-narrative,
+ .game-center .axe-info-detail--studio.game-detail--extended .game-detail-section dl>.is-narrative{grid-column:1/-1}
  .game-center .axe-info-detail--studio.game-detail--extended,
- .game-center .axe-info-detail--studio.game-detail--long-copy {overflow-y:auto;overscroll-behavior:contain}
+ .game-center .axe-info-detail--studio.game-detail--long-copy{overflow-y:auto;overscroll-behavior:contain}
+ .game-center .axe-info-detail--studio.game-detail--extended .game-detail-sections,
+ .game-center .axe-info-detail--studio.game-detail--long-copy .game-detail-sections{max-height:none;align-items:start}
+ .game-center .axe-info-detail--studio.game-detail--extended .game-detail-section,
+ .game-center .axe-info-detail--studio.game-detail--long-copy .game-detail-section{overflow:visible}
 }
-@media(max-width:1099px), (max-height:754px) {
- .game-center .axe-info-detail--studio header {flex-basis:auto;min-height:120px}
- .game-center .axe-info-detail--studio .game-detail-section .axe-info-detail__datum {min-height:42px;padding:6px 8px}
+@media(max-width:1099px),(max-height:754px){
+ .game-center .axe-info-detail--studio,.game-center .axe-info-detail--studio.game-detail--sparse,.game-center .axe-info-detail--studio.game-detail--regular,.game-center .axe-info-detail--studio.game-detail--dense,.game-center .axe-info-detail--studio.game-detail--extended{grid-template-rows:minmax(155px,auto) auto;height:auto;max-height:none;overflow:visible}
+ .game-center .axe-info-detail--studio .game-detail-hero{min-height:175px}
+ .game-center .axe-info-detail--studio .game-detail-sections{max-height:none;min-height:180px}
 }
-/* A source record with many or multiline fields can exceed a short desktop
-   viewport. Preserve every real field: scroll ONLY in this exceptional case. */
-@media (min-width:1100px) and (min-height:755px) and (max-height:850px) {
- .game-center .axe-info-detail--studio.game-detail--dense {overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:740px){
+ .game-center .axe-info-detail--studio{grid-template-rows:minmax(145px,auto) auto}
+ .game-center .axe-info-detail--studio .game-detail-sections{grid-template-columns:1fr;gap:8px}
+ .game-center .axe-info-detail--studio .game-detail-hero{min-height:150px}
+ .game-center .axe-info-detail--studio .game-detail-section dl{grid-template-columns:1fr}
 }
+@media(prefers-reduced-motion:reduce){.game-center .axe-info-row--studio{transition:none}.game-center .axe-info-row--studio:hover{transform:none}}
