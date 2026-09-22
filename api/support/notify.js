@@ -1,4 +1,4 @@
-import { getDiscordBotToken } from '../../server/discordSecurity.js';
+import { getDiscordBotToken, getHubAppUrl } from '../../server/discordSecurity.js';
 import { callAxeProductRpc, requirePlatformAdmin, requireUser } from '../../server/supabaseUser.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     });
     if (!dm?.id) throw new Error('Discord DM 채널을 열지 못했습니다.');
 
-    const appUrl = String(process.env.AXE_PRODUCT_APP_URL || 'https://axe-product.vercel.app').replace(/\/+$/, '');
+    const appUrl = getHubAppUrl();
     await discordJson(`/channels/${dm.id}/messages`, {
       method: 'POST',
       body: JSON.stringify({

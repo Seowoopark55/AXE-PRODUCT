@@ -21,6 +21,16 @@ function requiredEnv(name) {
   return value;
 }
 
+// Deployment may still carry AXE_PRODUCT_APP_URL. Keep that key as a compatibility
+// fallback until Vercel settings have been checked; prefer the official LAC key.
+export function getHubAppUrl() {
+  return String(
+    process.env.LAC_HUB_APP_URL ||
+    process.env.AXE_PRODUCT_APP_URL ||
+    'https://lac-hub.vercel.app'
+  ).trim().replace(/\/+$/, '');
+}
+
 export function getDiscordConfig() {
   return {
     clientId: requiredEnv('DISCORD_CLIENT_ID'),
@@ -28,12 +38,9 @@ export function getDiscordConfig() {
     stateSecret: requiredEnv('DISCORD_OAUTH_STATE_SECRET'),
     redirectUri: String(
       process.env.DISCORD_REDIRECT_URI ||
-      'https://axe-product.vercel.app/api/discord/callback'
+      'https://lac-hub.vercel.app/api/discord/callback'
     ).trim(),
-    appUrl: String(
-      process.env.AXE_PRODUCT_APP_URL ||
-      'https://axe-product.vercel.app'
-    ).replace(/\/+$/, ''),
+    appUrl: getHubAppUrl(),
   };
 }
 
