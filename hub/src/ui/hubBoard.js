@@ -32,7 +32,7 @@ export function renderHubNewsStrip(state){
 export function renderHubBoard(state){
  const board=state.hubBoard||{};const mode=board.mode||'list';const tab=board.tab||'support';
  const isAdmin=state.platformAdmin===true;
- const top=`<div class="hub-board__top"><div class="hub-board__brand"><img src="/hub/mark.png" width="29" height="29" alt=""><strong>LAC HUB</strong><span>SUPPORT</span></div><div class="hub-board__topnav"><span>LAC HUB <b>·</b> 고객지원</span>${hubReturnButton('hub-board__back')}</div></div>`;
+ const top=`<div class="hub-board__top"><div class="hub-board__return">${hubReturnButton('hub-board__back')}</div><div class="hub-board__brand"><img src="/hub/mark.png" width="29" height="29" alt=""><strong>LAC HUB</strong><span>SUPPORT</span></div><div class="hub-board__topnav"><span>고객지원</span></div></div>`;
  const heading=`<header class="hub-board__heading ${mode==='list'?'':'hub-board__heading--compact'}"><div class="hub-board__hero-shade"></div><div class="hub-board__hero-copy"><span>LAC HUB SUPPORT</span><h1>공지 · 문의 · 건의</h1><p>게임 정보와 LAC HUB 서비스에 관한 질문과 의견을 남길 수 있는 공간입니다.</p></div></header>`;
  const message=board.error?`<div class="hub-board__error" role="alert">${e(board.error)}<small>최초 적용 시에는 데이터베이스에 Phase 19 게시판 SQL을 먼저 실행해야 합니다. 기존 회사 관리 게시판과 데이터는 그대로 보존됩니다.</small></div>`:'';
  const notices=(board.notices||[]);

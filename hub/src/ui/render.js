@@ -174,11 +174,11 @@ function renderAuthed(state) {
   // the assigned company's console must not expose another creation CTA.
   return `<div class="runtime-app runtime-app--${esc(state.page||'fund')}">
     <header class="global-header"><div class="global-header__inner">
+      <div class="lac-hub-return-slot">${hubReturnButton('global-hub-return')}</div>
       <button type="button" class="global-home-zone" data-action="${platformScreen?'go-hub':'open-company-console'}" aria-label="${platformScreen?'LAC HUB 메인':'회사 관리 대시보드'}로 이동">
         <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>${platformScreen?'서비스 관리':'회사 관리'}</strong>${platformScreen?'<small>LAC HUB · PLATFORM</small>':''}</span></span>
       </button>
       <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">
-        ${hubReturnButton('global-hub-return')}
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
@@ -255,7 +255,8 @@ function renderManagementCenter(state) {
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
     <header class="platform-center__header">
       <button type="button" class="platform-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="28" height="28"><span><strong>LAC HUB</strong><small>관리 센터</small></span></button>
-      <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span>${hubReturnButton('global-hub-return')}<button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
+      <div class="platform-center__return">${hubReturnButton('global-hub-return')}</div>
+      <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span><button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
     </header>
     <div class="platform-center__workspace">
       <div class="platform-center__intro"><span>PLATFORM MANAGEMENT</span><h1>관리 센터</h1><p>회사와 콘텐츠의 운영 설정을 관리합니다. 회사 내부의 멤버·공금·자산 정보는 회사 관리 콘텐츠에서 이용하세요.</p></div>

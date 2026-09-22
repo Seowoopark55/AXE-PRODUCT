@@ -20,9 +20,18 @@ export function mountEmbeddedBuild(host) {
       font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
       background: #09090a; }
     .app { min-height: 100vh; background: var(--bg, #09090a); }
-    .lac-build-topbar { display: flex; justify-content: flex-end; align-items: center;
-      box-sizing: border-box; min-height: 56px; padding: 9px clamp(16px, 3vw, 32px);
-      border-bottom: 1px solid rgba(227,181,105,.25); background: #0c1218; }
+    .lac-build-topbar { position: relative; display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; box-sizing: border-box; min-height: 52px; padding: 7px clamp(16px, 3vw, 32px);
+      border-bottom: 1px solid rgba(227,181,105,.13); background: #0c1218; }
+    .lac-build-topbar button[data-hub-return] { display: inline-flex; align-items: center; justify-content: flex-start;
+      box-sizing: border-box; min-width: 0; min-height: 38px; padding: 8px 10px; gap: 7px;
+      border: 1px solid transparent; border-radius: 9px; background: transparent;
+      color: #d6b17a; box-shadow: none; font: inherit; font-size: 12px;
+      font-weight: 750; line-height: 1.25; white-space: nowrap; cursor: pointer; }
+    .lac-build-topbar button[data-hub-return]:hover { border-color: rgba(226,180,105,.2);
+      background: rgba(226,180,105,.075); color: #f5d49e; }
+    .lac-build-topbar__title { color: #e1d9ce; font-size: 13px; font-weight: 800; letter-spacing: .055em; }
+    @media (max-width: 420px) { .lac-build-topbar__title { font-size: 11px; } }
     `;
   shadow.appendChild(style);
   const topbar = document.createElement('header');
@@ -36,6 +45,10 @@ export function mountEmbeddedBuild(host) {
     window.dispatchEvent(new CustomEvent('lac:navigate-hub'));
   });
   topbar.appendChild(returnButton);
+  const buildTitle = document.createElement('strong');
+  buildTitle.className = 'lac-build-topbar__title';
+  buildTitle.textContent = 'LAC BUILD';
+  topbar.appendChild(buildTitle);
   shadow.appendChild(topbar);
   const appRoot = document.createElement('div');
   appRoot.id = 'lac-build-react-root';
