@@ -64,6 +64,79 @@ function showEmbeddedBuild({ push = false } = {}) {
 
 // Intercept only the BUILD card's ordinary click. Preserve native open-in-new-tab
 // gestures and every existing HUB delegated action.
+// Subscription editor is draft-only until the operator reviews the exact fields.
+// Calendar arithmetic uses ISO calendar dates in UTC to avoid local DST shifts.
+function addCalendarDays(isoDate,days){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(isoDate||'')))return '';
+  const date=new Date(`${isoDate}T00:00:00Z`);
+  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==isoDate)return '';
+  date.setUTCDate(date.getUTCDate()+days);
+  return date.toISOString().slice(0,10);
+}
+function subscriptionDraft(form){
+  return Object.fromEntries(['plan','status','starts_at','ends_at','grace_until','memo'].map(key=>[key,String(form.elements[key]?.value||'')]));
+}
+function invalidateSubscriptionReview(form){
+  if(!form)return;
+  form.dataset.reviewSignature='';
+  const review=form.querySelector('[data-subscription-review]');if(review)review.hidden=true;
+  const submit=form.querySelector('[data-subscription-submit]');if(submit)submit.disabled=true;
+}
+function subscriptionDraftNote(form,message){
+  const note=form.querySelector('[data-subscription-draft-message]');if(note)note.textContent=message;
+}
+function subscriptionQuickAction(form,action){
+  const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+  const days=Number(form.elements.quick_days.value);
+  if(![7,30,90].includes(days))throw new Error('기간은 7·30·90일 중 선택해 주세요.');
+  const fields=form.elements;
+  if(action==='subscription-new-period'){
+    if(fields.grace_until.value)throw new Error('기존 유예 종료일이 있습니다. 상세 설정에서 유예일을 확인한 후 직접 처리해 주세요.');
+    fields.plan.value=({7:'trial',30:'standard',90:'pro'})[days];
+    fields.status.value=days===7?'trial':'active';
+    fields.starts_at.value=today;
+    fields.ends_at.value=addCalendarDays(today,days-1);
+    subscriptionDraftNote(form,`오늘부터 ${days}일 기간을 새로 설정하는 변경안을 준비했습니다. 기존 시작일·종료일이 바뀔 수 있으므로 확인해 주세요.`);
+  }else if(action==='subscription-extend-period'){
+    const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(fields.company_id.value));
+    if(!row?.ends_at||['internal','legacy'].includes(String(row.plan||''))||String(row.subscription_status)==='lifetime')throw new Error('기존 종료일이 없는 이용권은 자동 연장하지 않습니다.');
+    const priorEnd=new Date(row.ends_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+    if(fields.ends_at.value!==priorEnd)throw new Error('종료일이 이미 변경됐습니다. 상세 설정에서 확인하거나 창을 닫고 다시 열어 주세요.');
+    const newEnd=addCalendarDays(priorEnd,days);
+    if(!newEnd)throw new Error('기존 종료일을 읽지 못했습니다.');
+    if(fields.grace_until.value&&fields.grace_until.value<newEnd)throw new Error('연장 후 종료일이 기존 유예 종료일을 넘습니다. 상세 설정에서 유예일을 함께 확인해 주세요.');
+    fields.ends_at.value=newEnd;
+    subscriptionDraftNote(form,`기존 종료일 ${priorEnd}에서 ${days}일 연장한 ${newEnd}로 변경안을 준비했습니다. 플랜과 상태는 유지합니다.`);
+  }else if(action==='subscription-toggle-pause'){
+    const next=String(form.querySelector('[data-action="subscription-toggle-pause"]')?.dataset.nextStatus||'');
+    if(!['active','paused'].includes(next))throw new Error('상태 변경을 확인하지 못했습니다.');
+    fields.status.value=next;
+    subscriptionDraftNote(form,next==='paused'?'일시 정지 변경안을 준비했습니다. 저장하면 회사 관리 이용이 차단될 수 있습니다.':'사용중 상태 변경안을 준비했습니다. 종료일이 지났다면 상태를 변경해도 이용할 수 없을 수 있습니다.');
+  }
+  invalidateSubscriptionReview(form);
+}
+function subscriptionReview(form){
+  const draft=subscriptionDraft(form);
+  const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(form.elements.company_id.value));
+  if(!row)throw new Error('회사 구독 정보를 찾을 수 없습니다.');
+  const original={plan:String(row.plan||'standard'),status:String(row.subscription_status||'active'),starts_at:row.starts_at?new Date(row.starts_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',ends_at:row.ends_at?new Date(row.ends_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',grace_until:row.grace_until?new Date(row.grace_until).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',memo:String(row.memo||'')};
+  const changed=Object.keys(draft).filter(key=>draft[key]!==original[key]);
+  if(!changed.length)throw new Error('변경된 내용이 없습니다.');
+  if(draft.starts_at&&draft.ends_at&&draft.ends_at<draft.starts_at)throw new Error('종료일이 시작일보다 앞설 수 없습니다.');
+  if(draft.grace_until&&draft.ends_at&&draft.grace_until<draft.ends_at)throw new Error('유예 종료일은 종료일 이후로 설정해 주세요.');
+  const review=form.querySelector('[data-subscription-review]');
+  const lines=review.querySelector('[data-subscription-review-lines]');lines.replaceChildren();
+  const labels={plan:'플랜',status:'상태',starts_at:'시작일',ends_at:'종료일',grace_until:'유예 종료일',memo:'관리 메모'};
+  const titles={trial:'7일 체험',standard:'30일 이용',pro:'90일 이용',legacy:'기존 무제한',internal:'무제한',active:'사용중',paused:'일시 정지',expired:'만료',lifetime:'무제한'};
+  const show=(key,value)=>titles[value]||value||(key==='ends_at'?'종료일 미설정':'미설정');
+  for(const key of changed){const line=document.createElement('div');const name=document.createElement('strong');name.textContent=labels[key];const value=document.createElement('span');value.textContent=`${show(key,original[key])} → ${show(key,draft[key])}`;line.append(name,value);lines.append(line);}
+  if(draft.status==='lifetime'&&(draft.ends_at||draft.grace_until)){const line=document.createElement('div');line.className='lac-subscription-review__warning';line.textContent='주의: 무제한 상태 저장 시 DB가 종료일과 유예 종료일을 제거합니다.';lines.append(line);}
+  form.dataset.reviewSignature=JSON.stringify(draft);
+  form.querySelector('[data-subscription-submit]').disabled=false;
+  review.hidden=false;
+  review.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
 root.addEventListener('click', (event) => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
   const anchor = event.target instanceof Element ? event.target.closest('a[href="/build/"]') : null;
@@ -1236,6 +1309,18 @@ root.addEventListener('click', async event => {
   if(action==='question-scope'){state.questionScope=String(actionEl.dataset.questionScope||'all')==='mine'?'mine':'all';state.questionPage=1;render();return;}
   if(action==='suggestion-filter'){state.suggestionStatus=String(actionEl.dataset.suggestionStatus||'all');state.suggestionPage=1;render();return;}
   if(action==='suggestion-category'){state.suggestionCategory=String(actionEl.dataset.suggestionCategory||'all');state.suggestionPage=1;render();return;}
+  if(action==='close-account-menu'){
+    const profile=actionEl.closest('.hub-account__profile');
+    if(profile){profile.open=false;profile.querySelector('.hub-account__trigger')?.focus();}
+    if(state.accountMenuOpen){state.accountMenuOpen=false;render();}
+    return;
+  }
+  if(['subscription-new-period','subscription-extend-period','subscription-toggle-pause','review-subscription'].includes(action)){
+    if(!state.platformAdmin||state.modal?.type!=='platform-subscription')return;
+    const form=actionEl.closest('form[data-form="platform-subscription"]');if(!form)return;
+    try{if(action==='review-subscription')subscriptionReview(form);else subscriptionQuickAction(form,action);}catch(error){window.alert(error.message||String(error));}
+    return;
+  }
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('layout');localStorage.setItem('axe_product_page','layout');state.layoutSaved=loadLayoutStudioProfile();state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
@@ -1676,8 +1761,14 @@ root.addEventListener('click', async event => {
   });
 });
 
+root.addEventListener('input', event=>{
+  const form=event.target.closest('form[data-form="platform-subscription"]');
+  if(form)invalidateSubscriptionReview(form);
+});
 root.addEventListener('change', async event => {
   try{
+    const subForm=event.target.closest('form[data-form="platform-subscription"]');
+    if(subForm)invalidateSubscriptionReview(subForm);
     if(event.target.matches('[data-form="platform-subscription"] [name="plan"]')){const form=event.target.form;const button=form?.querySelector('[data-action="fill-subscription-period"]');if(button)button.disabled=!['trial','standard','pro'].includes(event.target.value);return;}
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
@@ -1740,10 +1831,17 @@ document.addEventListener('click', event => {
   let changed=false;
   if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;changed=true;}
   if(state.accountMenuOpen && !event.target.closest('.runtime-account-picker')){state.accountMenuOpen=false;changed=true;}
+  const hubProfile=root.querySelector('.hub-account__profile[open]');
+  if(hubProfile && !event.target.closest('.hub-account__profile'))hubProfile.open=false;
   if(changed)render();
 });
 
 document.addEventListener('keydown', event=>{
+  if(event.key==='Escape'){
+    const hubProfile=root.querySelector('.hub-account__profile[open]');
+    if(hubProfile){hubProfile.open=false;hubProfile.querySelector('.hub-account__trigger')?.focus();event.preventDefault();}
+    if(state.accountMenuOpen){state.accountMenuOpen=false;render();event.preventDefault();}
+  }
   if(event.key==='Escape' && state.supportImageViewer){event.preventDefault();state.supportImageViewer=null;render();}
 });
 
@@ -1773,6 +1871,12 @@ root.addEventListener('drop', event=>{
 
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
+  if(type==='platform-subscription'){
+    const signature=JSON.stringify(subscriptionDraft(form));
+    if(!form.dataset.reviewSignature||form.dataset.reviewSignature!==signature){window.alert('변경 내용 확인을 다시 눌러 주세요.');invalidateSubscriptionReview(form);return;}
+    form.dataset.reviewSignature='';
+    form.querySelector('[data-subscription-submit]').disabled=true;
+  }
   await withMutation(async()=>{
     if(type==='hub-board-ticket'){
       if(state.page!=='hub-board')throw new Error('게시판에서 작성해 주세요.');
@@ -1906,7 +2010,25 @@ root.addEventListener('submit', async event => {
     }
     if(type==='ledger'){const existingId=String(data.get('entry_id')||'')||null;const payload={entryId:existingId,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,payload);let entryId=existingId||ledgerEntryIdFromSave(saved);if((state.ledgerPendingFiles||[]).length&&!entryId){const [yy,mm]=payload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=payload.direction==='지출'?-Math.abs(payload.amount):Math.abs(payload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===payload.category&&String(r.account||'')===payload.account&&dateKey(r.ledger_date)===payload.ledgerDate&&Number(r.amount||0)===signed);entryId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if((state.ledgerPendingFiles||[]).length&&!entryId)throw new Error('내역은 저장됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 해당 내역의 수정 화면에서 사진만 다시 첨부해 주세요.');if(entryId)await uploadLedgerPendingEvidence(entryId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'공금 내역과 첨부사진을 저장했습니다.':'공금 내역을 저장했습니다.');return;}
     if(type==='ledger-correction'){const entryId=String(data.get('entry_id')||'');const row=(state.fundSnapshot?.ledger||[]).find(r=>String(r.id)===entryId);if(!row)throw new Error('정정할 공금 내역을 찾지 못했습니다.');const oldSigned=Number(row.amount||0);const targetAmount=Math.abs(Number(data.get('amount')||0));if(!Number.isFinite(targetAmount)||targetAmount<=0)throw new Error('최종 금액을 확인해 주세요.');const targetDirection=String(data.get('direction')||'수입');const targetSigned=targetDirection==='지출'?-targetAmount:targetAmount;const delta=targetSigned-oldSigned;if(delta===0)throw new Error('현재 금액과 동일합니다. 변경할 금액 또는 구분을 입력해 주세요.');const reason=String(data.get('reason')||'').trim();if(!reason)throw new Error('정정 사유를 입력해 주세요.');const correctionPayload={entryId:null,direction:delta<0?'지출':'수입',amount:Math.abs(delta),account:String(row.account||'공용계좌'),category:`${row.entry_type==='payment'?'주간공금':(row.category||'공금')} 정정`,membershipId:String(row.membership_id||'')||null,memo:`원본 ${entryId.slice(0,8)} 정정 · ${reason}`,ledgerDate:String(data.get('ledger_date')||dateKey(new Date()))};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,correctionPayload);let correctionId=ledgerEntryIdFromSave(saved);if(hadEvidence&&!correctionId){const [yy,mm]=correctionPayload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=correctionPayload.direction==='지출'?-Math.abs(correctionPayload.amount):Math.abs(correctionPayload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===correctionPayload.category&&String(r.account||'')===correctionPayload.account&&dateKey(r.ledger_date)===correctionPayload.ledgerDate&&Number(r.amount||0)===signed&&String(r.memo||'')===correctionPayload.memo);correctionId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if(hadEvidence&&!correctionId)throw new Error('정정은 반영됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 새 정정 내역의 수정 화면에서 사진을 다시 첨부해 주세요.');if(correctionId)await uploadLedgerPendingEvidence(correctionId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'정정 차액과 첨부사진을 반영했습니다.':'원본을 보존한 상태로 정정 차액을 반영했습니다.');return;}
-    if(type==='platform-subscription'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');const companyId=String(data.get('company_id')||'');const toIso=(v,end=false)=>{const s=String(v||'').trim();if(!s)return null;return new Date(`${s}T${end?'23:59:59':'00:00:00'}+09:00`).toISOString();};await updatePlatformSubscription(companyId,{plan:String(data.get('plan')||'standard'),status:String(data.get('status')||'active'),startsAt:toIso(data.get('starts_at')),endsAt:toIso(data.get('ends_at'),true),graceUntil:toIso(data.get('grace_until'),true),memo:String(data.get('memo')||'').trim()});await loadCompanies();state.platformSnapshot=await getPlatformCompanies();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();state.modal=null;setNotice('구독 정보를 저장했습니다.');return;}
+    if(type==='platform-subscription'){
+      if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');
+      const companyId=String(data.get('company_id')||'');
+      const original=(state.platformSnapshot||[]).find(row=>String(row.company_id)===companyId);
+      if(!original)throw new Error('현재 회사 구독 정보를 다시 불러와 주세요.');
+      // Do not overwrite an unrelated concurrent administrator edit based on stale form data.
+      const latest=(await getPlatformCompanies()).find(row=>String(row.company_id)===companyId);
+      const tracked=['plan','subscription_status','starts_at','ends_at','grace_until','memo','updated_at'];
+      if(!latest||tracked.some(key=>String(latest[key]??'')!==String(original[key]??'')))
+        throw new Error('다른 관리자가 구독 정보를 변경했습니다. 관리 화면을 새로고침한 후 다시 확인해 주세요.');
+      const toIso=(field,end=false)=>{
+        const s=String(data.get(field)||'').trim();if(!s)return null;
+        const previous=original[field];
+        if(previous&&new Date(previous).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})===s)return previous;
+        return new Date(`${s}T${end?'23:59:59':'00:00:00'}+09:00`).toISOString();
+      };
+      await updatePlatformSubscription(companyId,{plan:String(data.get('plan')||'standard'),status:String(data.get('status')||'active'),startsAt:toIso('starts_at'),endsAt:toIso('ends_at',true),graceUntil:toIso('grace_until',true),memo:String(data.get('memo')||'').trim()});
+      await loadCompanies();state.platformSnapshot=await getPlatformCompanies();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();state.modal=null;setNotice('구독 정보를 저장했습니다.');return;
+    }
     if(type==='company-delete'){
       if(!state.platformAdmin)throw new Error('회사 삭제는 PLATFORM OWNER만 할 수 있습니다.');
       const companyId=String(data.get('company_id')||'').trim();

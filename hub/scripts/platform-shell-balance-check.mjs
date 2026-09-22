@@ -4,7 +4,7 @@ const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const checks=[
   ['Korean plan labels', render.includes("trial:'7일 체험'") && render.includes("standard:'30일 이용'") && render.includes("pro:'90일 이용'")],
-  ['subscription modal Korean plans', render.includes('>7일 체험</option>') && render.includes('>30일 이용</option>') && render.includes('>90일 이용</option>')],
+  ['subscription modal Korean plans', render.includes('const options=(values,value)=>') && render.includes('name=\"plan\"') && render.includes("['trial','7일 체험']") && render.includes("['standard','30일 이용']") && render.includes("['pro','90일 이용']")],
   ['platform admin hidden-company filter', main.includes('applyPlatformCompanyVisibility') && main.includes("['paused','expired'].includes")],
   ['platform refresh rehydrates companies', main.includes("action==='refresh-platform'") && main.includes('await loadCompanies();state.platformSnapshot=await getPlatformCompanies()')],
   ['platform save reapplies visibility', main.includes("type==='platform-subscription'") && main.includes('const changed=applyPlatformCompanyVisibility()')],

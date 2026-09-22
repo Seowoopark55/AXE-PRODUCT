@@ -91,3 +91,8 @@
 .hub-account__subscription>span b{color:#e5e9ed;font-weight:750;text-align:right}
 .hub-account__subscription>small{color:#94a2b0;font-size:10px;line-height:1.5}
 .hub-account .hub-account__subscription button{padding:8px 10px;border:1px solid #536171;border-radius:7px;background:#1d2a38;color:#e8d5b6;font-size:11px;cursor:pointer}
+
+/* Visible close action for the HUB account popover. */
+.hub-account__menu-head>span:nth-child(2){flex:1}
+.hub-account__close{margin-left:auto;flex-shrink:0;width:30px;height:30px;border:1px solid #536171;border-radius:8px;background:#1a2734;color:#ebeff4;font-size:21px;line-height:1;cursor:pointer}
+.hub-account__close:hover{background:#324153;border-color:#d0ad79}

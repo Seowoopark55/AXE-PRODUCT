@@ -181,7 +181,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${companySubscriptionAccountSummary(state)}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><div class="runtime-account-menu__head"><strong>계정 정보</strong><button type="button" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기">×</button></div>${companySubscriptionAccountSummary(state)}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -949,8 +949,53 @@ function ledgerEvidenceModal(state,m){
 }
 function platformSubscriptionModal(state,m){
   const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(m.companyId)); if(!row)return '';
-  const dateValue=v=>v?dateKey(v):''; const status=String(row.subscription_status||row.effective_status||'active'); const plan=row.plan==='legacy'?'internal':String(row.plan||'standard');
-  return modalShell('회사 구독 관리',row.company_name||'회사',`<form data-form="platform-subscription" class="runtime-modal-form"><input type="hidden" name="company_id" value="${esc(row.company_id)}"><label>플랜<select name="plan"><option value="trial" ${plan==='trial'?'selected':''}>7일 체험</option><option value="standard" ${plan==='standard'?'selected':''}>30일 이용</option><option value="pro" ${plan==='pro'?'selected':''}>90일 이용</option><option value="internal" ${plan==='internal'?'selected':''}>무제한</option></select></label><label>상태<select name="status"><option value="trial" ${status==='trial'?'selected':''}>체험</option><option value="active" ${status==='active'?'selected':''}>사용중</option><option value="paused" ${status==='paused'?'selected':''}>일시 정지</option><option value="expired" ${status==='expired'?'selected':''}>만료</option><option value="lifetime" ${status==='lifetime'?'selected':''}>무제한</option></select></label><div class="runtime-modal-hint is-full">기간형 플랜을 선택한 후 <b>날짜 채우기</b>를 누르면 시작일을 기준으로 종료일을 계산합니다. 화면 입력만 변경되며 실제 구독 정보는 <b>구독 저장</b>을 눌러야 변경됩니다.</div><label>시작일<input type="date" name="starts_at" value="${esc(dateValue(row.starts_at))}"></label><div class="runtime-subscription-date-action is-full"><button type="button" class="runtime-btn-ghost" data-action="fill-subscription-period">선택한 기간으로 날짜 채우기</button></div><label>종료일<input type="date" name="ends_at" value="${esc(dateValue(row.ends_at))}"></label><label>유예 종료일<input type="date" name="grace_until" value="${esc(dateValue(row.grace_until))}"></label><label>Discord<input value="${esc(row.guild_name||'미연결')}" readonly class="is-readonly"></label><label class="is-full">관리 메모<textarea name="memo" placeholder="결제 확인, 테스트 회사 등 내부 메모">${esc(row.memo||'')}</textarea></label><div class="runtime-modal-hint is-full">플랜명은 관리하기 쉽도록 기간 기준으로 표시합니다. 실제 이용 차단 시점은 아래 종료일과 상태가 기준이며, 필요하면 날짜를 직접 조정할 수 있습니다.</div><footer><button type="button" class="runtime-btn-danger" data-action="open-delete-company" data-company-id="${esc(row.company_id)}">회사 삭제</button><div><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">구독 저장</button></div></footer></form>`,true);
+  const dateValue=v=>v?new Date(v).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'';
+  // Display effective state, but preserve the raw stored plan/status in the form.
+  // 'legacy' must not silently become 'internal' if an admin edits another field.
+  const status=String(row.subscription_status||'active');
+  const plan=String(row.plan||'standard');
+  const options=(values,value)=>values.map(([key,label])=>`<option value="${key}" ${value===key?'selected':''}>${label}</option>`).join('');
+  const originalEnd=companySubscriptionEnd(row,value=>fmtDate(value,true));
+  const missingEnd=!row.ends_at && !['internal','legacy'].includes(plan) && status!=='lifetime';
+  const hasGrace=Boolean(row.grace_until);
+  return modalShell('회사 이용권 관리',row.company_name||'회사',`
+    <div class="lac-subscription-manager">
+      <section class="lac-subscription-current" aria-label="현재 저장된 이용권">
+        <div class="lac-subscription-current__top"><span>현재 이용권</span><strong>${esc(companyStatusName(row))}</strong></div>
+        <h3>${esc(companyPlanName(plan))}</h3>
+        <dl><div><dt>시작일</dt><dd>${esc(row.starts_at?fmtDate(row.starts_at,true):'미설정')}</dd></div><div><dt>종료일</dt><dd>${esc(originalEnd)}</dd></div>${hasGrace?`<div><dt>유예 종료일</dt><dd>${esc(fmtDate(row.grace_until,true))}</dd></div>`:''}</dl>
+        ${missingEnd?'<p class="lac-subscription-warning">기간형 이용권이지만 종료일이 없습니다. 기존 기간을 추측해 자동 연장하지 않습니다. 실제 날짜를 확인한 뒤 새 기간을 설정하거나 상세 설정을 이용해 주세요.</p>':''}
+        <small>현재 저장된 회사 공통 이용권 정보입니다. 아래 편집은 최종 저장 전까지 반영되지 않습니다.</small>
+      </section>
+      <form data-form="platform-subscription" class="runtime-modal-form lac-subscription-form">
+        <input type="hidden" name="company_id" value="${esc(row.company_id)}">
+        <section class="lac-subscription-actions is-full" aria-label="간편 관리">
+          <h3>어떤 작업을 할까요?</h3>
+          <div class="lac-subscription-action-grid">
+            <button type="button" data-action="subscription-new-period">기간 새로 설정<small>시작일을 오늘로 지정</small></button>
+            <button type="button" data-action="subscription-extend-period" ${!row.ends_at||['internal','legacy'].includes(plan)||status==='lifetime'?'disabled title="기존 종료일이 없는 이용권은 자동 연장할 수 없습니다."':''}>기간 연장<small>저장된 종료일 기준</small></button>
+            <button type="button" data-action="subscription-toggle-pause" data-next-status="${status==='paused'?'active':'paused'}">${status==='paused'?'이용 재개':'이용 일시정지'}<small>상태 변경만 준비</small></button>
+          </div>
+          <label class="lac-subscription-quick-days">설정할 기간<select name="quick_days">${options([['7','7일'],['30','30일'],['90','90일']],'90')}</select></label>
+          <p class="lac-subscription-draft-message" data-subscription-draft-message aria-live="polite">원하는 작업을 선택하면 변경안이 준비됩니다. 실제 데이터는 저장 전까지 바뀌지 않습니다.</p>
+        </section>
+        <details class="lac-subscription-advanced is-full" data-subscription-advanced>
+          <summary>상세 설정 · 날짜 직접 수정</summary>
+          <div class="lac-subscription-advanced__fields">
+            <label>플랜<select name="plan">${options([['trial','7일 체험'],['standard','30일 이용'],['pro','90일 이용'],['internal','무제한'],...(plan==='legacy'?[['legacy','기존 무제한 (legacy)']]:[])],plan)}</select></label>
+            <label>상태<select name="status">${options([['trial','체험'],['active','사용중'],['paused','일시 정지'],['expired','만료'],['lifetime','무제한']],status)}</select></label>
+            <label>시작일<input type="date" name="starts_at" value="${esc(dateValue(row.starts_at))}"></label>
+            <label>종료일<input type="date" name="ends_at" value="${esc(dateValue(row.ends_at))}"></label>
+            <label>유예 종료일<input type="date" name="grace_until" value="${esc(dateValue(row.grace_until))}"></label>
+            <label class="is-full">관리 메모<textarea name="memo" placeholder="결제 확인 등 내부 메모">${esc(row.memo||'')}</textarea></label>
+            <div class="runtime-modal-hint is-full">기존 Discord 연결과 회사 정보는 이 화면에서 변경하지 않습니다. 무제한 상태로 저장할 경우 기존 종료일과 유예 종료일이 삭제될 수 있으므로 미리보기를 확인해 주세요.</div>
+          </div>
+        </details>
+        <section class="lac-subscription-review is-full" data-subscription-review hidden aria-live="polite"><h3>저장 전 변경 내용 확인</h3><div data-subscription-review-lines></div><p>이 내용으로 저장하면 회사 관리 이용권에 즉시 반영될 수 있습니다. BUILD 무료 이용 설정은 변경하지 않습니다.</p></section>
+        <footer class="lac-subscription-footer is-full"><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><div><button type="button" class="runtime-btn-ghost" data-action="review-subscription">변경 내용 확인</button><button type="submit" class="runtime-btn-primary" data-subscription-submit disabled>확인 후 저장</button></div></footer>
+      </form>
+      <details class="lac-subscription-company-settings"><summary>별도 회사 설정 · 위험 작업</summary><p>회사 삭제는 구독 기간 설정과 다른 작업입니다. 아래에서 별도의 확인 절차로 이동합니다.</p><button type="button" class="runtime-btn-danger" data-action="open-delete-company" data-company-id="${esc(row.company_id)}">회사 삭제 관리</button></details>
+    </div>`,true);
 }
 function companyDeleteModal(state,m){
   const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(m.companyId)); if(!row)return '';

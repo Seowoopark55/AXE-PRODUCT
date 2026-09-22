@@ -4,8 +4,8 @@ const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const checks=[
   ['unlimited plan label simplified',render.includes("internal:'무제한'")],
   ['legacy label removed from UI',!render.includes('>기존 계약</option>')],
-  ['legacy rows normalize to unlimited',render.includes("row.plan==='legacy'?'internal'" )],
-  ['unlimited option exists',render.includes('>무제한</option>')],
+  ['legacy rows display unlimited without silent DB plan conversion',render.includes('companyPlanName(plan)') && render.includes("const plan=String(row.plan||'standard')") && render.includes("['legacy','기존 무제한 (legacy)']")],
+  ['unlimited option exists',render.includes("['internal','무제한']") && render.includes('const options=(values,value)=>')],
   ['desktop content lower',css.includes('.runtime-app .main{padding-top:26px!important}')],
   ['desktop content farther right',css.includes('margin-left:72px!important')],
   ['mid desktop content right shift',css.includes('margin-left:48px!important')],

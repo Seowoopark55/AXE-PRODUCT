@@ -207,3 +207,48 @@
 .runtime-account-subscription button{border:1px solid #536171;border-radius:7px;background:#23303d;color:#f0d6ae;padding:7px;cursor:pointer}
 .runtime-subscription-date-action{display:flex;justify-content:flex-start}
 .runtime-subscription-date-action button{height:auto;min-height:32px;padding:7px 10px}
+
+/* LAC HUB subscription editor and deliberate account-menu close controls (scoped). */
+.runtime-account-menu__head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 8px;border-bottom:1px solid #34414d}
+.runtime-account-menu__head strong{font-size:12px;color:#f1d7a9}
+.runtime-account-menu__head>button{width:29px;height:29px;display:grid;place-items:center;border:1px solid #49586a;border-radius:8px;background:#17212c;color:#dbe4eb;font-size:20px;cursor:pointer}
+.runtime-account-menu__head>button:hover{background:#2b3a49}
+.lac-subscription-manager{padding:16px;display:grid;gap:16px;max-height:min(75vh,760px);overflow-y:auto}
+.lac-subscription-manager .lac-subscription-current{padding:17px;border:1px solid #394651;border-radius:13px;background:#121c27}
+.lac-subscription-current__top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#aebac5;font-size:11px}
+.lac-subscription-current__top strong{padding:5px 9px;border-radius:99px;background:#2e332b;color:#e8cc9b}
+.lac-subscription-current h3{margin:7px 0 15px;font-size:24px;color:#f2e1c0}
+.lac-subscription-current dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 9px}
+.lac-subscription-current dl>div{display:grid;gap:5px;padding:10px;border-radius:8px;background:#192633;min-width:0}
+.lac-subscription-current dt{color:#9eacbb;font-size:10px}.lac-subscription-current dd{margin:0;color:#e7eef7;font-size:12px;overflow-wrap:anywhere}
+.lac-subscription-current>small{display:block;color:#8999aa;line-height:1.5}
+.lac-subscription-warning{margin:8px 0;padding:10px;border:1px solid #675138;border-radius:8px;background:#34291b;color:#f1c98b;line-height:1.6;font-size:11px}
+.lac-subscription-form{display:grid;grid-template-columns:1fr;gap:14px;padding:0!important}
+.lac-subscription-actions{display:grid;gap:13px}
+.lac-subscription-actions h3,.lac-subscription-review h3{margin:0;font-size:14px;color:#f1e4cf}
+.lac-subscription-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lac-subscription-action-grid>button{display:grid;gap:5px;min-height:68px;align-content:center;padding:10px;text-align:left;font-size:12px;font-weight:800;border:1px solid #4a5969;border-radius:10px;background:#1b2935;color:#f1e4d1;cursor:pointer}
+.lac-subscription-action-grid>button small{font-size:10px;color:#a6b3c0;font-weight:500}
+.lac-subscription-action-grid>button:disabled{opacity:.46;cursor:not-allowed}
+.lac-subscription-action-grid>button:not(:disabled):hover{border-color:#d1ac72;background:#293749}
+.lac-subscription-quick-days{max-width:180px}
+.lac-subscription-draft-message{margin:0;line-height:1.5;color:#b2bfcc;font-size:11px}
+.lac-subscription-advanced{border:1px solid #384756;border-radius:10px;padding:12px;background:#111922}
+.lac-subscription-advanced summary{cursor:pointer;color:#d4b887;font-size:12px;font-weight:750}
+.lac-subscription-advanced__fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.lac-subscription-advanced__fields>.is-full{grid-column:1/-1}
+.lac-subscription-review{padding:13px;border:1px solid #a78850;border-radius:10px;background:#242116}
+.lac-subscription-review[hidden]{display:none!important}
+.lac-subscription-review>div{display:grid;gap:8px;margin:12px 0}
+.lac-subscription-review>div>div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;font-size:11px;color:#f1e1c3;overflow-wrap:anywhere}
+.lac-subscription-review>div>div strong{color:#c0ad87}
+.lac-subscription-review>div>.lac-subscription-review__warning{display:block;color:#f2b781}
+.lac-subscription-review p{margin:0;font-size:10px;color:#aeb5bd;line-height:1.6}
+.lac-subscription-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px;border-top:1px solid #323b45}
+.lac-subscription-footer>div{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.lac-subscription-footer button:disabled{opacity:.43;cursor:not-allowed}
+@media(max-width:620px){.lac-subscription-manager{padding:11px;max-height:75vh}.lac-subscription-action-grid{grid-template-columns:1fr}.lac-subscription-action-grid>button{min-height:50px}.lac-subscription-current dl,.lac-subscription-advanced__fields{grid-template-columns:1fr}.lac-subscription-footer{flex-wrap:wrap}.lac-subscription-footer>div{width:100%}}
+
+.lac-subscription-company-settings{padding:10px 12px;border:1px solid #523b39;border-radius:10px;background:#201819}
+.lac-subscription-company-settings summary{cursor:pointer;font-weight:700;font-size:11px;color:#c4a29e}
+.lac-subscription-company-settings p{color:#b39c9c;font-size:11px;line-height:1.6}
