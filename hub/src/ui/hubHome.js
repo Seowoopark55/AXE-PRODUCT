@@ -6,15 +6,8 @@ function esc(value) {
     .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
 
-// Existing LAC BUILD standalone production domain; only the HUB -> BUILD entry is enabled.
-// Vercel may override this when BUILD's public domain changes. Never use this for authorization.
-const BUILD_PUBLIC_URL = (() => {
-  const fallback = 'https://axe-hub-peach.vercel.app/';
-  try {
-    const candidate = new URL(String(import.meta.env.VITE_LAC_BUILD_URL || fallback));
-    return candidate.protocol === 'https:' && !candidate.username && !candidate.password ? candidate.href : fallback;
-  } catch { return fallback; }
-})();
+// HUB and BUILD are served under the same origin; keep the independent BUILD deployment unchanged.
+const BUILD_PUBLIC_URL = '/build/';
 const ASSETS = '/hub/';
 const chevron = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const settingsIcon = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.3 13.9 4l1.5-.6 2.5 2.5-.6 1.5.7 1.9 1.5.6v3.5l-1.5.6-.7 1.9.6 1.5-2.5 2.5-1.5-.6-1.9.7-.6 1.5h-3.5l-.6-1.5-1.9-.7-1.5.6-2.5-2.5.6-1.5-.7-1.9-1.5-.6V9.9l1.5-.6.7-1.9-.6-1.5L6.4 3.4l1.5.6 1.9-.7.6-1.5h3.5z" transform="translate(1 1) scale(.85)" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
@@ -48,7 +41,7 @@ function contentCard({title,description,image,tag,tagType='',action='',href='',d
   // has one native anchor with new-tab semantics, without navigating away from HUB.
   const active=Boolean((action || href) && !disabled);
   const open=!active ? `<article class="hub-feature hub-feature--pending">`
-    : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(title)} 새 탭에서 열기">`
+    : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" ${href.startsWith("/build/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(title)} 열기">`
     : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
   const close=!active ? '</article>' : href ? '</a>' : '</button>';
   return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
@@ -86,7 +79,7 @@ export function renderHubHome(state) {
         <div class="hub-features">
           ${contentCard({title:HUB_CONTENT.company.name,description:HUB_CONTENT.company.description,image:'company.webp',tag:current?'이용 가능':'회사 선택 필요',tagType:current?'available':'neutral',action:companyAction})}
           ${contentCard({title:'게임 정보',description:'게임과 관련된 정보와 자료를 확인하세요.',image:'game.webp',tag:current?'회사 멤버 이용':'회사 선택 필요',tagType:current?'available':'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'기존 회사별 정보 권한 유지':'현재 회사 가입 후 이용'})}
-          ${contentCard({title:HUB_CONTENT.build.name,description:HUB_CONTENT.build.description,image:'build.webp',tag:'무료',tagType:'free',href:BUILD_PUBLIC_URL,footnote:'독립 사이트 · 새 탭에서 열기'})}
+          ${contentCard({title:HUB_CONTENT.build.name,description:HUB_CONTENT.build.description,image:'build.webp',tag:'무료',tagType:'free',href:BUILD_PUBLIC_URL,footnote:'HUB에서 바로 이용 · 무료'})}
           ${contentCard({title:HUB_CONTENT.cook.name,description:HUB_CONTENT.cook.description,image:'cook.webp',tag:'통합 예정',tagType:'neutral',disabled:true,footnote:'서비스 준비 중'})}
         </div>
       </section>
