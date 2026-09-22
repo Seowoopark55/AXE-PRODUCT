@@ -632,6 +632,9 @@ body:has(.runtime-app--game-info.game-center)::before {
    The standalone BUILD deployment keeps its original edge-to-edge layout. */
 #lac-build-host {
   position:relative;z-index:1;box-sizing:border-box;
-  display:block;width:100%;min-height:100vh;background:transparent;
+  display:block;width:100%;min-height:100vh;
+  /* Draw the ambient shell on the real HUB host, outside BUILD's shadow tree.
+     The transparent host background previously overrode its :host artwork. */
+  background:url('/brand/lac-one-shell-clean.png') center top/cover no-repeat,#030507;
 }
 #lac-build-host[hidden] {display:none;}
