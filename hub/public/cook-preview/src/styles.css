@@ -43,3 +43,76 @@
 .back-button:hover{color:#f4d19d}
 
 .preview-tag[hidden]{display:none!important}
+
+/* LAC COOK · operational workbench — keep every function visible in one page.
+   Scope styles under the new layout; existing standalone reference is untouched. */
+.frame{padding:14px max(18px,calc((100vw - 1570px)/2));}
+.shell{max-width:1530px;background:#101417;border-color:rgba(181,137,72,.27);}
+.header{min-height:62px;background:#111517;border-bottom-color:rgba(194,145,76,.24);}
+.header h1{font-size:22px;}
+.tabs{min-height:44px;padding:4px 14px;background:#121619;}
+.tabs .tab{padding:7px 12px;}
+.workspace{padding:17px 19px 28px;}
+.intro{margin-bottom:13px;gap:12px;}
+.intro h2{font-size:21px;margin:3px 0;}
+.intro p{font-size:11px;}
+.intro .tag{font-size:10px;background:#211d17;}
+.cook-workbench{display:grid;grid-template-columns:minmax(285px,32%) minmax(0,1fr);align-items:start;gap:13px;}
+.cook-sidebar,.cook-results{display:grid;min-width:0;gap:12px;align-content:start;}
+.cook-recipes-row,.cook-purchase-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch;}
+.cook-purchase-row{grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);}
+.cook-extras-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start;}
+.cook-workbench .panel{padding:13px;border-color:#353a3e;background:linear-gradient(180deg,#151b20,#12171b);border-radius:12px;}
+.cook-workbench .panel-title{gap:8px;margin-bottom:10px;align-items:flex-start;}
+.cook-workbench .panel-title h3{font-size:14px;line-height:1.4;color:#f0ebe4;}
+.cook-workbench .panel-title small{font-size:10px;line-height:1.5;}
+.cook-workbench .panel input[type=search]{padding:10px 11px;font-size:12px;}
+.cook-sidebar .results{max-height:170px;min-height:74px;margin-top:9px;overflow:auto;}
+.cook-sidebar .orders{max-height:210px;min-height:55px;margin-top:4px;overflow:auto;}
+.cook-sidebar .food-row,.cook-sidebar .order-row{min-height:49px;padding:7px 1px;}
+.cook-sidebar .summary{margin-top:10px;padding-top:10px;gap:5px;}
+.cook-sidebar .summary>div{padding:8px 7px;}
+.cook-sidebar .summary strong{font-size:17px;margin-top:2px;}
+.cook-sidebar .summary small{font-size:9px;}
+.cook-sidebar .qty{width:56px;padding:6px;}
+.cook-sidebar .order-controls{gap:4px;}
+.cook-sidebar .remove{padding:7px;}
+.cook-sidebar .saved-actions{gap:6px;}
+.cook-sidebar .saved-actions button{min-height:32px;font-size:10px;padding:6px;}
+.cook-sidebar .saved-panel .tag{font-size:9px;padding:5px 7px;}
+.cook-sidebar .saved-panel .prep-note{font-size:10px;}
+.cook-workbench .result-panel,.cook-workbench .prep-panel,.cook-workbench .saved-panel,.cook-workbench .cloud-panel{margin-top:0;}
+.cook-recipes-row .materials{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+.cook-recipes-row .material-row{padding:7px 9px;}
+.cook-recipes-row .material-row span,.cook-recipes-row .material-row strong{font-size:11px;}
+.mini-label{margin:10px 0 8px;padding-top:9px;border-top:1px solid #32383b;color:#bba27d;font-size:10px;font-weight:800;}
+.food-recipes{display:grid;gap:8px;max-height:260px;overflow-y:auto;}
+.recipe-card{border:1px solid #3c3934;border-radius:8px;padding:9px;background:#101417;}
+.recipe-card-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:7px;padding-bottom:6px;border-bottom:1px solid #32312d;}
+.recipe-card-head strong{font-size:12px;color:#efd6a8;}
+.recipe-card-head span{font-size:10px;color:#b1bac2;}
+.recipe-ingredient{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;}
+.recipe-ingredient span{font-size:11px;color:#cdd5d9;overflow-wrap:anywhere;}
+.recipe-ingredient b{font-size:11px;color:#f0c986;white-space:nowrap;}
+.cook-recipes-row .data-lines{max-height:320px;overflow-y:auto;}
+.cook-workbench .data-row{padding:9px 10px;}
+.cook-purchase-row .purchase-grid{grid-template-columns:1fr;gap:7px;max-height:520px;overflow-y:auto;}
+.cook-purchase-row .choice-card{gap:3px;border:1px solid #343d42;border-radius:9px;padding:4px;background:#10161a;}
+.cook-purchase-row .choice-card>.data-row{border:none;background:transparent;padding:6px;}
+.cook-purchase-row .choice-label{padding:0 6px 5px;font-size:10px;}
+.cook-purchase-row .choice-select{min-height:32px;font-size:11px;padding:5px 8px;}
+.cook-purchase-row .prep-groups{grid-template-columns:1fr;gap:7px;max-height:520px;overflow-y:auto;}
+.cook-purchase-row .prep-group{padding:9px;}
+.cook-purchase-row .prep-item{min-height:32px;padding:4px 2px;}
+.cook-workbench .tag{font-size:9px;padding:5px 7px;}
+.cook-workbench .data-info strong{font-size:11px;}
+.cook-workbench .data-info small{font-size:10px;}
+.cook-workbench .data-row>b{font-size:11px;}
+.cook-extras-row .panel-title{flex-wrap:wrap;}
+.cook-extras-row .panel-title .tag{margin-left:auto;}
+.memo-panel textarea{display:block;width:100%;min-height:82px;resize:vertical;border:1px solid #3a444c;border-radius:9px;background:#0e1418;color:#e7eced;font:inherit;font-size:12px;line-height:1.5;padding:10px;}
+.memo-panel textarea:focus-visible{outline:2px solid #d2ae75;outline-offset:2px;}
+.footer-note{font-size:10px;line-height:1.5;margin-top:10px;}
+@media(max-width:1240px){.cook-workbench{grid-template-columns:minmax(250px,31%) minmax(0,1fr)}.cook-recipes-row,.cook-purchase-row{grid-template-columns:1fr}.cook-extras-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.frame{padding:10px}.workspace{padding:12px}.cook-workbench{grid-template-columns:1fr}.cook-sidebar{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.cook-sidebar .saved-panel{grid-column:1/-1}.cook-extras-row{grid-template-columns:1fr}.cook-recipes-row,.cook-purchase-row{grid-template-columns:1fr}}
+@media(max-width:560px){.frame{padding:0}.shell{border:0;border-radius:0}.header{padding:10px}.header h1{font-size:17px}.account{max-width:100px;overflow:hidden;text-overflow:ellipsis}.intro{align-items:flex-start}.intro .tag{display:none}.cook-sidebar{grid-template-columns:1fr}.cook-sidebar .saved-panel{grid-column:auto}.cook-recipes-row .materials{grid-template-columns:1fr}}

@@ -33,7 +33,7 @@ export function currentChecks(checked, items) {
   const allowed = new Set(items.map(item => item.key));
   return new Set([...checked].filter(key => allowed.has(key)));
 }
-export function prepareWorkspace({orders, choices, checked, plan, revision}) {
+export function prepareWorkspace({orders, choices, checked, plan, revision, memo = ''}) {
   const items = checklistItems(plan);
   const valid = currentChecks(checked, items);
   return {
@@ -42,7 +42,8 @@ export function prepareWorkspace({orders, choices, checked, plan, revision}) {
     savedAt: new Date().toISOString(),
     orders: [...orders].map(([id,batches])=>({id,batches})),
     choices: {offers:toSafeMap(choices.offers),fish:toSafeMap(choices.fish)},
-    checked: [...valid]
+    checked: [...valid],
+    memo:typeof memo==='string'?memo.slice(0,2000):''
   };
 }
 export function parseWorkspace(json, {revision, foods}) {
@@ -66,7 +67,9 @@ export function parseWorkspace(json, {revision, foods}) {
     if (!validString(key, 1500)) throw Error('체크리스트 데이터 형식이 올바르지 않아.');
     checked.add(key);
   }
+  if(raw.memo!=null && (typeof raw.memo!=='string' || raw.memo.length>2000))throw Error('저장된 작업 메모 형식이 올바르지 않아.');
   return {
+    memo:raw.memo||'',
     orders,
     choices: {offers:toSafeMap(raw.choices?.offers),fish:toSafeMap(raw.choices?.fish)},
     checked,

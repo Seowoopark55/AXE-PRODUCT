@@ -7,7 +7,7 @@ import {mountCookCloudPanel} from './cloudPanel.js';
 import {requestHostReturn} from './hostBridge.js';
 
 const $ = id => document.getElementById(id);
-const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set()};
+const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set(),memo:''};
 const revision = CATALOG_REVISION;
 const setStatus = (text, kind='') => { $('save-status').textContent=text; $('save-status').dataset.kind=kind; };
 const markDirty = () => setStatus('현재 작업에 저장되지 않은 변경 사항이 있어.');
@@ -75,9 +75,32 @@ function paintOrders() {
   paintMaterials();
 }
 
+function paintFoodRecipes(outcome) {
+  const root=$('food-recipes'); root.replaceChildren();
+  if(!state.orders.size){root.append(msg('요리를 선택하면 요리별 레시피가 여기에 표시돼.'));return;}
+  const foods=new Map(state.foods.map(food=>[food.food_id,food]));
+  for(const [id,batches] of state.orders){
+    const food=foods.get(id);
+    if(!food)continue;
+    const details=outcome.details.filter(item=>item.foodId===id);
+    const card=elem('article','recipe-card');
+    const head=elem('div','recipe-card-head');
+    head.append(elem('strong','',food.food_name),elem('span','',`${format(batches)}세트 · 완성 ${food.set_qty ? format(batches*Number(food.set_qty))+'개':'수량 미설정'}`));
+    card.append(head);
+    if(!details.length)card.append(msg('등록된 레시피가 없거나 재료 수량 확인이 필요해.'));
+    for(const item of details){
+      const ingredient=elem('div','recipe-ingredient');
+      ingredient.append(elem('span','',item.name),elem('b','',`${format(item.quantity)}개`));
+      card.append(ingredient);
+    }
+    root.append(card);
+  }
+}
+
 function paintMaterials() {
   const plan=calculatePlan(catalog,[...state.orders].map(([foodId,batches])=>({foodId,batches})),state.choices);
   const outcome=plan.direct;
+  paintFoodRecipes(outcome);
   $('count-food').textContent=format(state.orders.size);
   $('count-sets').textContent=format(outcome.batches);
   $('count-units').textContent=format(outcome.units);
@@ -121,7 +144,7 @@ function paintMaterials() {
   const offerOptions=new Map(plan.purchaseOptions.map(item=>[item.name,item]));
   fill('purchases',plan.purchases,item=>{
     const container=elem('div','choice-card');
-    container.append(line(item.name,`${item.source} · 필요 ${format(item.quantity)}개 · ${item.bundles==null?'묶음/가격 미확정':`구매 ${format(item.buyQuantity)}개 (${format(item.bundles)}묶음)`}`,item.cost==null?'비용 미확정':`${format(item.cost)}원`));
+    container.append(line(item.name,`${item.source} · 필요 ${format(item.quantity)}개 · ${item.bundles==null?'묶음/가격 미확정':`구매 ${format(item.buyQuantity)}개 (${format(item.bundles)}묶음) · 남음 ${format(item.buyQuantity-item.quantity)}개`}`,item.cost==null?'비용 미확정':`${format(item.cost)}원`));
     const choices=offerOptions.get(item.name);
     if(choices){
       const field=elem('label','choice-label',`${item.name} 구매처`);
@@ -227,6 +250,7 @@ function loadWorkspace(){
     const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
     state.orders=loaded.orders;state.choices=loaded.choices;
     state.checked=currentChecks(loaded.checked,checklistItems(plan));
+    state.memo=loaded.memo||''; $('work-memo').value=state.memo;
     paintOrders();
     setStatus('이 브라우저의 저장본을 불러왔어. 계정 간 동기화는 되지 않아.','success');
   }catch(error){setStatus(`불러오기 중단: ${error.message}`,'error');}
@@ -241,6 +265,7 @@ function deleteWorkspace(){
 }
 
 function start(){
+  $('work-memo').addEventListener('input',event=>{state.memo=event.target.value;markDirty();});
   try{
     if(!Array.isArray(catalog.foods)||!Array.isArray(catalog.recipes))throw Error('데이터 형식 오류');
     state.foods=catalog.foods;state.recipes=catalog.recipes;
@@ -305,6 +330,7 @@ export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled 
           state.choices = loaded.choices;
           const plan = calculatePlan(catalog,[...state.orders].map(([foodId,batches])=>({foodId,batches})),state.choices);
           state.checked = currentChecks(loaded.checked,checklistItems(plan));
+          state.memo=loaded.memo||''; $('work-memo').value=state.memo;
           paintOrders();markDirty();
         }
       });
