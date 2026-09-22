@@ -155,13 +155,13 @@ function renderOnboarding(state) {
 
 function companySubscriptionAccountSummary(state) {
   if (!state.companyId || !(state.companies || []).some(company => company.id === state.companyId)) {
-    return '<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong><span>소속 회사 없음</span><small>BUILD는 Discord 로그인 후 무료로 이용할 수 있습니다.</small></div>';
+    return '<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong><span>소속 회사 없음</span></div>';
   }
   const subscription = state.currentSubscription;
   const details = subscription
     ? `<span>플랜: ${esc(companyPlanName(subscription.plan))}</span><span>상태: ${esc(companyStatusName(subscription))}</span><span>종료일: ${esc(companySubscriptionEnd(subscription, value => fmtDate(value, true)))}</span>`
     : '<span>이용권 정보가 없습니다. 새로고침해 주세요.</span>';
-  return `<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong>${details}<small>회사 공통 이용권 · BUILD는 별도 무료 이용</small><button type="button" data-action="refresh-company-subscription">이용권 새로고침</button></div>`;
+  return `<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong>${details}<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button></div>`;
 }
 
 function renderAuthed(state) {
@@ -181,7 +181,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><div class="runtime-account-menu__head"><strong>계정 정보</strong><button type="button" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기">×</button></div>${companySubscriptionAccountSummary(state)}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><div class="runtime-account-menu__head"><strong>계정 정보</strong><button type="button" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>${companySubscriptionAccountSummary(state)}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">

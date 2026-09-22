@@ -22,7 +22,7 @@
 .hub-account__identity small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 7px;border:1px solid #7b6440;border-radius:100px;background:#3b3126;color:#f1d5a7;font-size:9px;font-weight:750;line-height:1.1}
 .hub-account__menu{position:absolute;right:0;top:calc(100% + 9px);z-index:18;width:265px;max-width:calc(100vw - 24px);padding:12px;border:1px solid #536171;border-radius:14px;background:linear-gradient(145deg,#202b36,#151e28);box-shadow:0 18px 46px #000a, inset 0 1px 0 #ffffff10;white-space:normal}
 .hub-account__menu-head{display:flex;align-items:center;gap:10px;padding:2px 1px 12px;margin-bottom:10px;border-bottom:1px solid #3c4854}
-.hub-account__menu-head>span:last-child{display:flex;flex-direction:column;min-width:0;gap:4px}
+.hub-account__menu-head>span:nth-child(2){display:flex;flex-direction:column;min-width:0;gap:4px}
 .hub-account__menu-head small{color:#95a5b4;font-size:10px}
 .hub-account__menu-head strong{min-width:0;overflow-wrap:anywhere;color:#f0eee9;font-size:13px}
 .hub-account__company{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:10px;border:1px solid #485667;border-radius:9px;background:#111b26;color:#e6edf4;line-height:1.25}
@@ -94,5 +94,6 @@
 
 /* Visible close action for the HUB account popover. */
 .hub-account__menu-head>span:nth-child(2){flex:1}
-.hub-account__close{margin-left:auto;flex-shrink:0;width:30px;height:30px;border:1px solid #536171;border-radius:8px;background:#1a2734;color:#ebeff4;font-size:21px;line-height:1;cursor:pointer}
+.hub-account__close{margin-left:auto;flex-shrink:0;display:grid;place-items:center;box-sizing:border-box;width:30px;height:30px;padding:0;border:1px solid #536171;border-radius:8px;background:#1a2734;color:#ebeff4;cursor:pointer}
+.hub-account__close svg{display:block;width:16px;height:16px}
 .hub-account__close:hover{background:#324153;border-color:#d0ad79}
