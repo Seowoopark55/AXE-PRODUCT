@@ -1,5 +1,5 @@
 /* LAC HUB user-facing home only. No legacy company console changes. */
-.hub-home{min-height:100dvh;background:#0d1117;color:#eef0f3;isolation:isolate;font-family:inherit}
+.hub-home{min-height:100dvh;background:#0d1117 url('/brand/lac-one-shell-clean.png') center top/cover no-repeat;color:#eef0f3;isolation:isolate;font-family:inherit}
 .hub-home *{box-sizing:border-box}
 .hub-home button,.hub-home a{font-family:inherit}
 .hub-home button:focus-visible,.hub-home a:focus-visible{outline:2px solid #e9c990;outline-offset:3px}
