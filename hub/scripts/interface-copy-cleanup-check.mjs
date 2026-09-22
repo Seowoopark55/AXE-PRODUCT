@@ -13,7 +13,7 @@ expect('operational page header descriptions removed',
   render.includes("pageHeader('ASSETS','자산 관리','','')")&&
   render.includes("pageHeader('ACCOUNTS','계좌 관리','','')")&&
   render.includes("pageHeader('COMPANY SETTINGS','회사 설정',''")&&
-  render.includes("pageHeader('PLATFORM OWNER','서비스 관리',''")&&
+  (render.includes("pageHeader('PLATFORM OWNER','서비스 관리',''")||render.includes("pageHeader('PLATFORM OWNER',heading,description,actions)"))&&
   render.includes("pageHeader('SUPPORT','질문게시판',''")&&
   render.includes("pageHeader('PRIVATE SUPPORT','건의게시판',''")
 );

@@ -1330,7 +1330,7 @@ root.addEventListener('click', async event => {
   if(action==='layout-save'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutSaved=saveLayoutStudioProfile(state.layoutDraft);state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-revert'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-reset-default'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=clearLayoutStudioProfile();state.layoutSaved={...state.layoutDraft};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -1690,7 +1690,8 @@ root.addEventListener('click', async event => {
   if(action==='platform-view'){
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
     const view=String(actionEl.dataset.platformView||'companies');
-    if(!['companies','support','suggestions','contents'].includes(view))return;
+    if(!['overview','companies','support','suggestions','contents'].includes(view))return;
+    if(state.page!=='platform'){navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');}
     state.platformView=view;
     if(view==='support')await withMutation(loadPlatformSupport);
     else if(view==='suggestions')await withMutation(loadPlatformSuggestions);

@@ -248,9 +248,22 @@ function renderStandaloneGameInfo(state) {
 
 // Platform administration has its own shell. It must never inherit a selected
 // company's sidebar, company header, membership label, or company context.
+function renderPlatformRailItem(state,view,label,iconName,count=null) {
+  const active=state.page==='platform' && (view==='inbox'
+    ? ['support','suggestions'].includes(state.platformView)
+    : state.platformView===view);
+  const target=view==='inbox'?'support':view;
+  const badge=count===null?'':`<em class="platform-center__nav-count">${count>99?'99+':count}</em>`;
+  return `<button type="button" class="platform-center__nav-item ${active?'is-active':''}" data-action="platform-view" data-platform-view="${target}" ${active?'aria-current="page"':''}>${icon(iconName)}<span>${label}</span>${badge}</button>`;
+}
+
+// Existing owner gate, subscription mutations, content-policy storage and
+// customer-support handlers remain unchanged. Only the navigation shell moves.
 function renderManagementCenter(state) {
   if (!state.session?.user || state.platformAdmin !== true) return renderPermission(state);
   const username = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || 'Discord 사용자';
+  const queue=Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
+    +Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
     <header class="platform-center__header">
       <button type="button" class="platform-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="28" height="28"><span><strong>LAC HUB</strong><small>관리 센터</small></span></button>
@@ -258,13 +271,20 @@ function renderManagementCenter(state) {
       <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span><button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
     </header>
     <div class="platform-center__workspace">
-      <div class="platform-center__intro"><span>PLATFORM MANAGEMENT</span><h1>관리 센터</h1><p>회사와 콘텐츠의 운영 설정을 관리합니다. 회사 내부의 멤버·공금·자산 정보는 회사 관리 콘텐츠에서 이용하세요.</p></div>
-      <nav class="platform-center__nav" aria-label="플랫폼 관리 화면">
-        <button type="button" class="${state.page === 'platform' ? 'is-active':''}" data-action="open-platform-admin">회사별 구독 · 콘텐츠 운영</button>
-        <button type="button" class="${state.page === 'layout' ? 'is-active':''}" data-action="open-layout-studio">표 글씨 크기</button>
-        <button type="button" data-action="open-test-center">테스트 센터</button>
-        <span>이용권 발급 · 등록은 추후 연결</span>
-      </nav>
+      <aside class="platform-center__sidebar" aria-label="관리 센터 메뉴">
+        <div class="platform-center__sidebar-head"><span>PLATFORM ADMIN</span><strong>운영 관리</strong></div>
+        <nav class="platform-center__nav" aria-label="플랫폼 관리 화면">
+          ${renderPlatformRailItem(state,'overview','대시보드','dashboard')}
+          ${renderPlatformRailItem(state,'companies','이용권 관리','platform')}
+          ${renderPlatformRailItem(state,'contents','콘텐츠 관리','assets')}
+          ${renderPlatformRailItem(state,'inbox','고객 문의','feedback',queue)}
+          <span class="platform-center__nav-divider" role="presentation"></span>
+          <span class="platform-center__nav-caption">시스템</span>
+          <button type="button" class="platform-center__nav-item ${state.page==='layout'?'is-active':''}" data-action="open-layout-studio" ${state.page==='layout'?'aria-current="page"':''}>${icon('settings')}<span>표 글씨 크기</span></button>
+          <button type="button" class="platform-center__nav-item" data-action="open-test-center">${icon('search')}<span>테스트 센터</span></button>
+        </nav>
+        <p class="platform-center__sidebar-note">회사 내부 자료는 회사 관리 콘텐츠에서 확인할 수 있습니다.</p>
+      </aside>
       <main class="main main--${esc(state.page)} platform-center__main">${renderPage(state)}</main>
     </div>
     ${renderModal(state)}
@@ -727,7 +747,7 @@ function renderPlatform(state){
   const all=state.platformSnapshot||[];
   const q=String(state.platformQuery||'').trim().toLowerCase();
   const filter=String(state.platformStatus||'all');
-  const view=['companies','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
+  const view=['overview','companies','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
   let rows=all.filter(r=>filter==='all'||String(r.effective_status||r.subscription_status)===filter);
   if(q)rows=rows.filter(r=>`${r.company_name||''} ${r.owner_name||''} ${r.guild_name||''} ${r.plan||''} ${platformPlanLabel(r.plan)}`.toLowerCase().includes(q));
   const active=all.filter(r=>!['expired','paused'].includes(String(r.effective_status||r.subscription_status))).length;
@@ -740,9 +760,29 @@ function renderPlatform(state){
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
-  const tabs=`<nav class="platform-service-tabs" aria-label="서비스 관리 구분"><button type="button" class="${view==='companies'?'is-active':''}" data-action="platform-view" data-platform-view="companies"><span>회사별 구독 관리</span><em>${all.length}</em></button><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button><button type="button" class="${view==='contents'?'is-active':''}" data-action="platform-view" data-platform-view="contents"><span>콘텐츠 운영</span></button></nav>`;
+  const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
   const content=view==='support'?renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
-  return `<div class="platform-page">${pageHeader('PLATFORM OWNER','서비스 관리','',`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`)}${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}${tabs}<div class="platform-service-view">${content}</div></div>`;
+  const overview=`<section class="platform-overview" aria-label="운영 대시보드">
+    ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}
+    <div class="platform-overview__columns">
+      <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>QUICK ACTION</span><h2>바로 관리</h2><p>필요한 운영 화면으로 바로 이동합니다.</p></div>
+        <div class="platform-overview__actions">
+          <button type="button" data-action="platform-view" data-platform-view="companies">${icon('platform')}<span><strong>이용권 관리</strong><small>회사 구독 확인 · 연장 · 상태 관리</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-action="platform-view" data-platform-view="contents">${icon('assets')}<span><strong>콘텐츠 관리</strong><small>공개 및 무료 개방 정책 조회</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-action="platform-view" data-platform-view="support">${icon('feedback')}<span><strong>고객 문의</strong><small>질문 ${questionOpen}건 · 건의·제보 ${suggestionOpen}건 처리 대기</small></span><b aria-hidden="true">→</b></button>
+        </div>
+      </section>
+      <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>SUBSCRIPTION</span><h2>회사 이용권 현황</h2><p>기존 회사 구독 데이터를 조회합니다.</p></div>
+        <div class="platform-overview__status"><span>이용 가능 회사</span><strong>${active}<small> / ${all.length}개</small></strong></div>
+        <p class="platform-overview__hint">이용권 발급·등록 및 콘텐츠 접근 제어는 별도 개발 단계입니다. 현 화면에서는 기존 회사 정보만 조회합니다.</p>
+        <button type="button" class="platform-overview__more" data-action="platform-view" data-platform-view="companies">회사별 이용권 확인 <span aria-hidden="true">→</span></button>
+      </section>
+    </div>
+  </section>`;
+  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='contents'?'콘텐츠 관리':'고객 문의';
+  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
+  const actions=view==='overview'||view==='companies'?`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`:'';
+  return `<div class="platform-page platform-page--${view}">${pageHeader('PLATFORM OWNER',heading,description,actions)}${view==='overview'?overview:`${['support','suggestions'].includes(view)?supportTabs:''}<div class="platform-service-view">${content}</div>`}</div>`;
 }
 // ============================================================
 // SETTINGS
