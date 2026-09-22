@@ -1648,6 +1648,8 @@ root.addEventListener('click', async event => {
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
+    if(action==='fill-subscription-period'){const form=actionEl.closest('form[data-form="platform-subscription"]');if(!state.platformAdmin||!form)return;const days={trial:7,standard:30,pro:90}[form.elements.plan.value];if(!days){window.alert('기간형 플랜(7·30·90일)을 먼저 선택해 주세요.');return;}const start=form.elements.starts_at;const end=form.elements.ends_at; if(!start.value)start.value=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const date=new Date(`${start.value}T12:00:00+09:00`);if(Number.isNaN(date.getTime())){window.alert('시작일을 확인해 주세요.');return;}date.setUTCDate(date.getUTCDate()+days-1);end.value=date.toISOString().slice(0,10);return;}
+    if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const subscription=await getCompanySubscription(companyId); if(state.companyId!==companyId)return; state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
@@ -1676,6 +1678,7 @@ root.addEventListener('click', async event => {
 
 root.addEventListener('change', async event => {
   try{
+    if(event.target.matches('[data-form="platform-subscription"] [name="plan"]')){const form=event.target.form;const button=form?.querySelector('[data-action="fill-subscription-period"]');if(button)button.disabled=!['trial','standard','pro'].includes(event.target.value);return;}
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
     if(event.target.matches('[data-hub-board-status]')){if(!state.platformAdmin)return;const ticketId=String(event.target.dataset.ticketId||'');await withMutation(async()=>{await setHubTicketStatus(ticketId,event.target.value);await openHubBoardTicket(ticketId);await loadHubBoard();});return;}

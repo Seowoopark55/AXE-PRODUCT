@@ -1,6 +1,7 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderHubHome } from './hubHome.js';
+import { companyPlanName, companyStatusName, companySubscriptionEnd, companySubscriptionPeriod } from './subscriptionPresentation.js';
 import { detectLayoutStudioPreset } from './layoutStudio.js';
 
 const ROLE_LABEL = { owner: 'OWNER', admin: 'ADMIN', manager: 'MANAGER', member: 'MEMBER' };
@@ -152,6 +153,17 @@ function renderOnboarding(state) {
   return `<button type="button" class="hub-onboarding-back" data-action="go-hub">← HUB 메인</button><section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
 }
 
+function companySubscriptionAccountSummary(state) {
+  if (!state.companyId || !(state.companies || []).some(company => company.id === state.companyId)) {
+    return '<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong><span>소속 회사 없음</span><small>BUILD는 Discord 로그인 후 무료로 이용할 수 있습니다.</small></div>';
+  }
+  const subscription = state.currentSubscription;
+  const details = subscription
+    ? `<span>플랜: ${esc(companyPlanName(subscription.plan))}</span><span>상태: ${esc(companyStatusName(subscription))}</span><span>종료일: ${esc(companySubscriptionEnd(subscription, value => fmtDate(value, true)))}</span>`
+    : '<span>이용권 정보가 없습니다. 새로고침해 주세요.</span>';
+  return `<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong>${details}<small>회사 공통 이용권 · BUILD는 별도 무료 이용</small><button type="button" data-action="refresh-company-subscription">이용권 새로고침</button></div>`;
+}
+
 function renderAuthed(state) {
   const company = currentCompany(state);
   const membership = currentMembership(state);
@@ -169,7 +181,7 @@ function renderAuthed(state) {
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu">${companySubscriptionAccountSummary(state)}<button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
       </div>
     </div></header>
     <div class="workspace-shell">
@@ -670,7 +682,7 @@ function accountBadge(v){ if(v==='승인')return '<span class="ops-mgmt-badge is
 // ============================================================
 function platformStatusLabel(v){return ({trial:'체험',active:'사용중',paused:'정지',expired:'만료',lifetime:'무제한'})[v]||v||'미설정';}
 function platformStatusClass(v){return v==='expired'?'is-red':v==='paused'?'is-amber':v==='trial'?'is-amber':'is-green';}
-function platformDate(v){return v?fmtDate(v,true):'무제한';}
+function platformDate(v){return v?fmtDate(v,true):'종료일 미설정';}
 const PLATFORM_PLAN_LABEL={trial:'7일 체험',standard:'30일 이용',pro:'90일 이용',internal:'무제한',legacy:'무제한'};
 function platformPlanLabel(v){return PLATFORM_PLAN_LABEL[String(v||'standard')]||String(v||'일반');}
 function renderPlatformSupportQueue(state){
@@ -722,8 +734,7 @@ function renderPlatform(state){
   const suggestionOpen=Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   const paged=pageRows(rows,state.platformPage,OPS_PAGE_SIZE.platform);
   const body=paged.rows.length?paged.rows.map(r=>{
-    const remaining=r.days_remaining==null?'무제한':Number(r.days_remaining)<0?`${Math.abs(Number(r.days_remaining))}일 초과`:`D-${Number(r.days_remaining)}`;
-    const period=r.ends_at?`${platformDate(r.ends_at)} · ${remaining}`:remaining;
+    const period=companySubscriptionPeriod(r, value => fmtDate(value, true));
     return `<article class="platform-company-row"><div class="platform-company-copy"><strong>${esc(r.company_name||'회사')}</strong></div><div class="platform-company-value ${r.guild_name?'':'is-muted'}">${esc(r.guild_name||'미연결')}</div><div class="platform-company-value is-center">${Number(r.member_count||0)}명</div><div class="is-center"><span class="ops-mgmt-badge ${platformStatusClass(r.effective_status||r.subscription_status)}">${esc(platformStatusLabel(r.effective_status||r.subscription_status))}</span></div><div class="platform-company-value is-plan">${esc(platformPlanLabel(r.plan))}</div><div class="platform-company-value is-period">${esc(period)}</div><div class="platform-company-value">${esc(r.owner_name||'미확인')}</div><div class="is-center"><button class="ops-mgmt-action" data-action="edit-platform-subscription" data-company-id="${esc(r.company_id)}">관리</button></div></article>`;
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
@@ -939,7 +950,7 @@ function ledgerEvidenceModal(state,m){
 function platformSubscriptionModal(state,m){
   const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(m.companyId)); if(!row)return '';
   const dateValue=v=>v?dateKey(v):''; const status=String(row.subscription_status||row.effective_status||'active'); const plan=row.plan==='legacy'?'internal':String(row.plan||'standard');
-  return modalShell('회사 구독 관리',row.company_name||'회사',`<form data-form="platform-subscription" class="runtime-modal-form"><input type="hidden" name="company_id" value="${esc(row.company_id)}"><label>플랜<select name="plan"><option value="trial" ${plan==='trial'?'selected':''}>7일 체험</option><option value="standard" ${plan==='standard'?'selected':''}>30일 이용</option><option value="pro" ${plan==='pro'?'selected':''}>90일 이용</option><option value="internal" ${plan==='internal'?'selected':''}>무제한</option></select></label><label>상태<select name="status"><option value="trial" ${status==='trial'?'selected':''}>체험</option><option value="active" ${status==='active'?'selected':''}>사용중</option><option value="paused" ${status==='paused'?'selected':''}>일시 정지</option><option value="expired" ${status==='expired'?'selected':''}>만료</option><option value="lifetime" ${status==='lifetime'?'selected':''}>무제한</option></select></label><label>시작일<input type="date" name="starts_at" value="${esc(dateValue(row.starts_at))}"></label><label>종료일<input type="date" name="ends_at" value="${esc(dateValue(row.ends_at))}"></label><label>유예 종료일<input type="date" name="grace_until" value="${esc(dateValue(row.grace_until))}"></label><label>Discord<input value="${esc(row.guild_name||'미연결')}" readonly class="is-readonly"></label><label class="is-full">관리 메모<textarea name="memo" placeholder="결제 확인, 테스트 회사 등 내부 메모">${esc(row.memo||'')}</textarea></label><div class="runtime-modal-hint is-full">플랜명은 관리하기 쉽도록 기간 기준으로 표시합니다. 실제 이용 차단 시점은 아래 종료일과 상태가 기준이며, 필요하면 날짜를 직접 조정할 수 있습니다.</div><footer><button type="button" class="runtime-btn-danger" data-action="open-delete-company" data-company-id="${esc(row.company_id)}">회사 삭제</button><div><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">구독 저장</button></div></footer></form>`,true);
+  return modalShell('회사 구독 관리',row.company_name||'회사',`<form data-form="platform-subscription" class="runtime-modal-form"><input type="hidden" name="company_id" value="${esc(row.company_id)}"><label>플랜<select name="plan"><option value="trial" ${plan==='trial'?'selected':''}>7일 체험</option><option value="standard" ${plan==='standard'?'selected':''}>30일 이용</option><option value="pro" ${plan==='pro'?'selected':''}>90일 이용</option><option value="internal" ${plan==='internal'?'selected':''}>무제한</option></select></label><label>상태<select name="status"><option value="trial" ${status==='trial'?'selected':''}>체험</option><option value="active" ${status==='active'?'selected':''}>사용중</option><option value="paused" ${status==='paused'?'selected':''}>일시 정지</option><option value="expired" ${status==='expired'?'selected':''}>만료</option><option value="lifetime" ${status==='lifetime'?'selected':''}>무제한</option></select></label><div class="runtime-modal-hint is-full">기간형 플랜을 선택한 후 <b>날짜 채우기</b>를 누르면 시작일을 기준으로 종료일을 계산합니다. 화면 입력만 변경되며 실제 구독 정보는 <b>구독 저장</b>을 눌러야 변경됩니다.</div><label>시작일<input type="date" name="starts_at" value="${esc(dateValue(row.starts_at))}"></label><div class="runtime-subscription-date-action is-full"><button type="button" class="runtime-btn-ghost" data-action="fill-subscription-period">선택한 기간으로 날짜 채우기</button></div><label>종료일<input type="date" name="ends_at" value="${esc(dateValue(row.ends_at))}"></label><label>유예 종료일<input type="date" name="grace_until" value="${esc(dateValue(row.grace_until))}"></label><label>Discord<input value="${esc(row.guild_name||'미연결')}" readonly class="is-readonly"></label><label class="is-full">관리 메모<textarea name="memo" placeholder="결제 확인, 테스트 회사 등 내부 메모">${esc(row.memo||'')}</textarea></label><div class="runtime-modal-hint is-full">플랜명은 관리하기 쉽도록 기간 기준으로 표시합니다. 실제 이용 차단 시점은 아래 종료일과 상태가 기준이며, 필요하면 날짜를 직접 조정할 수 있습니다.</div><footer><button type="button" class="runtime-btn-danger" data-action="open-delete-company" data-company-id="${esc(row.company_id)}">회사 삭제</button><div><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">구독 저장</button></div></footer></form>`,true);
 }
 function companyDeleteModal(state,m){
   const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(m.companyId)); if(!row)return '';

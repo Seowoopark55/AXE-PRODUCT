@@ -199,3 +199,11 @@
 /* Company-content branding: one clear heading, no redundant English subtitle. */
 .runtime-app:not(.runtime-app--platform):not(.runtime-app--layout) .global-home-zone .product-brand strong{font-size:calc(23px * var(--lac-type-scale, 1));letter-spacing:.035em;line-height:1.2}
 @media(max-width:760px){.runtime-app:not(.runtime-app--platform):not(.runtime-app--layout) .global-home-zone .product-brand strong{font-size:calc(21px * var(--lac-type-scale, 1))}}
+
+.runtime-account-menu{width:258px}
+.runtime-account-subscription{display:grid;gap:6px;padding:10px;border:1px solid #364656;border-radius:8px;background:#121d28;color:#c5d1dc;font-size:11px}
+.runtime-account-subscription strong{color:#e9d0a7;font-size:12px}
+.runtime-account-subscription small{color:#91a0ae;line-height:1.5}
+.runtime-account-subscription button{border:1px solid #536171;border-radius:7px;background:#23303d;color:#f0d6ae;padding:7px;cursor:pointer}
+.runtime-subscription-date-action{display:flex;justify-content:flex-start}
+.runtime-subscription-date-action button{height:auto;min-height:32px;padding:7px 10px}

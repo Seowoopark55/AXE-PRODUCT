@@ -1,3 +1,4 @@
+import { companyPlanName, companyStatusName, companySubscriptionEnd } from './subscriptionPresentation.js';
 import { renderHubNewsStrip } from './hubBoard.js';
 import { HUB_CONTENT } from '../platform/catalog.js';
 
@@ -66,7 +67,12 @@ export function renderHubHome(state) {
     : companies.length > 1
       ? `<details class="hub-account__company-switch"><summary class="hub-account__company" title="현재 회사: ${esc(current.name)}"><span>소속 회사</span><strong>${esc(current.name)}</strong>${chevron}</summary><div class="hub-account__company-menu" aria-label="회사 전환">${companies.map(company => `<button type="button" data-action="switch-company" data-company-id="${esc(company.id)}" ${company.id === state.companyId ? 'aria-current="true"' : ''}>${esc(company.name)}</button>`).join('')}</div></details>`
       : `<span class="hub-account__company" title="현재 회사: ${esc(current.name)}"><span>소속 회사</span><strong>${esc(current.name)}</strong></span>`;
-  const accountMenu = `<details class="hub-account__profile"><summary class="hub-account__trigger" aria-label="내 계정 메뉴 열기: ${esc(displayName)}"><span class="hub-account__avatar">${avatar}</span><span class="hub-account__identity"><strong>${esc(displayName)}</strong><small>${current ? esc(current.name) : '회사 미설정'}</small></span>${chevron}</summary><div class="hub-account__menu"><div class="hub-account__menu-head"><span class="hub-account__avatar hub-account__avatar--large">${avatar}</span><span><small>로그인 계정</small><strong>${esc(displayName)}</strong></span></div>${accountCompany}<button type="button" class="hub-logout" data-action="logout">로그아웃 <span aria-hidden="true">→</span></button></div></details>`;
+  const subscription = state.currentSubscription;
+  const subscriptionDetails = current && subscription
+    ? `<span>플랜 <b>${esc(companyPlanName(subscription.plan))}</b></span><span>상태 <b>${esc(companyStatusName(subscription))}</b></span><span>종료일 <b>${esc(companySubscriptionEnd(subscription, value => new Intl.DateTimeFormat('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Seoul'}).format(new Date(value))))}</b></span>`
+    : `<span>${current ? '이용권 정보가 없습니다. 새로고침해 주세요.' : '소속 회사 없음'}</span>`;
+  const accountSubscription = `<section class="hub-account__subscription" aria-label="회사 관리 이용권"><strong>회사 관리 이용권</strong>${subscriptionDetails}<small>회사 공통 이용권 · BUILD는 Discord 로그인 후 무료 이용</small>${current ? '<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button>' : ''}</section>`;
+  const accountMenu = `<details class="hub-account__profile"><summary class="hub-account__trigger" aria-label="내 계정 메뉴 열기: ${esc(displayName)}"><span class="hub-account__avatar">${avatar}</span><span class="hub-account__identity"><strong>${esc(displayName)}</strong><small>${current ? esc(current.name) : '회사 미설정'}</small></span>${chevron}</summary><div class="hub-account__menu"><div class="hub-account__menu-head"><span class="hub-account__avatar hub-account__avatar--large">${avatar}</span><span><small>로그인 계정</small><strong>${esc(displayName)}</strong></span></div>${accountCompany}${accountSubscription}<button type="button" class="hub-logout" data-action="logout">로그아웃 <span aria-hidden="true">→</span></button></div></details>`;
   return `<div class="hub-home">
     <header class="hub-topbar"><div class="hub-topbar__inner">
       <span class="hub-wordmark"><img src="${ASSETS}mark.png" alt="" width="32" height="32"><strong>LAC HUB</strong></span>
