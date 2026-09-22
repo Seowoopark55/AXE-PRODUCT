@@ -63,22 +63,26 @@ export function mountEmbeddedBuild(host) {
       background: rgba(226,180,105,.075); color: #f5d49e;
     }
     .lac-build-unified .topbar-inner {
-      position:relative;height:54px;min-height:54px;padding:0;
+      position:relative;min-height:58px;padding:0 20px;
       display:flex;align-items:center;justify-content:center;gap:0!important;
       border-top:1px solid rgba(226,180,105,.10);
     }
     .lac-build-unified .topbar-inner .brand-btn {
-      position:absolute;left:0;top:50%;transform:translateY(-50%);
+      display:none;
     }
     .lac-build-unified .brand-v114__copy {display:none;}
     .lac-build-unified .topbar-inner .nav {
-      width:auto;max-width:calc(100% - 76px);min-width:0;
-      display:flex;align-items:center;overflow-x:auto;
+      width:100%;max-width:100%;min-width:0;
+      display:flex;align-items:center;justify-content:center;overflow-x:auto;
+      padding:0 6px;
+    }
+    .lac-build-unified .topbar-inner .nav button {
+      flex:0 0 auto;
     }
     @media (max-width: 760px) {
       :host {background:#030507;}
-      .lac-build-unified .topbar-inner .brand-btn {display:none;}
-      .lac-build-unified .topbar-inner .nav {width:100%;max-width:100%;}
+      .lac-build-unified .topbar-inner {padding:0 10px;}
+      .lac-build-unified .topbar-inner .nav {width:100%;max-width:100%;justify-content:flex-start;}
       .lac-build-unified .topbar-inner .nav button {flex:0 0 auto;}
     }
     @media (max-width: 620px) {
