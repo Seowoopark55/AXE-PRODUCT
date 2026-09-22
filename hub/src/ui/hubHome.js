@@ -42,7 +42,7 @@ function contentCard({title,description,image,tag,tagType='',action='',href='',d
   // has one native anchor with new-tab semantics, without navigating away from HUB.
   const active=Boolean((action || href) && !disabled);
   const open=!active ? `<article class="hub-feature hub-feature--pending">`
-    : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" ${href.startsWith("/build/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(title)} 열기">`
+    : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" ${href.startsWith("/build/") || href.startsWith("/cook/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(title)} 열기">`
     : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
   const close=!active ? '</article>' : href ? '</a>' : '</button>';
   return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
@@ -86,7 +86,7 @@ export function renderHubHome(state) {
           ${contentCard({title:HUB_CONTENT.company.name,description:HUB_CONTENT.company.description,image:'company.webp',tag:current?'이용 가능':'회사 선택 필요',tagType:current?'available':'neutral',action:companyAction})}
           ${contentCard({title:'게임 정보',description:'게임과 관련된 정보와 자료를 확인하세요.',image:'game.webp',tag:current?'회사 멤버 이용':'회사 선택 필요',tagType:current?'available':'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'기존 회사별 정보 권한 유지':'현재 회사 가입 후 이용'})}
           ${contentCard({title:HUB_CONTENT.build.name,description:HUB_CONTENT.build.description,image:'build.webp',tag:'무료',tagType:'free',href:BUILD_PUBLIC_URL,footnote:'HUB에서 바로 이용 · 무료'})}
-          ${contentCard({title:HUB_CONTENT.cook.name,description:HUB_CONTENT.cook.description,image:'cook.webp',tag:'통합 예정',tagType:'neutral',disabled:true,footnote:'서비스 준비 중'})}
+          ${contentCard({title:HUB_CONTENT.cook.name,description:HUB_CONTENT.cook.description,image:'cook.webp',tag:'개발 중',tagType:'neutral',href:'/cook/',footnote:'제작 계산 · 브라우저 작업 저장'})}
         </div>
       </section>
       <footer class="hub-footer"><span>LAC HUB · PLAY TOGETHER</span><span>회사 관리 · 게임 정보 · LAC BUILD · LAC COOK</span></footer>

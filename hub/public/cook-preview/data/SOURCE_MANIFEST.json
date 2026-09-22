@@ -1,0 +1,37 @@
+{
+  "foods": {
+    "original_filename": "AXE COOK - 요리.csv",
+    "sha256": "e61af3267a9552631ba24bcfd00dbaf00b102daf5b1cbdbe4fe42e49855ab15f",
+    "rows": 75
+  },
+  "recipes": {
+    "original_filename": "AXE COOK - 레시피.csv",
+    "sha256": "2b4d1528eb516c66a9d6d409197792c0cae2683881a4c1308d0e5c66358151a3",
+    "rows": 218
+  },
+  "materials": {
+    "original_filename": "AXE COOK - 재료.csv",
+    "sha256": "7be8cbd752f7b3bcb19e9955d1359f1a6c0e0f99418146ec145b5a7593f4b801",
+    "rows": 70
+  },
+  "processes": {
+    "original_filename": "AXE COOK - 가공.csv",
+    "sha256": "17e6ad4b44393e6a43f9becb9a9be077ab7d38dc1a225d2e1b5a0a9bdf39332b",
+    "rows": 50
+  },
+  "farms": {
+    "original_filename": "AXE COOK - 농장재료.csv",
+    "sha256": "7a53881d64b6f79d5d0356c54e762ebdcff6d20fd3bc85a7d2000d25fe6aab2f",
+    "rows": 13
+  },
+  "aliases": {
+    "original_filename": "AXE COOK - 별칭.csv",
+    "sha256": "19dcad2f1c330ec576c9da46d338c218d488b84ec47828faaad80c845b5510ba",
+    "rows": 33
+  },
+  "fish": {
+    "original_filename": "AXE COOK - 생선변환.csv",
+    "sha256": "f6fa18f9b9ce4eeecee7f1fb416a18dad0f857c240d69f091436bfa87710c263",
+    "rows": 24
+  }
+}

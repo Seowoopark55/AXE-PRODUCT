@@ -24,13 +24,18 @@ import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen 
 
 const root = document.querySelector('#app');
 const isBuildRoute = () => /^\/build(?:\/|$)/.test(window.location.pathname);
+const isCookRoute = () => /^\/cook(?:\/|$)/.test(window.location.pathname);
 let embeddedHost = null;
 let embedLoadPromise = null;
+let cookHost = null;
+let cookFrame = null;
 
 function switchVisibleApp(buildActive) {
   document.documentElement.classList.toggle('lac-build-route', buildActive);
   root.hidden = buildActive;
   if (embeddedHost) embeddedHost.hidden = !buildActive;
+  if (cookHost) cookHost.hidden = true;
+  document.documentElement.classList.remove('lac-cook-route');
   if (!buildActive) document.title = 'LAC HUB';
 }
 
@@ -62,8 +67,45 @@ function showEmbeddedBuild({ push = false } = {}) {
   }
 }
 
-// Intercept only the BUILD card's ordinary click. Preserve native open-in-new-tab
-// gestures and every existing HUB delegated action.
+// First-party COOK route. Recipe catalog is a bundled snapshot and cloud writes
+// remain disabled until a separately approved, tested Supabase migration.
+function showCookPreview({ push = false } = {}) {
+  if (push && !isCookRoute()) {
+    window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/cook/');
+  }
+  if (!isCookRoute()) return;
+  if (!cookHost) {
+    cookHost = document.createElement('section');
+    cookHost.id = 'lac-cook-host';
+    cookHost.setAttribute('aria-label', 'LAC COOK');
+    cookFrame = document.createElement('iframe');
+    cookFrame.title = 'LAC COOK';
+    cookFrame.src = '/cook-preview/index.html?lacCookHostPreview=1';
+    cookFrame.setAttribute('referrerpolicy','same-origin');
+    cookHost.append(cookFrame);
+    root.insertAdjacentElement('afterend', cookHost);
+  }
+  switchVisibleApp(false);
+  document.documentElement.classList.add('lac-cook-route');
+  root.hidden = true;
+  cookHost.hidden = false;
+  document.title = 'LAC COOK';
+}
+
+window.addEventListener('message', event => {
+  if (!cookFrame || !isCookRoute() || event.origin !== window.location.origin ||
+      event.source !== cookFrame.contentWindow ||
+      !event.data || typeof event.data !== 'object' || Array.isArray(event.data) ||
+      event.data.type !== 'lac-cook:hub-return:v1') return;
+  window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/');
+  state.page = 'hub';
+  switchVisibleApp(false);
+  render();
+  window.scrollTo(0, 0);
+});
+
+// Intercept first-party BUILD and COOK cards. Preserve native browser gestures
+// and existing HUB delegated actions for company / administration content.
 // Subscription editor is draft-only until the operator reviews the exact fields.
 // Calendar arithmetic uses ISO calendar dates in UTC to avoid local DST shifts.
 function addCalendarDays(isoDate,days){
@@ -139,11 +181,16 @@ function subscriptionReview(form){
 
 root.addEventListener('click', (event) => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-  const anchor = event.target instanceof Element ? event.target.closest('a[href="/build/"]') : null;
-  if (!anchor) return;
+  const anchor = event.target instanceof Element ? event.target.closest('a[href="/build/"], a[href="/cook/"]') : null;
+  if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
   event.preventDefault();
   event.stopPropagation();
-  showEmbeddedBuild({ push: true });
+  if (anchor.getAttribute('href') === '/cook/') {
+    showCookPreview({ push: true });
+  } else {
+    showEmbeddedBuild({ push: true });
+  }
+  window.scrollTo(0, 0);
 }, true);
 window.addEventListener('lac:navigate-hub', () => {
   if (!isBuildRoute()) return;
@@ -669,10 +716,11 @@ function allowedHistoryPage(target) {
 function installPrimaryScreenHistory() {
   // Restore the target before the first authenticated render, so a restored
   // company route is never briefly painted and then replaced by HUB (or vice versa).
-  const initial = isBuildRoute() ? 'hub' : initializePrimaryScreenHistory(window.history);
+  const initial = (isBuildRoute() || isCookRoute()) ? 'hub' : initializePrimaryScreenHistory(window.history);
   state.page = initial;
   window.addEventListener('popstate', event => {
     if (isBuildRoute()) { showEmbeddedBuild(); return; }
+    if (isCookRoute()) { showCookPreview(); return; }
     switchVisibleApp(false);
     const target = readPrimaryScreen(event.state);
     if (!target) return; // An unrelated browser entry remains the browser's responsibility.
@@ -1169,9 +1217,10 @@ function installSessionResumeRecovery(){
 }
 
 async function boot() {
-  if(!envReady){state.ready=true;render();return;}
+  if(!envReady){state.ready=true;render();if(isCookRoute())showCookPreview();return;}
   installPrimaryScreenHistory();
   if (isBuildRoute()) showEmbeddedBuild();
+  if (isCookRoute()) showCookPreview();
   // Keep the HUB startup screen until the session and the requested route are ready.
   render();
   try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
