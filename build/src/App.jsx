@@ -782,13 +782,20 @@ function Header({
   adminPendingCount = 0,
   onLogin,
   onLogout,
-  onProfile
+  onProfile,
+  onHubReturn
 }) {
   const displayName = displayProfileName(profile, user);
   const displayCompany = displayProfileCompany(profile);
   return (
     <header className="topbar">
       <div className="shell topbar-inner">
+        {onHubReturn && (
+          <button type="button" className="lac-build-inline-return" data-hub-return
+            aria-label="LAC HUB 메인으로 이동" onClick={onHubReturn}>
+            <span className="lac-hub-return__arrow" aria-hidden="true">←</span><span>LAC HUB</span>
+          </button>
+        )}
         <button className="brand-btn" onClick={() => setTab("home")} aria-label="LAC BUILD 홈">
           <Brand />
         </button>
@@ -3515,7 +3522,7 @@ function ReportEditor({ user, modbooks, onClose, onSaved }) {
   );
 }
 
-export default function App() {
+export default function App({ onHubReturn = null } = {}) {
   const [tab, setTab] = useState(() => tabFromLocation());
   const [session, setSession] = useState(null);
   const user = session?.user || null;
@@ -4039,6 +4046,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
         onLogin={login}
         onLogout={logout}
         onProfile={() => setProfileModal(true)}
+        onHubReturn={onHubReturn}
       />
 
       {tab === "home" && (

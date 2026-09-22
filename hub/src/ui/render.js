@@ -230,7 +230,6 @@ function renderStandaloneGameInfo(state) {
   const scene = sceneMap[state.info?.table] || 'craft';
   return `<div class="runtime-app runtime-app--game-info game-center" data-game-scene="${scene}">
     <header class="game-center__header">
-      <button type="button" class="game-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="30" height="30"><strong>LAC HUB</strong><span>/</span><b>게임 정보</b></button>
       <div class="game-center__actions">${hubReturnButton('game-center__back')}</div>
     </header>
     <main class="game-center__body">
