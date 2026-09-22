@@ -604,3 +604,34 @@ html[data-lac-table-scale-active="true"] .runtime-app :is(
 }
 /* Company onboarding has no peer header; use the same left navigation position. */
 button.hub-onboarding-back[data-hub-return] { left:18px;right:auto; }
+
+/* LAC HUB CONTENT SHELL PILOT: Game Info title and BUILD frame only.
+   Reuse the company-console backdrop without changing any data or routes. */
+.game-center .game-center__header {
+  position:relative;
+  justify-content:flex-start;
+}
+.game-center .game-center__title {
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  max-width:calc(100% - 220px);min-width:0;margin:0;
+  color:#f0e7d5;font-size:clamp(17px,1.5vw,23px);font-weight:800;
+  line-height:1.2;letter-spacing:-.035em;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  pointer-events:none;
+}
+/* The company workspace uses this exact image; don't substitute the game's hero
+   art for the outside-of-content backdrop. Category art inside the hero stays. */
+body:has(.runtime-app--game-info.game-center)::before {
+  z-index:0;
+  background:url('/brand/lac-one-shell-clean.png') center center/cover no-repeat,#030507;
+}
+@media (max-width:600px) {
+  .game-center .game-center__title {max-width:calc(100% - 148px);font-size:16px;}
+}
+/* Only the HUB-integrated BUILD host participates in the shared outer frame.
+   The standalone BUILD deployment keeps its original edge-to-edge layout. */
+#lac-build-host {
+  position:relative;z-index:1;box-sizing:border-box;
+  display:block;width:100%;min-height:100vh;background:transparent;
+}
+#lac-build-host[hidden] {display:none;}

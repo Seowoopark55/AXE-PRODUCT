@@ -17,8 +17,25 @@ export function mountEmbeddedBuild(host) {
   style.textContent = buildCss.replace(/:root\b/g, ':host') + hubReturnCss + `
     :host { display: block; min-height: 100vh; color: #f4f4f5;
       font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
-      background: #09090a; }
-    .app { min-height: 100vh; background: var(--bg, #09090a); }
+      background: transparent; }
+    /* Unified HUB side artwork remains outside a single centered BUILD panel.
+       Keep overflow visible: existing fixed menus, dialogs and sticky header
+       must not be clipped by the decorative frame. */
+    .app {
+      box-sizing:border-box;width:min(1510px,calc(100% - 96px));
+      min-width:0;min-height:calc(100vh - 32px);margin:16px auto;
+      border:1px solid rgba(213,163,67,.16);border-radius:17px;
+      background:var(--bg,#09090a);
+      box-shadow:0 26px 78px rgba(0,0,0,.52);
+    }
+    .app > .topbar {border-radius:16px 16px 0 0;}
+    @media(max-width:980px) {
+      .app {width:calc(100% - 40px);margin:12px auto;}
+    }
+    @media(max-width:760px) {
+      .app {width:100%;min-height:100vh;margin:0;border:0;border-radius:0;box-shadow:none;}
+      .app > .topbar {border-radius:0;}
+    }
     /* Integrated HUB navigation belongs to BUILD's existing centered .shell header.
        No separate full-bleed strip or duplicated BUILD title. */
     .topbar-inner .lac-build-inline-return[data-hub-return] {

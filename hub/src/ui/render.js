@@ -231,11 +231,11 @@ function renderStandaloneGameInfo(state) {
   return `<div class="runtime-app runtime-app--game-info game-center" data-game-scene="${scene}">
     <header class="game-center__header">
       <div class="game-center__actions">${hubReturnButton('game-center__back')}</div>
+      <h1 class="game-center__title" id="game-info-heading">게임 정보</h1>
     </header>
     <main class="game-center__body">
-      <section class="game-center__hero" aria-labelledby="game-info-heading">
+      <section class="game-center__hero" aria-label="게임 정보 소개">
         <div class="game-center__hero-copy">
-          <h1 id="game-info-heading">게임 정보</h1>
           <p>도시의 제작법과 생산, 퀘스트, 스킬 등급까지.<br>선택한 회사의 개조서와 함께 필요한 정보를 찾아보세요.</p>
         </div>
       </section>
