@@ -97,3 +97,38 @@
 .hub-account__close{margin-left:auto;flex-shrink:0;display:grid;place-items:center;box-sizing:border-box;width:30px;height:30px;padding:0;border:1px solid #536171;border-radius:8px;background:#1a2734;color:#ebeff4;cursor:pointer}
 .hub-account__close svg{display:block;width:16px;height:16px}
 .hub-account__close:hover{background:#324153;border-color:#d0ad79}
+
+/* LAC HUB home header: match the content shell without altering the home layout.
+   The outer bar is transparent so the existing signature artwork stays visible
+   on both sides. The inner panel is 16px wider on either side than the body
+   content, keeping the wordmark and account aligned to the existing cards. */
+.hub-home .hub-topbar {
+  background:transparent;
+  border-bottom:0;
+}
+.hub-home .hub-topbar__inner {
+  width:calc(100% - 36px);
+  max-width:1404px;
+  margin-inline:auto;
+  padding-right:16px;
+  padding-left:16px;
+  border:1px solid rgba(206,159,91,.28);
+  border-top:0;
+  border-radius:0 0 13px 13px;
+  background:#101418;
+  box-shadow:0 10px 26px rgba(0,0,0,.16);
+}
+@media (max-width:1050px) {
+  .hub-home .hub-topbar__inner {
+    width:calc(100% - 16px);
+    padding-left:14px;
+    padding-right:14px;
+  }
+}
+@media (max-width:600px) {
+  .hub-home .hub-topbar__inner {
+    width:calc(100% - 8px);
+    padding-left:9px;
+    padding-right:9px;
+  }
+}
