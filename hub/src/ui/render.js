@@ -1,6 +1,7 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderHubHome } from './hubHome.js';
+import { hubReturnButton } from './hubReturnButton.js';
 import { companyPlanName, companyStatusName, companySubscriptionEnd, companySubscriptionPeriod } from './subscriptionPresentation.js';
 import { detectLayoutStudioPreset } from './layoutStudio.js';
 
@@ -150,7 +151,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
 
 function renderOnboarding(state) {
   const discord=onboardingDiscordIdentity(state);
-  return `<button type="button" class="hub-onboarding-back" data-action="go-hub">← HUB 메인</button><section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
+  return `${hubReturnButton('hub-onboarding-back')}<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
 }
 
 function companySubscriptionAccountSummary(state) {
@@ -177,7 +178,7 @@ function renderAuthed(state) {
         <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>${platformScreen?'서비스 관리':'회사 관리'}</strong>${platformScreen?'<small>LAC HUB · PLATFORM</small>':''}</span></span>
       </button>
       <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">
-        <button type="button" class="global-hub-return" data-action="go-hub" aria-label="LAC HUB 통합 메인으로 돌아가기">← LAC HUB</button>
+        ${hubReturnButton('global-hub-return')}
         <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
           <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
         </button>
@@ -230,7 +231,7 @@ function renderStandaloneGameInfo(state) {
   return `<div class="runtime-app runtime-app--game-info game-center" data-game-scene="${scene}">
     <header class="game-center__header">
       <button type="button" class="game-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="30" height="30"><strong>LAC HUB</strong><span>/</span><b>게임 정보</b></button>
-      <div class="game-center__actions"><button type="button" class="game-center__back" data-action="go-hub">← HUB 메인</button></div>
+      <div class="game-center__actions">${hubReturnButton('game-center__back')}</div>
     </header>
     <main class="game-center__body">
       <section class="game-center__hero" aria-labelledby="game-info-heading">
@@ -254,7 +255,7 @@ function renderManagementCenter(state) {
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
     <header class="platform-center__header">
       <button type="button" class="platform-center__brand" data-action="go-hub"><img src="/hub/mark.png" alt="" width="28" height="28"><span><strong>LAC HUB</strong><small>관리 센터</small></span></button>
-      <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span><button type="button" class="global-hub-return" data-action="go-hub">← HUB 메인</button><button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
+      <div class="platform-center__account"><span>${esc(username)}</span><span class="platform-center__role">서비스 운영자</span>${hubReturnButton('global-hub-return')}<button type="button" class="platform-center__logout" data-action="logout">로그아웃</button></div>
     </header>
     <div class="platform-center__workspace">
       <div class="platform-center__intro"><span>PLATFORM MANAGEMENT</span><h1>관리 센터</h1><p>회사와 콘텐츠의 운영 설정을 관리합니다. 회사 내부의 멤버·공금·자산 정보는 회사 관리 콘텐츠에서 이용하세요.</p></div>

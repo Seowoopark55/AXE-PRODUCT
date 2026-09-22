@@ -1,0 +1,75 @@
+/* Shared HUB return control. Same markup, colors and geometry for every
+   independent content, including BUILD's isolated shadow root. */
+.game-center .game-center__actions button[data-hub-return],
+.runtime-app .global-account button[data-hub-return],
+.platform-center .platform-center__account button[data-hub-return],
+.hub-board .hub-board__topnav button[data-hub-return],
+button.hub-onboarding-back[data-hub-return],
+.lac-build-topbar button[data-hub-return] {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 111px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgba(226,180,105,.52);
+  border-radius: 10px;
+  background: rgba(159,109,43,.13);
+  color: #f3d39d;
+  box-shadow: inset 0 1px rgba(255,244,219,.045);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s, color .15s;
+}
+.game-center .game-center__actions button[data-hub-return]:hover,
+.runtime-app .global-account button[data-hub-return]:hover,
+.platform-center .platform-center__account button[data-hub-return]:hover,
+.hub-board .hub-board__topnav button[data-hub-return]:hover,
+button.hub-onboarding-back[data-hub-return]:hover,
+.lac-build-topbar button[data-hub-return]:hover {
+  border-color: #ecc58a;
+  background: rgba(185,133,57,.23);
+  color: #ffe8bd;
+}
+button[data-hub-return]:focus-visible {
+  outline: 2px solid #f4ce92;
+  outline-offset: 3px;
+}
+button[data-hub-return] .lac-hub-return__arrow {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1;
+  transform: translateY(-.5px);
+}
+/* The onboarding screen has no horizontal topbar; align to the same top-right
+   return slot instead of the old top-left floating control. */
+button.hub-onboarding-back[data-hub-return] {
+  position: fixed;
+  z-index: 5;
+  top: 18px;
+  right: 18px;
+  left: auto;
+}
+@media (max-width: 540px) {
+  .game-center .game-center__actions button[data-hub-return],
+  .runtime-app .global-account button[data-hub-return],
+  .platform-center .platform-center__account button[data-hub-return],
+  .hub-board .hub-board__topnav button[data-hub-return],
+  button.hub-onboarding-back[data-hub-return],
+  .lac-build-topbar button[data-hub-return] {
+    min-width: 103px;
+    min-height: 34px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+}
