@@ -11,7 +11,12 @@ assert.ok(hub.includes('root.hidden = buildActive') && hub.includes('switchVisib
 assert.ok(hub.includes("import('./buildEmbed.jsx')"));
 assert.ok(hub.includes("window.addEventListener('popstate'"));
 assert.ok(hub.includes("'lac:navigate-hub'"));
-assert.ok(bridge.includes("createRoot(appRoot).render(<BuildApp />)"));
+assert.ok(bridge.includes('createRoot(appRoot).render(<BuildApp onHubReturn='),
+  'embedded BUILD must retain the HUB return callback');
+assert.ok(build.includes('!onHubReturn && <FloatingContextPanel'),
+  'hide the floating quick remote in integrated BUILD, but retain it in standalone BUILD');
+assert.ok(build.includes('lac-build-unified-title'),
+  'integrated BUILD needs the same centered content heading as other HUB content');
 assert.ok(bridge.includes("from '../../build/src/App.jsx'"));
 assert.ok(bridge.includes("styles.css?inline"), 'BUILD CSS must not leak into HUB document');
 assert.ok(build.includes('if (!/^\\/build(?:\\/|$)/.test(window.location.pathname)) return;'));

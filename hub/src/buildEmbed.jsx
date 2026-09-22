@@ -17,12 +17,12 @@ export function mountEmbeddedBuild(host) {
   style.textContent = buildCss.replace(/:root\b/g, ':host') + hubReturnCss + `
     :host { display: block; min-height: 100vh; color: #f4f4f5;
       font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
-      background: transparent; }
+      background: url('/brand/lac-one-shell-clean.png') center top / cover no-repeat, #030507; }
     /* Unified HUB side artwork remains outside a single centered BUILD panel.
        Keep overflow visible: existing fixed menus, dialogs and sticky header
        must not be clipped by the decorative frame. */
     .app {
-      box-sizing:border-box;width:min(1510px,calc(100% - 96px));
+      box-sizing:border-box;width:min(1280px,calc(100% - 80px));
       min-width:0;min-height:calc(100vh - 32px);margin:16px auto;
       border:1px solid rgba(213,163,67,.16);border-radius:17px;
       background:var(--bg,#09090a);
@@ -36,28 +36,56 @@ export function mountEmbeddedBuild(host) {
       .app {width:100%;min-height:100vh;margin:0;border:0;border-radius:0;box-shadow:none;}
       .app > .topbar {border-radius:0;}
     }
-    /* Integrated HUB navigation belongs to BUILD's existing centered .shell header.
-       No separate full-bleed strip or duplicated BUILD title. */
-    .topbar-inner .lac-build-inline-return[data-hub-return] {
+    /* A common content header, with BUILD's original navigation on its own
+       inner row. Only the HUB-embedded BUILD receives these rules. */
+    .lac-build-unified .lac-build-unified-header {
+      display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+      align-items:center;gap:12px;min-height:64px;
+    }
+    .lac-build-unified .lac-build-unified-title {
+      margin:0;color:#f4efe7;font-size:22px;font-weight:800;
+      line-height:1.25;letter-spacing:-.025em;text-align:center;white-space:nowrap;
+    }
+    .lac-build-unified-header>.header-actions {
+      margin-left:0;justify-self:end;min-width:0;
+    }
+    .lac-build-unified-header .lac-build-inline-return[data-hub-return] {
       box-sizing: border-box; display: inline-flex; align-items: center;
       justify-content: flex-start; flex: 0 0 auto; gap: 7px;
       min-height: 38px; padding: 8px 9px; border: 1px solid transparent;
       border-radius: 9px; background: transparent; color: #d6b17a;
       font: inherit; font-size: 12px; font-weight: 750;
       line-height: 1.25; white-space: nowrap; cursor: pointer;
+      justify-self:start;
     }
-    .topbar-inner .lac-build-inline-return[data-hub-return]:hover {
+    .lac-build-unified-header .lac-build-inline-return[data-hub-return]:hover {
       border-color: rgba(226,180,105,.2);
       background: rgba(226,180,105,.075); color: #f5d49e;
     }
-    @media (max-width: 900px) {
-      .topbar-inner .lac-build-inline-return[data-hub-return] {
-        order: -1; flex: 0 0 100%; min-height: 34px; padding: 5px 0;
-        border-radius: 0; border-bottom: 1px solid rgba(226,180,105,.13);
-      }
+    .lac-build-unified .topbar-inner {
+      position:relative;height:54px;min-height:54px;padding:0;
+      display:flex;align-items:center;justify-content:center;gap:0!important;
+      border-top:1px solid rgba(226,180,105,.10);
     }
-    @media (max-width: 420px) {
-      .topbar-inner .lac-build-inline-return[data-hub-return] { font-size: 11px; }
+    .lac-build-unified .topbar-inner .brand-btn {
+      position:absolute;left:0;top:50%;transform:translateY(-50%);
+    }
+    .lac-build-unified .brand-v114__copy {display:none;}
+    .lac-build-unified .topbar-inner .nav {
+      width:auto;max-width:calc(100% - 76px);min-width:0;
+      display:flex;align-items:center;overflow-x:auto;
+    }
+    @media (max-width: 760px) {
+      :host {background:#030507;}
+      .lac-build-unified .topbar-inner .brand-btn {display:none;}
+      .lac-build-unified .topbar-inner .nav {width:100%;max-width:100%;}
+      .lac-build-unified .topbar-inner .nav button {flex:0 0 auto;}
+    }
+    @media (max-width: 620px) {
+      .lac-build-unified .lac-build-unified-header {row-gap:0;padding:7px 0;}
+      .lac-build-unified .lac-build-unified-title {font-size:16px;}
+      .lac-build-unified-header>.header-actions {grid-column:1 / -1;justify-self:end;}
+      .lac-build-unified-header .lac-build-inline-return[data-hub-return] {font-size:11px;padding:5px 0;}
     }
     `;
   shadow.appendChild(style);

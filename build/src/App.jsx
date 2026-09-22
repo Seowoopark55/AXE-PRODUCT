@@ -787,15 +787,35 @@ function Header({
 }) {
   const displayName = displayProfileName(profile, user);
   const displayCompany = displayProfileCompany(profile);
+  const accountActions = (
+    <div className="header-actions">
+      {user ? (
+        <div className="user-chip">
+          {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <div className="avatar-fallback">{displayName[0] || "?"}</div>}
+          <div>
+            <div className="user-chip-name-v115">
+              <strong>{displayName}</strong>
+              {displayCompany && <span>{displayCompany}</span>}
+            </div>
+            <div className="user-chip-actions"><button onClick={onProfile}>프로필</button><button onClick={onLogout}>로그아웃</button></div>
+          </div>
+        </div>
+      ) : <button className="btn discord" onClick={onLogin}>Discord로 계속하기</button>}
+    </div>
+  );
   return (
-    <header className="topbar">
-      <div className="shell topbar-inner">
-        {onHubReturn && (
+    <header className={cls("topbar", onHubReturn && "lac-build-unified")}>
+      {onHubReturn && (
+        <div className="shell lac-build-unified-header">
           <button type="button" className="lac-build-inline-return" data-hub-return
             aria-label="LAC HUB 메인으로 이동" onClick={onHubReturn}>
             <span className="lac-hub-return__arrow" aria-hidden="true">←</span><span>LAC HUB</span>
           </button>
-        )}
+          <h1 className="lac-build-unified-title">LAC BUILD</h1>
+          {accountActions}
+        </div>
+      )}
+      <div className="shell topbar-inner">
         <button className="brand-btn" onClick={() => setTab("home")} aria-label="LAC BUILD 홈">
           <Brand />
         </button>
@@ -814,20 +834,7 @@ function Header({
             </button>
           )}
         </nav>
-        <div className="header-actions">
-          {user ? (
-            <div className="user-chip">
-              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <div className="avatar-fallback">{displayName[0] || "?"}</div>}
-              <div>
-                <div className="user-chip-name-v115">
-                  <strong>{displayName}</strong>
-                  {displayCompany && <span>{displayCompany}</span>}
-                </div>
-                <div className="user-chip-actions"><button onClick={onProfile}>프로필</button><button onClick={onLogout}>로그아웃</button></div>
-              </div>
-            </div>
-          ) : <button className="btn discord" onClick={onLogin}>Discord로 계속하기</button>}
-        </div>
+        {!onHubReturn && accountActions}
       </div>
     </header>
   );
@@ -4203,7 +4210,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
         />
       )}
 
-      <FloatingContextPanel
+      {!onHubReturn && <FloatingContextPanel
         tab={tab}
         announcements={announcements}
         user={user}
@@ -4214,7 +4221,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
         onNotice={() => navigateTab("notices")}
         onReport={() => navigateTab("reports")}
         onPreset={() => user ? navigateTab("presets") : login()}
-      />
+      />}
 
       <Toast message={toast.message} tone={toast.tone} />
 
