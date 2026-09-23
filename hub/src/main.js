@@ -805,6 +805,44 @@ function installPrimaryScreenHistory() {
 }
 
 function render() { renderShell(root, state); suppressBrowserFormHistory(); }
+// Phase 6: Keep confirmation above the existing HUB modal without replacing its DOM.
+// A cancelled/escaped dialog must never reach the destructive API call.
+function confirmHubDeletion({ title, message, confirmLabel }) {
+  return new Promise(resolve => {
+    const previousFocus = document.activeElement;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'lac-hub-confirm';
+    dialog.setAttribute('aria-labelledby', 'lac-hub-confirm-title');
+    dialog.setAttribute('aria-describedby', 'lac-hub-confirm-message');
+    dialog.innerHTML = `<form method="dialog" class="lac-hub-confirm__content">
+      <h2 id="lac-hub-confirm-title"></h2>
+      <p id="lac-hub-confirm-message"></p>
+      <div class="lac-hub-confirm__actions">
+        <button type="submit" class="runtime-btn-ghost" value="cancel">취소</button>
+        <button type="submit" class="runtime-btn-danger" value="confirm"></button>
+      </div>
+    </form>`;
+    dialog.querySelector('h2').textContent = title;
+    dialog.querySelector('p').textContent = message;
+    dialog.querySelector('[value="confirm"]').textContent = confirmLabel;
+    dialog.addEventListener('close', () => {
+      const accepted = dialog.returnValue === 'confirm';
+      dialog.remove();
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      resolve(accepted);
+    }, { once: true });
+    document.body.append(dialog);
+    try {
+      dialog.showModal();
+      dialog.querySelector('[value="cancel"]').focus();
+    } catch {
+      // If a browser cannot display the custom dialog, fail closed.
+      dialog.remove();
+      resolve(false);
+    }
+  });
+}
+
 function setNotice(message) {
   state.notice = String(message || ''); state.error = ''; render();
   if (noticeTimer) clearTimeout(noticeTimer);
@@ -1706,7 +1744,7 @@ root.addEventListener('click', async event => {
     const questionId=String(actionEl.dataset.questionId||'');
     const question=state.modal?.type==='support-question'&&String(state.modal.questionId||'')===questionId?state.modal.question:null;
     if(!question?.viewer_can_delete){setError('이 질문을 삭제할 권한이 없습니다.');return;}
-    if(!window.confirm('이 질문과 답변, 첨부사진을 모두 삭제할까요?'))return;
+    if(!await confirmHubDeletion({title:'질문 삭제',message:'이 질문과 답변, 첨부사진을 모두 삭제할까요? 삭제 후에는 복구할 수 없습니다.',confirmLabel:'질문 삭제'}))return;
     await withMutation(async()=>{
       const paths=supportQuestionStoragePaths(question);
       if(paths.length) await removeSupportAttachments(paths);
@@ -1753,7 +1791,7 @@ root.addEventListener('click', async event => {
     const suggestionId=String(actionEl.dataset.suggestionId||'');
     const suggestion=state.modal?.type==='suggestion-thread'&&String(state.modal.suggestionId||'')===suggestionId?state.modal.suggestion:null;
     if(!suggestion?.viewer_can_delete){setError('이 건의를 삭제할 권한이 없습니다.');return;}
-    if(!window.confirm('이 건의와 답변, 첨부사진을 모두 삭제할까요?'))return;
+    if(!await confirmHubDeletion({title:'건의 삭제',message:'이 건의와 답변, 첨부사진을 모두 삭제할까요? 삭제 후에는 복구할 수 없습니다.',confirmLabel:'건의 삭제'}))return;
     await withMutation(async()=>{
       const paths=suggestionStoragePaths(suggestion);
       if(paths.length) await removeSuggestionAttachments(paths);

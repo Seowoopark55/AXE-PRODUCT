@@ -34,3 +34,19 @@
 
 /* FEEDBACK / REPORT ------------------------------------------------------ */
 .feedback-modal{width:min(520px,100%);border-color:rgba(228,178,75,.18);background:#0f151b}.feedback-modal-head{background:linear-gradient(180deg,rgba(228,178,75,.035),transparent)}.feedback-form{padding:14px!important}.feedback-type-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:2px}.feedback-type-row button{height:34px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:#111820;color:#87929d;font-size:calc((10.2px) * var(--lac-type-scale, 1));font-weight:850;cursor:pointer;transition:.14s ease}.feedback-type-row button:hover{color:#d6dde3;border-color:rgba(255,255,255,.14)}.feedback-type-row button.is-active{border-color:rgba(228,178,75,.30);background:rgba(228,178,75,.075);color:#efd59e;box-shadow:inset 0 0 0 1px rgba(228,178,75,.035)}.feedback-form .modal-field>span{font-size:calc((9.7px) * var(--lac-type-scale, 1));color:#8d98a3}.feedback-form .modal-field>span em{margin-left:4px;color:#65717d;font-size:calc((8.5px) * var(--lac-type-scale, 1));font-style:normal}.feedback-form .modal-field input,.feedback-form .modal-field textarea{font-size:calc((11px) * var(--lac-type-scale, 1))}.feedback-form .modal-field textarea{min-height:94px;resize:none}.feedback-context{display:flex;align-items:center;gap:7px;margin-top:10px;padding:8px 9px;border:1px solid rgba(255,255,255,.055);border-radius:8px;background:rgba(255,255,255,.012);color:#737f8a;font-size:calc((9.2px) * var(--lac-type-scale, 1));line-height:1.4}.feedback-context svg{width:13px;height:13px;color:#a9894b;flex:0 0 auto}.feedback-actions{align-items:center}.feedback-cancel,.feedback-submit{height:34px;padding:0 11px;border-radius:8px;font-size:calc((10.3px) * var(--lac-type-scale, 1));font-weight:850;cursor:pointer}.feedback-cancel{border:1px solid rgba(255,255,255,.08);background:transparent;color:#8f9aa5}.feedback-cancel:hover{border-color:rgba(255,255,255,.14);color:#d1d8df}.feedback-submit{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(228,178,75,.40);background:linear-gradient(180deg,rgba(68,52,22,.98),rgba(34,28,17,.99));color:#efc66d}.feedback-submit:hover{border-color:rgba(236,187,81,.60);color:#ffe0a0;background:linear-gradient(180deg,rgba(78,59,24,.99),rgba(41,32,18,.99))}
+
+/* LAC HUB Phase 6: native top-layer confirmation shown over an existing detail modal. */
+.lac-hub-confirm{
+  box-sizing:border-box;width:min(420px,calc(100vw - 28px));max-height:calc(100dvh - 28px);
+  margin:auto;padding:0;overflow:auto;color:#e7edf3;
+  border:1px solid rgba(228,178,75,.24);border-radius:14px;
+  background:#0c1117;box-shadow:0 28px 80px rgba(0,0,0,.58);
+}
+.lac-hub-confirm::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(4px)}
+.lac-hub-confirm__content{box-sizing:border-box;display:grid;gap:11px;padding:22px}
+.lac-hub-confirm__content h2{margin:0;color:#f1d395;font-size:calc(17px * var(--lac-type-scale,1));line-height:1.45}
+.lac-hub-confirm__content p{margin:0;color:#b6c0ca;font-size:calc(13px * var(--lac-type-scale,1));line-height:1.65;overflow-wrap:anywhere}
+.lac-hub-confirm__actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lac-hub-confirm__actions button{min-height:38px;font-size:calc(12px * var(--lac-type-scale,1))}
+.lac-hub-confirm__actions button:focus-visible{outline:2px solid #efc66d;outline-offset:3px}
+@media(max-width:370px){.lac-hub-confirm__content{padding:16px}.lac-hub-confirm__actions button{flex:1 1 110px}}
