@@ -7,7 +7,8 @@ import {mountCookCloudPanel} from './cloudPanel.js';
 import {requestHostReturn} from './hostBridge.js';
 
 const $ = id => document.getElementById(id);
-const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set(),memo:''};
+const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set(),memo:'', favorites:new Set()};
+const FAVORITES_KEY = 'lac-cook-favorite-foods-v1';
 const revision = CATALOG_REVISION;
 const setStatus = (text, kind='') => { $('save-status').textContent=text; $('save-status').dataset.kind=kind; };
 const markDirty = () => setStatus('현재 작업에 저장되지 않은 변경 사항이 있어.');
@@ -20,6 +21,58 @@ const elem = (tag, className='', content) => {
 };
 const msg = text => elem('p','empty',text);
 const usableFoods = () => state.foods.filter(food=>food.is_active==='TRUE');
+const getFood = id => state.foods.find(food=>food.food_id===id && food.is_active==='TRUE');
+function addOrder(id){
+  if(!getFood(id)) return;
+  const count=state.orders.get(id)||0;
+  state.orders.set(id,Math.min(100000,count+1));
+  markDirty();paintOrders();
+}
+function saveFavorites(){
+  try { localStorage.setItem(FAVORITES_KEY,JSON.stringify([...state.favorites]));
+    $('favorites-status').hidden=true;
+  }catch{
+    $('favorites-status').textContent='즐겨찾기를 브라우저에 저장하지 못했어. 현재 화면에서는 계속 사용할 수 있어.';
+    $('favorites-status').hidden=false;
+  }
+}
+function loadFavorites(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');
+    if(!Array.isArray(raw)) return;
+    state.favorites=new Set(raw.filter(id=>typeof id==='string' && getFood(id)).slice(0,100));
+  }catch{state.favorites=new Set();}
+}
+function toggleFavorite(id){
+  if(!getFood(id))return;
+  if(state.favorites.has(id))state.favorites.delete(id);
+  else if(state.favorites.size<100)state.favorites.add(id);
+  else {
+    $('favorites-status').textContent='즐겨찾기는 최대 100개까지 등록할 수 있어.';
+    $('favorites-status').hidden=false;
+    return;
+  }
+  saveFavorites();paintFavorites();paintFoods();
+}
+function paintFavorites(){
+  const root=$('favorites');root.replaceChildren();
+  for(const id of state.favorites){
+    const food=getFood(id);
+    if(!food)continue;
+    const row=elem('div','favorite-row');
+    const name=elem('span','favorite-name',food.food_name);
+    const add=elem('button','accent favorite-add','추가 +');
+    add.type='button';add.setAttribute('aria-label',`${food.food_name} 작업 목록에 추가`);
+    add.addEventListener('click',()=>addOrder(id));
+    const remove=elem('button','favorite-remove','★');
+    remove.type='button';remove.title='즐겨찾기 해제';
+    remove.setAttribute('aria-label',`${food.food_name} 즐겨찾기 해제`);
+    remove.addEventListener('click',()=>toggleFavorite(id));
+    row.append(name,add,remove);root.append(row);
+  }
+  if(!root.childElementCount)root.append(msg('검색 결과에서 ☆를 눌러 자주 만드는 요리를 등록해 줘.'));
+}
+
 
 function paintFoods() {
   const root = $('results');
@@ -36,12 +89,13 @@ function paintFoods() {
     text.append(elem('small','',`${food.grade||'등급 미확인'} · 1세트 ${food.set_qty||'미설정'}개`));
     const button = elem('button','accent','추가 +');
     button.type='button';
-    button.addEventListener('click',()=>{
-      const count=state.orders.get(food.food_id)||0;
-      state.orders.set(food.food_id,Math.min(100000,count+1));
-      markDirty();paintOrders();
-    });
-    row.append(text,button);
+    button.addEventListener('click',()=>addOrder(food.food_id));
+    const favorite=elem('button','favorite-toggle',state.favorites.has(food.food_id)?'★':'☆');
+    favorite.type='button';favorite.title=state.favorites.has(food.food_id)?'즐겨찾기 해제':'즐겨찾기 등록';
+    favorite.setAttribute('aria-label',`${food.food_name} ${favorite.title}`);
+    favorite.setAttribute('aria-pressed',String(state.favorites.has(food.food_id)));
+    favorite.addEventListener('click',()=>toggleFavorite(food.food_id));
+    row.append(text,favorite,button);
     root.append(row);
   }
 }
@@ -116,6 +170,7 @@ function updateProgress() {
 }
 function checkRow(item, type, detail, amount) {
   const row=elem('label','check-row');
+  if(type==='농장'||type==='생선')row.classList.add('is-gathering');
   const input=elem('input'); input.type='checkbox'; input.checked=state.checked.has(item.key);
   input.setAttribute('aria-label',`${item.name} 준비 완료`);
   const copy=elem('span','check-copy');
@@ -142,8 +197,9 @@ function checkRow(item, type, detail, amount) {
 function paintMaterials() {
   const plan=calculatePlan(catalog,[...state.orders].map(([foodId,batches])=>({foodId,batches})),state.choices);
   const outcome=plan.direct;
-  visibleChecklistItems=checklistItems(plan);
-  state.checked=currentChecks(state.checked,visibleChecklistItems);
+  const allChecklistItems=checklistItems(plan);
+  visibleChecklistItems=allChecklistItems.filter(item=>['purchase','farm','fish'].includes(item.group));
+  state.checked=currentChecks(state.checked,allChecklistItems);
   paintFoodRecipes();
   $('count-food').textContent=`${format(state.orders.size)}종`;
   $('count-sets').textContent=format(outcome.batches);
@@ -192,22 +248,18 @@ function paintMaterials() {
     }
     base.append(ingredients);line.append(base);processRoot.append(line);
   }
-  const priceReady=plan.purchases.some(x=>x.cost!=null);
-  const uncertainty=plan.unresolved.length>0||plan.purchases.some(x=>x.cost==null)||plan.warnings.length>0;
-  $('priced-subtotal').textContent=priceReady?`소계 ${format(plan.pricedSubtotal)}원 · ${uncertainty?'일부 미확정':'참고'}`:'가격 확인 필요';
   const offerOptions=new Map(plan.purchaseOptions.map(item=>[item.name,item]));
   const checkByGroupName=new Map(visibleChecklistItems.map(item=>[`${item.group}:${item.name}`,item]));
   const purchases=$('purchases'); purchases.replaceChildren();
-  purchases.hidden=!plan.purchases.length;
+  purchases.hidden=!plan.purchases.length && !plan.farms.length && !plan.fishSupply.length;
   for(const item of plan.purchases){
     const itemKey=checkByGroupName.get(`purchase:${item.name}`);
     if(!itemKey)continue;
     const container=elem('div','supply-card');
     const detail=item.bundles==null
-      ? `필요 ${format(item.quantity)}개 · 묶음 수량/가격 확인 필요 · ${item.source}`
+      ? `필요 ${format(item.quantity)}개 · 묶음 수량 확인 필요`
       : `1묶음 ${format(item.bundleQty)}개 · 필요 ${format(item.quantity)}개 · 구매 ${format(item.buyQuantity)}개 · 남음 ${format(item.buyQuantity-item.quantity)}개`;
-    const amount={primary:item.bundles==null?'묶음 미확정':`${format(item.bundles)}묶음`,secondary:item.cost==null?'비용 미확정':`${format(item.cost)}원`};
-    container.append(checkRow(itemKey,'구매',detail,amount));
+    container.append(checkRow(itemKey,'구매',detail,item.bundles==null?'묶음 미확정':`${format(item.bundles)}묶음`));
     const choices=offerOptions.get(item.name);
     if(choices){
       const field=elem('label','choice-label',`${item.name} 구매처`);
@@ -215,7 +267,7 @@ function paintMaterials() {
       select.setAttribute('aria-label',`${item.name} 구매처 선택`);
       const placeholder=elem('option','','구매처 선택 / 미확정');placeholder.value='';select.append(placeholder);
       for(const option of choices.options){
-        const label=`${option.source} · ${option.bundleQty==null?'묶음 미설정':format(option.bundleQty)+'개'} / ${option.bundlePrice==null?'가격 미설정':format(option.bundlePrice)+'원'}`;
+        const label=`${option.source} · ${option.bundleQty==null?'묶음 미설정':'1묶음 '+format(option.bundleQty)+'개'}`;
         const node=elem('option','',label);node.value=option.id;select.append(node);
       }
       select.value=state.choices.offers[item.name]||'';
@@ -238,10 +290,11 @@ function paintChecklist(plan,checkByGroupName) {
     const card=elem('div','supply-card'); card.append(checkRow(key,type,detail,amount));root.append(card);
   };
   for(const item of plan.farms){
-    append(checkByGroupName.get(`farm:${item.name}`),'채집',`필요 ${format(item.quantity)}개`,'수급');
-  }
-  for(const item of plan.processes){
-    append(checkByGroupName.get(`process:${item.name}`),'가공',`필요 ${format(item.need)}개 · ${format(item.batches)}회 제작`,'제작');
+    const key=checkByGroupName.get(`farm:${item.name}`);
+    if(!key)continue;
+    const card=elem('div','supply-card');
+    card.append(checkRow(key,'농장',`채집 · 필요 ${format(item.quantity)}개`,'채집'));
+    $('purchases').append(card);
   }
   for(const item of plan.fishOptions){
     const container=elem('div','supply-card');
@@ -262,7 +315,11 @@ function paintChecklist(plan,checkByGroupName) {
     field.append(select);container.append(field);root.append(container);
   }
   for(const item of plan.fishSupply){
-    append(checkByGroupName.get(`fish:${item.name}`),'생선 수급',`필요 ${format(item.quantity)}개`,'수급');
+    const key=checkByGroupName.get(`fish:${item.name}`);
+    if(!key)continue;
+    const card=elem('div','supply-card');
+    card.append(checkRow(key,'생선',`수급 · 필요 ${format(item.quantity)}개`,'채집'));
+    $('purchases').append(card);
   }
   const unresolved=$('unresolved');unresolved.replaceChildren();
   for(const item of plan.unresolved){
@@ -274,8 +331,9 @@ function paintChecklist(plan,checkByGroupName) {
   $('unresolved-count').textContent=`${plan.unresolved.length}종`;
   const issues=$('cook-issues');issues.hidden=!plan.unresolved.length&&!plan.warnings.length;
   issues.open=plan.unresolved.length>0;
-  if(!plan.purchases.length&&!root.children.length&&!plan.unresolved.length){
-    root.append(msg(state.orders.size?'준비할 재료가 없어.':'요리를 추가하면 필요한 재료가 여기에 표시돼.'));
+  if(!purchases.children.length&&!root.children.length&&!plan.unresolved.length){
+    purchases.hidden=false;
+    purchases.append(msg(state.orders.size?'구매·채집할 재료가 없어.':'요리를 추가하면 필요한 구매·채집 재료가 여기에 표시돼.'));
   }
   updateProgress();
 }
@@ -298,7 +356,7 @@ function loadWorkspace(){
     const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
     state.orders=loaded.orders;state.choices=loaded.choices;
     state.checked=currentChecks(loaded.checked,checklistItems(plan));
-    state.memo=loaded.memo||''; $('work-memo').value=state.memo;
+    state.memo=loaded.memo||'';
     paintOrders();
     setStatus('이 브라우저의 저장본을 불러왔어. 계정 간 동기화는 되지 않아.','success');
   }catch(error){setStatus(`불러오기 중단: ${error.message}`,'error');}
@@ -313,12 +371,11 @@ function deleteWorkspace(){
 }
 
 function start(){
-  $('work-memo').addEventListener('input',event=>{state.memo=event.target.value;markDirty();});
   try{
     if(!Array.isArray(catalog.foods)||!Array.isArray(catalog.recipes))throw Error('데이터 형식 오류');
     state.foods=catalog.foods;state.recipes=catalog.recipes;
     $('search-meta').textContent=`요리 ${usableFoods().length}종 · 기준 자료`;
-    paintFoods();paintOrders();
+    loadFavorites();paintFavorites();paintFoods();paintOrders();
   }catch(err){
     $('search-meta').textContent='데이터 읽기 실패';
     $('results').replaceChildren(msg('자료를 불러오지 못했어. 시연 자료를 확인해 줘.'));
@@ -378,7 +435,7 @@ export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled 
           state.choices = loaded.choices;
           const plan = calculatePlan(catalog,[...state.orders].map(([foodId,batches])=>({foodId,batches})),state.choices);
           state.checked = currentChecks(loaded.checked,checklistItems(plan));
-          state.memo=loaded.memo||''; $('work-memo').value=state.memo;
+          state.memo=loaded.memo||'';
           paintOrders();markDirty();
         }
       });
