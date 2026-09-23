@@ -1,7 +1,7 @@
 import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
-import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
+import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
   listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
@@ -1549,6 +1549,21 @@ root.addEventListener('click', async event => {
     if(!ticketId)return;
     navigatePrimaryScreen('hub-board');state.hubBoard.tab='support';
     await withMutation(async()=>{await openHubBoardTicket(ticketId);});return;
+  }
+  if(action==='hub-board-delete'){
+    const ticketId=String(actionEl.dataset.ticketId||'');
+    const ticket=state.page==='hub-board'&&state.hubBoard.mode==='detail'&&
+      String(state.hubBoard.ticket?.id||'')===ticketId?state.hubBoard.ticket:null;
+    const mayDelete=Boolean(ticket&&(state.platformAdmin||String(ticket.author_id)===String(state.session?.user?.id||'')));
+    if(!mayDelete){setError('이 글을 삭제할 권한이 없습니다.');return;}
+    if(!await confirmHubDeletion({title:'문의 · 건의 삭제',message:'이 글과 답변, 첨부사진을 모두 삭제할까요? 삭제 후에는 복구할 수 없습니다.',confirmLabel:'글 삭제'}))return;
+    await withMutation(async()=>{
+      await deleteHubTicket(ticketId);
+      clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';
+      await loadHubBoard();
+      setNotice('글을 삭제했습니다.');
+    });
+    return;
   }
   if(action==='hub-board-ticket'){
     navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;

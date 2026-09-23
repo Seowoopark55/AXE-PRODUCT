@@ -263,3 +263,10 @@
 }
 @media(max-width:780px){.hub-board__recent{flex-wrap:wrap}.hub-board__recent>button{max-width:100%;flex:1 1 180px}}
 @media(max-width:540px){.hub-board__recent>div{flex-basis:70%}.hub-board__recent>button{flex-basis:100%}}
+
+/* Site-board ticket deletion: keep status and destructive action distinct. */
+.hub-board__ticket-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;min-width:0}
+.hub-board__delete{flex-shrink:0;min-height:34px;padding:7px 12px;border:1px solid #9b5656!important;border-radius:7px;background:#392328!important;color:#ffd8d5!important;font-size:11px;font-weight:750;cursor:pointer}
+.hub-board__delete:hover{background:#513039!important;border-color:#d2827b!important}
+.hub-board__delete:focus-visible{outline:2px solid #e3ab86;outline-offset:2px}
+@media(max-width:540px){.hub-board__sheet-top{flex-wrap:wrap}.hub-board__ticket-actions{width:100%;justify-content:space-between}}

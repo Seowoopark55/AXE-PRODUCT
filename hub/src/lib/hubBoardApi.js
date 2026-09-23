@@ -37,11 +37,29 @@ export async function setHubTicketStatus(ticketId,status) {
   assertClient();
   resultData(await supabase.rpc('hub_board_set_status',{p_ticket_id:ticketId,p_status:status}),'처리 상태를 변경하지 못했습니다.');
 }
+// Delete photos while the ticket still exists so Storage RLS can check the
+// author's/staff's ticket permission. Only then delete the ticket via an
+// independently authorized RPC. A failed photo removal leaves the ticket
+// intact; retry the deletion if the network fails partway through.
+const BOARD_BUCKET='lac-hub-board-images';
+export async function deleteHubTicket(ticketId) {
+  assertClient();
+  const ticket=await loadHubTicket(ticketId);
+  const paths=[...new Set(ticket.attachments.map(item=>String(item.storage_path||'')).filter(Boolean))].sort();
+  for(let i=0;i<paths.length;i+=50){
+    const batch=paths.slice(i,i+50);
+    const response=await supabase.storage.from(BOARD_BUCKET).remove(batch);
+    if(response.error)throw new Error(`첨부사진을 정리하지 못해 글 삭제를 중단했습니다. 일부 사진이 먼저 제거됐을 수 있습니다. 다시 시도해 주세요. ${response.error.message||''}`.trim());
+    if(!Array.isArray(response.data)||response.data.length!==batch.length)
+      throw new Error('첨부사진이 일부만 정리되어 글 삭제를 중단했습니다. 다시 시도해 주세요.');
+  }
+  const result=await supabase.rpc('hub_board_delete',{p_ticket_id:ticketId,p_storage_paths:paths});
+  return resultData(result,'글 삭제에 실패했습니다. DB 삭제용 함수가 적용됐는지 확인해 주세요.');
+}
 export async function publishHubNotice(title,body) {
   assertClient();
   return resultData(await supabase.rpc('hub_board_publish_notice',{p_title:title,p_body:body}),'공지 등록에 실패했습니다.');
 }
-const BOARD_BUCKET='lac-hub-board-images';
 const MIME_EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 export function checkHubBoardFiles(files) {
   const selected=Array.from(files||[]);
