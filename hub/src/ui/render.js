@@ -578,7 +578,7 @@ function renderLedgerRow(r,state){
   const editControl=`<button class="axe-fund-history-action ${r.can_edit?'':'is-correction'}" data-action="edit-ledger" data-entry-id="${esc(r.id)}" title="${r.can_edit?'직접 수정':'연동 내역은 원본을 보존하고 정정 반영'}">수정</button>`;
   const extra=(state.fundLedgerAttachments||[]).filter(a=>String(a.entry_id)===String(r.id));
   const evidenceCount=extra.length+(r.evidence_path?1:0);
-  const evidenceControl=evidenceCount?`<button class="axe-fund-history-action is-evidence" data-action="open-ledger-evidence" data-entry-id="${esc(r.id)}">사진 ${evidenceCount}</button>`:'<span>—</span>';
+  const evidenceControl=evidenceCount?`<button class="axe-fund-history-action is-evidence" data-action="open-ledger-evidence" data-entry-id="${esc(r.id)}">보기</button>`:'<span>—</span>';
   const detail=r.memo?`${title} · ${r.memo}`:title;
   return `<article class="axe-fund-ledger-row"><div class="axe-fund-ledger-date" data-label="날짜"><strong>${y}.${m}.${d}</strong></div><div class="axe-fund-ledger-person" data-label="이름"><strong>${esc(who)}</strong></div><div class="axe-fund-ledger-account" data-label="계좌"><span>${esc(r.account||'—')}</span></div><div class="axe-fund-ledger-entry" data-label="내역" title="${esc(detail)}"><strong>${esc(detail)}</strong></div><div class="axe-fund-ledger-type" data-label="구분">${esc(kind)}</div><div class="axe-fund-ledger-money ${amount<0?'is-expense':'is-income'}" data-label="금액">${signedMoney(amount)}</div><div class="axe-fund-ledger-action" data-label="증빙">${evidenceControl}</div><div class="axe-fund-ledger-action" data-label="관리">${editControl}</div></article>`;
 }
