@@ -51,16 +51,17 @@ export function mountEmbeddedBuild(host) {
     }
     .lac-build-unified-header .lac-build-inline-return[data-hub-return] {
       box-sizing: border-box; display: inline-flex; align-items: center;
-      justify-content: flex-start; flex: 0 0 auto; gap: 7px;
-      min-height: 38px; padding: 8px 9px; border: 1px solid transparent;
-      border-radius: 9px; background: transparent; color: #d6b17a;
+      justify-content: center; flex: 0 0 auto; gap: 7px;
+      min-width: 111px; min-height: 38px; padding: 8px 10px;
+      border: 1px solid rgba(226,180,105,.52);
+      border-radius: 9px; background: rgba(159,109,43,.13); color: #f3d39d;
       font: inherit; font-size: 12px; font-weight: 750;
       line-height: 1.25; white-space: nowrap; cursor: pointer;
       justify-self:start;
     }
     .lac-build-unified-header .lac-build-inline-return[data-hub-return]:hover {
-      border-color: rgba(226,180,105,.2);
-      background: rgba(226,180,105,.075); color: #f5d49e;
+      border-color: #ecc58a;
+      background: rgba(185,133,57,.23); color: #ffe8bd;
     }
     .lac-build-unified .topbar-inner {
       position:relative;min-height:58px;padding:0 20px;
@@ -74,7 +75,9 @@ export function mountEmbeddedBuild(host) {
     .lac-build-unified .topbar-inner .nav {
       width:100%;max-width:100%;min-width:0;
       display:flex;align-items:center;justify-content:center;overflow-x:auto;
-      padding:0 6px;
+      padding:0 6px; scrollbar-width:thin;
+      scrollbar-color:rgba(226,180,105,.48) transparent;
+      overscroll-behavior-x:contain;
     }
     .lac-build-unified .topbar-inner .nav button {
       flex:0 0 auto;
@@ -89,7 +92,9 @@ export function mountEmbeddedBuild(host) {
       .lac-build-unified .lac-build-unified-header {row-gap:0;padding:7px 0;}
       .lac-build-unified .lac-build-unified-title {font-size:16px;}
       .lac-build-unified-header>.header-actions {grid-column:1 / -1;justify-self:end;}
-      .lac-build-unified-header .lac-build-inline-return[data-hub-return] {font-size:11px;padding:5px 0;}
+      .lac-build-unified-header .lac-build-inline-return[data-hub-return] {
+        min-width:103px; min-height:36px; font-size:11px; padding:7px 9px;
+      }
     }
     `;
   shadow.appendChild(style);

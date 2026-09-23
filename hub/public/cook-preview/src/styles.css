@@ -419,3 +419,30 @@
 .cook-editor-actions button{min-height:33px;padding:7px 13px}
 .cook-editor-actions button:disabled{opacity:.48;cursor:not-allowed}
 @media(max-width:480px){.cook-recipe-editor{padding:15px 12px}.cook-editor-inline{gap:6px}}
+
+
+/* Site audit 4: match the HUB return-button geometry within COOK's separate
+   iframe document. Do not affect input fields, workbench or dialogs. */
+.header #cook-return-host {
+  box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
+  justify-self:start; min-width:111px; min-height:38px; padding:8px 10px;
+  border:1px solid rgba(226,180,105,.52); border-radius:9px;
+  background:rgba(159,109,43,.13); color:#f3d39d;
+  font-size:12px; font-weight:750; line-height:1.25; white-space:nowrap;
+  text-decoration:none;
+}
+.header #cook-return-host:hover {
+  border-color:#ecc58a; background:rgba(185,133,57,.23); color:#ffe8bd;
+}
+.header #cook-return-host:focus-visible {
+  outline:2px solid #f4ce92; outline-offset:3px;
+}
+@media(max-width:540px) {
+  .header #cook-return-host {min-width:92px; min-height:36px; padding:7px 6px; font-size:11px;}
+}
+@media(max-width:380px) {
+  /* Let the action group use its own row on very narrow phones. */
+  .cook-toolbar .toolbar-label {flex:0 0 100%;}
+  .cook-toolbar .toolbar-actions {width:100%; flex:1 1 100%; justify-content:space-between; gap:6px;}
+  .cook-toolbar .toolbar-actions button {flex:1 1 auto; min-height:36px; padding:6px 5px; font-size:11px;}
+}
