@@ -843,6 +843,67 @@ function confirmHubDeletion({ title, message, confirmLabel }) {
   });
 }
 
+
+// Phase 9: Keep the reason/note input mounted during Korean IME composition.
+// Cancellation (including Escape or a browser without <dialog>) resolves to null;
+// only an explicit confirmation may proceed to a mutation/RPC.
+function requestHubActionNote({ title, message, label, confirmLabel, required = false, requiredMessage = '사유를 입력해 주세요.', danger = false }) {
+  return new Promise(resolve => {
+    const previousFocus = document.activeElement;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'lac-hub-confirm lac-hub-action-note';
+    dialog.setAttribute('aria-labelledby', 'lac-hub-action-note-title');
+    dialog.setAttribute('aria-describedby', 'lac-hub-action-note-message');
+    dialog.innerHTML = `<form class="lac-hub-confirm__content">
+      <h2 id="lac-hub-action-note-title"></h2>
+      <p id="lac-hub-action-note-message"></p>
+      <label class="lac-hub-action-note__label"><span></span>
+        <textarea rows="3" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+      </label>
+      <div class="lac-hub-confirm__actions">
+        <button type="button" class="runtime-btn-ghost" data-note-cancel>취소</button>
+        <button type="submit" class="runtime-btn-primary" data-note-confirm></button>
+      </div>
+    </form>`;
+    const field = dialog.querySelector('textarea');
+    dialog.querySelector('h2').textContent = title;
+    dialog.querySelector('p').textContent = message;
+    dialog.querySelector('label span').textContent = label;
+    const submit = dialog.querySelector('[data-note-confirm]');
+    submit.textContent = confirmLabel;
+    if (danger) submit.className = 'runtime-btn-danger';
+    if (required) field.required = true;
+    let accepted = false;
+    let note = '';
+    dialog.querySelector('[data-note-cancel]').addEventListener('click', () => dialog.close('cancel'));
+    dialog.querySelector('form').addEventListener('submit', event => {
+      event.preventDefault();
+      note = field.value.trim();
+      if (required && !note) {
+        field.setCustomValidity(requiredMessage);
+        field.reportValidity();
+        return;
+      }
+      accepted = true;
+      dialog.close('confirm');
+    });
+    field.addEventListener('input', () => field.setCustomValidity(''));
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      resolve(accepted ? note : null);
+    }, { once: true });
+    document.body.append(dialog);
+    try {
+      dialog.showModal();
+      field.focus();
+    } catch {
+      dialog.remove();
+      resolve(null); // Fail closed: never apply an irreversible action without consent.
+    }
+  });
+}
+
 // Keep board photos in the current page. A native dialog handles Escape and focus trapping.
 function showHubBoardPhoto(trigger, signedUrl){
   const previousFocus=trigger;
@@ -1958,10 +2019,41 @@ root.addEventListener('click', async event => {
       state.cookingOrderTypes=await getCookingOrderTypes(state.companyId);
       setNotice(current.enabled===false?'요리 메뉴를 사용하도록 변경했습니다.':'요리 메뉴를 숨겼습니다.');return;
     }
-    if(action==='cancel-ledger'){const id=actionEl.dataset.entryId;if(!window.confirm('이 공금 내역을 취소할까요?'))return;const input=window.prompt('취소 사유를 입력해 주세요.','');if(input===null)return;const reason=input.trim();if(!reason)throw new Error('취소 사유를 입력해 주세요.');await cancelFundLedgerEntry(state.companyId,id,reason);state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 취소했습니다.');return;}
-    if(action==='return-asset'){const id=actionEl.dataset.assetId;if(!window.confirm('이 자산을 반납 처리할까요?'))return;const note=window.prompt('반납 메모 (선택)','')??'';await manageWebAsset(state.companyId,id,'return',note);state.modal=null;await loadAssetsAndAccounts();setNotice('자산을 반납 처리했습니다.');return;}
-    if(action==='account-review'){const req=actionEl.dataset.requestId;const reviewAction=actionEl.dataset.reviewAction;const note=reviewAction==='reject'?(window.prompt('반려 사유 (선택)','')??''):'';await reviewWebAccountRequest(state.companyId,req,reviewAction,note);await loadAssetsAndAccounts();setNotice(reviewAction==='approve'?'계좌 신청을 승인했습니다.':'계좌 신청을 반려했습니다.');return;}
-    if(action==='fund-review'){const req=actionEl.dataset.requestId;const reviewAction=actionEl.dataset.reviewAction;const note=reviewAction!=='approve'?(window.prompt(reviewAction==='reject'?'반려 사유 (선택)':'보류 메모 (선택)','')??''):'';await reviewFundRequest(state.companyId,req,reviewAction,note);await loadFundSnapshot();setNotice(reviewAction==='approve'?'납부를 승인했습니다.':reviewAction==='hold'?'납부 신청을 보류했습니다.':'납부 신청을 반려했습니다.');return;}
+    if(action==='cancel-ledger'){
+      const id=actionEl.dataset.entryId;
+      const reason=await requestHubActionNote({title:'공금 내역 취소',message:'취소 사유를 입력하고 확인해 주세요. 취소한 내역은 원래 상태로 되돌릴 수 없습니다.',label:'취소 사유 (필수)',confirmLabel:'내역 취소',required:true,requiredMessage:'취소 사유를 입력해 주세요.',danger:true});
+      if(reason===null)return;
+      await cancelFundLedgerEntry(state.companyId,id,reason);
+      state.modal=null;await loadFundSnapshot();setNotice('공금 내역을 취소했습니다.');return;
+    }
+    if(action==='return-asset'){
+      const id=actionEl.dataset.assetId;
+      const note=await requestHubActionNote({title:'자산 반납 처리',message:'이 자산을 반납 처리할까요? 필요한 경우 반납 메모를 남길 수 있습니다.',label:'반납 메모 (선택)',confirmLabel:'반납 처리'});
+      if(note===null)return;
+      await manageWebAsset(state.companyId,id,'return',note);
+      state.modal=null;await loadAssetsAndAccounts();setNotice('자산을 반납 처리했습니다.');return;
+    }
+    if(action==='account-review'){
+      const req=actionEl.dataset.requestId;const reviewAction=actionEl.dataset.reviewAction;
+      let note='';
+      if(reviewAction==='reject'){
+        note=await requestHubActionNote({title:'계좌 신청 반려',message:'신청을 반려할까요? 사유를 남기면 신청자가 확인할 수 있습니다.',label:'반려 사유 (선택)',confirmLabel:'반려',danger:true});
+        if(note===null)return;
+      }
+      await reviewWebAccountRequest(state.companyId,req,reviewAction,note);
+      await loadAssetsAndAccounts();setNotice(reviewAction==='approve'?'계좌 신청을 승인했습니다.':'계좌 신청을 반려했습니다.');return;
+    }
+    if(action==='fund-review'){
+      const req=actionEl.dataset.requestId;const reviewAction=actionEl.dataset.reviewAction;
+      let note='';
+      if(reviewAction!=='approve'){
+        const isReject=reviewAction==='reject';
+        note=await requestHubActionNote({title:isReject?'납부 신청 반려':'납부 신청 보류',message:isReject?'이 납부 신청을 반려할까요?':'이 납부 신청을 보류할까요?',label:isReject?'반려 사유 (선택)':'보류 메모 (선택)',confirmLabel:isReject?'반려':'보류 처리',danger:isReject});
+        if(note===null)return;
+      }
+      await reviewFundRequest(state.companyId,req,reviewAction,note);
+      await loadFundSnapshot();setNotice(reviewAction==='approve'?'납부를 승인했습니다.':reviewAction==='hold'?'납부 신청을 보류했습니다.':'납부 신청을 반려했습니다.');return;
+    }
     if(action==='open-evidence'){const url=await getFundEvidenceSignedUrl(actionEl.dataset.evidencePath,300);if(url)window.open(url,'_blank','noopener,noreferrer');return;}
   });
 });

@@ -50,3 +50,14 @@
 .lac-hub-confirm__actions button{min-height:38px;font-size:calc(12px * var(--lac-type-scale,1))}
 .lac-hub-confirm__actions button:focus-visible{outline:2px solid #efc66d;outline-offset:3px}
 @media(max-width:370px){.lac-hub-confirm__content{padding:16px}.lac-hub-confirm__actions button{flex:1 1 110px}}
+
+/* Phase 9: action note and confirmation share the HUB native dialog shell. */
+.lac-hub-action-note{width:min(470px,calc(100vw - 28px))}
+.lac-hub-action-note__label{display:grid;gap:8px;color:#d2dae1;font-size:calc(12px * var(--lac-type-scale,1));font-weight:700}
+.lac-hub-action-note__label textarea{
+  box-sizing:border-box;display:block;width:100%;min-height:90px;max-height:35dvh;
+  padding:10px 12px;resize:vertical;border:1px solid #364450;border-radius:9px;
+  background:#101923;color:#eef2f6;font:inherit;font-size:calc(13px * var(--lac-type-scale,1));line-height:1.6;
+}
+.lac-hub-action-note__label textarea:focus-visible{outline:2px solid #efc66d;outline-offset:2px}
+.lac-hub-action-note__label textarea::placeholder{color:#81909e}
