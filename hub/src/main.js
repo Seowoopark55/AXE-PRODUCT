@@ -9,7 +9,7 @@ import {
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveCompanyAiChannel, saveDiscordCompanyConfig,
-  getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
+  getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, cancelFundApproval, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting,
@@ -2039,6 +2039,40 @@ root.addEventListener('click', async event => {
       await setCookingOrderTypeEnabled(state.companyId,typeKey,current.enabled===false);
       state.cookingOrderTypes=await getCookingOrderTypes(state.companyId);
       setNotice(current.enabled===false?'요리 메뉴를 사용하도록 변경했습니다.':'요리 메뉴를 숨겼습니다.');return;
+    }
+    if(action==='cancel-ledger-approval'){
+      // A linked payment needs its approval request AND ledger reversed atomically.
+      // Never route this button through fund_admin_cancel_ledger_entry.
+      const id=String(actionEl.dataset.entryId||'');
+      const row=(state.fundSnapshot?.ledger||[]).find(item=>String(item.id)===id);
+      if(!row || row.entry_type!=='payment' || !row.request_id || (row.status && row.status!=='active')){
+        throw new Error('취소할 납부 내역을 확인할 수 없습니다. 공금 내역을 새로고침해 주세요.');
+      }
+      const requestId=String(row.request_id);
+      const request=(state.fundRequests||[]).find(item=>String(item.request_id||item.id)===requestId);
+      if(request && request.status!=='approved'){
+        throw new Error('승인 완료된 납부 신청만 취소할 수 있습니다. 공금 내역을 새로고침해 주세요.');
+      }
+      // Existing correction entries are separate ledger rows. An approval reversal
+      // does NOT automatically reverse them; refuse when this snapshot detects one.
+      const reference=`원본 ${id.slice(0,8)} 정정`;
+      if((state.fundSnapshot?.ledger||[]).some(item=>item.id!==row.id && item.status!=='cancelled' && String(item.memo||'').includes(reference))){
+        throw new Error('이 납부 건에는 별도 정정 차액 내역이 있습니다. 정정 내역과 잔액을 먼저 확인한 뒤 취소해 주세요.');
+      }
+      const reason=await requestHubActionNote({
+        title:'주간공금 납부 승인 취소',
+        message:'이 납부 승인과 연결된 공금 내역이 함께 취소되며 취소 사유가 기록됩니다. 이미 별도로 정정한 차액은 자동 취소되지 않습니다. 실제 취소할 때만 사유를 입력하고 확인해 주세요.',
+        label:'승인 취소 사유 (필수)', confirmLabel:'내역 취소',
+        required:true, requiredMessage:'승인 취소 사유를 입력해 주세요.', danger:true,
+      });
+      if(reason===null)return;
+      if(reason.length>1000)throw new Error('승인 취소 사유는 1000자 이하로 입력해 주세요.');
+      await cancelFundApproval(state.companyId,requestId,reason);
+      clearLedgerPendingFiles();state.modal=null;
+      await loadFundSnapshot();
+      state.fundMonthlyRows=[];
+      if(state.fundTab==='weekly')await loadFundWeeklyMonth();
+      setNotice('납부 승인과 연결된 공금 내역을 취소했습니다.');return;
     }
     if(action==='cancel-ledger'){
       const id=actionEl.dataset.entryId;
