@@ -638,3 +638,69 @@ body:has(.runtime-app--game-info.game-center)::before {
   background:url('/brand/lac-one-shell-clean.png') center top/cover no-repeat,#030507;
 }
 #lac-build-host[hidden] {display:none;}
+
+
+/* SITE AUDIT 3: shared header finish (layout-only).
+   Preserve existing content widths, navigation, IME input handlers and data. */
+@media (min-width: 1200px) {
+  /* Center the administration brand against the whole content frame rather
+     than the space remaining between return and the account controls. */
+  .runtime-app.platform-center .platform-center__header {
+    display: grid;
+    grid-template-columns: minmax(230px,1fr) auto minmax(230px,1fr);
+    align-items: center;
+    column-gap: 12px;
+    min-height: 66px;
+    padding-block: 8px;
+  }
+  .runtime-app.platform-center .platform-center__return {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    order: initial;
+  }
+  .runtime-app.platform-center .platform-center__brand {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    min-width: 0;
+  }
+  .runtime-app.platform-center .platform-center__account {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    margin-left: 0;
+    min-width: 0;
+  }
+}
+
+/* One consistent return-button target for HUB-rendered content.
+   BUILD (shadow root) and COOK (separate document) retain their isolated
+   rules; no blanket selector is allowed to modify their menus. */
+.runtime-app .lac-hub-return-slot .global-hub-return,
+.platform-center .platform-center__return button[data-hub-return],
+.game-center .game-center__actions button[data-hub-return],
+.hub-board .hub-board__return button[data-hub-return] {
+  min-height: 38px;
+  padding: 8px 10px;
+  gap: 7px;
+  border-radius: 9px;
+  line-height: 1.25;
+}
+.runtime-app .lac-hub-return-slot .global-hub-return:focus-visible,
+.platform-center .platform-center__return button[data-hub-return]:focus-visible,
+.game-center .game-center__actions button[data-hub-return]:focus-visible,
+.hub-board .hub-board__return button[data-hub-return]:focus-visible {
+  outline: 2px solid #f4ce92;
+  outline-offset: 3px;
+}
+@media (max-width: 540px) {
+  .runtime-app .lac-hub-return-slot .global-hub-return,
+  .platform-center .platform-center__return button[data-hub-return],
+  .game-center .game-center__actions button[data-hub-return],
+  .hub-board .hub-board__return button[data-hub-return] {
+    min-height: 36px;
+    padding: 7px 7px;
+    font-size: 11px;
+  }
+}
