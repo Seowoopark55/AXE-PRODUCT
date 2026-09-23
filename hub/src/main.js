@@ -843,6 +843,25 @@ function confirmHubDeletion({ title, message, confirmLabel }) {
   });
 }
 
+// Keep board photos in the current page. A native dialog handles Escape and focus trapping.
+function showHubBoardPhoto(trigger, signedUrl){
+  const previousFocus=trigger;
+  const dialog=document.createElement('dialog');
+  dialog.className='hub-board-photo-dialog';
+  dialog.setAttribute('aria-label','첨부 사진 크게 보기');
+  dialog.innerHTML=`<div class="hub-board-photo-dialog__top"><span>첨부 사진</span><button type="button" class="hub-board-photo-dialog__close" aria-label="사진 닫기">×</button></div><img class="hub-board-photo-dialog__image" alt="첨부 사진 확대 보기">`;
+  dialog.querySelector('img').src=signedUrl;
+  dialog.querySelector('button').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+  dialog.addEventListener('close',()=>{
+    dialog.remove();
+    if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
+  },{once:true});
+  document.body.append(dialog);
+  try{dialog.showModal();dialog.querySelector('button').focus();}
+  catch(error){dialog.remove();throw error;}
+}
+
 function setNotice(message) {
   state.notice = String(message || ''); state.error = ''; render();
   if (noticeTimer) clearTimeout(noticeTimer);
@@ -1569,7 +1588,11 @@ root.addEventListener('click', async event => {
     navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;
   }
   if(action==='hub-board-image'){
-    await withMutation(async()=>{const url=await hubBoardImageUrl(String(actionEl.dataset.imagePath||''));window.open(url,'_blank','noopener,noreferrer');});return;
+    const imagePath=String(actionEl.dataset.imagePath||'');
+    if(!imagePath)return;
+    try{const url=await hubBoardImageUrl(imagePath);showHubBoardPhoto(actionEl,url);}
+    catch(error){setError(error);}
+    return;
   }
   if(action==='hub-board-file-remove'){
     const id=String(actionEl.dataset.fileId||'');const file=state.hubBoard.files.find(item=>item.id===id);

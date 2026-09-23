@@ -270,3 +270,17 @@
 .hub-board__delete:hover{background:#513039!important;border-color:#d2827b!important}
 .hub-board__delete:focus-visible{outline:2px solid #e3ab86;outline-offset:2px}
 @media(max-width:540px){.hub-board__sheet-top{flex-wrap:wrap}.hub-board__ticket-actions{width:100%;justify-content:space-between}}
+
+/* Site-board photo gallery: images only in the ticket; native same-page lightbox. */
+.hub-board__image{display:grid;place-items:center;flex:0 0 auto;width:96px;height:96px;min-height:0;max-width:none;padding:3px;overflow:hidden;border:1px solid #526a7d;border-radius:9px;background:#20303d;color:#aebdcb;cursor:zoom-in}
+.hub-board__image img{display:block;width:100%;height:100%;min-width:0;object-fit:cover;border-radius:6px}
+.hub-board__image:hover{border-color:#e9c48d;background:#293b49}
+.hub-board__image:focus-visible{outline:2px solid #e9c48d;outline-offset:3px}
+.hub-board-photo-dialog{position:fixed;inset:0;width:min(1100px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);margin:auto;padding:12px;border:1px solid #796445;border-radius:12px;background:#101921;color:#edf0f4;box-shadow:0 24px 80px #000b}
+.hub-board-photo-dialog::backdrop{background:rgba(1,5,10,.87);backdrop-filter:blur(5px)}
+.hub-board-photo-dialog__top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:8px;color:#edcb91;font-size:14px;font-weight:750}
+.hub-board-photo-dialog__close{width:36px;height:36px;flex-shrink:0;border:1px solid #526272;border-radius:8px;background:#22313e;color:#f3f0e9;font-size:24px;line-height:1;cursor:pointer}
+.hub-board-photo-dialog__close:hover{border-color:#dcb777}
+.hub-board-photo-dialog__close:focus-visible{outline:2px solid #e9c48d;outline-offset:3px}
+.hub-board-photo-dialog__image{display:block;width:auto;height:auto;max-width:100%;max-height:calc(100dvh - 112px);margin:0 auto;object-fit:contain;border-radius:6px}
+@media(max-width:540px){.hub-board__image{width:76px;height:76px}.hub-board-photo-dialog{width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);padding:9px}.hub-board-photo-dialog__image{max-height:calc(100dvh - 88px)}}
