@@ -1949,8 +1949,29 @@ root.addEventListener('click', async event => {
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
   if(action==='edit-ledger'){clearLedgerPendingFiles();const entryId=actionEl.dataset.entryId;const row=(state.fundSnapshot?.ledger||[]).find(r=>String(r.id)===String(entryId));state.modal={type:row?.can_edit?'ledger':'ledger-correction',entryId};render();return;}
   if(action==='remove-ledger-pending'){const id=String(actionEl.dataset.pendingId||'');const item=(state.ledgerPendingFiles||[]).find(x=>x.id===id);try{if(item?.previewUrl)URL.revokeObjectURL(item.previewUrl);}catch{}state.ledgerPendingFiles=(state.ledgerPendingFiles||[]).filter(x=>x.id!==id);render();return;}
-  if(action==='open-ledger-evidence'){const entryId=String(actionEl.dataset.entryId||'');state.modal={type:'ledger-evidence',entryId};render();return;}
-  if(action==='open-ledger-attachment'){const path=String(actionEl.dataset.storagePath||'');if(!path)return;await withMutation(async()=>{const url=await getFundEvidenceSignedUrl(path);window.open(url,'_blank','noopener,noreferrer');});return;}
+  if(action==='open-ledger-evidence'){
+    const entryId=String(actionEl.dataset.entryId||'');
+    const entry=(state.fundSnapshot?.ledger||[]).find(row=>String(row.id)===entryId);
+    const paths=[entry?.evidence_path,...(state.fundLedgerAttachments||[]).filter(item=>String(item.entry_id)===entryId).map(item=>item.storage_path)].filter(Boolean);
+    if(paths.length===1){
+      try{const url=await getFundEvidenceSignedUrl(paths[0],300);if(url)showHubBoardPhoto(actionEl,url);}
+      catch(error){setError(error);}
+      return;
+    }
+    if(paths.length>1){
+      try{
+        const urls=await Promise.all(paths.map(path=>getFundEvidenceSignedUrl(path,300)));
+        state.modal={type:'ledger-evidence',entryId,previewUrls:Object.fromEntries(paths.map((path,index)=>[path,urls[index]]))};
+      }catch(error){setError(error);return;}
+    }else state.modal={type:'ledger-evidence',entryId};
+    render();return;
+  }
+  if(action==='open-ledger-attachment'){
+    const path=String(actionEl.dataset.storagePath||'');if(!path)return;
+    try{const url=await getFundEvidenceSignedUrl(path,300);if(url)showHubBoardPhoto(actionEl,url);}
+    catch(error){setError(error);}
+    return;
+  }
   if(action==='edit-platform-subscription'){if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}state.modal={type:'platform-subscription',companyId:String(actionEl.dataset.companyId||'')};render();return;}
   if(action==='platform-view'){
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
@@ -2054,7 +2075,7 @@ root.addEventListener('click', async event => {
       await reviewFundRequest(state.companyId,req,reviewAction,note);
       await loadFundSnapshot();setNotice(reviewAction==='approve'?'납부를 승인했습니다.':reviewAction==='hold'?'납부 신청을 보류했습니다.':'납부 신청을 반려했습니다.');return;
     }
-    if(action==='open-evidence'){const url=await getFundEvidenceSignedUrl(actionEl.dataset.evidencePath,300);if(url)window.open(url,'_blank','noopener,noreferrer');return;}
+    if(action==='open-evidence'){const url=await getFundEvidenceSignedUrl(actionEl.dataset.evidencePath,300);if(url)showHubBoardPhoto(actionEl,url);return;}
   });
 });
 
