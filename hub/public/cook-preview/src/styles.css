@@ -279,3 +279,68 @@
 .checklist-panel .supply-card .check-row.is-gathering .check-type{background:#142a22;border-color:#3b6953;color:#a4d6b2}
 
 @media(max-width:790px){.cook-sidebar .favorites-panel{grid-column:1/-1}}
+
+
+/* COOK visual finish: cleaner recipe and procurement hierarchy; layout and
+   calculation rules remain unchanged. Scoped below the older workbench CSS. */
+.cook-workbench .panel-title h3{letter-spacing:-.03em;font-weight:850}
+.cook-workbench .panel-title{align-items:center}
+.cook-recipes-row .recipe-card,.cook-recipes-row .process-recipe-card{
+  border-color:#3b4348;background:linear-gradient(155deg,#13191d,#101518);border-radius:10px
+}
+.cook-recipes-row .recipe-card-head{border-bottom-color:#30373a}
+.recipe-basis,.process-needed{display:none}
+.process-recipe-head .recipe-head-title{gap:7px}
+.process-order{display:inline-grid;place-items:center;flex:none;width:22px;height:22px;
+  border:1px solid #946f3e;border-radius:7px;background:#302618;color:#f0c782;
+  font-size:11px;font-weight:900;font-variant-numeric:tabular-nums}
+.process-base{margin-top:7px}
+.cook-recipes-row .process-recipe-card .recipe-ingredients{gap:5px}
+/* Compact quantity stepper replaces browser-provided number-input arrows. */
+.cook-sidebar .qty-stepper{display:inline-flex;align-items:center;flex:none;height:34px;
+  border:1px solid #48525b;border-radius:9px;background:#11191e;overflow:hidden}
+.cook-sidebar .qty-stepper .qty{width:38px;height:32px;min-width:0;margin:0;padding:0 1px;
+  border:0;border-radius:0;background:transparent;font-size:12px;font-weight:850;color:#f1e3ca;
+  font-variant-numeric:tabular-nums;outline-offset:-2px}
+.cook-sidebar .qty-stepper .qty-adjust{display:inline-grid;place-items:center;flex:none;width:29px;height:32px;
+  padding:0;border:0;background:transparent;color:#d5b47f;font-size:18px;font-weight:650;line-height:1}
+.cook-sidebar .qty-stepper .qty-adjust:hover:not(:disabled){background:#33291d;color:#ffe1a7}
+.cook-sidebar .qty-stepper .qty-adjust:disabled{opacity:.26;cursor:not-allowed}
+.cook-sidebar .qty-stepper .qty-minus{border-right:1px solid #303a41}
+.cook-sidebar .qty-stepper .qty-plus{border-left:1px solid #303a41}
+.cook-sidebar .order-controls .remove{min-height:32px;border-color:#463b37;border-radius:8px;
+  background:#221d1c;color:#d8a6a0}
+.cook-sidebar .order-controls .remove:hover{border-color:#9c5f52;background:#302321;color:#f1c2b8}
+.cook-sidebar .order-controls{gap:6px}
+.cook-sidebar .panel-title .subtle{border-radius:8px;font-weight:750}
+.cook-sidebar .panel-title .subtle:hover{background:#30383d;color:#f0e8dc}
+/* Use restrained symbols only in headings; no emojis in numerical rows. */
+.cook-workbench .checklist-panel .panel-title{margin-bottom:9px}
+.cook-workbench .checklist-panel .panel-title h3::before{content:'▤';display:inline-block;
+  margin-right:7px;color:#cda569;font-size:13px;vertical-align:1px}
+/* Accessible modal is hosted inside the COOK iframe and centered in its viewport. */
+.cook-confirm{position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 34px));max-height:calc(100dvh - 36px);
+  padding:26px 25px 22px;color:#eee9e2;background:linear-gradient(155deg,#192027,#101519 80%);
+  border:1px solid #705736;border-radius:16px;box-shadow:0 25px 95px #000c;overflow:auto}
+.cook-confirm:not([open]){display:none}
+.cook-confirm::backdrop{background:rgba(2,4,7,.78);backdrop-filter:blur(4px)}
+.cook-confirm-mark{display:grid;place-items:center;width:36px;height:36px;margin-bottom:15px;
+  color:#e8c185;background:#302619;border:1px solid #755832;border-radius:10px;font-size:19px}
+.cook-confirm h2{margin:0 0 9px;font-size:20px;line-height:1.4;letter-spacing:-.04em;font-weight:850}
+.cook-confirm p{margin:0;color:#aab6bf;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+.cook-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.cook-confirm-actions button{min-height:38px;padding:8px 16px;border-radius:9px;font-size:12px;font-weight:800;
+  transition:background-color .14s,border-color .14s}
+.cook-confirm-cancel{border:1px solid #43505a;background:#1d262d;color:#d7dfe1}
+.cook-confirm-cancel:hover{background:#2a343a}
+.cook-confirm-action{border:1px solid #ad8850;background:#d6ad70;color:#22190e}
+.cook-confirm-action:hover{background:#f1c786}
+.cook-confirm-action.is-danger{border-color:#8f534a;background:#69352f;color:#fff0e9}
+.cook-confirm-action.is-danger:hover{background:#86453e}
+.cook-confirm button:focus-visible{outline:2px solid #f4d49d;outline-offset:3px}
+@media(max-width:620px){
+  .cook-sidebar .qty-stepper{height:36px}
+  .cook-sidebar .qty-stepper .qty,.cook-sidebar .qty-stepper .qty-adjust{height:34px}
+  .cook-confirm{padding:22px 19px 18px}
+}
+@media(prefers-reduced-motion:reduce){.cook-confirm-actions button{transition:none}}

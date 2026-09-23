@@ -113,18 +113,37 @@ function paintOrders() {
     text.append(elem('strong','',food.food_name));
     text.append(elem('small','',`1세트 ${food.set_qty||'미설정'}개`));
     const controls=elem('div','order-controls');
-    const input=elem('input','qty');
-    input.type='number';input.min='1';input.max='100000';input.step='1';input.value=String(batches);
-    input.setAttribute('aria-label',`${food.food_name} 제작 세트 수`);
-    input.addEventListener('change',()=>{
-      const n=positiveInt(input.value);
-      if(n==null||n>100000){input.value=String(state.orders.get(id));return;}
+    const stepper=elem('div','qty-stepper');
+    stepper.setAttribute('role','group');
+    stepper.setAttribute('aria-label',`${food.food_name} 제작 세트 수 조절`);
+    const changeBatches=n=>{
+      if(!Number.isSafeInteger(n)||n<1||n>100000) return;
+      if(n===state.orders.get(id))return;
       state.orders.set(id,n);markDirty();paintOrders();
+    };
+    const minus=elem('button','qty-adjust qty-minus','−');
+    minus.type='button';minus.disabled=batches<=1;
+    minus.setAttribute('aria-label',`${food.food_name} 제작 세트 1개 줄이기`);
+    minus.addEventListener('click',()=>changeBatches(state.orders.get(id)-1));
+    const input=elem('input','qty');
+    input.type='text';input.inputMode='numeric';input.autocomplete='off';
+    input.maxLength=6;input.value=String(batches);
+    input.setAttribute('aria-label',`${food.food_name} 제작 세트 수 직접 입력`);
+    input.addEventListener('change',()=>{
+      const typed=input.value.trim();
+      const n=/^\d{1,6}$/.test(typed)?positiveInt(typed):null;
+      if(n==null||n>100000){input.value=String(state.orders.get(id));return;}
+      changeBatches(n);
     });
+    const plus=elem('button','qty-adjust qty-plus','+');
+    plus.type='button';plus.disabled=batches>=100000;
+    plus.setAttribute('aria-label',`${food.food_name} 제작 세트 1개 늘리기`);
+    plus.addEventListener('click',()=>changeBatches(state.orders.get(id)+1));
+    stepper.append(minus,input,plus);
     const remove=elem('button','remove','삭제');
     remove.type='button';remove.setAttribute('aria-label',`${food.food_name} 목록에서 삭제`);
     remove.addEventListener('click',()=>{state.orders.delete(id);markDirty();paintOrders();});
-    controls.append(input,remove);
+    controls.append(stepper,remove);
     row.append(text,controls);
     root.append(row);
   }
@@ -135,7 +154,7 @@ function paintOrders() {
 // the scaled ingredient totals for the current order. Totals stay in the plan.
 function paintFoodRecipes() {
   const root=$('food-recipes'); root.replaceChildren();
-  if(!state.orders.size){root.append(msg('요리를 선택하면 1회 제작 레시피가 표시돼.'));return;}
+  if(!state.orders.size){root.append(msg('요리를 선택하면 레시피가 표시돼.'));return;}
   const foods=new Map(state.foods.map(food=>[food.food_id,food]));
   for(const [id,batches] of state.orders){
     const food=foods.get(id);
@@ -147,7 +166,7 @@ function paintFoodRecipes() {
     title.append(elem('strong','',food.food_name));
     const seconds=Number(food.cook_time);
     title.append(elem('span','recipe-time',food.cook_time!=='' && Number.isFinite(seconds) && seconds>0 ? `${format(seconds)}초` : '시간 미설정'));
-    head.append(title,elem('span','recipe-basis','1회 제작 기준'));
+    head.append(title);
     card.append(head);
     if(!source.length)card.append(msg('등록된 레시피가 없어.'));
     const ingredients=elem('div','recipe-ingredients');
@@ -161,6 +180,29 @@ function paintFoodRecipes() {
     card.append(ingredients);
     root.append(card);
   }
+}
+
+// Show prerequisite processing first (dough -> bread -> toast), even if the
+// planner's list is alphabetically sorted. Cycles are left in source order;
+// the planner already flags them as unresolved rather than fabricating steps.
+function processingOrder(processes){
+  const byName=new Map(processes.map(item=>[item.name,item]));
+  const aliasNames=new Map((catalog.aliases||[])
+    .filter(row=>row.is_active==='TRUE'&&row.alias_name&&row.standard_name)
+    .map(row=>[row.alias_name,row.standard_name]));
+  const visited=new Set();const visiting=new Set();const ordered=[];
+  const visit=item=>{
+    if(visited.has(item.name))return;
+    if(visiting.has(item.name))return;
+    visiting.add(item.name);
+    const inputs=(catalog.processes||[])
+      .filter(row=>row.is_active==='TRUE'&&row.process_material_name===item.name)
+      .map(row=>row.input_material_name);
+    for(const name of inputs){const dependency=byName.get(aliasNames.get(name)||name);if(dependency)visit(dependency);}
+    visiting.delete(item.name);visited.add(item.name);ordered.push(item);
+  };
+  for(const item of processes)visit(item);
+  return ordered;
 }
 
 let visibleChecklistItems = [];
@@ -223,21 +265,18 @@ function paintMaterials() {
   const processRoot=$('processes'); processRoot.replaceChildren();
   $('process-count').textContent=`${plan.processes.length}종`;
   if(!plan.processes.length) processRoot.append(msg('가공이 필요한 재료가 없어.'));
-  for(const item of plan.processes){
+  for(const [index,item] of processingOrder(plan.processes).entries()){
     // The planner's item.items are already multiplied by total processing
     // runs; use the original CSV rows to present the stable ONE-run recipe.
     const source=catalog.processes.filter(row=>row.is_active==='TRUE' && row.process_material_name===item.name);
     const line=elem('article','process-recipe-card');
     const head=elem('div','process-recipe-head');
     const title=elem('div','recipe-head-title');
-    title.append(elem('strong','',item.name));
+    title.append(elem('span','process-order',String(index+1)),elem('strong','',item.name));
     const times=[...new Set(source.map(row=>String(row.process_time||'').trim()).filter(Boolean))];
     title.append(elem('span','recipe-time',times.length===1?times[0]:'시간 미설정'));
-    const count=elem('span','process-needed',`총 ${format(item.batches)}회 제작`);
-    head.append(title,count);line.append(head);
+    head.append(title);line.append(head);
     const base=elem('div','process-base');
-    const definedOutputs=[...new Set(source.map(row=>String(row.result_qty||'').trim()).filter(Boolean))];
-    base.append(elem('small','',definedOutputs.length===1 && Number(definedOutputs[0])>0 ? `1회 생산 ${format(definedOutputs[0])}개`:'1회 생산량 확인 필요'));
     const ingredients=elem('div','recipe-ingredients');
     for(const row of source){
       const qty=Number(row.required_qty);
@@ -338,6 +377,44 @@ function paintChecklist(plan,checkByGroupName) {
   updateProgress();
 }
 
+// Native <dialog> provides a centered top-layer overlay, keyboard focus,
+// Escape handling and focus return. The operation runs ONLY on confirmation.
+function askCookConfirmation({title,description,confirmText='확인',danger=false}){
+  const dialog=$('cook-confirm');
+  if(!dialog || typeof dialog.showModal!=='function'){
+    setStatus('확인 창을 열 수 없어. 브라우저를 업데이트한 뒤 다시 시도해 줘.','error');
+    return Promise.resolve(false);
+  }
+  if(dialog.open)return Promise.resolve(false);
+  $('cook-confirm-title').textContent=title;
+  $('cook-confirm-description').textContent=description;
+  const confirm=$('cook-confirm-action');
+  confirm.textContent=confirmText;
+  confirm.classList.toggle('is-danger',danger);
+  return new Promise(resolve=>{
+    const previouslyFocused=document.activeElement;
+    const onClose=()=>{
+      dialog.removeEventListener('close',onClose);
+      const accepted=dialog.returnValue==='confirm';
+      dialog.returnValue='';
+      if(previouslyFocused?.isConnected && typeof previouslyFocused.focus==='function')previouslyFocused.focus();
+      resolve(accepted);
+    };
+    dialog.addEventListener('close',onClose);
+    dialog.showModal();
+    $('cook-confirm-cancel').focus();
+  });
+}
+$('cook-confirm-cancel').addEventListener('click',()=>$('cook-confirm').close('cancel'));
+$('cook-confirm-action').addEventListener('click',()=>$('cook-confirm').close('confirm'));
+$('cook-confirm').addEventListener('click',event=>{
+  const dialog=$('cook-confirm');
+  const bounds=dialog.getBoundingClientRect();
+  if(event.target===dialog && (event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom)){
+    dialog.close('cancel');
+  }
+});
+
 function saveWorkspace(){
   try{
     const orders=[...state.orders].map(([foodId,batches])=>({foodId,batches}));
@@ -347,11 +424,11 @@ function saveWorkspace(){
     setStatus(`이 브라우저에 저장했어 · ${new Date(payload.savedAt).toLocaleString('ko-KR')}`,'success');
   }catch{setStatus('저장하지 못했어. 브라우저 저장소 사용 가능 여부를 확인해 줘.','error');}
 }
-function loadWorkspace(){
+async function loadWorkspace(){
   try{
     const raw=localStorage.getItem(WORKSPACE_KEY);
     if(!raw){setStatus('이 브라우저에 저장된 작업이 없어.','error');return;}
-    if(state.orders.size && !window.confirm('현재 제작 목록과 체크를 저장된 작업으로 교체할까? 저장하지 않은 변경 사항은 사라져.'))return;
+    if(state.orders.size && !await askCookConfirmation({title:'저장한 작업을 불러올까?',description:'현재 화면의 제작 목록과 체크 상태가 저장본으로 교체돼. 저장하지 않은 변경 사항은 사라져.',confirmText:'불러오기'}))return;
     const loaded=parseWorkspace(raw,{revision,foods:state.foods});
     const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
     state.orders=loaded.orders;state.choices=loaded.choices;
@@ -361,10 +438,10 @@ function loadWorkspace(){
     setStatus('이 브라우저의 저장본을 불러왔어. 계정 간 동기화는 되지 않아.','success');
   }catch(error){setStatus(`불러오기 중단: ${error.message}`,'error');}
 }
-function deleteWorkspace(){
+async function deleteWorkspace(){
   try{
     if(localStorage.getItem(WORKSPACE_KEY)==null){setStatus('삭제할 저장본이 없어.');return;}
-    if(!window.confirm('이 브라우저에 저장된 작업을 삭제할까? 현재 화면의 제작 목록은 그대로 유지돼.'))return;
+    if(!await askCookConfirmation({title:'저장본을 삭제할까?',description:'브라우저에 저장한 작업만 삭제돼. 현재 화면의 제작 목록은 그대로 유지돼.',confirmText:'저장본 삭제',danger:true}))return;
     localStorage.removeItem(WORKSPACE_KEY);
     setStatus('브라우저에 저장된 작업을 삭제했어. 현재 화면은 그대로야.','success');
   }catch{setStatus('저장본을 삭제하지 못했어. 브라우저 저장소를 확인해 줘.','error');}
@@ -384,9 +461,9 @@ function start(){
   }
 }
 $('search').addEventListener('input',e=>{state.query=e.target.value;paintFoods();});
-$('clear').addEventListener('click',()=>{
+$('clear').addEventListener('click',async()=>{
   if(!state.orders.size)return;
-  if(!window.confirm('현재 제작 목록과 체크를 비울까? 브라우저에 별도로 저장한 작업은 유지돼.'))return;
+  if(!await askCookConfirmation({title:'작업 목록을 비울까?',description:'현재 제작 목록과 준비 체크가 초기화돼. 브라우저에 따로 저장한 작업과 즐겨찾기는 유지돼.',confirmText:'목록 비우기',danger:true}))return;
   state.orders.clear();state.choices={offers:{},fish:{}};state.checked.clear();markDirty();paintOrders();
 });
 $('save-workspace').addEventListener('click',saveWorkspace);

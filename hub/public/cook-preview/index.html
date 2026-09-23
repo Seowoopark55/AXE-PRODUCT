@@ -47,7 +47,7 @@
         <div class="summary"><div><small>요리</small><strong id="count-food">0종</strong></div><div><small>세트</small><strong id="count-sets">0</strong></div><div><small>완성</small><strong id="count-units">0개</strong></div></div>
       </section>
       <section aria-labelledby="favorites-title" class="panel favorites-panel">
-        <div class="panel-title"><h3 id="favorites-title">★ 즐겨찾기</h3><small>누르면 작업 목록에 바로 추가</small></div>
+        <div class="panel-title"><h3 id="favorites-title">★ 즐겨찾기</h3></div>
         <div aria-live="polite" class="favorites" id="favorites"><p class="empty">검색 결과에서 ☆를 눌러 자주 만드는 요리를 등록해 줘.</p></div>
         <p class="favorites-status" id="favorites-status" role="status" aria-live="polite" hidden></p>
       </section>
@@ -66,7 +66,7 @@
       </div>
       <section aria-labelledby="purchase-title" class="panel checklist-panel" id="workbench-checklist">
         <div class="panel-title">
-          <div><h3 id="purchase-title">구매·채집 체크리스트</h3><small>구매 묶음 · 채집 수량 · 준비 체크</small></div>
+          <div><h3 id="purchase-title">재료 리스트</h3></div>
           <div class="checklist-head-meta"><span class="tag" id="prep-progress">0 / 0 완료</span></div>
         </div>
         <div aria-live="polite" class="purchase-grid" id="purchases"></div>
@@ -99,6 +99,15 @@
 <details class="cook-disclaimer"><summary>계산 및 저장 안내</summary><p class="footer-note" id="cook-mode-note">현재 버전은 원본 CSV 스냅샷으로 계산해. 사용자가 저장 버튼을 누르면 현재 작업만 이 브라우저의 로컬 저장소에 보관하며, Google Sheets·Supabase·Discord·기존 AXE COOK·운영 HUB에 접속하거나 데이터를 전송하지 않아. 제시되는 가격은 일부 확인된 구매 항목의 소계이며 정확한 총 비용 또는 구형 COOK과의 결과 일치를 보증하지 않아.</p></details>
 </div>
 </section>
+<dialog class="cook-confirm" id="cook-confirm" aria-labelledby="cook-confirm-title" aria-describedby="cook-confirm-description">
+  <div class="cook-confirm-mark" aria-hidden="true">✦</div>
+  <h2 id="cook-confirm-title">작업 목록을 비울까?</h2>
+  <p id="cook-confirm-description"></p>
+  <div class="cook-confirm-actions">
+    <button id="cook-confirm-cancel" class="cook-confirm-cancel" type="button">취소</button>
+    <button id="cook-confirm-action" class="cook-confirm-action" type="button">확인</button>
+  </div>
+</dialog>
 </main>
 </body>
 </html>
