@@ -1928,7 +1928,26 @@ root.addEventListener('change', async event => {
     if(event.target.matches('[data-setup-member-select]')){if(!state.setupDemo)return;const id=String(event.target.dataset.setupMemberSelect||'');const selected=new Set(state.setupDemo.memberSelected||[]);event.target.checked?selected.add(id):selected.delete(id);state.setupDemo.memberSelected=[...selected];state.setupDemo.memberImportDone=false;state.setupDemo.memberImportSkipped=false;render();return;}
   }catch(error){setError(error);}
 });
+// Keep the original input element alive while Korean/Japanese/Chinese IME is
+// composing. renderShell() replaces root.innerHTML, which otherwise interrupts
+// the native composition session and splits Korean syllables into jamo.
+const liveSearchSelector = '[data-hub-board-search], [data-info-query], [data-member-query], [data-asset-query], [data-account-query], [data-cooking-query], [data-platform-query]';
+const composingSearchInputs = new WeakSet();
+root.addEventListener('compositionstart', event => {
+  const field = event.target;
+  if(field?.matches?.(liveSearchSelector)) composingSearchInputs.add(field);
+});
+root.addEventListener('compositionend', event => {
+  const field = event.target;
+  if(!field?.matches?.(liveSearchSelector) || !composingSearchInputs.has(field)) return;
+  composingSearchInputs.delete(field);
+  // Apply the complete syllable once, after the browser has committed the text.
+  // Reuse the normal search handler to preserve selection and pagination logic.
+  field.dispatchEvent(new Event('input', {bubbles:true}));
+});
+
 root.addEventListener('input', event => {
+  if(event.target?.matches?.(liveSearchSelector) && (event.isComposing || composingSearchInputs.has(event.target))) return;
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
