@@ -344,3 +344,42 @@
   .cook-confirm{padding:22px 19px 18px}
 }
 @media(prefers-reduced-motion:reduce){.cook-confirm-actions button{transition:none}}
+
+/* COOK streamlining: user-facing operations only; preserve existing panel layout and calculation rules. */
+.cook-recipes-row .data-lines,
+.cook-recipes-row .process-panel .data-lines,
+.cook-recipes-row .food-recipes{
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+}
+.cook-workbench .orders-panel .summary{display:none!important}
+.cook-workbench .orders-panel .orders{padding-bottom:1px}
+.cook-toolbar .toolbar-label{flex:1;min-width:0}
+.cook-toolbar .toolbar-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.cook-toolbar .toolbar-actions button{min-height:31px;white-space:nowrap;border-radius:8px}
+.legacy-restore{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px}
+.legacy-restore[hidden]{display:none!important}
+.legacy-restore .subtle{padding:5px 9px;font-size:10px}
+.cook-idea{position:fixed;inset:0;margin:auto;width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;
+  padding:22px 24px;color:#f1ece6;background:linear-gradient(155deg,#192027,#101519 80%);border:1px solid #705736;
+  border-radius:16px;box-shadow:0 25px 95px #000c}
+.cook-idea:not([open]){display:none}
+.cook-idea::backdrop{background:rgba(2,4,7,.78);backdrop-filter:blur(4px)}
+.idea-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.idea-mark{display:grid;place-items:center;background:#302619;color:#e8c185;border:1px solid #755832;width:34px;height:34px;border-radius:10px}
+.idea-close{display:grid;place-items:center;width:32px;height:32px;border:1px solid #43505a;border-radius:8px;background:#1d262d;color:#edf0ed;font-size:22px;line-height:1}
+.cook-idea h2{margin:0 0 7px;font-size:19px}
+.cook-idea p{font-size:11px;color:#aab6bf;line-height:1.6;margin:0 0 13px}
+.idea-field{display:grid;gap:6px;margin:12px 0;color:#d8dadd;font-size:12px;font-weight:750}
+.idea-field input,.idea-field textarea{width:100%;min-width:0;padding:9px 10px;border:1px solid #485662;border-radius:8px;background:#0f151b;color:#f1ece6;font:inherit;font-size:12px}
+.idea-field textarea{resize:vertical;min-height:86px}
+.idea-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:17px}
+.idea-actions button{min-height:36px;font-size:12px}
+.cook-idea .idea-result{min-height:0;margin-top:9px;color:#e3c18b}
+@media(max-width:620px){
+ .cook-toolbar .toolbar-label{flex:1 1 auto}
+ .cook-toolbar .toolbar-actions{width:auto;flex:1 1 auto;justify-content:flex-end}
+ .cook-toolbar .toolbar-actions button{min-height:31px;padding:5px 8px;font-size:10px}
+ .cook-idea{padding:20px 16px}
+}

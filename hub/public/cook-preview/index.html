@@ -20,17 +20,12 @@
 </header>
 <div class="cook-toolbar" aria-label="제작 작업 도구">
   <span class="toolbar-label">제작 작업대</span>
-  <div class="toolbar-actions">
-    <button class="accent" id="save-workspace" type="button">작업 저장</button>
-    <button class="subtle" id="load-workspace" type="button">불러오기</button>
-    <details class="save-tools" id="my-workspace"><summary>저장본 관리</summary>
-      <div class="save-tools-body">
-        <button class="remove" id="delete-workspace" type="button">저장본 삭제</button>
-        <p class="prep-note">이 브라우저에만 수동 저장돼. 다른 기기와 동기화되지 않아.</p>
-      </div>
-    </details>
-  </div>
-  <p aria-live="polite" class="save-status" id="save-status" role="status">현재 작업은 아직 저장하지 않았어.</p>
+  <nav class="toolbar-actions" aria-label="레시피 관리 및 제보">
+    <button class="subtle" data-idea="edit" type="button">레시피 수정</button>
+    <button class="subtle" data-idea="add" type="button">레시피 추가</button>
+    <button class="accent" data-idea="report" type="button">요리 제보</button>
+  </nav>
+  <p aria-live="polite" class="save-status" id="save-status" role="status"></p>
 </div>
 <div class="workspace">
   <div class="cook-workbench">
@@ -38,17 +33,16 @@
       <section aria-labelledby="search-title" class="panel search-panel">
         <div class="panel-title"><h3 id="search-title">요리 검색</h3><small id="search-meta">자료 불러오는 중</small></div>
         <label class="sr-only" for="search">요리 이름 검색</label>
-        <input autocomplete="off" id="search" placeholder="요리 이름을 입력해 줘" type="search"/>
+        <input autocomplete="off" id="search" placeholder="요리 이름을 입력해 주세요" type="search"/>
         <div aria-live="polite" class="results" id="results" hidden></div>
       </section>
       <section aria-labelledby="orders-title" class="panel orders-panel">
         <div class="panel-title"><h3 id="orders-title">작업 목록</h3><button class="subtle" id="clear" type="button">목록 비우기</button></div>
-        <div aria-live="polite" class="orders" id="orders"><p class="empty">만들 요리를 추가해 줘.</p></div>
-        <div class="summary"><div><small>요리</small><strong id="count-food">0종</strong></div><div><small>세트</small><strong id="count-sets">0</strong></div><div><small>완성</small><strong id="count-units">0개</strong></div></div>
+        <div aria-live="polite" class="orders" id="orders"><p class="empty">만들 요리를 추가해 주세요.</p></div>
       </section>
       <section aria-labelledby="favorites-title" class="panel favorites-panel">
         <div class="panel-title"><h3 id="favorites-title">★ 즐겨찾기</h3></div>
-        <div aria-live="polite" class="favorites" id="favorites"><p class="empty">검색 결과에서 ☆를 눌러 자주 만드는 요리를 등록해 줘.</p></div>
+        <div aria-live="polite" class="favorites" id="favorites"><p class="empty">검색 결과에서 ☆를 눌러 자주 만드는 요리를 등록해 주세요.</p></div>
         <p class="favorites-status" id="favorites-status" role="status" aria-live="polite" hidden></p>
       </section>
     </div>
@@ -83,8 +77,8 @@
 <button class="subtle" data-cloud-action="load" disabled="" type="button">클라우드에서 불러오기</button>
 <button class="remove" data-cloud-action="delete" disabled="" type="button">클라우드 저장본 삭제</button>
 </div>
-<p aria-live="polite" class="save-status" id="cloud-status" role="status">HUB 계정을 확인하는 중이야.</p>
-<p class="prep-note">클라우드 저장은 Discord 로그인 계정별로 별도 관리돼. 이 브라우저의 저장본과 현재 작업은 자동 업로드되지 않으며, 불러오기 전에 교체 확인을 받아.</p>
+<p aria-live="polite" class="save-status" id="cloud-status" role="status">HUB 계정을 확인하는 중입니다.</p>
+<p class="prep-note">클라우드 저장은 Discord 로그인 계정별로 별도 관리됩니다. 현재 작업은 자동 업로드되지 않으며, 불러오기 전에 확인 절차를 거칩니다.</p>
 </section>
     </div>
   </div>
@@ -96,17 +90,29 @@
 
 
 
-<details class="cook-disclaimer"><summary>계산 및 저장 안내</summary><p class="footer-note" id="cook-mode-note">현재 버전은 원본 CSV 스냅샷으로 계산해. 사용자가 저장 버튼을 누르면 현재 작업만 이 브라우저의 로컬 저장소에 보관하며, Google Sheets·Supabase·Discord·기존 AXE COOK·운영 HUB에 접속하거나 데이터를 전송하지 않아. 제시되는 가격은 일부 확인된 구매 항목의 소계이며 정확한 총 비용 또는 구형 COOK과의 결과 일치를 보증하지 않아.</p></details>
+<details class="cook-disclaimer"><summary>계산 및 저장 안내</summary>
+  <p class="footer-note" id="cook-mode-note">현재 작업은 이 브라우저에만 자동 저장됩니다. 다른 기기와 동기화되지 않으며 기존 AXE COOK, Google Sheets 및 Supabase에는 데이터를 쓰지 않습니다.</p>
+  <div id="legacy-restore" hidden class="legacy-restore"><span>이전에 수동으로 저장한 작업이 있습니다.</span> <button class="subtle" id="load-workspace-legacy" type="button">이전 저장본 복구</button></div>
+</details>
 </div>
 </section>
 <dialog class="cook-confirm" id="cook-confirm" aria-labelledby="cook-confirm-title" aria-describedby="cook-confirm-description">
   <div class="cook-confirm-mark" aria-hidden="true">✦</div>
-  <h2 id="cook-confirm-title">작업 목록을 비울까?</h2>
+  <h2 id="cook-confirm-title">작업 목록을 비우시겠습니까?</h2>
   <p id="cook-confirm-description"></p>
   <div class="cook-confirm-actions">
     <button id="cook-confirm-cancel" class="cook-confirm-cancel" type="button">취소</button>
     <button id="cook-confirm-action" class="cook-confirm-action" type="button">확인</button>
   </div>
+</dialog>
+<dialog class="cook-idea" id="cook-idea" aria-labelledby="cook-idea-title" aria-describedby="cook-idea-hint">
+  <div class="idea-head"><span class="idea-mark" aria-hidden="true">✦</span><button id="cook-idea-close" class="idea-close" type="button" aria-label="닫기">×</button></div>
+  <h2 id="cook-idea-title">레시피 제안</h2>
+  <p id="cook-idea-hint">입력 내용은 이 브라우저에 초안으로만 저장됩니다. 실제 레시피 등록·수정 및 제보 전송 기능은 아직 연결되지 않았습니다.</p>
+  <label class="idea-field">요리명<input id="cook-idea-food" type="text" maxlength="90" placeholder="요리 이름을 입력해 주세요"/></label>
+  <label class="idea-field">내용<textarea id="cook-idea-detail" rows="5" maxlength="2500" placeholder="제안 내용을 입력해 주세요"></textarea></label>
+  <p aria-live="polite" class="idea-result" id="cook-idea-result"></p>
+  <div class="idea-actions"><button id="cook-idea-copy" class="subtle" type="button">내용 복사</button><button id="cook-idea-save" class="accent" type="button">초안 저장</button></div>
 </dialog>
 </main>
 </body>

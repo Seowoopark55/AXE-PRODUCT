@@ -11,7 +11,20 @@ const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers
 const FAVORITES_KEY = 'lac-cook-favorite-foods-v1';
 const revision = CATALOG_REVISION;
 const setStatus = (text, kind='') => { $('save-status').textContent=text; $('save-status').dataset.kind=kind; };
-const markDirty = () => setStatus('현재 작업에 저장되지 않은 변경 사항이 있어.');
+// Autosave only this browser's CURRENT work; keep the older manual snapshot intact.
+const AUTO_WORKSPACE_KEY = 'lac-cook-current-auto-v1';
+const IDEA_DRAFT_KEY = 'lac-cook-recipe-idea-drafts-v1';
+let autoSaveReady = false;
+function persistCurrentWork(){
+  if(!autoSaveReady)return;
+  try{
+    const orders=[...state.orders].map(([foodId,batches])=>({foodId,batches}));
+    const plan=calculatePlan(catalog,orders,state.choices);
+    localStorage.setItem(AUTO_WORKSPACE_KEY,JSON.stringify(prepareWorkspace({...state,plan,revision})));
+    setStatus('', '');
+  }catch{setStatus('현재 작업을 브라우저에 자동 저장하지 못했습니다.','error');}
+}
+const markDirty = () => persistCurrentWork();
 const format = value => Number(value).toLocaleString('ko-KR');
 const elem = (tag, className='', content) => {
   const node = document.createElement(tag);
@@ -32,7 +45,7 @@ function saveFavorites(){
   try { localStorage.setItem(FAVORITES_KEY,JSON.stringify([...state.favorites]));
     $('favorites-status').hidden=true;
   }catch{
-    $('favorites-status').textContent='즐겨찾기를 브라우저에 저장하지 못했어. 현재 화면에서는 계속 사용할 수 있어.';
+    $('favorites-status').textContent='즐겨찾기를 저장하지 못했습니다. 현재 화면에서는 계속 사용할 수 있습니다.';
     $('favorites-status').hidden=false;
   }
 }
@@ -48,7 +61,7 @@ function toggleFavorite(id){
   if(state.favorites.has(id))state.favorites.delete(id);
   else if(state.favorites.size<100)state.favorites.add(id);
   else {
-    $('favorites-status').textContent='즐겨찾기는 최대 100개까지 등록할 수 있어.';
+    $('favorites-status').textContent='즐겨찾기는 최대 100개까지 등록할 수 있습니다.';
     $('favorites-status').hidden=false;
     return;
   }
@@ -70,7 +83,7 @@ function paintFavorites(){
     remove.addEventListener('click',()=>toggleFavorite(id));
     row.append(name,add,remove);root.append(row);
   }
-  if(!root.childElementCount)root.append(msg('검색 결과에서 ☆를 눌러 자주 만드는 요리를 등록해 줘.'));
+  if(!root.childElementCount)root.append(msg('검색 결과의 ☆ 버튼으로 요리를 등록할 수 있습니다.'));
 }
 
 
@@ -81,7 +94,7 @@ function paintFoods() {
   root.hidden = !query;
   if (!query) return;
   const matches = usableFoods().filter(food=>food.food_name.toLocaleLowerCase('ko').includes(query)).slice(0,20);
-  if (!matches.length) return root.append(msg('검색 결과가 없어.'));
+  if (!matches.length) return root.append(msg('검색 결과가 없습니다.'));
   for (const food of matches) {
     const row = elem('div','food-row');
     const text = elem('div','food-text');
@@ -104,7 +117,7 @@ function paintOrders() {
   const root = $('orders');
   root.replaceChildren();
   const foods = new Map(state.foods.map(food=>[food.food_id,food]));
-  if (!state.orders.size) root.append(msg('왼쪽에서 만들 요리를 추가해 줘.'));
+  if (!state.orders.size) root.append(msg('요리를 검색하거나 즐겨찾기에서 추가해 주세요.'));
   for (const [id,batches] of state.orders) {
     const food=foods.get(id);
     if(!food) continue;
@@ -154,7 +167,7 @@ function paintOrders() {
 // the scaled ingredient totals for the current order. Totals stay in the plan.
 function paintFoodRecipes() {
   const root=$('food-recipes'); root.replaceChildren();
-  if(!state.orders.size){root.append(msg('요리를 선택하면 레시피가 표시돼.'));return;}
+  if(!state.orders.size){root.append(msg('요리를 추가하면 레시피가 표시됩니다.'));return;}
   const foods=new Map(state.foods.map(food=>[food.food_id,food]));
   for(const [id,batches] of state.orders){
     const food=foods.get(id);
@@ -168,7 +181,7 @@ function paintFoodRecipes() {
     title.append(elem('span','recipe-time',food.cook_time!=='' && Number.isFinite(seconds) && seconds>0 ? `${format(seconds)}초` : '시간 미설정'));
     head.append(title);
     card.append(head);
-    if(!source.length)card.append(msg('등록된 레시피가 없어.'));
+    if(!source.length)card.append(msg('등록된 레시피가 없습니다.'));
     const ingredients=elem('div','recipe-ingredients');
     for(const item of source){
       const qty=Number(item.required_qty);
@@ -243,9 +256,6 @@ function paintMaterials() {
   visibleChecklistItems=allChecklistItems.filter(item=>['purchase','farm','fish'].includes(item.group));
   state.checked=currentChecks(state.checked,allChecklistItems);
   paintFoodRecipes();
-  $('count-food').textContent=`${format(state.orders.size)}종`;
-  $('count-sets').textContent=format(outcome.batches);
-  $('count-units').textContent=`${format(outcome.units)}개`;
   $('material-count').textContent=`${outcome.materials.length}종`;
   const warnings=$('warning');
   warnings.replaceChildren();
@@ -256,7 +266,7 @@ function paintMaterials() {
     if(plan.warnings.length>8) warnings.append(elem('p','',`외 ${plan.warnings.length-8}건`));
   }
   const root=$('materials'); root.replaceChildren();
-  if(!outcome.materials.length)root.append(msg('제작할 요리를 선택하면 재료 합계를 볼 수 있어.'));
+  if(!outcome.materials.length)root.append(msg('요리를 추가하면 전체 재료가 표시됩니다.'));
   else for(const material of outcome.materials){
     const item=elem('div','material-row');
     item.append(elem('span','',material.name),elem('strong','',format(material.quantity)));
@@ -264,7 +274,7 @@ function paintMaterials() {
   }
   const processRoot=$('processes'); processRoot.replaceChildren();
   $('process-count').textContent=`${plan.processes.length}종`;
-  if(!plan.processes.length) processRoot.append(msg('가공이 필요한 재료가 없어.'));
+  if(!plan.processes.length) processRoot.append(msg('필요한 가공 레시피가 없습니다.'));
   for(const [index,item] of processingOrder(plan.processes).entries()){
     // The planner's item.items are already multiplied by total processing
     // runs; use the original CSV rows to present the stable ONE-run recipe.
@@ -372,7 +382,7 @@ function paintChecklist(plan,checkByGroupName) {
   issues.open=plan.unresolved.length>0;
   if(!purchases.children.length&&!root.children.length&&!plan.unresolved.length){
     purchases.hidden=false;
-    purchases.append(msg(state.orders.size?'구매·채집할 재료가 없어.':'요리를 추가하면 필요한 구매·채집 재료가 여기에 표시돼.'));
+    purchases.append(msg(state.orders.size?'구매하거나 채집할 재료가 없습니다.':'요리를 추가하면 필요한 재료가 표시됩니다.'));
   }
   updateProgress();
 }
@@ -382,7 +392,7 @@ function paintChecklist(plan,checkByGroupName) {
 function askCookConfirmation({title,description,confirmText='확인',danger=false}){
   const dialog=$('cook-confirm');
   if(!dialog || typeof dialog.showModal!=='function'){
-    setStatus('확인 창을 열 수 없어. 브라우저를 업데이트한 뒤 다시 시도해 줘.','error');
+    setStatus('확인 창을 열 수 없습니다. 브라우저를 업데이트한 후 다시 시도해 주세요.','error');
     return Promise.resolve(false);
   }
   if(dialog.open)return Promise.resolve(false);
@@ -415,36 +425,83 @@ $('cook-confirm').addEventListener('click',event=>{
   }
 });
 
-function saveWorkspace(){
-  try{
-    const orders=[...state.orders].map(([foodId,batches])=>({foodId,batches}));
-    const plan=calculatePlan(catalog,orders,state.choices);
-    const payload=prepareWorkspace({...state,plan,revision});
-    localStorage.setItem(WORKSPACE_KEY,JSON.stringify(payload));
-    setStatus(`이 브라우저에 저장했어 · ${new Date(payload.savedAt).toLocaleString('ko-KR')}`,'success');
-  }catch{setStatus('저장하지 못했어. 브라우저 저장소 사용 가능 여부를 확인해 줘.','error');}
-}
-async function loadWorkspace(){
+async function restoreLegacyWorkspace(){
   try{
     const raw=localStorage.getItem(WORKSPACE_KEY);
-    if(!raw){setStatus('이 브라우저에 저장된 작업이 없어.','error');return;}
-    if(state.orders.size && !await askCookConfirmation({title:'저장한 작업을 불러올까?',description:'현재 화면의 제작 목록과 체크 상태가 저장본으로 교체돼. 저장하지 않은 변경 사항은 사라져.',confirmText:'불러오기'}))return;
+    if(!raw){setStatus('복구할 이전 저장본이 없습니다.','error');return;}
+    if(!await askCookConfirmation({
+      title:'이전 저장본을 불러오시겠습니까?',
+      description:'현재 화면의 작업 목록과 준비 체크가 이전 수동 저장본으로 교체됩니다.',
+      confirmText:'저장본 불러오기'
+    }))return;
     const loaded=parseWorkspace(raw,{revision,foods:state.foods});
     const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
     state.orders=loaded.orders;state.choices=loaded.choices;
     state.checked=currentChecks(loaded.checked,checklistItems(plan));
     state.memo=loaded.memo||'';
-    paintOrders();
-    setStatus('이 브라우저의 저장본을 불러왔어. 계정 간 동기화는 되지 않아.','success');
-  }catch(error){setStatus(`불러오기 중단: ${error.message}`,'error');}
+    autoSaveReady=true;paintOrders();persistCurrentWork();
+    setStatus('이전 저장본을 복구했습니다.','success');
+  }catch(error){setStatus(`저장본을 불러오지 못했습니다: ${error.message}`,'error');}
 }
-async function deleteWorkspace(){
+function restoreCurrentWork(){
   try{
-    if(localStorage.getItem(WORKSPACE_KEY)==null){setStatus('삭제할 저장본이 없어.');return;}
-    if(!await askCookConfirmation({title:'저장본을 삭제할까?',description:'브라우저에 저장한 작업만 삭제돼. 현재 화면의 제작 목록은 그대로 유지돼.',confirmText:'저장본 삭제',danger:true}))return;
-    localStorage.removeItem(WORKSPACE_KEY);
-    setStatus('브라우저에 저장된 작업을 삭제했어. 현재 화면은 그대로야.','success');
-  }catch{setStatus('저장본을 삭제하지 못했어. 브라우저 저장소를 확인해 줘.','error');}
+    const raw=localStorage.getItem(AUTO_WORKSPACE_KEY);
+    if(!raw)return true;
+    const loaded=parseWorkspace(raw,{revision,foods:state.foods});
+    const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
+    state.orders=loaded.orders;state.choices=loaded.choices;
+    state.checked=currentChecks(loaded.checked,checklistItems(plan));
+    state.memo=loaded.memo||'';
+  }catch(error){
+    // Do not overwrite an unreadable old snapshot with an empty workspace.
+    autoSaveReady=false;
+    setStatus(`작업 자동 복원이 중단되었습니다: ${error.message}`,'error');
+    return false;
+  }
+  return true;
+}
+const ideaFields={
+  edit:{title:'레시피 수정 제안',placeholder:'수정이 필요한 재료, 수량 또는 조리시간을 적어 주세요.'},
+  add:{title:'레시피 추가 제안',placeholder:'재료, 수량, 조리시간 등 새 레시피 정보를 적어 주세요.'},
+  report:{title:'요리 제보',placeholder:'추가가 필요한 요리 또는 확인할 정보를 적어 주세요.'}
+};
+let currentIdeaType='report';
+function openIdea(type){
+  if(!Object.hasOwn(ideaFields,type))return;
+  currentIdeaType=type;
+  const idea=ideaFields[type];
+  const dialog=$('cook-idea');
+  if(dialog.open)return;
+  $('cook-idea-title').textContent=idea.title;
+  $('cook-idea-detail').placeholder=idea.placeholder;
+  let data={};
+  try{data=JSON.parse(localStorage.getItem(IDEA_DRAFT_KEY)||'{}')||{};}catch{}
+  $('cook-idea-food').value=data[type]?.name|| (type==='edit' && state.orders.size?getFood(state.orders.keys().next().value)?.food_name||'':'');
+  $('cook-idea-detail').value=data[type]?.detail||'';
+  $('cook-idea-result').textContent='';
+  dialog.showModal();$('cook-idea-food').focus();
+}
+function ideaText(){
+  const name=$('cook-idea-food').value.trim();
+  const detail=$('cook-idea-detail').value.trim();
+  return `${ideaFields[currentIdeaType].title}\n요리명: ${name}\n내용: ${detail}`;
+}
+function ideaValid(){
+  if(!$('cook-idea-food').value.trim() || !$('cook-idea-detail').value.trim()){
+    $('cook-idea-result').textContent='요리명과 내용을 모두 입력해 주세요.';
+    return false;
+  }
+  return true;
+}
+function saveIdeaDraft(){
+  if(!ideaValid())return;
+  try{
+    let drafts={};
+    try{drafts=JSON.parse(localStorage.getItem(IDEA_DRAFT_KEY)||'{}')||{};}catch{}
+    drafts[currentIdeaType]={name:$('cook-idea-food').value.trim(),detail:$('cook-idea-detail').value.trim()};
+    localStorage.setItem(IDEA_DRAFT_KEY,JSON.stringify(drafts));
+    $('cook-idea-result').textContent='초안을 이 브라우저에 보관했습니다. 실제 등록·제보는 아직 전송되지 않습니다.';
+  }catch{$('cook-idea-result').textContent='초안을 저장하지 못했습니다. 브라우저 저장 설정을 확인해 주세요.';}
 }
 
 function start(){
@@ -452,23 +509,34 @@ function start(){
     if(!Array.isArray(catalog.foods)||!Array.isArray(catalog.recipes))throw Error('데이터 형식 오류');
     state.foods=catalog.foods;state.recipes=catalog.recipes;
     $('search-meta').textContent=`요리 ${usableFoods().length}종 · 기준 자료`;
-    loadFavorites();paintFavorites();paintFoods();paintOrders();
+    loadFavorites();
+    const canRestore=restoreCurrentWork();
+    if(canRestore){autoSaveReady=true;}
+    paintFavorites();paintFoods();paintOrders();
+    try{$('legacy-restore').hidden=localStorage.getItem(WORKSPACE_KEY)==null;}catch{}
   }catch(err){
     $('search-meta').textContent='데이터 읽기 실패';
-    $('results').replaceChildren(msg('자료를 불러오지 못했어. 시연 자료를 확인해 줘.'));
+    $('results').replaceChildren(msg('자료를 불러오지 못했습니다. 데이터 파일을 확인해 주세요.'));
     $('warning').hidden=false;
     $('warning').textContent=`시연 자료 불러오기 오류: ${err.message}`;
   }
 }
 $('search').addEventListener('input',e=>{state.query=e.target.value;paintFoods();});
 $('clear').addEventListener('click',async()=>{
-  if(!state.orders.size)return;
-  if(!await askCookConfirmation({title:'작업 목록을 비울까?',description:'현재 제작 목록과 준비 체크가 초기화돼. 브라우저에 따로 저장한 작업과 즐겨찾기는 유지돼.',confirmText:'목록 비우기',danger:true}))return;
-  state.orders.clear();state.choices={offers:{},fish:{}};state.checked.clear();markDirty();paintOrders();
+  if(!state.orders.size&&autoSaveReady)return;
+  if(!await askCookConfirmation({title:'작업 목록을 비우시겠습니까?',description:'현재 작업 목록과 준비 체크가 초기화됩니다. 즐겨찾기와 이전 수동 저장본은 유지됩니다.',confirmText:'목록 비우기',danger:true}))return;
+  state.orders.clear();state.choices={offers:{},fish:{}};state.checked.clear();autoSaveReady=true;paintOrders();persistCurrentWork();
 });
-$('save-workspace').addEventListener('click',saveWorkspace);
-$('load-workspace').addEventListener('click',loadWorkspace);
-$('delete-workspace').addEventListener('click',deleteWorkspace);
+$('load-workspace-legacy').addEventListener('click',restoreLegacyWorkspace);
+document.querySelectorAll('[data-idea]').forEach(button=>button.addEventListener('click',()=>openIdea(button.dataset.idea)));
+$('cook-idea-close').addEventListener('click',()=>$('cook-idea').close());
+$('cook-idea-save').addEventListener('click',saveIdeaDraft);
+$('cook-idea-copy').addEventListener('click',async()=>{
+  if(!ideaValid())return;
+  try{await navigator.clipboard.writeText(ideaText());
+    $('cook-idea-result').textContent='내용을 복사했습니다. 실제 제보나 등록은 전송되지 않았습니다.';
+  }catch{$('cook-idea-result').textContent='내용을 복사하지 못했습니다. 직접 선택해 복사해 주세요.';}
+});
 start();
 
 
@@ -479,7 +547,7 @@ start();
  */
 let detachCookHost = null;
 export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled = false} = {}) {
-  if (detachCookHost) throw Error('LAC COOK은 이미 HUB에 연결되어 있어.');
+  if (detachCookHost) throw Error('LAC COOK은 이미 HUB에 연결되어 있습니다.');
   if (typeof onHubReturn !== 'function') throw Error('HUB 복귀 기능이 준비되지 않았어.');
   const previous = $('cook-return-preview');
   const back = document.createElement('button');
@@ -494,8 +562,8 @@ export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled 
   const note = document.getElementById('cook-mode-note');
   const previousNote = note?.textContent;
   if (note) note.textContent = cloudWorkspaceEnabled
-    ? '이 콘텐츠는 HUB 통합 검토용이야. 기본 계산 자료는 읽기 전용이며, 클라우드 작업은 인증을 확인한 뒤 버튼을 눌러 동의한 경우에만 처리해. 기존 AXE COOK과 Google Sheets는 수정하지 않아.'
-    : '이 콘텐츠는 HUB 통합 검토용이야. 현재 작업은 이 브라우저에만 수동 저장되며 클라우드 저장은 아직 활성화되지 않았어.';
+    ? '이 콘텐츠는 HUB 통합 검토용입니다. 기본 계산 자료는 읽기 전용이며, 클라우드 작업은 인증과 이용자 동의를 확인한 후에만 처리됩니다. 기존 AXE COOK과 Google Sheets는 수정하지 않습니다.'
+    : '현재 작업은 이 브라우저에 자동 저장됩니다. 클라우드 저장은 아직 활성화되지 않았습니다.';
   let detachPanel = null;
   try {
     if (cloudWorkspaceEnabled) {
@@ -542,5 +610,5 @@ if (new URLSearchParams(window.location.search).get('lacCookHostPreview') === '1
     cloudWorkspaceEnabled:false
   });
   $('cook-host-account').textContent = '브라우저 작업공간';
-  $('cook-mode-note').textContent = 'COOK은 현재 데이터 스냅샷을 사용하며, 작업은 이용자가 직접 저장할 때 이 브라우저에만 보관돼. 클라우드 저장과 계정별 동기화는 아직 제공하지 않아. 기존 AXE COOK·Google Sheets·HUB 데이터는 수정하지 않아.';
+  $('cook-mode-note').textContent = 'COOK은 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
 }
