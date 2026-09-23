@@ -1946,13 +1946,34 @@ root.addEventListener('compositionend', event => {
   field.dispatchEvent(new Event('input', {bubbles:true}));
 });
 
+// The member search field must remain the SAME DOM input across every keystroke.
+// Delaying full render until compositionend is insufficient: Chrome's IME may
+// still be committing its last input, and Latin/paste input also loses focus.
+// Build the next member list off-DOM, then update only results below the toolbar.
+// Never detach or replace the live search input or its parent while editing.
+function refreshMemberSearchResults(field) {
+  const currentBoard=field?.closest('.ops-mgmt-page--members .ops-mgmt-board');
+  if(!currentBoard || !root.contains(currentBoard)) return;
+  const scratch=document.createElement('div');
+  renderShell(scratch,state);
+  const nextBoard=scratch.querySelector('.ops-mgmt-page--members .ops-mgmt-board');
+  if(!nextBoard) return;
+  const toolbar=currentBoard.querySelector(':scope > .ops-mgmt-toolbar');
+  if(!toolbar || !toolbar.contains(field)) return;
+  // Only meta, column headings, filtered rows and pager are replaced.
+  // toolbar (and its IME composition state) stays mounted and focused.
+  for(const child of [...currentBoard.children]) if(child!==toolbar) child.remove();
+  for(const child of [...nextBoard.children])
+    if(!child.classList.contains('ops-mgmt-toolbar')) currentBoard.appendChild(child);
+}
+
 root.addEventListener('input', event => {
   if(event.target?.matches?.(liveSearchSelector) && (event.isComposing || composingSearchInputs.has(event.target))) return;
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
   if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';const pos=event.target.selectionStart;render();const el=root.querySelector('[data-info-query]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
-  if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-member-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
+  if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;refreshMemberSearchResults(event.target);return;}
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;state.accountPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-cooking-query]')){state.cookingQuery=event.target.value;state.cookingPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-cooking-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
