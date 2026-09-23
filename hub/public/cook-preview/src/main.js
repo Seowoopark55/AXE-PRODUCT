@@ -5,6 +5,7 @@ import {CATALOG_REVISION} from '../data/revision.js';
 import {WORKSPACE_KEY,checklistItems,currentChecks,prepareWorkspace,parseWorkspace} from './workspace.js';
 import {mountCookCloudPanel} from './cloudPanel.js';
 import {requestHostReturn} from './hostBridge.js';
+import {initializeCookRecipeEditor} from './recipeEditor.js';
 
 const $ = id => document.getElementById(id);
 const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set(),memo:'', favorites:new Set()};
@@ -504,11 +505,15 @@ function saveIdeaDraft(){
   }catch{$('cook-idea-result').textContent='초안을 저장하지 못했습니다. 브라우저 저장 설정을 확인해 주세요.';}
 }
 
-function start(){
+async function start(){
   try{
     if(!Array.isArray(catalog.foods)||!Array.isArray(catalog.recipes))throw Error('데이터 형식 오류');
     state.foods=catalog.foods;state.recipes=catalog.recipes;
-    $('search-meta').textContent=`요리 ${usableFoods().length}종 · 기준 자료`;
+    await initializeCookRecipeEditor({catalog,state,onSaved:()=>{
+      $('search-meta').textContent=`요리 ${usableFoods().length}종`;
+      loadFavorites();paintFavorites();paintFoods();paintOrders();
+    }});
+    $('search-meta').textContent=`요리 ${usableFoods().length}종`;
     loadFavorites();
     const canRestore=restoreCurrentWork();
     if(canRestore){autoSaveReady=true;}
@@ -548,7 +553,7 @@ start();
 let detachCookHost = null;
 export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled = false} = {}) {
   if (detachCookHost) throw Error('LAC COOK은 이미 HUB에 연결되어 있습니다.');
-  if (typeof onHubReturn !== 'function') throw Error('HUB 복귀 기능이 준비되지 않았어.');
+  if (typeof onHubReturn !== 'function') throw Error('HUB 복귀 기능이 준비되지 않았습니다.');
   const previous = $('cook-return-preview');
   const back = document.createElement('button');
   back.id = 'cook-return-host'; back.type = 'button'; back.className = 'back back-button';
@@ -567,7 +572,7 @@ export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled 
   let detachPanel = null;
   try {
     if (cloudWorkspaceEnabled) {
-      if (!supabase) throw Error('HUB의 기존 Supabase 연결이 필요해.');
+      if (!supabase) throw Error('HUB의 기존 Supabase 연결이 필요합니다.');
       detachPanel = mountCookCloudPanel({
         client: supabase,
         options: {revision, foods: state.foods},
@@ -609,6 +614,5 @@ if (new URLSearchParams(window.location.search).get('lacCookHostPreview') === '1
     onHubReturn:() => requestHostReturn({selfWindow:window,parentWindow:window.parent}),
     cloudWorkspaceEnabled:false
   });
-  $('cook-host-account').textContent = '브라우저 작업공간';
   $('cook-mode-note').textContent = 'COOK은 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
 }

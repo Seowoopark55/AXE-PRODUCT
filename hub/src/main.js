@@ -1,6 +1,6 @@
 import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
-import { envReady } from './lib/supabase.js';
+import { envReady, supabase } from './lib/supabase.js';
 import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
@@ -102,6 +102,69 @@ window.addEventListener('message', event => {
   switchVisibleApp(false);
   render();
   window.scrollTo(0, 0);
+});
+
+// COOK recipe editor bridge. The iframe receives no session, token or service key.
+// This UI guard is additional only: Supabase RLS independently validates admin rights.
+window.addEventListener('message', async event => {
+  if (!cookFrame || !isCookRoute() || event.origin !== window.location.origin ||
+      event.source !== cookFrame.contentWindow ||
+      !event.data || typeof event.data !== 'object' || Array.isArray(event.data) ||
+      event.data.type !== 'lac-cook:recipes:request:v1') return;
+  const { requestId, action, payload } = event.data;
+  if (typeof requestId !== 'string' || requestId.length > 80 ||
+      !['list', 'save'].includes(action)) return;
+  const reply = (result) => {
+    if (event.source === cookFrame?.contentWindow)
+      event.source.postMessage({ type:'lac-cook:recipes:response:v1',requestId,...result },event.origin);
+  };
+  try {
+    if (!supabase) throw Error('Supabase 연결이 준비되지 않았습니다.');
+    if (action === 'list') {
+      const { data, error } = await supabase.from('lac_cook_recipe_entries')
+        .select('food_id,food_name,set_qty,cook_time,ingredients,source_kind,version')
+        .order('food_name');
+      if (error) throw error;
+      const { data: authData } = await supabase.auth.getSession();
+      const canEdit = Boolean(authData?.session?.user && await isPlatformAdmin());
+      reply({ok:true,entries:data || [],canEdit});
+      return;
+    }
+    const { data: authData } = await supabase.auth.getSession();
+    if (!authData?.session?.user || !(await isPlatformAdmin()))
+      throw Error('레시피 등록과 수정은 플랫폼 관리자 계정에서만 가능합니다.');
+    const record = payload?.entry;
+    if (!record || typeof record !== 'object' || Array.isArray(record)) throw Error('레시피 형식을 확인해 주세요.');
+    const foodId=String(record.food_id||'');
+    const name=String(record.food_name||'').trim();
+    const count=Number(record.set_qty), seconds=Number(record.cook_time);
+    const parts=record.ingredients;
+    if (foodId.length<5 || foodId.length>90 || name.length<1 || name.length>90 ||
+        !Number.isSafeInteger(count) || count<1 || count>100000 ||
+        !Number.isFinite(seconds) || seconds<0 || seconds>86400 ||
+        !Array.isArray(parts) || parts.length<1 || parts.length>24 ||
+        parts.some(part=>typeof part?.name!=='string' || !part.name.trim() || part.name.length>90 ||
+          !Number.isSafeInteger(part.qty) || part.qty<1 || part.qty>999999) ||
+        !['new','override'].includes(record.source_kind)) throw Error('입력된 레시피 정보를 확인해 주세요.');
+    const entry={food_id:foodId,food_name:name,set_qty:count,cook_time:seconds,
+      ingredients:parts.map(part=>({name:part.name.trim(),qty:part.qty})),source_kind:record.source_kind};
+    let result;
+    if (payload?.expectedVersion != null) {
+      const version=Number(payload.expectedVersion);
+      if (!Number.isSafeInteger(version) || version<1) throw Error('레시피 변경 버전이 올바르지 않습니다.');
+      result=await supabase.from('lac_cook_recipe_entries').update(entry)
+        .eq('food_id',foodId).eq('version',version)
+        .select('food_id,food_name,set_qty,cook_time,ingredients,source_kind,version').maybeSingle();
+      if (!result.error && !result.data) throw Error('다른 곳에서 레시피가 먼저 수정되었습니다. 최신 자료를 다시 불러와 주세요.');
+    } else {
+      result=await supabase.from('lac_cook_recipe_entries').insert(entry)
+        .select('food_id,food_name,set_qty,cook_time,ingredients,source_kind,version').single();
+    }
+    if (result.error) throw result.error;
+    reply({ok:true,entry:result.data});
+  } catch(error) {
+    reply({ok:false,error:String(error?.message || '레시피 요청을 처리하지 못했습니다.')});
+  }
 });
 
 // Intercept first-party BUILD and COOK cards. Preserve native browser gestures

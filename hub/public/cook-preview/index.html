@@ -16,13 +16,13 @@
 <header aria-label="콘텐츠 헤더" class="header">
 <span aria-label="HUB 이동 미연결" class="back" id="cook-return-preview">← LAC HUB <small>통합 단계에서 연결</small></span>
 <h1>LAC COOK</h1>
-<span class="account" id="cook-host-account">브라우저 작업공간</span>
+<span class="cook-header-balance" aria-hidden="true"></span>
 </header>
 <div class="cook-toolbar" aria-label="제작 작업 도구">
   <span class="toolbar-label">제작 작업대</span>
   <nav class="toolbar-actions" aria-label="레시피 관리 및 제보">
-    <button class="subtle" data-idea="edit" type="button">레시피 수정</button>
-    <button class="subtle" data-idea="add" type="button">레시피 추가</button>
+    <button class="subtle" data-recipe="edit" type="button">레시피 수정</button>
+    <button class="subtle" data-recipe="add" type="button">레시피 추가</button>
     <button class="accent" data-idea="report" type="button">요리 제보</button>
   </nav>
   <p aria-live="polite" class="save-status" id="save-status" role="status"></p>
@@ -104,6 +104,28 @@
     <button id="cook-confirm-cancel" class="cook-confirm-cancel" type="button">취소</button>
     <button id="cook-confirm-action" class="cook-confirm-action" type="button">확인</button>
   </div>
+</dialog>
+<dialog class="cook-recipe-editor" id="cook-recipe-editor" aria-labelledby="cook-recipe-editor-title">
+  <div class="cook-editor-heading">
+    <h2 id="cook-recipe-editor-title">레시피 추가</h2>
+    <button class="idea-close" id="cook-editor-close" type="button" aria-label="닫기">×</button>
+  </div>
+  <p class="cook-editor-note" id="cook-editor-note" role="status" aria-live="polite"></p>
+  <form id="cook-recipe-form" novalidate>
+    <label class="cook-editor-field" id="cook-editor-select-wrap" hidden>수정할 요리
+      <select id="cook-editor-select"></select>
+    </label>
+    <label class="cook-editor-field">요리명<input id="cook-editor-name" type="text" autocomplete="off" maxlength="90" required placeholder="요리 이름"/></label>
+    <div class="cook-editor-inline">
+      <label class="cook-editor-field">1세트 완성 수량<input id="cook-editor-set" type="number" inputmode="numeric" min="1" max="100000" step="1" required placeholder="6"/></label>
+      <label class="cook-editor-field">조리시간 (초)<input id="cook-editor-time" type="number" inputmode="decimal" min="0" max="86400" step="0.01" required placeholder="11.5"/></label>
+    </div>
+    <div class="cook-editor-material-head"><strong>재료 · 1회 제작 기준</strong><button class="subtle" id="cook-editor-add-material" type="button">+ 재료</button></div>
+    <div id="cook-editor-materials" class="cook-editor-materials"></div>
+    <datalist id="cook-editor-material-options"></datalist>
+    <p class="cook-editor-result" id="cook-editor-result" role="status" aria-live="polite"></p>
+    <div class="cook-editor-actions"><button class="subtle" id="cook-editor-cancel" type="button">취소</button><button class="accent" id="cook-editor-save" type="submit">레시피 등록</button></div>
+  </form>
 </dialog>
 <dialog class="cook-idea" id="cook-idea" aria-labelledby="cook-idea-title" aria-describedby="cook-idea-hint">
   <div class="idea-head"><span class="idea-mark" aria-hidden="true">✦</span><button id="cook-idea-close" class="idea-close" type="button" aria-label="닫기">×</button></div>
