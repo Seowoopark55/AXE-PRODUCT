@@ -704,3 +704,67 @@ body:has(.runtime-app--game-info.game-center)::before {
     font-size: 11px;
   }
 }
+
+/* SITE AUDIT 5 — HUB's existing modal shell only.
+   Keep BUILD (shadow DOM), COOK (iframe), live-search inputs and data logic intact. */
+.runtime-modal-backdrop {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.runtime-modal {
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: calc(100dvh - 36px);
+  overscroll-behavior: contain;
+}
+.runtime-modal > header { gap: 10px; }
+.runtime-modal > header > div { min-width: 0; }
+.runtime-modal > header p {
+  font-size: calc(11px * var(--lac-type-scale, 1));
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.runtime-modal > header button {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+}
+.runtime-modal > header button:focus-visible,
+.runtime-modal-form .runtime-btn-primary:focus-visible,
+.runtime-modal-form .runtime-btn-ghost:focus-visible,
+.runtime-modal-form .runtime-btn-danger:focus-visible {
+  outline: 2px solid #f4ce92;
+  outline-offset: 2px;
+}
+.runtime-modal-form label {
+  font-size: calc(11.5px * var(--lac-type-scale, 1));
+}
+.runtime-modal-form input,
+.runtime-modal-form select,
+.runtime-modal-form textarea {
+  font-size: calc(12px * var(--lac-type-scale, 1));
+}
+.runtime-modal-form label small {
+  font-size: calc(10px * var(--lac-type-scale, 1));
+  line-height: 1.45;
+}
+@media (max-width: 600px) {
+  .runtime-modal-backdrop { padding: 10px; }
+  .runtime-modal {
+    max-height: calc(100dvh - 20px);
+    border-radius: 12px;
+  }
+  .runtime-modal > header { min-height: 62px; padding: 12px; }
+  .runtime-modal-form { padding: 12px; gap: 10px; }
+  .runtime-modal-form > footer,
+  .runtime-modal-form > footer > div {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .runtime-banner {
+    box-sizing: border-box;
+    max-width: calc(100vw - 20px);
+    overflow-wrap: anywhere;
+  }
+}
