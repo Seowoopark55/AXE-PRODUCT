@@ -262,7 +262,8 @@ function renderPlatformRailItem(state,view,label,iconName,count=null) {
 function renderManagementCenter(state) {
   if (!state.session?.user || state.platformAdmin !== true) return renderPermission(state);
   const username = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || 'Discord 사용자';
-  const queue=Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
+  const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
+  const queue=siteOpen+Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
     +Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
     <header class="platform-center__header">
@@ -706,16 +707,29 @@ function platformStatusClass(v){return v==='expired'?'is-red':v==='paused'?'is-a
 function platformDate(v){return v?fmtDate(v,true):'종료일 미설정';}
 const PLATFORM_PLAN_LABEL={trial:'7일 체험',standard:'30일 이용',pro:'90일 이용',internal:'무제한',legacy:'무제한'};
 function platformPlanLabel(v){return PLATFORM_PLAN_LABEL[String(v||'standard')]||String(v||'일반');}
+// The site-wide HUB board is separate from the legacy company question/suggestion boards.
+// Show both in the operator inbox without merging their distinct DB records.
+function renderPlatformSiteTickets(state){
+  const board=state.hubBoard||{};
+  const tickets=Array.isArray(board.tickets)?board.tickets:[];
+  const active=tickets.filter(item=>item.status!=='complete');
+  const visible=tickets.slice(0,20);
+  const statusNames={pending:'답변 대기',checking:'확인 중',complete:'처리 완료'};
+  const categoryNames={question:'질문',suggestion:'건의',bug:'오류 신고'};
+  const rows=visible.map(item=>`<article class="platform-support-row"><div><span class="axe-question-status">${esc(statusNames[item.status]||'문의')}</span></div><div class="platform-support-copy"><strong>${esc(item.title)}</strong><span>${esc(categoryNames[item.category]||'문의')} · ${esc(item.author_name||'작성자')} · ${esc(fmtDate(item.updated_at||item.created_at,true))}</span></div><button type="button" class="ops-mgmt-action" data-action="platform-open-site-ticket" data-ticket-id="${esc(item.id)}">상세 · 답변</button></article>`).join('');
+  return `<section class="platform-support-board platform-site-support" aria-label="LAC HUB 사이트 문의와 건의"><header><div><span>LAC HUB SUPPORT</span><h2>사이트 문의 · 건의</h2></div><div class="platform-support-counts"><b>${active.length} 처리 대기</b><button type="button" class="ops-mgmt-action" data-action="platform-refresh-site-tickets">새로고침</button><button type="button" class="ops-mgmt-action" data-action="platform-open-site-board">게시판 전체 보기 →</button></div></header>${board.error?`<div class="platform-support-error">${esc(board.error)}</div>`:`<div class="platform-support-list">${rows||'<div class="platform-support-empty"><strong>등록된 사이트 문의가 없습니다.</strong><span>사이트 게시판에 새 문의·건의가 접수되면 여기에도 표시됩니다.</span></div>'}</div>${tickets.length>visible.length?`<p>최근 ${visible.length}건을 표시하고 있습니다. 전체 내역은 게시판에서 확인하세요.</p>`:''}`}</section>`;
+}
+
 function renderPlatformSupportQueue(state){
   const support=state.platformSupport||{};
   const counts=support.counts||{};
   const items=Array.isArray(support.items)?support.items:[];
   const active=items.filter(item=>item.status!=='complete').slice(0,8);
   if(support.error){
-    return `<section class="platform-support-board"><header><div><span>SUPPORT QUEUE</span><h2>질문 응답</h2></div><button class="ops-mgmt-action" data-action="refresh-platform-support">다시 불러오기</button></header><div class="platform-support-error">${esc(support.error)}</div></section>`;
+    return `<section class="platform-support-board"><header><div><span>SUPPORT QUEUE</span><h2>기존 회사 질문</h2></div><button class="ops-mgmt-action" data-action="refresh-platform-support">다시 불러오기</button></header><div class="platform-support-error">${esc(support.error)}</div></section>`;
   }
   const rows=active.length?active.map(item=>{const meta=questionStatusMeta(item.status);return `<article class="platform-support-row ${item.unread?'is-unread':''}" data-action="open-question" data-question-id="${esc(item.id)}"><div><span class="axe-question-status ${meta.className}">${meta.label}</span>${item.unread?'<em>NEW</em>':''}</div><div class="platform-support-copy"><strong>${esc(item.title)}</strong><span>${esc(item.company_name||'회사')} · ${esc(item.author_name||'사용자')} · ${esc(fmtDate(item.last_message_at||item.created_at,true))}</span></div><button type="button" class="ops-mgmt-action" data-action="open-question" data-question-id="${esc(item.id)}">답변</button></article>`;}).join(''):`<div class="platform-support-empty"><strong>대기 중인 질문이 없습니다.</strong><span>새 질문이 등록되면 이곳에 표시됩니다.</span></div>`;
-  return `<section class="platform-support-board"><header><div><span>SUPPORT QUEUE</span><h2>질문 응답</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
+  return `<section class="platform-support-board"><header><div><span>SUPPORT QUEUE</span><h2>기존 회사 질문</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
 }
 
 function renderPlatformSuggestionQueue(state){
@@ -724,10 +738,10 @@ function renderPlatformSuggestionQueue(state){
   const items=Array.isArray(support.items)?support.items:[];
   const active=items.filter(item=>item.status!=='complete').slice(0,8);
   if(support.error){
-    return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>건의 · 제보</h2></div><button class="ops-mgmt-action" data-action="refresh-platform-suggestions">다시 불러오기</button></header><div class="platform-support-error">${esc(support.error)}</div></section>`;
+    return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>기존 회사 건의 · 제보</h2></div><button class="ops-mgmt-action" data-action="refresh-platform-suggestions">다시 불러오기</button></header><div class="platform-support-error">${esc(support.error)}</div></section>`;
   }
   const rows=active.length?active.map(item=>{const meta=questionStatusMeta(item.status);const cat=suggestionCategoryMeta(item.category);return `<article class="platform-support-row ${item.unread?'is-unread':''}" data-action="open-suggestion" data-suggestion-id="${esc(item.id)}"><div><span class="suggestion-category ${cat.className}">${cat.label}</span><span class="axe-question-status ${meta.className}">${meta.label}</span>${item.unread?'<em>NEW</em>':''}</div><div class="platform-support-copy"><strong>${esc(item.title)}</strong><span>${esc(item.company_name||'회사')} · ${esc(item.author_name||'사용자')} · ${esc(fmtDate(item.last_message_at||item.created_at,true))}</span></div><button type="button" class="ops-mgmt-action" data-action="open-suggestion" data-suggestion-id="${esc(item.id)}">답변</button></article>`;}).join(''):`<div class="platform-support-empty"><strong>대기 중인 건의가 없습니다.</strong><span>새 건의나 제보가 등록되면 이곳에 표시됩니다.</span></div>`;
-  return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>건의 · 제보</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
+  return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>기존 회사 건의 · 제보</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
 }
 
 function renderPlatformContentSettings(state) {
@@ -760,8 +774,8 @@ function renderPlatform(state){
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
-  const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>고객 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
-  const content=view==='support'?renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
+  const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>사이트 문의 · 기존 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>기존 회사 건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
+  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
   const overview=`<section class="platform-overview" aria-label="운영 대시보드">
     ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}
     <div class="platform-overview__columns">

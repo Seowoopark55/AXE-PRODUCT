@@ -1408,7 +1408,7 @@ async function saveModuleSettingsData(form,data){
 
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);} render(); return; }
+  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -1480,7 +1480,7 @@ root.addEventListener('click', async event => {
   if(action==='layout-save'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutSaved=saveLayoutStudioProfile(state.layoutDraft);state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-revert'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
   if(action==='layout-reset-default'){if(!state.platformAdmin||state.page!=='layout')return;state.layoutDraft=clearLayoutStudioProfile();state.layoutSaved={...state.layoutDraft};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -1534,6 +1534,22 @@ root.addEventListener('click', async event => {
     clearHubBoardFiles();state.hubBoard.tab='notices';state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
   }
   if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;clearHubBoardFiles();state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
+  if(action==='platform-refresh-site-tickets'){
+    if(!state.platformAdmin)return;
+    await withMutation(loadHubBoard);return;
+  }
+  if(action==='platform-open-site-board'){
+    if(!state.platformAdmin)return;
+    clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';state.hubBoard.tab='support';
+    navigatePrimaryScreen('hub-board');render();await withMutation(loadHubBoard);return;
+  }
+  if(action==='platform-open-site-ticket'){
+    if(!state.platformAdmin)return;
+    const ticketId=String(actionEl.dataset.ticketId||'');
+    if(!ticketId)return;
+    navigatePrimaryScreen('hub-board');state.hubBoard.tab='support';
+    await withMutation(async()=>{await openHubBoardTicket(ticketId);});return;
+  }
   if(action==='hub-board-ticket'){
     navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;
   }
@@ -1828,7 +1844,7 @@ root.addEventListener('click', async event => {
     if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
     if(state.page==='questions') await withMutation(loadQuestionBoard);
     if(state.page==='suggestions') await withMutation(loadSuggestionBoard);
-    if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);}
+    if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);}
     render();return;
   }
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
@@ -1843,7 +1859,7 @@ root.addEventListener('click', async event => {
     if(!['overview','companies','support','suggestions','contents'].includes(view))return;
     if(state.page!=='platform'){navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');}
     state.platformView=view;
-    if(view==='support')await withMutation(loadPlatformSupport);
+    if(view==='support')await withMutation(async()=>{await Promise.all([loadPlatformSupport(),loadHubBoard()]);});
     else if(view==='suggestions')await withMutation(loadPlatformSuggestions);
     else if(view==='contents')await withMutation(loadPlatformContentSettings);
     else render();
@@ -1887,7 +1903,7 @@ root.addEventListener('click', async event => {
     if(action==='fill-subscription-period'){const form=actionEl.closest('form[data-form="platform-subscription"]');if(!state.platformAdmin||!form)return;const days={trial:7,standard:30,pro:90}[form.elements.plan.value];if(!days){window.alert('기간형 플랜(7·30·90일)을 먼저 선택해 주세요.');return;}const start=form.elements.starts_at;const end=form.elements.ends_at; if(!start.value)start.value=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const date=new Date(`${start.value}T12:00:00+09:00`);if(Number.isNaN(date.getTime())){window.alert('시작일을 확인해 주세요.');return;}date.setUTCDate(date.getUTCDate()+days-1);end.value=date.toISOString().slice(0,10);return;}
     if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const subscription=await getCompanySubscription(companyId); if(state.companyId!==companyId)return; state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
-    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
+    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
     if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){
@@ -2232,7 +2248,7 @@ root.addEventListener('submit', async event => {
       state.modal=null; state.platformPage=1;
       await loadCompanies();
       state.platformSnapshot=await getPlatformCompanies();
-      await Promise.all([loadPlatformSupport(),loadPlatformSuggestions()]);
+      await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);
       if(deletingCurrent) await loadCompanyData();
       setNotice(`회사 ${expectedName}을(를) 삭제했습니다.`);
       return;
