@@ -202,3 +202,23 @@
 @media(max-width:990px){.cook-workbench{grid-template-columns:minmax(290px,35%) minmax(0,1fr)}.cook-recipes-row{grid-template-columns:1fr}.checklist-panel .purchase-grid,.checklist-panel .prep-groups{grid-template-columns:1fr}}
 @media(max-width:790px){.frame{padding:8px}.workspace{padding:10px}.cook-workbench{grid-template-columns:1fr}.cook-sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}.memo-panel{grid-column:1/-1}.cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))}.checklist-panel .purchase-grid,.checklist-panel .prep-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.frame{padding:0}.shell{border:0;border-radius:0}.header{padding:9px 12px}.header h1{font-size:17px}.cook-toolbar{padding:7px 10px;flex-wrap:wrap}.toolbar-label{flex-basis:100%}.toolbar-actions{width:100%;flex-wrap:wrap}.cook-toolbar .save-status{right:10px;max-width:calc(100% - 20px)}.cook-sidebar{grid-template-columns:1fr}.memo-panel{grid-column:auto}.cook-recipes-row{grid-template-columns:1fr}.checklist-panel .purchase-grid,.checklist-panel .prep-groups{grid-template-columns:1fr}.workspace{padding:10px}}
+
+/* LAC COOK shell balance · 2026-09: match the narrower content-family frame.
+   Only the outer frame and the empty shell height are changed. Do not alter
+   the existing recipe, checklist, or workspace logic. */
+.frame {
+  min-height: 100vh;
+}
+.shell {
+  max-width: 1240px;
+  min-height: 0;
+  height: auto;
+}
+@media (min-width: 791px) {
+  .frame {
+    padding: 14px max(18px, calc((100vw - 1240px) / 2)) 30px;
+  }
+}
+@media (max-width: 790px) {
+  .shell { min-height: 0; }
+}
