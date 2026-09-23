@@ -77,24 +77,34 @@ function paintOrders() {
   paintMaterials();
 }
 
-function paintFoodRecipes(outcome) {
+// Recipe cards are always the source recipe for ONE finished dish, never
+// the scaled ingredient totals for the current order. Totals stay in the plan.
+function paintFoodRecipes() {
   const root=$('food-recipes'); root.replaceChildren();
-  if(!state.orders.size){root.append(msg('요리를 선택하면 요리별 레시피가 여기에 표시돼.'));return;}
+  if(!state.orders.size){root.append(msg('요리를 선택하면 1회 제작 레시피가 표시돼.'));return;}
   const foods=new Map(state.foods.map(food=>[food.food_id,food]));
   for(const [id,batches] of state.orders){
     const food=foods.get(id);
     if(!food)continue;
-    const details=outcome.details.filter(item=>item.foodId===id);
+    const source=state.recipes.filter(line=>line.is_active==='TRUE' && line.food_name===food.food_name);
     const card=elem('article','recipe-card');
     const head=elem('div','recipe-card-head');
-    head.append(elem('strong','',food.food_name),elem('span','',`${format(batches)}세트 · 완성 ${food.set_qty ? format(batches*Number(food.set_qty))+'개':'수량 미설정'}`));
+    const title=elem('div','recipe-head-title');
+    title.append(elem('strong','',food.food_name));
+    const seconds=Number(food.cook_time);
+    title.append(elem('span','recipe-time',food.cook_time!=='' && Number.isFinite(seconds) && seconds>0 ? `${format(seconds)}초` : '시간 미설정'));
+    head.append(title,elem('span','recipe-basis','1회 제작 기준'));
     card.append(head);
-    if(!details.length)card.append(msg('등록된 레시피가 없거나 재료 수량 확인이 필요해.'));
-    for(const item of details){
-      const ingredient=elem('div','recipe-ingredient');
-      ingredient.append(elem('span','',item.name),elem('b','',`${format(item.quantity)}개`));
-      card.append(ingredient);
+    if(!source.length)card.append(msg('등록된 레시피가 없어.'));
+    const ingredients=elem('div','recipe-ingredients');
+    for(const item of source){
+      const qty=Number(item.required_qty);
+      const valid=item.required_qty!=='' && Number.isFinite(qty) && qty>0;
+      const ingredient=elem('span','recipe-ingredient');
+      ingredient.append(elem('span','',item.material_name||'재료명 미설정'),elem('b','',valid?`×${format(qty)}`:'수량 확인'));
+      ingredients.append(ingredient);
     }
+    card.append(ingredients);
     root.append(card);
   }
 }
@@ -113,7 +123,13 @@ function checkRow(item, type, detail, amount) {
   heading.append(elem('strong','',item.name),elem('span','check-type',type));
   copy.append(heading,elem('small','',detail));
   row.append(input,copy);
-  if(amount != null) row.append(elem('b','check-amount',amount));
+  if(amount != null){
+    if(typeof amount==='object'){
+      const summary=elem('span','check-purchase-info');
+      summary.append(elem('b','bundle-pill',amount.primary),elem('small','price-note',amount.secondary));
+      row.append(summary);
+    }else row.append(elem('b','check-amount',amount));
+  }
   row.classList.toggle('is-checked',input.checked);
   input.addEventListener('change',()=>{
     if(input.checked) state.checked.add(item.key);
@@ -128,7 +144,7 @@ function paintMaterials() {
   const outcome=plan.direct;
   visibleChecklistItems=checklistItems(plan);
   state.checked=currentChecks(state.checked,visibleChecklistItems);
-  paintFoodRecipes(outcome);
+  paintFoodRecipes();
   $('count-food').textContent=`${format(state.orders.size)}종`;
   $('count-sets').textContent=format(outcome.batches);
   $('count-units').textContent=`${format(outcome.units)}개`;
@@ -152,10 +168,29 @@ function paintMaterials() {
   $('process-count').textContent=`${plan.processes.length}종`;
   if(!plan.processes.length) processRoot.append(msg('가공이 필요한 재료가 없어.'));
   for(const item of plan.processes){
-    const line=elem('div','data-row');
-    const info=elem('div','data-info');
-    info.append(elem('strong','',item.name),elem('small','',`필요 ${format(item.need)}개 · 회당 ${format(item.output)}개 · ${item.items.map(x=>`${x.name} ${format(x.quantity)}`).join(' / ')}`));
-    line.append(info,elem('b','',`${format(item.batches)}회`)); processRoot.append(line);
+    // The planner's item.items are already multiplied by total processing
+    // runs; use the original CSV rows to present the stable ONE-run recipe.
+    const source=catalog.processes.filter(row=>row.is_active==='TRUE' && row.process_material_name===item.name);
+    const line=elem('article','process-recipe-card');
+    const head=elem('div','process-recipe-head');
+    const title=elem('div','recipe-head-title');
+    title.append(elem('strong','',item.name));
+    const times=[...new Set(source.map(row=>String(row.process_time||'').trim()).filter(Boolean))];
+    title.append(elem('span','recipe-time',times.length===1?times[0]:'시간 미설정'));
+    const count=elem('span','process-needed',`총 ${format(item.batches)}회 제작`);
+    head.append(title,count);line.append(head);
+    const base=elem('div','process-base');
+    const definedOutputs=[...new Set(source.map(row=>String(row.result_qty||'').trim()).filter(Boolean))];
+    base.append(elem('small','',definedOutputs.length===1 && Number(definedOutputs[0])>0 ? `1회 생산 ${format(definedOutputs[0])}개`:'1회 생산량 확인 필요'));
+    const ingredients=elem('div','recipe-ingredients');
+    for(const row of source){
+      const qty=Number(row.required_qty);
+      const valid=row.required_qty!=='' && Number.isFinite(qty) && qty>0;
+      const tag=elem('span','recipe-ingredient');
+      tag.append(elem('span','',row.input_material_name||'재료명 미설정'),elem('b','',valid?`×${format(qty)}`:'수량 확인'));
+      ingredients.append(tag);
+    }
+    base.append(ingredients);line.append(base);processRoot.append(line);
   }
   const priceReady=plan.purchases.some(x=>x.cost!=null);
   const uncertainty=plan.unresolved.length>0||plan.purchases.some(x=>x.cost==null)||plan.warnings.length>0;
@@ -169,9 +204,10 @@ function paintMaterials() {
     if(!itemKey)continue;
     const container=elem('div','supply-card');
     const detail=item.bundles==null
-      ? `필요 ${format(item.quantity)}개 · 구매량·가격 미확정 · ${item.source}`
-      : `필요 ${format(item.quantity)}개 · 구매 ${format(item.buyQuantity)}개 (${format(item.bundles)}묶음) · 남음 ${format(item.buyQuantity-item.quantity)}개`;
-    container.append(checkRow(itemKey,'구매',detail,item.cost==null?'비용 미확정':`${format(item.cost)}원`));
+      ? `필요 ${format(item.quantity)}개 · 묶음 수량/가격 확인 필요 · ${item.source}`
+      : `1묶음 ${format(item.bundleQty)}개 · 필요 ${format(item.quantity)}개 · 구매 ${format(item.buyQuantity)}개 · 남음 ${format(item.buyQuantity-item.quantity)}개`;
+    const amount={primary:item.bundles==null?'묶음 미확정':`${format(item.bundles)}묶음`,secondary:item.cost==null?'비용 미확정':`${format(item.cost)}원`};
+    container.append(checkRow(itemKey,'구매',detail,amount));
     const choices=offerOptions.get(item.name);
     if(choices){
       const field=elem('label','choice-label',`${item.name} 구매처`);

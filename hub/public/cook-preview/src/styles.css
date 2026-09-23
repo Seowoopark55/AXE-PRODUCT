@@ -222,3 +222,37 @@
 @media (max-width: 790px) {
   .shell { min-height: 0; }
 }
+
+
+/* COOK workbench detail: original recipe per ONE cook, bundle-first shopping.
+   Existing frame width, workbench layout, calculations and local storage intact. */
+.cook-recipes-row .recipe-card{padding:8px 9px}
+.cook-recipes-row .recipe-card-head{gap:5px;margin-bottom:7px}
+.recipe-head-title{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
+.recipe-head-title>strong{font-size:12px;color:#efcea0;overflow-wrap:anywhere}
+.recipe-time{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;border:1px solid #826238;background:#33291b;color:#f7d397;padding:2px 6px;font-size:10px;font-weight:850}
+.recipe-basis{font-size:10px;white-space:nowrap;color:#a9b6bd}
+.recipe-ingredients{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.cook-recipes-row .recipe-ingredient{display:inline-flex;align-items:center;gap:5px;padding:4px 6px;max-width:100%;min-width:0;border:1px solid #3d4a55;border-radius:7px;background:#26303a}
+.cook-recipes-row .recipe-ingredient span{font-size:11px;color:#e8eef1;white-space:normal;overflow-wrap:anywhere}
+.cook-recipes-row .recipe-ingredient b{padding:1px 5px;border-radius:5px;background:#f9c966;color:#20170b;font-size:10px;white-space:nowrap}
+.cook-recipes-row .data-lines{gap:5px}
+.cook-recipes-row .process-recipe-card{min-width:0;border:1px solid #3c454d;border-radius:8px;background:#10171d;padding:7px 8px}
+.process-recipe-head{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.process-recipe-head .recipe-head-title>strong{font-size:11px;color:#e4eced}
+.process-needed{font-size:10px;font-weight:850;color:#efd098;white-space:nowrap}
+.process-base{margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.process-base>small{font-size:10px;color:#a0acb5;white-space:nowrap}
+.process-base .recipe-ingredients{margin:0}
+.process-base .recipe-ingredient{padding:2px 5px}
+.checklist-panel .supply-card{padding:7px 8px}
+.checklist-panel .check-copy small{line-height:1.5}
+.check-purchase-info{display:flex;flex:0 0 auto;min-width:0;flex-direction:column;align-items:center;gap:3px}
+.bundle-pill{display:inline-flex;align-items:center;justify-content:center;min-width:55px;padding:5px 8px;border-radius:999px;background:#f9c967;border:1px solid #ffdc8a;color:#241a0b;font-size:12px;font-weight:950;line-height:1;white-space:nowrap}
+.price-note{font-size:10px;line-height:1.2;color:#d7b581;white-space:nowrap;font-weight:800}
+@media(max-width:620px){
+  .recipe-basis{font-size:9px}
+  .checklist-panel .supply-card{padding:7px}
+  .bundle-pill{font-size:11px;min-width:51px;padding:5px 7px}
+}
+.recipe-card-head .recipe-time{color:#f7d397;}
