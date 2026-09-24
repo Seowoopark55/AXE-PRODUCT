@@ -29,8 +29,23 @@ const api=fs.readFileSync(new URL('../src/lib/productApi.js', import.meta.url),'
 const render=fs.readFileSync(new URL('../src/ui/render.js', import.meta.url),'utf8');
 assert.match(main,/if \(changes\.status === 'left'\)[\s\S]+?accepted = await confirmHubDeletion[\s\S]+?if \(!accepted[\s\S]+?await withMutation/, 'departure confirmation happens before mutation');
 assert.match(main,/async function closeModal[\s\S]+?memberChanges\(row, new FormData\(form\)\)[\s\S]+?confirmHubDeletion/, 'dirty close requires confirmation');
-assert.match(main,/event\.key==='Escape' && state\.modal\?\.type==='member'/, 'Esc close shares discard guard');
+assert.match(main,/event\.key==='Escape' && \['member','member-register'\]\.includes\(state\.modal\?\.type\)/, 'Esc close shares discard guard');
 assert.match(api,/export async function updateMembershipDetails[\s\S]+?\.update\(changes\)[\s\S]+?\.eq\('company_id', companyId\)[\s\S]+?\.eq\('role', original\.role\)[\s\S]+?\.eq\('status', original\.status\)/,'one guarded membership UPDATE');
 assert.match(render,/isOwner\?`<input value="대표" readonly/, 'owner role read-only');
 assert.match(render,/\['admin','manager','member'\]\.map/, 'owner excluded from role choices');
-console.log('MEMBER MANAGEMENT SAFETY CHECK: PASS (10 behavior cases + 6 source guards)');
+// Registration feedback must not run through withMutation / setError (both replace root.innerHTML).
+const registerFn = main.split('async function submitMemberRegistration(form, data) {')[1]?.split('function isCurrentCompanyOwner()')[0] || '';
+assert.ok(registerFn, 'dedicated registration submit function exists');
+assert.match(registerFn, /modal\.discordUserId = String\(data\.get\('discord_user_id'\)/, 'stores ID draft');
+assert.match(registerFn, /modal\.role = role/, 'stores role draft');
+assert.match(registerFn, /mutationBusy = true;[\s\S]+?registerDiscordMember[\s\S]+?mutationBusy = false;/, 'in-flight requests are guarded');
+assert.match(registerFn, /showError\(error\?\.message \|\| error\)/, 'API failure is displayed locally');
+assert.doesNotMatch(registerFn, /setError\(|withMutation\(/, 'request failure does not re-render form');
+assert.match(main, /if\(type==='member-register'\) \{ await submitMemberRegistration\(form,data\); return; \}/, 'register form uses dedicated submit before generic mutation');
+assert.match(main, /state\.modal\?\.type === 'member-register' && state\.modal\.pending/, 'busy registration cannot be closed');
+assert.match(main, /\['member','member-register'\]\.includes\(state\.modal\?\.type\)/, 'Esc closes idle registration');
+assert.match(render, /value="\$\{esc\(draft\.discordUserId\|\|''\)\}"/, 'rerender restores ID draft');
+assert.match(render, /role==='manager'\?'selected'/, 'rerender restores role draft');
+assert.match(render, /data-member-register-error role="alert"/, 'inline accessible error region');
+assert.match(render, /data-member-register-status role="status"/, 'inline progress region');
+console.log('MEMBER MANAGEMENT SAFETY CHECK: PASS (10 behavior cases + 18 source guards)');

@@ -1421,6 +1421,8 @@ async function boot() {
 
 let memberClosePending = false;
 async function closeModal({force=false}={}) {
+  // A registration in flight cannot be closed while the server may be writing.
+  if (state.modal?.type === 'member-register' && state.modal.pending) return false;
   if (state.modal?.type === 'member') {
     if (mutationBusy || memberClosePending) return false;
     const editingModal = state.modal;
@@ -1463,6 +1465,73 @@ async function closeModal({force=false}={}) {
 }
 
 async function withMutation(fn){ if(mutationBusy)return; mutationBusy=true; state.loading=true; render(); try{await fn();}catch(error){setError(error);}finally{mutationBusy=false;state.loading=false;render();} }
+
+// Keep the registration form mounted during a request, especially on API errors.
+// The regular mutation wrapper re-renders the entire app and would erase the ID.
+async function submitMemberRegistration(form, data) {
+  const modal = state.modal;
+  if (!modal || modal.type !== 'member-register' || mutationBusy || modal.pending) return;
+  const id = String(data.get('discord_user_id') || '').trim();
+  const role = String(data.get('role') || 'member');
+  modal.discordUserId = String(data.get('discord_user_id') || '');
+  modal.role = role;
+  const feedback = form.querySelector('[data-member-register-error]');
+  const status = form.querySelector('[data-member-register-status]');
+  const showError = message => {
+    modal.error = String(message || '등록 요청을 처리하지 못했습니다.');
+    if (feedback?.isConnected) { feedback.textContent = modal.error; feedback.hidden = false; }
+  };
+  modal.error = '';
+  if (feedback) { feedback.textContent = ''; feedback.hidden = true; }
+  if (!canAdmin(state)) { showError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.'); return; }
+  if (!/^\d{15,22}$/.test(id)) { showError('Discord ID는 15~22자리 숫자로 입력해 주세요.'); return; }
+  if (!['member','manager','admin'].includes(role)) { showError('회사 관리 권한을 다시 선택해 주세요.'); return; }
+
+  mutationBusy = true;
+  modal.pending = true;
+  form.setAttribute('aria-busy','true');
+  if (status) status.hidden = false;
+  const controls = [ ...form.querySelectorAll('input, select, button'),
+    root.querySelector('.runtime-modal > header button[data-action="close-modal"]')
+  ].filter(Boolean);
+  controls.forEach(control => { control.disabled = true; });
+  let registered = false;
+  try {
+    const result = await registerDiscordMember(state.companyId,id,role);
+    registered = true;
+    state.memberFilter = 'active'; state.memberRole = ''; state.memberQuery = ''; state.memberPage = 1;
+    let refreshed = true;
+    try { await loadBaseCompanyData(); }
+    catch (error) { refreshed = false; console.warn('Member registered but company list reload failed',error); }
+    state.modal = null;
+    if (!refreshed) setNotice('멤버 등록 요청은 완료됐지만 목록을 새로고침하지 못했습니다. 새로고침 후 등록 상태를 확인해 주세요.');
+    else if (result?.status === 'existing' && result?.membership?.status && result.membership.status!=='active')
+      setNotice('이미 등록 이력이 있는 멤버입니다. 멤버 관리에서 현재 상태를 확인해 주세요.');
+    else setNotice(result?.status === 'existing' ? '이미 등록된 Discord 멤버입니다. 멤버 목록에서 확인해 주세요.' : '멤버를 등록했습니다. 해당 팀원은 등록 확인 후 바로 회사에 연결됩니다.');
+  } catch (error) {
+    if (!registered && state.modal === modal) showError(error?.message || error);
+    else console.warn('Member registration completed; follow-up UI failed',error);
+  } finally {
+    modal.pending = false;
+    mutationBusy = false;
+    if (!registered && state.modal === modal) {
+      const liveForm = root.querySelector('form[data-form="member-register"]');
+      if (liveForm) {
+        liveForm.removeAttribute('aria-busy');
+        const liveStatus = liveForm.querySelector('[data-member-register-status]');
+        if (liveStatus) liveStatus.hidden = true;
+        liveForm.querySelectorAll('input, select, button').forEach(control => { control.disabled = false; });
+        const submitButton = liveForm.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.textContent = '멤버 등록';
+        const headerClose = root.querySelector('.runtime-modal > header button[data-action="close-modal"]');
+        if (headerClose) headerClose.disabled = false;
+        const liveFeedback = liveForm.querySelector('[data-member-register-error]');
+        if (liveFeedback && modal.error) { liveFeedback.textContent = modal.error; liveFeedback.hidden = false; }
+      }
+    }
+  }
+}
+
 
 function isCurrentCompanyOwner(){ return currentMembership(state)?.role==='owner'; }
 
@@ -1709,7 +1778,7 @@ root.addEventListener('click', async event => {
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
-  if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register'};render();return;}
+  if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register',discordUserId:'',role:'member',error:'',pending:false};render();return;}
   if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
   if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
   if(action==='open-create-company'){
@@ -2235,6 +2304,10 @@ function refreshMemberSearchResults(field) {
 }
 
 root.addEventListener('input', event => {
+  if (state.modal?.type === 'member-register' && event.target.matches('form[data-form="member-register"] input[name="discord_user_id"]')) {
+    state.modal.discordUserId = event.target.value;
+    return;
+  }
   if(event.target?.matches?.(liveSearchSelector) && (event.isComposing || composingSearchInputs.has(event.target))) return;
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
@@ -2263,7 +2336,7 @@ document.addEventListener('keydown', event=>{
     if(state.accountMenuOpen){state.accountMenuOpen=false;render();event.preventDefault();}
   }
   if(event.key==='Escape' && state.supportImageViewer){event.preventDefault();state.supportImageViewer=null;render();}
-  if(event.key==='Escape' && state.modal?.type==='member' && !document.querySelector('dialog[open]')){
+  if(event.key==='Escape' && ['member','member-register'].includes(state.modal?.type) && !document.querySelector('dialog[open]')){
     event.preventDefault();
     void closeModal();
   }
@@ -2293,8 +2366,15 @@ root.addEventListener('drop', event=>{
   else addLedgerPendingFiles(files);
 });
 
+root.addEventListener('change', event => {
+  if (state.modal?.type === 'member-register' && event.target.matches('form[data-form="member-register"] select[name="role"]')) {
+    state.modal.role = event.target.value;
+  }
+});
+
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
+  if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){
     const signature=JSON.stringify(subscriptionDraft(form));
     if(!form.dataset.reviewSignature||form.dataset.reviewSignature!==signature){window.alert('변경 내용 확인을 다시 눌러 주세요.');invalidateSubscriptionReview(form);return;}
@@ -2357,18 +2437,6 @@ root.addEventListener('submit', async event => {
       state.setupDemo.step=1;
       state.setupDemo.connected=false;
       state.modal={type:'setup-demo',returnToTestCenter:true};
-      return;
-    }
-    if(type==='member-register'){
-      if(!canAdmin(state))throw new Error('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');
-      const discordUserId=String(data.get('discord_user_id')||'').trim();
-      const role=String(data.get('role')||'member').trim();
-      const result=await registerDiscordMember(state.companyId,discordUserId,role);
-      state.modal=null;
-      await loadBaseCompanyData();
-      state.memberFilter='active';state.memberRole='';state.memberQuery='';state.memberPage=1;
-      if(result?.status==='existing' && result?.membership?.status && result.membership.status!=='active') setNotice('이미 등록 이력이 있는 멤버입니다. 멤버 관리에서 현재 상태를 확인해 주세요.');
-      else setNotice(result?.status==='existing'?'이미 등록된 Discord 멤버입니다. 멤버 목록에서 확인해 주세요.':'멤버를 등록했습니다. 해당 팀원은 등록 확인 후 바로 회사에 연결됩니다.');
       return;
     }
     if(type==='issue-company-code'){

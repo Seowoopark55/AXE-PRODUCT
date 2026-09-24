@@ -627,3 +627,14 @@
 .runtime-evidence-gallery.is-photo-grid>button:hover{border-color:#e9c48d;background:#293b49}
 .runtime-evidence-gallery.is-photo-grid>button:focus-visible{outline:2px solid #e9c48d;outline-offset:3px}
 .runtime-evidence-gallery.is-photo-grid>.runtime-modal-simple-footer,.runtime-evidence-gallery.is-photo-grid>.runtime-modal-hint{grid-column:1/-1}
+
+
+/* Member registration: legible guidance and local feedback, without changing other modals. */
+.member-register-form .member-register-guide { display:grid; gap:6px; padding:12px 13px; background:rgba(228,178,75,.045); border-color:rgba(228,178,75,.24); color:#c6bdad; font-size:calc(11px * var(--lac-type-scale, 1)); line-height:1.6; }
+.member-register-form .member-register-guide strong { color:#f0cd91; font-size:calc(12px * var(--lac-type-scale, 1)); }
+.member-register-form .member-register-guide span:last-child { color:#aeb7c1; }
+.member-register-form .member-register-feedback { padding:10px 12px; border:1px solid rgba(247,128,128,.3); border-radius:8px; background:rgba(128,38,38,.12); color:#ffb3b3; font-size:calc(11px * var(--lac-type-scale, 1)); line-height:1.5; }
+.member-register-form .member-register-status { color:#e5c68a; font-size:calc(11px * var(--lac-type-scale, 1)); }
+.member-register-form [hidden] { display:none; }
+.member-register-form [aria-busy="true"] { cursor:wait; }
+.member-register-form :is(input,select,button):disabled { opacity:.65; cursor:wait; }

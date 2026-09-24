@@ -1066,11 +1066,16 @@ function ledgerCorrectionModal(state,m){
 }
 
 function memberRegisterModal(state){
-  return modalShell('멤버 등록','팀원이 전달한 Discord ID로 현재 회사에 먼저 등록합니다.',`<form data-form="member-register" class="runtime-modal-form" autocomplete="off">
-    <div class="runtime-modal-hint is-full"><strong>팀원이 첫 접속 화면에서 복사한 Discord ID를 붙여넣어 주세요.</strong><br>현재 연결된 Discord 서버의 실제 멤버인지 확인한 뒤 등록합니다. 등록 전에는 팀원이 회사 관리 콘텐츠에 진입할 수 없습니다.</div>
-    <label class="is-full">Discord ID<input name="discord_user_id" inputmode="numeric" pattern="[0-9]{15,22}" minlength="15" maxlength="22" placeholder="예: 123456789012345678" required autocomplete="off"><small>Discord 이름이 아니라 숫자로 된 사용자 ID입니다.</small></label>
-    <label class="is-full">회사 관리 권한<select name="role"><option value="member" selected>일반 멤버</option><option value="manager">매니저</option><option value="admin">관리자</option></select><small>OWNER 권한은 이 등록 화면에서 부여하지 않습니다.</small></label>
-    <footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">멤버 등록</button></footer>
+  const draft = state.modal || {};
+  const busy = Boolean(draft.pending);
+  const role = ['member','manager','admin'].includes(draft.role) ? draft.role : 'member';
+  return modalShell('멤버 등록','팀원이 전달한 Discord ID로 현재 회사에 먼저 등록합니다.',`<form data-form="member-register" class="runtime-modal-form member-register-form" autocomplete="off" ${busy?'aria-busy="true"':''}>
+    <div class="runtime-modal-hint member-register-guide is-full"><strong>Discord ID 등록 안내</strong><span>팀원이 첫 접속 화면에서 복사한 Discord ID를 붙여넣어 주세요.</span><span>현재 연결된 Discord 서버의 실제 멤버인지 확인한 뒤 등록합니다. 등록 전에는 회사 관리 콘텐츠에 진입할 수 없습니다.</span></div>
+    <label class="is-full">Discord ID<input name="discord_user_id" inputmode="numeric" pattern="[0-9]{15,22}" minlength="15" maxlength="22" value="${esc(draft.discordUserId||'')}" placeholder="예: 123456789012345678" required autocomplete="off" ${busy?'disabled':''}><small>Discord 이름이 아니라 숫자로 된 사용자 ID입니다.</small></label>
+    <label class="is-full">회사 관리 권한<select name="role" ${busy?'disabled':''}><option value="member" ${role==='member'?'selected':''}>일반 멤버</option><option value="manager" ${role==='manager'?'selected':''}>매니저</option><option value="admin" ${role==='admin'?'selected':''}>관리자</option></select><small>OWNER 권한은 이 등록 화면에서 부여하지 않습니다.</small></label>
+    <div class="member-register-feedback is-full" data-member-register-error role="alert" ${draft.error?'':'hidden'}>${esc(draft.error||'')}</div>
+    <div class="member-register-status is-full" data-member-register-status role="status" ${busy?'':'hidden'}>등록 정보를 확인하고 있습니다…</div>
+    <footer><button type="button" class="runtime-btn-ghost" data-action="close-modal" ${busy?'disabled':''}>취소</button><button class="runtime-btn-primary" type="submit" ${busy?'disabled':''}>${busy?'등록 중…':'멤버 등록'}</button></footer>
   </form>`);
 }
 
