@@ -14,7 +14,7 @@ check(!render.includes('name="legacy_no"')&&!render.includes('기존 ID'),'asset
 check(render.includes('data-asset-modal-status')&&render.includes('value="미배정"'),'asset status dropdown exists');
 check(render.includes("a.membership_id?'상세':'배정'"),'unassigned asset exposes assign action');
 check(main.includes('existing?.legacy_no||null'),'hidden legacy ID is preserved on asset edit');
-check(main.includes('updateMembershipEmploymentDate'),'member employment date is persisted');
+check(main.includes('updateMembershipDetails(state.companyId,id,changes,row)'),'member employment date is persisted');
 check(main.includes('updateCompanyName(state.companyId,companyName)'),'canonical company name RPC is used');
 check(!main.includes('uploadCompanyBanner')&&!main.includes('removeCompanyBanner'),'company banner mutation wiring removed from web');
 check(api.includes("web_company_admin_update_name"),'company name admin RPC binding exists');

@@ -1,10 +1,11 @@
 import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
+import { memberChanges } from './lib/memberChanges.js';
 import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipRole, updateMembershipStatus, updateMembershipAlias, updateMembershipEmploymentDate, updateMembershipNote, updateCompanyName,
+  listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipDetails, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
@@ -1418,7 +1419,34 @@ async function boot() {
   });
 }
 
-function closeModal({force=false}={}) {
+let memberClosePending = false;
+async function closeModal({force=false}={}) {
+  if (state.modal?.type === 'member') {
+    if (mutationBusy || memberClosePending) return false;
+    const editingModal = state.modal;
+    const form = root.querySelector('form[data-form="member"]');
+    const row = state.memberships.find(item => item.id === editingModal.membershipId);
+    // Only actual changes need a discard confirmation. The draft remains
+    // mounted while the dialog is open (important for Korean IME inputs).
+    let changed = false;
+    if (!force && form && row) {
+      try { changed = Object.keys(memberChanges(row, new FormData(form))).length > 0; }
+      catch { changed = true; } // Invalid draft is still an unsaved draft.
+    }
+    if (changed) {
+      memberClosePending = true;
+      let discard = false;
+      try {
+        discard = await confirmHubDeletion({
+          title: '변경 사항을 버릴까요?',
+          message: '저장하지 않은 멤버 정보는 반영되지 않습니다.',
+          confirmLabel: '버리고 닫기',
+        });
+      } finally { memberClosePending = false; }
+      if (!discard || state.modal !== editingModal || mutationBusy) return false;
+    }
+  }
+
   if(state.modal?.type==='setup-demo' && state.modal?.returnToTestCenter){
     state.setupDemo=null;
     state.modal={type:'test-center'};
@@ -2235,6 +2263,10 @@ document.addEventListener('keydown', event=>{
     if(state.accountMenuOpen){state.accountMenuOpen=false;render();event.preventDefault();}
   }
   if(event.key==='Escape' && state.supportImageViewer){event.preventDefault();state.supportImageViewer=null;render();}
+  if(event.key==='Escape' && state.modal?.type==='member' && !document.querySelector('dialog[open]')){
+    event.preventDefault();
+    void closeModal();
+  }
 });
 
 root.addEventListener('paste', event=>{
@@ -2268,6 +2300,30 @@ root.addEventListener('submit', async event => {
     if(!form.dataset.reviewSignature||form.dataset.reviewSignature!==signature){window.alert('변경 내용 확인을 다시 눌러 주세요.');invalidateSubscriptionReview(form);return;}
     form.dataset.reviewSignature='';
     form.querySelector('[data-subscription-submit]').disabled=true;
+  }
+  // Confirm a new departure BEFORE withMutation renders/replaces the form.
+  // Cancel or Escape from the dialog must never issue a DB request.
+  if (type === 'member') {
+    if (memberClosePending || mutationBusy) return;
+    const row = state.memberships.find(item => item.id === String(data.get('membership_id')) && item.company_id === state.companyId);
+    if (!row || state.modal?.type !== 'member' || state.modal.membershipId !== row.id) {
+      setError('편집 중인 멤버 정보를 다시 확인해 주세요.'); return;
+    }
+    let changes;
+    try { changes = memberChanges(row, data); }
+    catch (error) { setError(error); return; }
+    if (changes.status === 'left') {
+      memberClosePending = true;
+      let accepted = false;
+      try {
+        accepted = await confirmHubDeletion({
+          title: '멤버를 퇴사 처리할까요?',
+          message: '퇴사 처리하면 이 멤버에게 배정된 자산이 자동으로 미배정되고 반납·감사 기록이 생성될 수 있습니다. 계속 진행할까요?',
+          confirmLabel: '퇴사 처리 및 저장',
+        });
+      } finally { memberClosePending = false; }
+      if (!accepted || state.modal?.type !== 'member' || state.modal.membershipId !== row.id || mutationBusy) return;
+    }
   }
   await withMutation(async()=>{
     if(type==='hub-board-ticket'){
@@ -2438,7 +2494,22 @@ root.addEventListener('submit', async event => {
       setNotice(`회사 ${expectedName}을(를) 삭제했습니다.`);
       return;
     }
-    if(type==='member'){const id=String(data.get('membership_id'));const row=state.memberships.find(m=>m.id===id);const role=String(data.get('role'));const status=String(data.get('status'));const aliasName=String(data.get('alias_name')||'').trim();const employmentStartedOn=String(data.get('employment_started_on')||'');const memberNote=String(data.get('member_note')||'').trim();if(String(row.alias_name||'')!==aliasName)await updateMembershipAlias(id,aliasName);if(row.role!==role)await updateMembershipRole(id,role);if(row.status!==status)await updateMembershipStatus(id,status);if(String(row.employment_started_on||'')!==employmentStartedOn)await updateMembershipEmploymentDate(id,employmentStartedOn);if(String(row.member_note||'')!==memberNote)await updateMembershipNote(id,memberNote);state.modal=null;await loadCompanyData();setNotice('멤버 정보를 저장했습니다.');return;}
+    if(type==='member'){
+      if(!canAdmin(state))throw new Error('멤버 관리는 대표 또는 관리자만 할 수 있습니다.');
+      const id=String(data.get('membership_id')||'');
+      const row=state.memberships.find(m=>m.id===id && m.company_id===state.companyId);
+      if(!row || state.modal?.type!=='member' || state.modal.membershipId!==id)throw new Error('편집 중인 멤버 정보를 다시 확인해 주세요.');
+      const changes=memberChanges(row,data);
+      if(!Object.keys(changes).length){state.modal=null;setNotice('변경된 내용이 없습니다.');return;}
+      const saved=await updateMembershipDetails(state.companyId,id,changes,row);
+      // A successful DB response is authoritative even if another panel fails
+      // to refresh afterwards. Do not report a false save failure in that case.
+      state.memberships=state.memberships.map(m=>m.id===id?{...m,...saved}:m);
+      state.modal=null;
+      try { await loadCompanyData(); setNotice('멤버 정보를 저장했습니다.'); }
+      catch(error){console.warn('Member saved but company reload failed',error);setNotice('멤버 정보는 저장됐지만 목록 새로고침에 실패했습니다. 새로고침 후 확인해 주세요.');}
+      return;
+    }
     if(type==='asset'){let membershipId=String(data.get('membership_id')||'')||null;let status=String(data.get('status')||'').trim()||(membershipId?'보유':'미배정');if(status==='미배정')membershipId=null;if(membershipId)status='보유';const holder=membershipId?(state.assetsSnapshot?.members||[]).find(m=>m.id===membershipId):null;const assetId=String(data.get('asset_id')||'')||null;const existing=assetId?(state.assetsSnapshot?.assets||[]).find(a=>a.id===assetId):null;await saveWebAsset(state.companyId,{assetId,legacyNo:existing?.legacy_no||null,membershipId,ownerName:holder?.display_name||'미배정',category:String(data.get('asset_category')||'기타').trim(),name:String(data.get('asset_name')||'').trim(),acquisitionMethod:String(data.get('acquisition_method')||'').trim()||null,status,note:String(data.get('note')||'').trim()||null});state.modal=null;await loadAssetsAndAccounts();setNotice(membershipId?'자산을 저장하고 보유자를 배정했습니다.':'자산을 미배정 상태로 저장했습니다.');return;}
     if(type==='account-request'){await submitWebAccountRequest(state.companyId,String(data.get('account')||''),String(data.get('note')||''));state.modal=null;await loadAssetsAndAccounts();setNotice('계좌 등록·변경 신청을 제출했습니다.');return;}
     if(type==='fund-balance'){const game=Number(data.get('game_balance'));if(!Number.isFinite(game)||game<0)throw new Error('게임 내 공용계좌 잔액을 확인해 주세요.');const settings={...(state.companySettings?.settings||{}),fund_balance_check:{game_balance:game,note:String(data.get('note')||'').trim(),calculated_balance:Number(state.fundSnapshot?.balance?.public||0),checked_at:new Date().toISOString()}};await updateCompanySettings(state.companyId,{settings},state.session.user.id);state.companySettings=await getCompanySettings(state.companyId);setNotice('잔액 점검을 저장했습니다.');return;}

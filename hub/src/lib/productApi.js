@@ -263,6 +263,27 @@ export async function getMemberships(companyId) {
   return unwrap(result, '멤버 목록을 불러오지 못했습니다.') || [];
 }
 
+// Single-row UPDATE: the database applies RLS, last-owner protection, audit,
+// and any left-member asset trigger in the same transaction. The role/status
+// predicates prevent an edit based on a stale ownership/status snapshot.
+export async function updateMembershipDetails(companyId, membershipId, changes, original) {
+  assertClient();
+  if (!companyId || !membershipId || !original || !changes || !Object.keys(changes).length) {
+    throw new Error('멤버 저장 요청을 확인해 주세요.');
+  }
+  const allowed = ['alias_name', 'role', 'status', 'employment_started_on', 'member_note'];
+  if (Object.keys(changes).some(key => !allowed.includes(key))) throw new Error('허용되지 않은 멤버 수정 항목입니다.');
+  const result = await supabase.from('company_memberships')
+    .update(changes)
+    .eq('company_id', companyId)
+    .eq('id', membershipId)
+    .eq('role', original.role)
+    .eq('status', original.status)
+    .select('id,company_id,user_id,role,status,display_name,discord_user_id,discord_display_name,alias_name,employment_started_on,member_note,joined_at,created_at,updated_at')
+    .single();
+  return unwrap(result, '멤버 정보를 저장하지 못했습니다. 변경되지 않은 목록을 확인하고 다시 시도해 주세요.');
+}
+
 export async function updateMembershipRole(membershipId, role) {
   assertClient();
   const result = await supabase

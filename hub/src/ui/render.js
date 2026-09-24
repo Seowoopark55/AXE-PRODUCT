@@ -1081,16 +1081,19 @@ function memberModal(state,m){
   const discordName=row.discord_display_name||'';
   const alias=row.alias_name||'';
   const note=row.member_note||'';
+  const isOwner=row.role==='owner';
+  const statusLabels={active:'활동',suspended:'중지',left:'퇴사'};
   return modalShell('멤버 관리',row.display_name||discordName||'멤버',`<form data-form="member" class="runtime-modal-form member-profile-form" autocomplete="off">
     <input type="hidden" name="membership_id" value="${esc(row.id)}">
     <label class="member-profile-name-field"><span class="member-profile-label">Discord 표시명</span><input value="${esc(discordName||'아직 동기화되지 않음')}" readonly class="is-readonly" autocomplete="off"><small>해당 Discord 서버에서 확인된 이름입니다.</small></label>
     <label class="member-profile-name-field"><span class="member-profile-label">별칭 <em>선택</em></span><input name="alias_name" value="${esc(alias)}" placeholder="비우면 Discord 표시명 사용" maxlength="120" autocomplete="off"><small>회사에서 따로 부를 이름이 있을 때만 입력합니다.</small></label>
     <div class="member-profile-inline is-full">
-      <label>역할<select name="role">${['owner','admin','manager','member'].map(r=>`<option value="${r}" ${row.role===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select></label>
-      <label>상태<select name="status"><option value="active" ${row.status==='active'?'selected':''}>활동</option><option value="suspended" ${row.status==='suspended'?'selected':''}>중지</option><option value="left" ${row.status==='left'?'selected':''}>퇴사</option></select></label>
+      <label>역할${isOwner?`<input value="대표" readonly class="is-readonly" aria-label="대표 역할 변경 불가"><input type="hidden" name="role" value="owner">`:`<select name="role">${['admin','manager','member'].map(r=>`<option value="${r}" ${row.role===r?'selected':''}>${ROLE_KO[r]}</option>`).join('')}</select>`}</label>
+      <label>상태${isOwner?`<input value="${esc(statusLabels[row.status]||row.status)}" readonly class="is-readonly" aria-label="대표 상태 변경 불가"><input type="hidden" name="status" value="${esc(row.status)}">`:`<select name="status"><option value="active" ${row.status==='active'?'selected':''}>활동</option><option value="suspended" ${row.status==='suspended'?'selected':''}>중지</option><option value="left" ${row.status==='left'?'selected':''}>퇴사</option></select>`}</label>
       <label>입사일<input name="employment_started_on" type="date" value="${esc(row.employment_started_on||'')}"></label>
     </div>
-    <label class="is-full">메모 <small>선택</small><textarea name="member_note" maxlength="1000" placeholder="업무 참고사항이나 내부 메모를 입력하세요." autocomplete="off">${esc(note)}</textarea><small>회사 내부 운영 참고용 메모입니다.</small></label>
+    ${isOwner?'<div class="runtime-modal-hint is-full">대표 계정의 역할과 상태는 이 화면에서 변경할 수 없습니다.</div>':''}
+    <label class="is-full">메모 (선택)<textarea name="member_note" maxlength="1000" placeholder="업무 참고사항이나 내부 메모를 입력하세요." autocomplete="off">${esc(note)}</textarea><small>회사 내부 운영 참고용 메모입니다.</small></label>
     <footer><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">저장</button></footer>
   </form>`);
 }
