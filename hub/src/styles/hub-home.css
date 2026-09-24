@@ -144,3 +144,6 @@
 .hub-feature__tag--company{color:#ffe2a4;border-color:#a57935;background:rgba(75,48,17,.96)}
 .hub-feature__description{margin-top:3px;font-size:12px;line-height:1.5;color:#d4dce4}
 .hub-feature__content small{display:none}
+
+/* Stage 4: restore visual emphasis on photography without changing card routing. */
+@media(min-width:601px){.hub-feature__visual{height:clamp(136px,18dvh,172px)}.hub-feature__content{flex:0 0 auto;min-height:68px;padding:9px 13px 10px}.hub-feature__description{font-size:11px;line-height:1.4;margin-top:2px}}
