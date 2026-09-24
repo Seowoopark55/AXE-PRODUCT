@@ -761,3 +761,123 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
  .game-center .game-info-explorer .game-detail-panel--materials .game-detail-ingredient-grid{grid-template-columns:1fr}
  .game-center .game-info-explorer .game-detail-panel--overview > dl{grid-template-columns:1fr}
 }
+
+
+/* Stage 20 · Compact, complete item record.
+   Keep key facts outside the scrollable long-description area. Save vertical
+   space by using a side-by-side ingredients / metadata layout on desktop.
+   Never clamp, truncate, or hide an actual source field to force a fit. */
+.game-center .game-info-explorer .axe-info-detail--studio,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+  grid-template-rows: minmax(118px, 140px) auto minmax(0,1fr);
+  align-content:stretch;
+  min-width:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero,
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art{
+  min-height:118px;padding:8px 15px 8px 18px;gap:8px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__copy{gap:5px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__copy > strong{font-size:clamp(19px,1.8vw,25px)}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__subtitle{padding:3px 7px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__artwork > .game-detail-hero__item{
+  max-width:210px;max-height:126px;object-fit:contain;
+}
+/* A separate fixed-in-flow information strip: success rate never vanishes
+   just because a user reads the last line of a long recipe. */
+.game-center .game-info-explorer .axe-info-detail--studio > .game-detail-highlights{
+  position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1px;min-height:0;margin:0 10px;padding:1px;border:1px solid rgba(210,173,116,.3);
+  border-radius:0 0 9px 9px;background:rgba(220,181,119,.28);overflow:hidden;
+}
+.game-center .game-info-explorer .axe-info-detail--studio > .game-detail-highlights > .game-detail-highlight{
+  min-height:49px;padding:7px 10px;gap:3px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio > .game-detail-highlights .game-detail-highlight > strong{
+  font-size:clamp(12px,1.35vw,16px);line-height:1.18;
+}
+.game-center .game-info-explorer .axe-info-detail--studio > .game-detail-highlights .game-detail-highlight--rate > strong{
+  font-size:clamp(18px,1.8vw,23px);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-body{
+  gap:0;min-height:0;padding:10px 11px 12px;overflow-y:auto;
+  scrollbar-width:thin;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panels{
+  display:grid;grid-template-columns:minmax(0,1.75fr) minmax(145px,1fr);
+  align-items:start;gap:11px;min-width:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel{
+  min-width:0;margin:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel:only-child{
+  grid-column:1/-1;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel > h3{
+  min-height:0;margin:0 0 6px;padding:0 0 6px;font-size:11px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-ingredient-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-material{
+  min-height:44px;padding:4px 5px;gap:5px;font-size:11px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-material > img,
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-material__placeholder{
+  flex:0 0 30px;width:30px;height:30px;border-radius:6px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-material__qty{
+  margin-left:auto;font-size:11px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-ingredient-set + .game-detail-ingredient-set{margin-top:8px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{
+  grid-template-columns:1fr;gap:0;margin:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair{
+  min-height:0;padding:6px 0;gap:2px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair dt{font-size:10px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair dd{font-size:11px;line-height:1.4}
+/* Sparse records look like a real item page, without large empty dashboard tiles. */
+.game-center .game-info-explorer .axe-info-detail--studio:not(:has(> .game-detail-highlights)){
+  grid-template-rows:minmax(118px,140px) minmax(0,1fr);
+}
+/* Smaller windows: allow the document to grow rather than bury data behind
+   a second scrollbar or clip it. A page scrollbar remains when data truly
+   cannot fit the available viewport; this is preferable to missing values. */
+@media (max-width:1099px), (max-height:800px){
+  body:has(.runtime-app--game-info.game-center){overflow-y:auto}
+  .runtime-app--game-info.game-center{height:auto;max-height:none;min-height:0;overflow:visible}
+  .game-center .game-center__body{height:auto;min-height:0;overflow:visible}
+  .game-center .game-info-rework{height:auto;min-height:0;overflow:visible}
+  .game-center .game-info-explorer .axe-info-content{overflow:visible;align-items:start}
+  .game-center .game-info-explorer .axe-info-detail--studio,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+    grid-template-rows:minmax(118px,140px) auto auto;height:auto;max-height:none;overflow:visible;
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio:not(:has(> .game-detail-highlights)){
+    grid-template-rows:minmax(118px,140px) auto;
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-body{overflow:visible;max-height:none}
+}
+@media(max-width:1100px){
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panels{grid-template-columns:1fr;gap:10px}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;
+  }
+}
+@media(max-width:620px){
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panels{grid-template-columns:1fr}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-ingredient-grid{grid-template-columns:1fr}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{grid-template-columns:1fr}
+  .game-center .game-info-explorer .axe-info-detail--studio > .game-detail-highlights{
+    grid-template-columns:repeat(2,minmax(0,1fr));margin:0 8px;
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__artwork > .game-detail-hero__item{max-height:122px}
+}

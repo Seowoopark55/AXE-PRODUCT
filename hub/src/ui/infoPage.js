@@ -247,7 +247,7 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
  }
  const materialsHtml=ingredientHtml?`<section class="game-detail-panel game-detail-panel--materials" aria-label="필요 재료"><h3>${table==='info_processes'?'가공 재료':table==='info_material_recipes'?'조합 · 제작 재료':'필요 재료'}</h3>${ingredientHtml}</section>`:'';
  const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
- return `<div class="game-detail-body">${highlightsHtml}<div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
+ return `${highlightsHtml}<div class="game-detail-body"><div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
 };
 const itemListSubtitle=(table,row)=>{
  if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
