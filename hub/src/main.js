@@ -13,7 +13,7 @@ import {
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, cancelFundApproval, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
-  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting,
+  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting, listWebContentPolicies,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
@@ -21,6 +21,7 @@ import {
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks,
 } from './lib/productApi.js';
 import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
+import {canOpenWebContent,contentIsVisible,hasCompany} from './platform/contentPolicy.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
@@ -71,26 +72,44 @@ function showEmbeddedBuild({ push = false } = {}) {
 // First-party COOK route. Recipe catalog is a bundled snapshot and cloud writes
 // remain disabled until a separately approved, tested Supabase migration.
 function showCookPreview({ push = false } = {}) {
-  if (push && !isCookRoute()) {
-    window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/cook/');
-  }
+  if (push && !isCookRoute()) window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/cook/');
   if (!isCookRoute()) return;
   if (!cookHost) {
-    cookHost = document.createElement('section');
-    cookHost.id = 'lac-cook-host';
-    cookHost.setAttribute('aria-label', 'LAC COOK');
-    cookFrame = document.createElement('iframe');
-    cookFrame.title = 'LAC COOK';
-    cookFrame.src = '/cook-preview/index.html?lacCookHostPreview=1';
+    cookHost=document.createElement('section');
+    cookHost.id='lac-cook-host';
+    cookHost.setAttribute('aria-label','LAC COOK');
+    root.insertAdjacentElement('afterend',cookHost);
+  }
+  // Do not mount the working COOK iframe before authenticated policy and company
+  // state have finished loading. Clearing it on revocation avoids a stale frame.
+  const allowed=state.ready && canOpenWebContent(state,'lac_cook');
+  if (!allowed) {
+    if(cookFrame){cookFrame.remove();cookFrame=null;}
+    const loggedIn=Boolean(state.session?.user);
+    const pending=loggedIn && !state.ready;
+    const published=contentIsVisible(state,'lac_cook');
+    cookHost.innerHTML=`<section class="lac-cook-gate" aria-label="LAC COOK 이용 안내">
+      <a class="lac-cook-gate__back" href="/">← LAC HUB</a>
+      <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
+      <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
+      <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
+      <div class="lac-cook-gate__sample" aria-label="가상 요리 제작 화면 예시"><div><strong>제작 작업대</strong><span>체험용 예시 · 실제 데이터가 아닙니다</span></div><div class="lac-cook-gate__item"><b>샘플 요리 · 2 SET</b><span>재료 3종</span></div><div class="lac-cook-gate__item"><b>재료 준비</b><span>예시 재료 A × 4 · B × 2 · C × 1</span></div><div class="lac-cook-gate__item"><b>작업 체크리스트</b><span>□ 재료 준비　□ 제작 완료</span></div></div>
+      <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되어 있다면 바로 이용할 수 있습니다. 아직 회사가 없다면 HUB에서 회사 등록 안내를 확인해 주세요.'}</p>
+      <a class="lac-cook-gate__cta" href="/">LAC HUB로 이동 →</a>
+    </section>`;
+  } else if (!cookFrame) {
+    cookHost.replaceChildren();
+    cookFrame=document.createElement('iframe');
+    cookFrame.title='LAC COOK';
+    cookFrame.src='/cook-preview/index.html?lacCookHostPreview=1';
     cookFrame.setAttribute('referrerpolicy','same-origin');
     cookHost.append(cookFrame);
-    root.insertAdjacentElement('afterend', cookHost);
   }
   switchVisibleApp(false);
   document.documentElement.classList.add('lac-cook-route');
-  root.hidden = true;
-  cookHost.hidden = false;
-  document.title = 'LAC COOK';
+  root.hidden=true;
+  cookHost.hidden=false;
+  document.title='LAC COOK';
 }
 
 window.addEventListener('message', event => {
@@ -299,7 +318,7 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
-  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', currentSubscription:null,
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null,
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -772,7 +791,7 @@ function allowedHistoryPage(target) {
   if (!state.session?.user) return 'hub';
   if (target === 'hub' || target === 'hub-board') return target;
   if (target === 'company-start') return state.companies.length ? 'hub' : target;
-  if (target === 'game-info') return companyAvailable ? target : 'hub';
+  if (target === 'game-info') return canOpenWebContent(state,'game_info') ? target : 'hub';
   if (['platform', 'layout'].includes(target)) return state.platformAdmin ? target : 'hub';
   return companyAvailable ? target : 'hub';
 }
@@ -1163,6 +1182,7 @@ async function loadCompanyData() {
 
 async function loadGameInfo(){
   const request=++infoLoadSequence;
+  if(!canOpenWebContent(state,'game_info')){resetScopedGameInfo();return;}
   const companyId=String(state.companyId||'');
   const userId=state.session?.user?.id;
   state.info.loading=true;
@@ -1174,7 +1194,7 @@ async function loadGameInfo(){
     let modbooks=[];
     let modbookError='';
     try {
-      modbooks=await getCompanyModbooks(companyId, Boolean(state.platformAdmin));
+      if(hasCompany(state))modbooks=await getCompanyModbooks(companyId, Boolean(state.platformAdmin));
     }catch(error){
       modbookError=String(error?.message||error||'개조서를 불러오지 못했습니다.');
     }
@@ -1191,6 +1211,18 @@ async function loadGameInfo(){
     if(request!==infoLoadSequence)return;
     state.info.loading=false;
     render();
+  }
+}
+
+async function loadWebContentPolicies() {
+  state.contentPoliciesLoaded=false;
+  state.contentPolicyError='';
+  try {
+    state.contentPolicies=await listWebContentPolicies();
+    state.contentPoliciesLoaded=true;
+  } catch(error) {
+    state.contentPolicies=[];
+    state.contentPolicyError=String(error?.message||error||'콘텐츠 이용 정책 조회 실패');
   }
 }
 
@@ -1211,7 +1243,7 @@ async function loadPlatformContentSettings() {
 
 async function refreshAll() {
   resetScopedGameInfo();
-  if (!state.session?.user) { state.ready=true; render(); return; }
+  if (!state.session?.user) { state.contentPolicies=[];state.contentPoliciesLoaded=false;state.contentPolicyError='';state.ready=true;render();if(isCookRoute())showCookPreview();return; }
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
@@ -1220,6 +1252,7 @@ async function refreshAll() {
     state.companyCreatePermissionError=false;
     try { state.canCreateCompany=await canCreateCompany(); }
     catch { state.canCreateCompany=false; state.companyCreatePermissionError=true; }
+    await loadWebContentPolicies();
     if(!state.platformAdmin && ['platform','layout'].includes(state.page)){state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');}
     await claimDiscordMemberships();
     await loadCompanies();
@@ -1229,9 +1262,10 @@ async function refreshAll() {
     applyPlatformCompanyVisibility();
     state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
-    if(['info','game-info'].includes(state.page))await loadGameInfo();
+    if(['info','game-info'].includes(state.page) && (state.page!=='game-info'||canOpenWebContent(state,'game_info')))await loadGameInfo();
     if(state.page==='platform' && state.platformView==='contents' && state.platformAdmin) await loadPlatformContentSettings();
     state.ready=true;
+    if(isCookRoute())showCookPreview();
     const saved=savedSetupGuideProgress();
     if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
       const step=resolveSetupGuideResumeStep(Math.max(1,Math.min(6,Number(saved.step||1))));
@@ -1384,7 +1418,7 @@ async function recoverSessionOnResume({force=false}={}) {
       if(before!==after || !state.ready){state.ready=false;await refreshAll();}
       return;
     }
-    if(state.session?.user){state.session=null;state.canCreateCompany=false;state.companyCreatePermissionError=false;clearCompanyData();state.ready=true;render();}
+    if(state.session?.user){state.session=null;state.canCreateCompany=false;state.companyCreatePermissionError=false;state.contentPolicies=[];state.contentPoliciesLoaded=false;clearCompanyData();state.ready=true;render();if(isCookRoute())showCookPreview();}
   }catch(error){
     console.warn('LAC HUB session recovery skipped after transient error',error);
   }finally{sessionRecoveryBusy=false;}
@@ -1587,12 +1621,12 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  if(infoTab){if(!canOpenWebContent(state,'game_info'))return;if(infoTab.dataset.infoTable==='modbook_catalog'&&!hasCompany(state))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
   if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary','modbookCategory'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':field==='secondary'?'filterSecondary':'modbookCategory';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';if(field!=='modbookCategory')state.info.modbookCategory='';state.info.query='';state.info.selectedId='';render();return;}
   // A global result opens its source category; the search text is cleared only after navigation.
   const infoResult=event.target.closest('[data-info-result-table]');
-  if(infoResult){const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
+  if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(source==='modbook_catalog'&&!hasCompany(state))return;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
   const fundTab=event.target.closest('[data-fund-tab]');
@@ -1760,7 +1794,7 @@ root.addEventListener('click', async event => {
   if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='company';navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-company-start-game'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='game';navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-hub-game-info'){
-    if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){navigatePrimaryScreen('company-start');render();return;}
+    if(!canOpenWebContent(state,'game_info')){navigatePrimaryScreen('hub');render();return;}
     navigatePrimaryScreen('game-info');
     if(!state.info.loaded || String(state.info.companyId||'')!==String(state.companyId||'')) await loadGameInfo();
     render();return;
@@ -2101,9 +2135,10 @@ root.addEventListener('click', async event => {
         field==='is_published'?!current.is_published:current.is_published,
         field==='is_free'?!current.is_free:current.is_free);
       // Reload persisted values rather than assuming a successful optimistic flip.
-      await loadPlatformContentSettings();
-      if (state.platformContentError) throw new Error(state.platformContentError);
-      setNotice('콘텐츠 설정을 저장했습니다. 실제 서비스 접근 정책은 아직 적용되지 않습니다.');
+      await Promise.all([loadPlatformContentSettings(),loadWebContentPolicies()]);
+      if (state.platformContentError || state.contentPolicyError) throw new Error(state.platformContentError||state.contentPolicyError);
+      if (isCookRoute()) showCookPreview();
+      setNotice('콘텐츠 설정을 저장했습니다. HUB 진입 설정을 새로 확인했습니다.');
     });
     return;
   }

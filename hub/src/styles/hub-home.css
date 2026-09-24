@@ -147,3 +147,11 @@
 
 /* Stage 4: restore visual emphasis on photography without changing card routing. */
 @media(min-width:601px){.hub-feature__visual{height:clamp(136px,18dvh,172px)}.hub-feature__content{flex:0 0 auto;min-height:68px;padding:9px 13px 10px}.hub-feature__description{font-size:11px;line-height:1.4;margin-top:2px}}
+
+/* Content policy loading: no misleading free/access badge before authenticated fetch. */
+.hub-content-policy-note{margin:10px 0;padding:13px 16px;border:1px solid #765d36;border-radius:10px;background:#2a2218;color:#e3c798;font-size:12px}
+.hub-feature__tag--company{color:#f4d4a3;border-color:#947045;background:#3a2c1bcf}
+.hub-feature__tag--available{color:#c9e0ff;border-color:#5678a7;background:#19304ddc}
+.hub-feature__tag--free{color:#c4f5ce;border-color:#4b9360;background:#183c2edc}
+/* Cards can be selectively unpublished without leaving an awkward empty grid. */
+.hub-features{grid-auto-flow:row}

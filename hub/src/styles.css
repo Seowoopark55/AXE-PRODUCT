@@ -816,3 +816,18 @@ body:has(.runtime-app--game-info.game-center)::before {
 .runtime-first-run__registration>summary{background:linear-gradient(100deg,rgba(146,108,47,.17),rgba(16,21,27,.5));border-left:3px solid #bc9557}
 .runtime-first-run__registration>summary strong{font-size:16px}.runtime-first-run__registration>summary small{font-size:12px;line-height:1.5}
 @media(max-width:600px){.runtime-sample-list>div{grid-template-columns:minmax(42px,.45fr) minmax(80px,1.35fr) minmax(80px,1fr);gap:5px;padding:10px 7px;font-size:10px}.runtime-sample-list strong{font-size:10px}.runtime-sample-list__head{font-size:9px!important}}
+
+/* Content-only COOK preview for users who cannot open the real workspace. */
+#lac-cook-host:has(.lac-cook-gate){min-height:100dvh;overflow:auto;background:#0d1117;color:#eef0f3;display:grid;place-items:start center;font-family:inherit;padding:clamp(22px,5vw,70px) 18px}
+.lac-cook-gate{width:min(100%,820px);padding:clamp(20px,4vw,40px);border:1px solid #46505a;border-radius:18px;background:linear-gradient(150deg,#1c2630,#11171d);box-shadow:0 20px 65px #0007}
+.lac-cook-gate__back{display:inline-block;margin-bottom:24px;color:#edce9b;text-decoration:none;font-size:13px}
+.lac-cook-gate__eyebrow{display:block;color:#e6c188;font-weight:750;font-size:11px;letter-spacing:.09em}
+.lac-cook-gate h1{font-size:clamp(23px,4vw,32px);margin:12px 0;color:#f8f5ee;line-height:1.3}
+.lac-cook-gate p{font-size:14px;line-height:1.7;color:#b9c5d0}
+.lac-cook-gate__sample{display:grid;gap:9px;margin:22px 0;padding:18px;border:1px solid #445364;border-radius:12px;background:#121b23}
+.lac-cook-gate__sample>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:5px}
+.lac-cook-gate__sample>div:first-child span{font-size:11px;color:#c5b08c}
+.lac-cook-gate__item{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:13px;border:1px solid #354450;border-radius:9px;background:#202b35;font-size:13px}
+.lac-cook-gate__item span{color:#c0cbd4}
+.lac-cook-gate .lac-cook-gate__hint{font-size:12px;color:#d9c095}
+.lac-cook-gate__cta{display:inline-block;margin-top:9px;padding:12px 18px;border:1px solid #b18b52;border-radius:8px;background:#322719;color:#f7d69d;text-decoration:none;font-weight:700;font-size:13px}

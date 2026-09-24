@@ -1579,6 +1579,19 @@ export async function isPlatformAdmin() {
   return Boolean(unwrap(result, '플랫폼 관리자 권한을 확인하지 못했습니다.'));
 }
 
+// Read ONLY non-sensitive content flags through a dedicated, authenticated RPC.
+// The admin-only list RPC is intentionally NOT used for ordinary members.
+export async function listWebContentPolicies() {
+  assertClient();
+  const result = await supabase.rpc('lac_list_web_content_policies');
+  const data = unwrap(result, '콘텐츠 이용 조건을 불러오지 못했습니다.');
+  const keys = ['company_management','game_info','lac_build','lac_cook'];
+  if (!Array.isArray(data) || keys.some(key=>!data.some(row=>row.content_key===key &&
+      typeof row.is_free==='boolean' && typeof row.is_published==='boolean')))
+    throw new Error('콘텐츠 이용 조건이 일부 누락되었습니다. 운영자에게 문의해 주세요.');
+  return data;
+}
+
 // Platform-only RPCs. Client-side owner checks are presentation guards; the
 // SECURITY DEFINER functions themselves verify platform_is_admin().
 export async function listPlatformContentSettings() {
