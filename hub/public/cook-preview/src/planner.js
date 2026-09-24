@@ -14,6 +14,13 @@ const safeQty = raw => {
   return n != null && Number.isSafeInteger(n) && n > 0 ? n : null;
 };
 const sortKo = (a,b)=>a.name.localeCompare(b.name,'ko');
+// AXE COOK parity: its PROCESS_OUTPUT map is keyed by '빵반죽', while its
+// alias resolver passes '빵 반죽' to the lookup, so the live AXE calculation
+// uses the fallback output of 1 for dough. It also falls back to 1 for broth
+// ('육수') even though the imported LAC snapshot declares outputs of 8 and 5.
+// Keep imported rows intact; these are compatibility overrides for planning,
+// NOT verified in-game manufacturing yields. Revisit if the game yield differs.
+const AXE_EFFECTIVE_OUTPUT = new Map([['빵 반죽', 1], ['육수', 1]]);
 const add = (map, name, qty) => {
   if (!name || !Number.isSafeInteger(qty) || qty < 1 || !Number.isSafeInteger((map.get(name)||0)+qty)) return false;
   map.set(name,(map.get(name)||0)+qty);
@@ -83,7 +90,8 @@ export function calculatePlan(catalog,orders,choices={}){
     if(group){
       const triples=group.map(row=>[row.input_material_name,row.required_qty,row.result_qty].join('\u0001'));
       const outputs=[...new Set(group.map(row=>row.result_qty).filter(Boolean))];
-      const output = outputs.length===1 ? safeQty(outputs[0]) : outputs.length===0 ? 1 : null;
+      const sourceOutput = outputs.length===1 ? safeQty(outputs[0]) : outputs.length===0 ? 1 : null;
+      const output = AXE_EFFECTIVE_OUTPUT.get(key) ?? sourceOutput;
       const invalid = group.some(row=>!row.input_material_name||safeQty(row.required_qty)==null || (outputs.length===1 && !row.result_qty));
       if(invalid || output==null || outputs.length>1 || new Set(triples).size!==triples.length){
         return pending(key,quantity,`${key}: 가공식에 중복·투입 누락·생산 수량 불일치가 있어 자동 계산 보류`);
