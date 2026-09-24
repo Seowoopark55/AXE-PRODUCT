@@ -46,7 +46,7 @@ function contentCard({title,description,image,tag,tagType='',action='',href='',d
     : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
   const close=!active ? '</article>' : href ? '</a>' : '</button>';
   return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
-    <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span>${footnote?`<small>${esc(footnote)}</small>`:''}</span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
+    <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span></span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
 }
 
 export function renderHubHome(state) {
@@ -83,10 +83,10 @@ export function renderHubHome(state) {
       ${renderHubNewsStrip(state)}
       <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div><p>먼저 둘러보고, 필요한 기능을 편하게 이용해 보세요.</p></div>
         <div class="hub-features">
-          ${contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산 등 회사 운영을 한곳에서 관리하세요.',image:'company.webp',tag:'회사 운영',tagType:'neutral',action:companyAction,footnote:current?'내 회사 관리 공간으로 이동':'회사에 등록하면 이용할 수 있어요'})}
-          ${contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:'게임 자료',tagType:'neutral',action:current?'open-hub-game-info':'open-company-start',footnote:current?'소속 회사의 자료 보기':'회사별 자료는 회사 등록 후 확인'})}
-          ${contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:'자유 이용',tagType:'free',href:BUILD_PUBLIC_URL,footnote:'Discord 로그인 후 회사 등록 없이 이용'})}
-          ${contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업 관리 기능을 체험해 보세요.',image:'cook.webp',tag:'BETA',tagType:'beta',href:'/cook/',footnote:'제작 계산 · 브라우저 작업 저장'})}
+          ${contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산 등 회사 운영을 한곳에서 관리하세요.',image:'company.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:companyAction})}
+          ${contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:current?'open-hub-game-info':'open-company-start'})}
+          ${contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:'자유 이용',tagType:'free',href:BUILD_PUBLIC_URL})}
+          ${contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:'자유 이용',tagType:'free',href:'/cook/'})}
         </div>
       </section>
       <footer class="hub-footer"><span>LAC HUB · PLAY TOGETHER</span><span>회사 관리 · 게임 정보 · LAC BUILD · LAC COOK</span></footer>
