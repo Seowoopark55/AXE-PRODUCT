@@ -253,3 +253,14 @@
 .lac-subscription-company-settings{padding:10px 12px;border:1px solid #523b39;border-radius:10px;background:#201819}
 .lac-subscription-company-settings summary{cursor:pointer;font-weight:700;font-size:11px;color:#c4a29e}
 .lac-subscription-company-settings p{color:#b39c9c;font-size:11px;line-height:1.6}
+
+/* Stage 15: clearly separated pass lifecycle operations and audit trail */
+.lac-pass-lifecycle__actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.lac-pass-lifecycle__actions button{min-height:44px;text-align:center}
+.lac-pass-lifecycle__actions button:nth-child(2){border-color:#8c5560;background:#3d2731;color:#ffe1e1}
+.lac-pass-lifecycle__actions button:disabled{opacity:.45;cursor:not-allowed}
+.lac-pass-lifecycle__history{padding:13px 16px;border:1px solid #394651;border-radius:10px;background:#15222e}
+.lac-pass-lifecycle__history summary{cursor:pointer;color:#e2e7ee;font-weight:700}
+.lac-pass-lifecycle__history ol{display:grid;gap:9px;margin:12px 0 0;padding-left:20px;color:#e7ecf1;font-size:12px}
+.lac-pass-lifecycle__history li small{display:block;color:#a6b4c2;margin-top:3px}
+@media(max-width:620px){.lac-pass-lifecycle__actions{grid-template-columns:1fr}}

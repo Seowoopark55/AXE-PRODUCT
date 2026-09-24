@@ -1637,6 +1637,20 @@ export async function updatePlatformSubscription(companyId, payload = {}) {
   return unwrap(result, '구독 정보를 저장하지 못했습니다.');
 }
 
+// Atomic subscription life-cycle operations; only the platform administrator RPC can mutate these.
+export async function managePlatformPassLifecycle(companyId,action,days=null,requestId=null){
+  assertClient();
+  return unwrap(await supabase.rpc('lac_admin_pass_lifecycle',{
+    p_company_id:companyId,p_action:action,p_days:days,p_request_id:requestId,
+  }), '이용권 작업을 완료하지 못했습니다.');
+}
+export async function listPlatformPassLifecycle(companyId){
+  assertClient();
+  return unwrap(await supabase.rpc('lac_admin_list_pass_lifecycle',{
+    p_company_id:companyId,
+  }), '이용권 변경 이력을 확인하지 못했습니다.')||[];
+}
+
 export async function deletePlatformCompany(companyId, confirmName) {
   assertClient();
   const id = String(companyId || '').trim();

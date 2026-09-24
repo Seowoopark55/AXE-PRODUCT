@@ -13,12 +13,12 @@ import {
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, cancelFundApproval, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
   startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
-  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, updatePlatformSubscription, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting, listWebContentPolicies,
+  isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, managePlatformPassLifecycle, listPlatformPassLifecycle, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting, listWebContentPolicies,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
-  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks, getMyCompanyAccess, listPlatformCompanyAccess, setPlatformCompanyAccess,
+  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
@@ -302,79 +302,6 @@ window.addEventListener('message', async event => {
 
 // Intercept first-party BUILD and COOK cards. Preserve native browser gestures
 // and existing HUB delegated actions for company / administration content.
-// Subscription editor is draft-only until the operator reviews the exact fields.
-// Calendar arithmetic uses ISO calendar dates in UTC to avoid local DST shifts.
-function addCalendarDays(isoDate,days){
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(isoDate||'')))return '';
-  const date=new Date(`${isoDate}T00:00:00Z`);
-  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==isoDate)return '';
-  date.setUTCDate(date.getUTCDate()+days);
-  return date.toISOString().slice(0,10);
-}
-function subscriptionDraft(form){
-  return Object.fromEntries(['plan','status','starts_at','ends_at','grace_until','memo'].map(key=>[key,String(form.elements[key]?.value||'')]));
-}
-function invalidateSubscriptionReview(form){
-  if(!form)return;
-  form.dataset.reviewSignature='';
-  const review=form.querySelector('[data-subscription-review]');if(review)review.hidden=true;
-  const submit=form.querySelector('[data-subscription-submit]');if(submit)submit.disabled=true;
-}
-function subscriptionDraftNote(form,message){
-  const note=form.querySelector('[data-subscription-draft-message]');if(note)note.textContent=message;
-}
-function subscriptionQuickAction(form,action){
-  const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
-  const days=Number(form.elements.quick_days.value);
-  if(![7,30,90].includes(days))throw new Error('기간은 7·30·90일 중 선택해 주세요.');
-  const fields=form.elements;
-  if(action==='subscription-new-period'){
-    if(fields.grace_until.value)throw new Error('기존 유예 종료일이 있습니다. 상세 설정에서 유예일을 확인한 후 직접 처리해 주세요.');
-    fields.plan.value=({7:'trial',30:'standard',90:'pro'})[days];
-    fields.status.value=days===7?'trial':'active';
-    fields.starts_at.value=today;
-    fields.ends_at.value=addCalendarDays(today,days-1);
-    subscriptionDraftNote(form,`오늘부터 ${days}일 기간을 새로 설정하는 변경안을 준비했습니다. 기존 시작일·종료일이 바뀔 수 있으므로 확인해 주세요.`);
-  }else if(action==='subscription-extend-period'){
-    const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(fields.company_id.value));
-    if(!row?.ends_at||['internal','legacy'].includes(String(row.plan||''))||String(row.subscription_status)==='lifetime')throw new Error('기존 종료일이 없는 이용권은 자동 연장하지 않습니다.');
-    const priorEnd=new Date(row.ends_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
-    if(fields.ends_at.value!==priorEnd)throw new Error('종료일이 이미 변경됐습니다. 상세 설정에서 확인하거나 창을 닫고 다시 열어 주세요.');
-    const newEnd=addCalendarDays(priorEnd,days);
-    if(!newEnd)throw new Error('기존 종료일을 읽지 못했습니다.');
-    if(fields.grace_until.value&&fields.grace_until.value<newEnd)throw new Error('연장 후 종료일이 기존 유예 종료일을 넘습니다. 상세 설정에서 유예일을 함께 확인해 주세요.');
-    fields.ends_at.value=newEnd;
-    subscriptionDraftNote(form,`기존 종료일 ${priorEnd}에서 ${days}일 연장한 ${newEnd}로 변경안을 준비했습니다. 플랜과 상태는 유지합니다.`);
-  }else if(action==='subscription-toggle-pause'){
-    const next=String(form.querySelector('[data-action="subscription-toggle-pause"]')?.dataset.nextStatus||'');
-    if(!['active','paused'].includes(next))throw new Error('상태 변경을 확인하지 못했습니다.');
-    fields.status.value=next;
-    subscriptionDraftNote(form,next==='paused'?'일시 정지 변경안을 준비했습니다. 저장하면 회사 관리 이용이 차단될 수 있습니다.':'사용중 상태 변경안을 준비했습니다. 종료일이 지났다면 상태를 변경해도 이용할 수 없을 수 있습니다.');
-  }
-  invalidateSubscriptionReview(form);
-}
-function subscriptionReview(form){
-  const draft=subscriptionDraft(form);
-  const row=(state.platformSnapshot||[]).find(r=>String(r.company_id)===String(form.elements.company_id.value));
-  if(!row)throw new Error('회사 구독 정보를 찾을 수 없습니다.');
-  const original={plan:String(row.plan||'standard'),status:String(row.subscription_status||'active'),starts_at:row.starts_at?new Date(row.starts_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',ends_at:row.ends_at?new Date(row.ends_at).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',grace_until:row.grace_until?new Date(row.grace_until).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}):'',memo:String(row.memo||'')};
-  const changed=Object.keys(draft).filter(key=>draft[key]!==original[key]);
-  if(!changed.length)throw new Error('변경된 내용이 없습니다.');
-  if(draft.starts_at&&draft.ends_at&&draft.ends_at<draft.starts_at)throw new Error('종료일이 시작일보다 앞설 수 없습니다.');
-  if(draft.grace_until&&draft.ends_at&&draft.grace_until<draft.ends_at)throw new Error('유예 종료일은 종료일 이후로 설정해 주세요.');
-  const review=form.querySelector('[data-subscription-review]');
-  const lines=review.querySelector('[data-subscription-review-lines]');lines.replaceChildren();
-  const labels={plan:'플랜',status:'상태',starts_at:'시작일',ends_at:'종료일',grace_until:'유예 종료일',memo:'관리 메모'};
-  const titles={trial:'7일 체험',standard:'30일 이용',pro:'90일 이용',legacy:'기존 무제한',internal:'무제한',active:'사용중',paused:'일시 정지',expired:'만료',lifetime:'무제한'};
-  const show=(key,value)=>titles[value]||value||(key==='ends_at'?'종료일 미설정':'미설정');
-  for(const key of changed){const line=document.createElement('div');const name=document.createElement('strong');name.textContent=labels[key];const value=document.createElement('span');value.textContent=`${show(key,original[key])} → ${show(key,draft[key])}`;line.append(name,value);lines.append(line);}
-  if(draft.status==='lifetime'&&(draft.ends_at||draft.grace_until)){const line=document.createElement('div');line.className='lac-subscription-review__warning';line.textContent='주의: 무제한 상태 저장 시 DB가 종료일과 유예 종료일을 제거합니다.';lines.append(line);}
-  form.dataset.reviewSignature=JSON.stringify(draft);
-  form.querySelector('[data-subscription-submit]').disabled=false;
-  review.hidden=false;
-  review.scrollIntoView({block:'nearest',behavior:'smooth'});
-}
-
 root.addEventListener('click', async (event) => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
   const anchor = event.target instanceof Element ? event.target.closest('a[href="/build/"], a[href="/cook/"]') : null;
@@ -1213,7 +1140,7 @@ async function loadAdminPassRequests(){
 async function submitUnifiedPassRequest(){
   if(!hasCompany(state)||!state.session?.user)throw new Error('먼저 회사 소속을 확인해 주세요.');
   if(state.companyAccessError||state.companyPassRequestError)throw new Error('이용권 상태를 확인하지 못했습니다. 다시 접속해 주세요.');
-  if(state.companyAccess?.entitlement_enabled)throw new Error('이미 이용권이 발급된 회사입니다. 구독 상태를 확인해 주세요.');
+  if(state.companyAccess?.entitlement_enabled && state.companyAccess?.subscription_status!=='expired')throw new Error('아직 이용 중인 이용권이 있습니다. 구독 상태를 확인해 주세요.');
   const id=state.companyId;
   const result=await createCompanyPassRequest(id);
   if(!result?.id)throw new Error('신청 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
@@ -1823,12 +1750,6 @@ root.addEventListener('click', async event => {
     if(state.accountMenuOpen){state.accountMenuOpen=false;render();}
     return;
   }
-  if(['subscription-new-period','subscription-extend-period','subscription-toggle-pause','review-subscription'].includes(action)){
-    if(!state.platformAdmin||state.modal?.type!=='platform-subscription')return;
-    const form=actionEl.closest('form[data-form="platform-subscription"]');if(!form)return;
-    try{if(action==='review-subscription')subscriptionReview(form);else subscriptionQuickAction(form,action);}catch(error){window.alert(error.message||String(error));}
-    return;
-  }
   if(action==='toggle-company-menu'){state.accountMenuOpen=false;state.companyMenuOpen=!state.companyMenuOpen;render();return;}
   if(action==='toggle-account-menu'){state.companyMenuOpen=false;state.accountMenuOpen=!state.accountMenuOpen;render();return;}
   if(action==='open-layout-studio'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;navigatePrimaryScreen('layout');localStorage.setItem('axe_product_page','layout');state.layoutSaved=loadLayoutStudioProfile();state.layoutDraft={...state.layoutSaved};state.layoutDirty=false;applyLayoutStudioProfile(state.layoutDraft);render();return;}
@@ -2292,31 +2213,56 @@ root.addEventListener('click', async event => {
     const request=(state.adminPassRequests||[]).find(row=>row.id===id && row.status==='pending');
     if(!request)return;
     const approve=action==='approve-pass-request';
-    if(!window.confirm(`${request.company_name} 회사의 통합 이용권 신청을 ${approve?'승인하고 발급':'반려'}할까요?\n기존 구독 일시정지·만료 설정은 변경하지 않습니다.`))return;
+    let days=null;
+    if(approve){
+      const input=window.prompt(`${request.company_name} 회사에 새로 발급할 기간을 입력해 주세요 (7 / 30 / 90일). 기존 이용권이 남았다면 먼저 즉시 만료해야 합니다.`, '30');
+      if(input===null)return;
+      days=Number(input);
+      if(![7,30,90].includes(days)){window.alert('7·30·90일 중 선택해 주세요.');return;}
+    }
+    if(!window.confirm(`${request.company_name} 회사의 통합 이용권 신청을 ${approve?`승인하고 지금부터 ${days}일 이용권을 새로 발급`:'반려'}할까요?`))return;
     await withMutation(async()=>{
-      await reviewCompanyPassRequest(id,approve);
+      if(approve){
+        await managePlatformPassLifecycle(request.company_id,'issue',days,id);
+      }else{
+        await reviewCompanyPassRequest(id,false);
+      }
       await Promise.all([loadAdminPassRequests(),loadPlatformCompanyAccessAfterReview()]);
+      state.platformSnapshot=await getPlatformCompanies();
       if(state.companyId===request.company_id)await loadCompanyData();
-      setNotice(approve?'이용권을 발급했습니다. 기존 구독이 일시정지 상태라면 별도로 해제해야 이용할 수 있습니다.':'이용권 신청을 반려했습니다.');
+      setNotice(approve?'이용권을 새로 발급했습니다. 발급 시각부터 선택한 기간이 계산됩니다.':'이용권 신청을 반려했습니다.');
     });return;
   }
-  if(action==='toggle-company-pass'){
+  if(action==='platform-pass-lifecycle'){
     if(!state.platformAdmin)return;
-    if(!Array.isArray(state.platformCompanyAccess)){setError('통합 이용권 목록 조회에 실패했습니다. 페이지 새로고침 후 다시 시도해 주세요.');return;}
-    const id=String(actionEl.dataset.companyId||'');
-    const company=(state.platformSnapshot||[]).find(row=>String(row.company_id)===id);
-    if(!company)return;
-    const current=(state.platformCompanyAccess||[]).find(row=>String(row.company_id)===id)?.enabled===true;
-    const next=!current;
-    if(!window.confirm(`${company.company_name} 회사의 통합 이용권을 ${next?'부여':'회수'}할까요?\n기존 구독 일시정지·만료 상태는 그대로 유지됩니다.`))return;
+    const companyId=String(actionEl.dataset.companyId||'');
+    const op=String(actionEl.dataset.passOp||'');
+    const company=(state.platformSnapshot||[]).find(row=>String(row.company_id)===companyId);
+    if(!company||!['issue','expire','pause','resume'].includes(op))return;
+    const days=op==='issue'?Number(actionEl.closest('.lac-pass-lifecycle')?.querySelector('[data-pass-issue-days]')?.value):null;
+    if(op==='issue'&&![7,30,90].includes(days)){setError('발급 기간은 7·30·90일 중 선택해 주세요.');return;}
+    const labels={issue:`${days}일 이용권을 새로 발급`,expire:'현재 이용권을 남은 기간과 관계없이 즉시 만료',pause:'현재 이용권을 일시정지',resume:'현재 이용권 이용을 재개'};
+    const caution=op==='issue'?'기존 기간을 승계하지 않고 지금부터 새로 계산됩니다.':op==='expire'?'현재 이용권의 남은 기간은 사라지며, 재발급은 별도 작업입니다.':'기존 종료 시각은 바뀌지 않습니다.';
+    if(!window.confirm(`${company.company_name} 회사의 이용권을 ${labels[op]}할까요?\n${caution}`))return;
     await withMutation(async()=>{
-      await setPlatformCompanyAccess(id,next);
+      await managePlatformPassLifecycle(companyId,op,days);
+      await loadCompanies();
+      state.platformSnapshot=await getPlatformCompanies();
       state.platformCompanyAccess=await listPlatformCompanyAccess();
-      if(state.companyId===id)await loadCompanyData();
-      setNotice(`통합 이용권을 ${next?'부여':'회수'}했습니다. 구독 상태가 정지·만료라면 콘텐츠는 계속 잠깁니다.`);
+      state.platformPassEvents=await listPlatformPassLifecycle(companyId);
+      if(state.companyId===companyId)await loadCompanyData();
+      setNotice(op==='issue'?`새 ${days}일 이용권을 발급했습니다. 발급 시각부터 기간이 시작됩니다.`:op==='expire'?'기존 이용권을 즉시 만료했습니다. 새 이용권은 별도로 발급해 주세요.':op==='pause'?'기존 이용권을 일시정지했습니다. 종료 시각은 그대로 유지됩니다.':'이용권을 재개했습니다. 종료 시각은 그대로 유지됩니다.');
     });return;
   }
-  if(action==='edit-platform-subscription'){if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}state.modal={type:'platform-subscription',companyId:String(actionEl.dataset.companyId||'')};render();return;}
+  if(action==='edit-platform-subscription'){
+    if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}
+    const companyId=String(actionEl.dataset.companyId||'');
+    state.modal={type:'platform-subscription',companyId};
+    state.platformPassEvents=null;
+    render();
+    await withMutation(async()=>{state.platformPassEvents=await listPlatformPassLifecycle(companyId);});
+    return;
+  }
   if(action==='platform-view'){
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
     const view=String(actionEl.dataset.platformView||'companies');
@@ -2366,7 +2312,6 @@ root.addEventListener('click', async event => {
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
-    if(action==='fill-subscription-period'){const form=actionEl.closest('form[data-form="platform-subscription"]');if(!state.platformAdmin||!form)return;const days={trial:7,standard:30,pro:90}[form.elements.plan.value];if(!days){window.alert('기간형 플랜(7·30·90일)을 먼저 선택해 주세요.');return;}const start=form.elements.starts_at;const end=form.elements.ends_at; if(!start.value)start.value=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const date=new Date(`${start.value}T12:00:00+09:00`);if(Number.isNaN(date.getTime())){window.alert('시작일을 확인해 주세요.');return;}date.setUTCDate(date.getUTCDate()+days-1);end.value=date.toISOString().slice(0,10);return;}
     if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null; state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
@@ -2459,15 +2404,8 @@ root.addEventListener('click', async event => {
   });
 });
 
-root.addEventListener('input', event=>{
-  const form=event.target.closest('form[data-form="platform-subscription"]');
-  if(form)invalidateSubscriptionReview(form);
-});
 root.addEventListener('change', async event => {
   try{
-    const subForm=event.target.closest('form[data-form="platform-subscription"]');
-    if(subForm)invalidateSubscriptionReview(subForm);
-    if(event.target.matches('[data-form="platform-subscription"] [name="plan"]')){const form=event.target.form;const button=form?.querySelector('[data-action="fill-subscription-period"]');if(button)button.disabled=!['trial','standard','pro'].includes(event.target.value);return;}
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
     if(event.target.matches('[data-hub-board-status]')){if(!state.platformAdmin)return;const ticketId=String(event.target.dataset.ticketId||'');await withMutation(async()=>{await setHubTicketStatus(ticketId,event.target.value);await openHubBoardTicket(ticketId);await loadHubBoard();});return;}
@@ -2624,12 +2562,7 @@ root.addEventListener('change', event => {
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
-  if(type==='platform-subscription'){
-    const signature=JSON.stringify(subscriptionDraft(form));
-    if(!form.dataset.reviewSignature||form.dataset.reviewSignature!==signature){window.alert('변경 내용 확인을 다시 눌러 주세요.');invalidateSubscriptionReview(form);return;}
-    form.dataset.reviewSignature='';
-    form.querySelector('[data-subscription-submit]').disabled=true;
-  }
+  if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}
   // Confirm a new departure BEFORE withMutation renders/replaces the form.
   // Cancel or Escape from the dialog must never issue a DB request.
   if (type === 'member') {
@@ -2775,25 +2708,6 @@ root.addEventListener('submit', async event => {
     }
     if(type==='ledger'){const existingId=String(data.get('entry_id')||'')||null;const payload={entryId:existingId,direction:String(data.get('direction')||''),amount:Number(data.get('amount')||0),account:String(data.get('account')||'공용계좌'),category:String(data.get('category')||'').trim(),membershipId:String(data.get('membership_id')||'')||null,memo:String(data.get('memo')||'').trim(),ledgerDate:String(data.get('ledger_date')||'')};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,payload);let entryId=existingId||ledgerEntryIdFromSave(saved);if((state.ledgerPendingFiles||[]).length&&!entryId){const [yy,mm]=payload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=payload.direction==='지출'?-Math.abs(payload.amount):Math.abs(payload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===payload.category&&String(r.account||'')===payload.account&&dateKey(r.ledger_date)===payload.ledgerDate&&Number(r.amount||0)===signed);entryId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if((state.ledgerPendingFiles||[]).length&&!entryId)throw new Error('내역은 저장됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 해당 내역의 수정 화면에서 사진만 다시 첨부해 주세요.');if(entryId)await uploadLedgerPendingEvidence(entryId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'공금 내역과 첨부사진을 저장했습니다.':'공금 내역을 저장했습니다.');return;}
     if(type==='ledger-correction'){const entryId=String(data.get('entry_id')||'');const row=(state.fundSnapshot?.ledger||[]).find(r=>String(r.id)===entryId);if(!row)throw new Error('정정할 공금 내역을 찾지 못했습니다.');const oldSigned=Number(row.amount||0);const targetAmount=Math.abs(Number(data.get('amount')||0));if(!Number.isFinite(targetAmount)||targetAmount<=0)throw new Error('최종 금액을 확인해 주세요.');const targetDirection=String(data.get('direction')||'수입');const targetSigned=targetDirection==='지출'?-targetAmount:targetAmount;const delta=targetSigned-oldSigned;if(delta===0)throw new Error('현재 금액과 동일합니다. 변경할 금액 또는 구분을 입력해 주세요.');const reason=String(data.get('reason')||'').trim();if(!reason)throw new Error('정정 사유를 입력해 주세요.');const correctionPayload={entryId:null,direction:delta<0?'지출':'수입',amount:Math.abs(delta),account:String(row.account||'공용계좌'),category:`${row.entry_type==='payment'?'주간공금':(row.category||'공금')} 정정`,membershipId:String(row.membership_id||'')||null,memo:`원본 ${entryId.slice(0,8)} 정정 · ${reason}`,ledgerDate:String(data.get('ledger_date')||dateKey(new Date()))};const hadEvidence=(state.ledgerPendingFiles||[]).length>0;const saved=await saveFundLedgerEntry(state.companyId,correctionPayload);let correctionId=ledgerEntryIdFromSave(saved);if(hadEvidence&&!correctionId){const [yy,mm]=correctionPayload.ledgerDate.split('-').map(Number);const fresh=await getFundTreasurySnapshot(state.companyId,yy||null,mm||null,200);const signed=correctionPayload.direction==='지출'?-Math.abs(correctionPayload.amount):Math.abs(correctionPayload.amount);const matches=(fresh?.ledger||[]).filter(r=>String(r.category||'')===correctionPayload.category&&String(r.account||'')===correctionPayload.account&&dateKey(r.ledger_date)===correctionPayload.ledgerDate&&Number(r.amount||0)===signed&&String(r.memo||'')===correctionPayload.memo);correctionId=String(matches.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]?.id||'');}if(hadEvidence&&!correctionId)throw new Error('정정은 반영됐지만 첨부사진 연결 대상을 확인하지 못했습니다. 새 정정 내역의 수정 화면에서 사진을 다시 첨부해 주세요.');if(correctionId)await uploadLedgerPendingEvidence(correctionId);clearLedgerPendingFiles();state.modal=null;await loadFundSnapshot();setNotice(hadEvidence?'정정 차액과 첨부사진을 반영했습니다.':'원본을 보존한 상태로 정정 차액을 반영했습니다.');return;}
-    if(type==='platform-subscription'){
-      if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');
-      const companyId=String(data.get('company_id')||'');
-      const original=(state.platformSnapshot||[]).find(row=>String(row.company_id)===companyId);
-      if(!original)throw new Error('현재 회사 구독 정보를 다시 불러와 주세요.');
-      // Do not overwrite an unrelated concurrent administrator edit based on stale form data.
-      const latest=(await getPlatformCompanies()).find(row=>String(row.company_id)===companyId);
-      const tracked=['plan','subscription_status','starts_at','ends_at','grace_until','memo','updated_at'];
-      if(!latest||tracked.some(key=>String(latest[key]??'')!==String(original[key]??'')))
-        throw new Error('다른 관리자가 구독 정보를 변경했습니다. 관리 화면을 새로고침한 후 다시 확인해 주세요.');
-      const toIso=(field,end=false)=>{
-        const s=String(data.get(field)||'').trim();if(!s)return null;
-        const previous=original[field];
-        if(previous&&new Date(previous).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})===s)return previous;
-        return new Date(`${s}T${end?'23:59:59':'00:00:00'}+09:00`).toISOString();
-      };
-      await updatePlatformSubscription(companyId,{plan:String(data.get('plan')||'standard'),status:String(data.get('status')||'active'),startsAt:toIso('starts_at'),endsAt:toIso('ends_at',true),graceUntil:toIso('grace_until',true),memo:String(data.get('memo')||'').trim()});
-      await loadCompanies();state.platformSnapshot=await getPlatformCompanies();const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();state.modal=null;setNotice('구독 정보를 저장했습니다.');return;
-    }
     if(type==='company-delete'){
       if(!state.platformAdmin)throw new Error('회사 삭제는 PLATFORM OWNER만 할 수 있습니다.');
       const companyId=String(data.get('company_id')||'').trim();

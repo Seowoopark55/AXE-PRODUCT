@@ -7,8 +7,8 @@ const sql=fs.readFileSync(new URL('../database/migrations/SUPABASE_MIGRATION_3_2
 const checks=[
  ['platform admin RPC exists',api.includes("supabase.rpc('platform_is_admin')")],
  ['platform admin isolated from company sidebar', !render.includes('<span class="sidebar-nav__label spaced">플랫폼</span>') && render.includes('function renderManagementCenter(state)') && render.includes('state.platformAdmin !== true')],
- ['subscription management modal exists',render.includes("data-form=\"platform-subscription\"")],
- ['subscription update wired',main.includes("updatePlatformSubscription(companyId")],
+ ['subscription management modal exists',render.includes('function platformSubscriptionModal(state,m)') && render.includes('data-pass-op=\"expire\"') && render.includes('data-pass-op=\"issue\"')],
+ ['subscription update wired',main.includes("managePlatformPassLifecycle(companyId,op,days)") && api.includes("supabase.rpc('lac_admin_pass_lifecycle'")],
  ['expired/paused company lock rendered',render.includes('renderSubscriptionBlocked')&&render.includes("['paused','expired']")],
  ['fund evidence upload uses private bucket helper',main.includes('uploadFundEvidence(state.companyId,state.session.user.id,item.file)')],
  ['clipboard paste wired',main.includes("root.addEventListener('paste'")&&render.includes('Ctrl+V로 붙여넣을 수 있습니다')],

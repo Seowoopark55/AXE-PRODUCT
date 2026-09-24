@@ -4,8 +4,9 @@ export function renderCompanyPassNotice(view){
   const error=view.companyAccessError||view.companyPassRequestError;
   const access=view.companyAccess;
   const request=view.companyPassRequest;
-  const entitled=access?.entitlement_enabled===true;
-  const paused=['paused','expired','pending','unassigned'].includes(access?.subscription_status);
+  const naturallyExpired=access?.subscription_status==='expired';
+  const entitled=access?.entitlement_enabled===true&&!naturallyExpired;
+  const paused=['paused','pending','unassigned'].includes(access?.subscription_status);
   let heading='통합 이용권으로 우리 회사의 모든 콘텐츠를 이용하세요';
   let detail='한 번 신청하면 운영자 승인 후 회사 멤버에게 함께 적용됩니다.';
   let phase='이용권 신청';
@@ -29,6 +30,7 @@ export function renderCompanyPassNotice(view){
     detail='운영자가 신청을 확인하고 있습니다. 승인되면 회사 멤버에게 함께 적용됩니다.';
     action='<span class="lac-pass-application__pending" role="status">⏳ 승인 대기 중</span>';
   }else{
+    if(naturallyExpired){heading='이용권이 만료되었어요';detail='새 이용권을 신청하면 운영자 승인 후 새 발급 시각부터 기간이 시작됩니다.';}
     if(access?.subscription_status==='paused')detail='승인 후 이용권이 발급됩니다. 현재 회사 일시정지는 별도 해제가 필요합니다.';
     if(request?.status==='rejected'){
       heading='이전 신청이 반려되었어요';

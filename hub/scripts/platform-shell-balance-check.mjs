@@ -4,10 +4,10 @@ const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const checks=[
   ['Korean plan labels', render.includes("trial:'7일 체험'") && render.includes("standard:'30일 이용'") && render.includes("pro:'90일 이용'")],
-  ['subscription modal Korean plans', render.includes('const options=(values,value)=>') && render.includes('name=\"plan\"') && render.includes("['trial','7일 체험']") && render.includes("['standard','30일 이용']") && render.includes("['pro','90일 이용']")],
+  ['subscription modal Korean plans', render.includes('data-pass-issue-days') && render.includes("[7,'7일']") && render.includes("[30,'30일']") && render.includes("[90,'90일']")],
   ['platform admin hidden-company filter', main.includes('applyPlatformCompanyVisibility') && main.includes("['paused','expired'].includes")],
   ['platform refresh rehydrates companies', main.includes("action==='refresh-platform'") && main.includes('await loadCompanies();state.platformSnapshot=await getPlatformCompanies()')],
-  ['platform save reapplies visibility', main.includes("type==='platform-subscription'") && main.includes('const changed=applyPlatformCompanyVisibility()')],
+  ['platform pass change refreshes subscription and access', main.includes("managePlatformPassLifecycle(companyId,op,days)") && main.includes('state.platformSnapshot=await getPlatformCompanies();') && main.includes('state.platformCompanyAccess=await listPlatformCompanyAccess();')],
   ['header brand centered', css.includes('left:50%') && css.includes('transform:translate(-50%,-50%)')],
   ['account pushed right', css.includes('margin-left:auto!important') && css.includes('width:auto!important')],
   ['operational content shifted right', css.includes('margin-left:32px!important') && css.includes('.main>.axe-fund')],
