@@ -1757,7 +1757,8 @@ root.addEventListener('click', async event => {
     if(file){try{URL.revokeObjectURL(file.url);}catch{}state.hubBoard.files=state.hubBoard.files.filter(item=>item.id!==id);syncHubBoardPreviews();}
     return;
   }
-  if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}navigatePrimaryScreen('company-start');render();return;}
+  if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='company';navigatePrimaryScreen('company-start');render();return;}
+  if(action==='open-company-start-game'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='game';navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-hub-game-info'){
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){navigatePrimaryScreen('company-start');render();return;}
     navigatePrimaryScreen('game-info');

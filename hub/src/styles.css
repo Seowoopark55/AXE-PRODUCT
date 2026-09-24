@@ -768,3 +768,18 @@ body:has(.runtime-app--game-info.game-center)::before {
     overflow-wrap: anywhere;
   }
 }
+
+/* LAC HUB companyless entry: explain the selected content before registration choices. */
+.runtime-auth--first-run{padding-top:clamp(48px,7vh,80px);padding-bottom:44px}
+.runtime-first-run{gap:13px}
+.runtime-first-run__preview{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 19px;border:1px solid rgba(214,171,102,.22);border-radius:13px;background:linear-gradient(110deg,rgba(138,94,34,.15),rgba(12,18,24,.95))}
+.runtime-first-run__preview>div{min-width:0}
+.runtime-first-run__preview>div>span{display:block;color:#d5b582;font-size:10px;font-weight:800;letter-spacing:.06em}
+.runtime-first-run__preview strong{display:block;margin-top:4px;color:#f4f1eb;font-size:16px}
+.runtime-first-run__preview p{margin:4px 0 0;color:#afb9c2;font-size:11px;line-height:1.5}
+.runtime-first-run__preview ul{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0;max-width:46%}
+.runtime-first-run__preview li{padding:6px 9px;border:1px solid #49515b;border-radius:999px;background:#19232d;color:#e1e5e8;font-size:11px;white-space:nowrap}
+.runtime-first-run__choice{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;padding:0 2px}
+.runtime-first-run__choice strong{font-size:13px;color:#f0e6d5}
+.runtime-first-run__choice span{font-size:11px;color:#9ba7b3;line-height:1.5}
+@media(max-width:760px){.runtime-first-run__preview{align-items:stretch;flex-direction:column;gap:9px}.runtime-first-run__preview ul{max-width:none;justify-content:flex-start}.runtime-auth--first-run{padding-top:66px}}

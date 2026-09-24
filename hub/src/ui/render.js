@@ -123,35 +123,41 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false}={}) {
+function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false,contentKind='company'}={}) {
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
   const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
   const checkAction=testMode?'test-center-member-check':'check-member-registration';
   const createFocus=focus==='create'?' is-test-focus':'';
   const memberFocus=focus==='member'?' is-test-focus':'';
   const waiting=testMode&&memberCheck==='waiting'?`<div class="runtime-first-run__test-result is-waiting"><strong>아직 멤버 등록이 확인되지 않았습니다.</strong><span>대표 또는 관리자에게 현재 Discord 계정 등록을 요청한 뒤 다시 확인합니다.</span></div>`:'';
+  const game=contentKind==='game';
+  const title=game?'게임 정보':'회사 관리';
+  const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
+  const highlights=game?['제작법 · 생산','퀘스트 · 스킬','회사 개조서']:['멤버 · 역할','공금 · 계좌','자산 · 배정'];
   return `
-    <header class="runtime-first-run__head"><span>회사 관리 · START</span><h1>소속 회사를 확인하지 못했습니다.</h1><p>새 회사를 등록할 대표인지, 이미 회사 관리를 이용 중인 회사의 팀원인지 선택해 주세요.</p></header>
+    <header class="runtime-first-run__head"><span>${esc(title)} · 이용 안내</span><h1>${esc(title)}, 이렇게 이용할 수 있어요.</h1><p>${esc(summary)} 지금은 현재 계정에서 소속 회사를 확인하지 못했습니다.</p></header>
+    <section class="runtime-first-run__preview" aria-label="${esc(title)} 주요 기능 미리보기"><div><span>주요 기능</span><strong>${esc(title)} 미리보기</strong><p>기능을 간단히 소개하는 화면입니다. 다른 회사의 실제 기록은 표시하지 않아요.</p></div><ul>${highlights.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>
+    <div class="runtime-first-run__choice"><strong>이용하려면 어떻게 해야 하나요?</strong><span>새 회사 대표라면 왼쪽, 이미 등록된 회사의 팀원이라면 오른쪽 안내를 선택해 주세요.</span></div>
     <div class="runtime-first-run__grid">
-      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY</span><h2>새 회사 등록 시작</h2><p>서비스 운영자에게 회사 개설 코드를 발급받아야 새 운영 공간을 만들 수 있습니다.</p>
-        <div class="runtime-first-run__new-flow"><span>개설 코드 확인</span><i>→</i><span>Discord 연결</span><i>→</i><span>초기설정</span></div>
-        ${canCreateCompany?`<button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">새 회사 등록 시작</button><small class="runtime-first-run__auto">코드에는 등록할 회사 이름이 지정되어 있습니다.</small>`:`<div class="runtime-first-run__warning">${accessError?'회사 생성 권한을 확인하지 못했습니다. 잠시 후 새로고침해 주세요.':'이미 회사를 생성한 계정은 새 회사를 만들 수 없습니다. 다른 회사의 멤버로 등록하는 것은 가능합니다.'}</div>`}
+      <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY · 회사 대표</span><h2>새 회사 등록 시작</h2><p>현재는 운영자가 발급한 <b>회사 개설 코드</b>로 등록할 수 있어요. 간편 신청·승인 기능은 아직 준비 중이며, 코드가 없다면 운영자의 안내를 기다려 주세요.</p>
+        <div class="runtime-first-run__new-flow"><span>개설 코드 받기</span><i>→</i><span>회사 등록</span><i>→</i><span>초기설정</span></div>
+        ${canCreateCompany?`<button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">개설 코드로 회사 등록</button><small class="runtime-first-run__auto">코드에는 등록할 회사 이름이 지정되어 있습니다. 코드 발급이 중단된 경우 등록을 진행할 수 없습니다.</small>`:`<div class="runtime-first-run__warning">${accessError?'회사 생성 권한을 확인하지 못했습니다. 잠시 후 새로고침해 주세요.':'이미 회사를 생성한 계정은 새 회사를 만들 수 없습니다. 다른 회사의 멤버로 등록하는 것은 가능합니다.'}</div>`}
         <div class="runtime-first-run__warning">이미 운영 중인 회사의 팀원이라면 새 회사를 만들지 말고 오른쪽 안내를 따라주세요.</div>
       </article>
-      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 회사 관리 콘텐츠에 진입할 수 없습니다.</p>
+      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>TEAM MEMBER · 기존 회사 팀원</span><em>멤버 등록 필요</em></div><h2>이미 이용 중인 회사의 팀원입니다</h2><p>소속 회사 대표 또는 관리자에게 아래 Discord 계정을 <b>멤버로 먼저 등록</b>해 달라고 요청해 주세요. 등록되기 전에는 회사 관리 콘텐츠에 진입할 수 없습니다.</p>
         <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="${copyAction}" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
-        <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사 등록이 확인될 때까지 대기</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
-        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">등록 확인하기</button>
+        <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사에서 멤버 등록 후 이용할 수 있어요</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
+        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">멤버 등록 확인하기</button>
         ${waiting}
-        <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 이 버튼을 누르면 자동으로 소속 회사를 확인하고 바로 연결합니다.</small>
+        <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 확인하면 자동으로 소속 회사에 연결됩니다.</small>
       </article>
     </div>
-    <div class="runtime-onboarding-note runtime-first-run__note"><strong>팀원 등록은 회사 쪽에서 먼저 진행합니다.</strong><span>미등록 사용자가 임의로 회사를 찾아 들어가는 방식은 제공하지 않습니다.</span></div>`;
+    <div class="runtime-onboarding-note runtime-first-run__note"><strong>회사 등록 없이도 다른 콘텐츠는 둘러볼 수 있어요.</strong><span>LAC HUB로 돌아가 자유 이용 콘텐츠를 바로 사용해 보세요. 팀원 등록은 회사 쪽에서 먼저 진행합니다.</span></div>`;
 }
 
 function renderOnboarding(state) {
   const discord=onboardingDiscordIdentity(state);
-  return `${hubReturnButton('hub-onboarding-back')}<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError})}</div></section>`;
+  return `${hubReturnButton('hub-onboarding-back')}<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError,contentKind:state.companyStartSource==='game'?'game':'company'})}</div></section>`;
 }
 
 function companySubscriptionAccountSummary(state) {

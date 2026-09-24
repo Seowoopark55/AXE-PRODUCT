@@ -83,8 +83,8 @@ export function renderHubHome(state) {
       ${renderHubNewsStrip(state)}
       <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div><p>먼저 둘러보고, 필요한 기능을 편하게 이용해 보세요.</p></div>
         <div class="hub-features">
-          ${contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산 등 회사 운영을 한곳에서 관리하세요.',image:'company.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:companyAction})}
-          ${contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:current?'open-hub-game-info':'open-company-start'})}
+          ${contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:companyAction})}
+          ${contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:current?'이용 가능':'회사 등록 후',tagType:current?'free':'company',action:current?'open-hub-game-info':'open-company-start-game'})}
           ${contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:'자유 이용',tagType:'free',href:BUILD_PUBLIC_URL})}
           ${contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:'자유 이용',tagType:'free',href:'/cook/'})}
         </div>
