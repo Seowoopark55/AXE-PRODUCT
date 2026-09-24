@@ -37,14 +37,14 @@ function accountAvatar(state, displayName) {
     : `<span aria-hidden="true">${esc(Array.from(displayName)[0] || 'L')}</span>`;
 }
 
-function contentCard({title,description,image,tag,tagType='',action='',href='',disabled=false,footnote=''}) {
+function contentCard({title,description,image,tag,tagType='',action='',href='',disabled=false,footnote='',contentKey=''}) {
   const stateClass=tagType ? ` hub-feature__tag--${tagType}` : '';
   // Internal content uses the existing delegated button actions. External BUILD
   // has one native anchor with new-tab semantics, without navigating away from HUB.
   const active=Boolean((action || href) && !disabled);
   const open=!active ? `<article class="hub-feature hub-feature--pending">`
     : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" ${href.startsWith("/build/") || href.startsWith("/cook/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(title)} 열기">`
-    : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
+    : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" ${contentKey?`data-content-key="${esc(contentKey)}"`:''} aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
   const close=!active ? '</article>' : href ? '</a>' : '</button>';
   return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
     <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span></span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
@@ -69,10 +69,13 @@ export function renderHubHome(state) {
       ? `<details class="hub-account__company-switch"><summary class="hub-account__company" title="현재 회사: ${esc(current.name)}"><span>소속 회사</span><strong>${esc(current.name)}</strong>${chevron}</summary><div class="hub-account__company-menu" aria-label="회사 전환">${companies.map(company => `<button type="button" data-action="switch-company" data-company-id="${esc(company.id)}" ${company.id === state.companyId ? 'aria-current="true"' : ''}>${esc(company.name)}</button>`).join('')}</div></details>`
       : `<span class="hub-account__company" title="현재 회사: ${esc(current.name)}"><span>소속 회사</span><strong>${esc(current.name)}</strong></span>`;
   const subscription = state.currentSubscription;
-  const subscriptionDetails = current && subscription
+  const access=state.companyAccess;
+  const subscriptionDetails = current && !access?.can_use
+    ? `<span>${state.companyAccessError?'이용권 확인 실패':access?.entitlement_enabled?'일시정지 또는 만료':'이용권 미부여'}</span>`
+    : current && subscription
     ? `<span>플랜 <b>${esc(companyPlanName(subscription.plan))}</b></span><span>상태 <b>${esc(companyStatusName(subscription))}</b></span><span>종료일 <b>${esc(companySubscriptionEnd(subscription, value => new Intl.DateTimeFormat('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Seoul'}).format(new Date(value))))}</b></span>`
     : `<span>${current ? '이용권 정보가 없습니다. 새로고침해 주세요.' : '소속 회사 없음'}</span>`;
-  const accountSubscription = `<section class="hub-account__subscription" aria-label="회사 관리 이용권"><strong>회사 관리 이용권</strong>${subscriptionDetails}${current ? '<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button>' : ''}</section>`;
+  const accountSubscription = `<section class="hub-account__subscription" aria-label="회사 통합 이용권"><strong>회사 통합 이용권</strong>${subscriptionDetails}${current ? '<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button>' : ''}</section>`;
   const accountMenu = `<details class="hub-account__profile"><summary class="hub-account__trigger" aria-label="내 계정 메뉴 열기: ${esc(displayName)}"><span class="hub-account__avatar">${avatar}</span><span class="hub-account__identity"><strong>${esc(displayName)}</strong><small>${current ? esc(current.name) : '회사 미설정'}</small></span>${chevron}</summary><div class="hub-account__menu"><div class="hub-account__menu-head"><span class="hub-account__avatar hub-account__avatar--large">${avatar}</span><span><small>로그인 계정</small><strong>${esc(displayName)}</strong></span><button type="button" class="hub-account__close" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>${accountCompany}${accountSubscription}<button type="button" class="hub-logout" data-action="logout">로그아웃 <span aria-hidden="true">→</span></button></div></details>`;
   return `<div class="hub-home">
     <header class="hub-topbar"><div class="hub-topbar__inner">
@@ -85,10 +88,10 @@ export function renderHubHome(state) {
       <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div><p>먼저 둘러보고, 필요한 기능을 편하게 이용해 보세요.</p></div>
         ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
         <div class="hub-features">
-          ${contentIsVisible(state,'company_management')?contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:contentCardStatus(state,'company_management'),tagType:current?'available':'company',action:companyAction}):''}
-          ${contentIsVisible(state,'game_info')?contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:contentCardStatus(state,'game_info'),tagType:contentCardStatus(state,'game_info')==='자유 이용'?'free':contentCardStatus(state,'game_info')==='이용 가능'?'available':'company',action:canOpenWebContent(state,'game_info')?'open-hub-game-info':'open-company-start-game'}):''}
-          ${contentIsVisible(state,'lac_build')?contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:contentCardStatus(state,'lac_build'),tagType:contentCardStatus(state,'lac_build')==='자유 이용'?'free':contentCardStatus(state,'lac_build')==='이용 가능'?'available':'company',href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':'open-company-start'}):''}
-          ${contentIsVisible(state,'lac_cook')?contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:contentCardStatus(state,'lac_cook'),tagType:contentCardStatus(state,'lac_cook')==='자유 이용'?'free':contentCardStatus(state,'lac_cook')==='이용 가능'?'available':'company',href:'/cook/'}):''}
+          ${contentIsVisible(state,'company_management')?contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:contentCardStatus(state,'company_management'),tagType:contentCardStatus(state,'company_management')==='이용 가능'?'available':contentCardStatus(state,'company_management')==='이용 신청'?'request':'company',action:companyAction}):''}
+          ${contentIsVisible(state,'game_info')?contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:contentCardStatus(state,'game_info'),tagType:contentCardStatus(state,'game_info')==='자유 이용'?'free':contentCardStatus(state,'game_info')==='이용 가능'?'available':contentCardStatus(state,'game_info')==='이용 신청'?'request':'company',action:canOpenWebContent(state,'game_info')?'open-hub-game-info':current?'open-paid-content-guide':'open-company-start-game',contentKey:'game_info'}):''}
+          ${contentIsVisible(state,'lac_build')?contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:contentCardStatus(state,'lac_build'),tagType:contentCardStatus(state,'lac_build')==='자유 이용'?'free':contentCardStatus(state,'lac_build')==='이용 가능'?'available':contentCardStatus(state,'lac_build')==='이용 신청'?'request':'company',href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':current?'open-paid-content-guide':'open-company-start',contentKey:'lac_build'}):''}
+          ${contentIsVisible(state,'lac_cook')?contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:contentCardStatus(state,'lac_cook'),tagType:contentCardStatus(state,'lac_cook')==='자유 이용'?'free':contentCardStatus(state,'lac_cook')==='이용 가능'?'available':contentCardStatus(state,'lac_cook')==='이용 신청'?'request':'company',href:'/cook/'}):''}
         </div>
       </section>
       <footer class="hub-footer"><span>LAC HUB · PLAY TOGETHER</span><span>회사 관리 · 게임 정보 · LAC BUILD · LAC COOK</span></footer>

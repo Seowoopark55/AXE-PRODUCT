@@ -18,10 +18,11 @@ import {
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
-  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks,
+  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks, getMyCompanyAccess, listPlatformCompanyAccess, setPlatformCompanyAccess,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
-import {canOpenWebContent,contentIsVisible,hasCompany} from './platform/contentPolicy.js';
+import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass} from './platform/contentPolicy.js';
+import {companyPassRequestText,renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
@@ -109,9 +110,14 @@ function showCookPreview({ push = false } = {}) {
         cookHost.querySelector('[data-action="cook-preview-open"]')?.focus({preventScroll:true});
         return;
       }
-      if(!['open-create-company','copy-registration-info','check-member-registration'].includes(action))return;
+      if(!['open-create-company','copy-registration-info','check-member-registration','copy-company-pass-request'].includes(action))return;
       event.preventDefault();
       if(!state.session?.user){showCookRegistrationFeedback('먼저 Discord로 로그인해 주세요.',true);return;}
+      if(action==='copy-company-pass-request'){
+        try { await navigator.clipboard.writeText(companyPassRequestText(state,'LAC COOK'));showCookRegistrationFeedback('이용권 요청 문구를 복사했습니다.'); }
+        catch {showCookRegistrationFeedback('요청 문구를 복사하지 못했습니다.',true);}
+        return;
+      }
       if(action==='copy-registration-info'){
         const user=state.session.user,meta=user.user_metadata||{};
         const discordId=String(meta.provider_id||meta.sub||user.identities?.find?.(row=>String(row?.provider||'').toLowerCase()==='discord')?.identity_data?.sub||'').trim();
@@ -156,11 +162,8 @@ function showCookPreview({ push = false } = {}) {
             return;
           }
           await loadWebContentPolicies();
-          if(!state.contentPoliciesLoaded || !canOpenWebContent(state,'lac_cook')){
-            showCookRegistrationFeedback('회사 소속은 확인됐지만 COOK 이용 조건이 충족되지 않았습니다. 회사 대표 또는 운영자에게 문의해 주세요.',true);
-            return;
-          }
-          showCookRegistrationFeedback('회사 멤버 등록을 확인했습니다. HUB로 돌아가 LAC COOK 카드를 다시 선택해 주세요.');
+          if(!hasUnifiedPass(state)) { showCookRegistrationFeedback('회사 소속을 확인했습니다. 통합 이용권은 회사 대표 또는 운영자에게 신청해 주세요.');return; }
+          showCookRegistrationFeedback('회사 소속을 확인했습니다. HUB에서 이용권 상태를 확인해 주세요.');
           // Keep the preview mounted on this click. A separate navigation
           // performs the ordinary content-entry check again.
         }catch(error){showCookRegistrationFeedback(String(error?.message||'멤버 등록 확인에 실패했습니다.'),true);}
@@ -183,7 +186,7 @@ function showCookPreview({ push = false } = {}) {
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
       <section class="lac-cook-registration" aria-label="LAC COOK 회사 등록 안내">
-        ${renderCookRegistration(state)}
+        ${hasCompany(state)?renderCompanyPassNotice(state,'LAC COOK',true):renderCookRegistration(state)}
         <p class="lac-cook-registration__feedback" data-cook-registration-feedback role="status" aria-live="polite" hidden></p>
       </section>
       <figure class="lac-cook-shot lac-preview-frame" aria-label="LAC COOK 실제 이용 화면 미리보기">
@@ -366,13 +369,18 @@ function subscriptionReview(form){
   review.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-root.addEventListener('click', (event) => {
+root.addEventListener('click', async (event) => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
   const anchor = event.target instanceof Element ? event.target.closest('a[href="/build/"], a[href="/cook/"]') : null;
   if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
   event.preventDefault();
   event.stopPropagation();
   if (anchor.getAttribute('href') === '/cook/') {
+    if(hasCompany(state)) {
+      try { state.companyAccess=await getMyCompanyAccess(state.companyId);state.companyAccessError=''; }
+      catch(error){state.companyAccess=null;state.companyAccessError=String(error?.message||error||'이용권 조회 실패');}
+    }
+    await loadWebContentPolicies();
     showCookPreview({ push: true });
   } else {
     showEmbeddedBuild({ push: true });
@@ -389,7 +397,7 @@ window.addEventListener('lac:navigate-hub', () => {
 });
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['hub','hub-board','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','game-info','layout'];
+const validPages = ['paid-content-guide','hub','hub-board','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','info','game-info','layout'];
 
 const state = {
   envReady,
@@ -408,7 +416,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: 'hub',
+  page: 'hub', requestedContent:'회사 관리',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
@@ -422,7 +430,7 @@ const state = {
   memberFilter: 'all', memberRole:'', memberQuery:'', memberPage:1,
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
-  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null,
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null, companyAccess:null, companyAccessError:'', platformCompanyAccess:[],
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -481,25 +489,12 @@ function subscriptionAllowsUse(row){
   return !['paused','expired'].includes(subscriptionEffectiveStatus(row));
 }
 function applyPlatformCompanyVisibility(){
-  if(!state.platformAdmin || !(state.platformSnapshot||[]).length) return false;
-  const blocked=new Set((state.platformSnapshot||[])
-    .filter(row=>['paused','expired'].includes(String(row.effective_status||row.subscription_status||'')))
-    .map(row=>String(row.company_id||'')));
-  const previous=state.companyId;
-  state.companies=(state.companies||[]).filter(company=>!blocked.has(String(company.id)));
-  if(!state.companies.length){
-    state.companyId=null;
-    localStorage.removeItem('axe_product_company_id');
-    clearCompanyData();
-    return previous!==null;
-  }
-  if(!state.companies.some(company=>company.id===state.companyId)){
-    state.companyId=state.companies[0].id;
-    localStorage.setItem('axe_product_company_id',state.companyId);
-    return previous!==state.companyId;
-  }
+  // Keep paused/expired companies as membership identities so the HUB can show
+  // "이용 신청 / 일시정지" rather than falsely showing "회사 미등록".
+  // Restricted content is gated separately by the company-access RPC result.
   return false;
 }
+
 function clearLedgerPendingFiles(){
   for(const item of state.ledgerPendingFiles||[]){ try{ if(item.previewUrl) URL.revokeObjectURL(item.previewUrl); }catch{} }
   state.ledgerPendingFiles=[];
@@ -1063,7 +1058,7 @@ function clearCompanyData() {
   resetScopedGameInfo();
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
   state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
-  state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null;
+  state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null; state.companyAccess=null; state.companyAccessError='';
   state.questionBoard={configured:true,counts:{pending:0,checking:0,complete:0,unread:0,mine:0,total:0},items:[],error:''};
   state.suggestionBoard={configured:true,private:true,counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''};
   state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;
@@ -1084,6 +1079,16 @@ async function loadBaseCompanyData() {
   if (!state.companyId) { clearCompanyData(); return; }
   const memberships = await getMemberships(state.companyId);
   state.memberships = memberships || [];
+  // Entitlement and subscription status are fetched before company-private data.
+  // Any missing RPC, stale membership or network error keeps restricted content closed.
+  state.companyAccess=null;state.companyAccessError='';
+  try { state.companyAccess=await getMyCompanyAccess(state.companyId); }
+  catch(error){state.companyAccessError=String(error?.message||error||'이용권 조회 실패');}
+  if(!hasUnifiedPass(state)){
+    state.currentSubscription=null; state.modules=[];state.cookingOrderTypes=[];
+    state.fundSnapshot=null;state.assetsSnapshot=null;state.accountsSnapshot=null;
+    return;
+  }
   const [catalog, modules, cookingTypes, cookingConfig, settings, discord, channels, roles, config, onboarding, subscription] = await Promise.all([
     getModuleCatalog(), getCompanyModules(state.companyId), getCookingOrderTypes(state.companyId), getCookingDiscordConfig(state.companyId), getCompanySettings(state.companyId),
     getDiscordConnection(state.companyId), getDiscordChannels(state.companyId), getDiscordRoles(state.companyId), getDiscordCompanyConfig(state.companyId),
@@ -1273,6 +1278,7 @@ async function storeHubBoardFiles(ticketId,messageId){
 }
 async function loadCompanyData() {
   await loadBaseCompanyData();
+  if (!hasUnifiedPass(state)) return;
   if (!canAdmin(state)) { await Promise.all([loadQuestionBoard(),loadSuggestionBoard()]); return; }
   if (canAdmin(state)) {
     const jobs=[];
@@ -1362,6 +1368,7 @@ async function refreshAll() {
     await loadCompanies();
     if(state.page==='company-start' && state.companies.length)state.page='hub';
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
+    state.platformCompanyAccess=state.platformAdmin?await listPlatformCompanyAccess().catch(()=>null):[];
     await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);
     applyPlatformCompanyVisibility();
     state.page = allowedHistoryPage(state.page);
@@ -1897,6 +1904,13 @@ root.addEventListener('click', async event => {
   }
   if(action==='open-company-start'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='company';navigatePrimaryScreen('company-start');render();return;}
   if(action==='open-company-start-game'){if(state.companies.length){navigatePrimaryScreen('hub');render();return;}state.companyStartSource='game';navigatePrimaryScreen('company-start');render();return;}
+  if(action==='open-paid-content-guide'){
+    const key=String(actionEl.dataset.contentKey||'');
+    if(!hasCompany(state)) {navigatePrimaryScreen('company-start');render();return;}
+    if(!['game_info','lac_build'].includes(key))return;
+    state.requestedContent=key==='game_info'?'게임 정보':'LAC BUILD';
+    navigatePrimaryScreen('paid-content-guide');render();return;
+  }
   if(action==='open-hub-game-info'){
     if(!canOpenWebContent(state,'game_info')){navigatePrimaryScreen('hub');render();return;}
     navigatePrimaryScreen('game-info');
@@ -1907,12 +1921,15 @@ root.addEventListener('click', async event => {
     if(!state.companyId || !state.companies.some(company=>company.id===state.companyId)){
       navigatePrimaryScreen('company-start');render();return;
     }
+    try {await loadCompanyData();}
+    catch(error){state.companyAccess=null;state.companyAccessError=String(error?.message||error||'이용권 조회 실패');}
+    if(!hasUnifiedPass(state)){state.requestedContent='회사 관리';navigatePrimaryScreen('dashboard');render();return;}
     navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');
     if(!state.fundSnapshot)await withMutation(loadFundSnapshot);
     if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);
     render();return;
   }
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(['info','game-info'].includes(state.page)&&state.companyId===next)await loadGameInfo();return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;state.companyAccess=null;state.companyAccessError='';localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(['info','game-info'].includes(state.page)&&state.companyId===next)await loadGameInfo();return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
@@ -1931,6 +1948,14 @@ root.addEventListener('click', async event => {
     if(!state.canCreateCompany){setError('이미 회사를 생성한 계정은 새 회사를 추가로 만들 수 없습니다. 기존 회사에 멤버로 가입하는 것은 가능합니다.');return;}
     state.modal={type:'create-company'};render();return;
   }
+  if(action==='copy-company-pass-request'){
+    try{await navigator.clipboard.writeText(companyPassRequestText(state,state.requestedContent||'회사 관리'));setNotice('이용권 요청 문구를 복사했습니다.');}
+    catch{setError('이용권 요청 문구를 복사하지 못했습니다.');}return;
+  }
+  if(action==='refresh-company-pass'){
+    await withMutation(async()=>{await loadCompanyData();await loadWebContentPolicies();state.ready=true;setNotice(hasUnifiedPass(state)?'통합 이용권을 확인했습니다. HUB에서 콘텐츠를 선택해 주세요.':'현재 통합 이용권이 활성화되지 않았습니다.');navigatePrimaryScreen('hub');});return;
+  }
+
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
@@ -1955,7 +1980,7 @@ root.addEventListener('click', async event => {
     });
     return;
   }
-  if(action==='go-dashboard'){state.accountMenuOpen=false;navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
+  if(action==='go-dashboard'){state.accountMenuOpen=false;if(!hasUnifiedPass(state)){state.requestedContent='회사 관리';navigatePrimaryScreen('dashboard');render();return;}navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
     if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
@@ -2211,6 +2236,22 @@ root.addEventListener('click', async event => {
     catch(error){setError(error);}
     return;
   }
+  if(action==='toggle-company-pass'){
+    if(!state.platformAdmin)return;
+    if(!Array.isArray(state.platformCompanyAccess)){setError('통합 이용권 목록 조회에 실패했습니다. 페이지 새로고침 후 다시 시도해 주세요.');return;}
+    const id=String(actionEl.dataset.companyId||'');
+    const company=(state.platformSnapshot||[]).find(row=>String(row.company_id)===id);
+    if(!company)return;
+    const current=(state.platformCompanyAccess||[]).find(row=>String(row.company_id)===id)?.enabled===true;
+    const next=!current;
+    if(!window.confirm(`${company.company_name} 회사의 통합 이용권을 ${next?'부여':'회수'}할까요?\n기존 구독 일시정지·만료 상태는 그대로 유지됩니다.`))return;
+    await withMutation(async()=>{
+      await setPlatformCompanyAccess(id,next);
+      state.platformCompanyAccess=await listPlatformCompanyAccess();
+      if(state.companyId===id)await loadCompanyData();
+      setNotice(`통합 이용권을 ${next?'부여':'회수'}했습니다. 구독 상태가 정지·만료라면 콘텐츠는 계속 잠깁니다.`);
+    });return;
+  }
   if(action==='edit-platform-subscription'){if(!state.platformAdmin){setError('PLATFORM OWNER 권한이 필요합니다.');return;}state.modal={type:'platform-subscription',companyId:String(actionEl.dataset.companyId||'')};render();return;}
   if(action==='platform-view'){
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
@@ -2261,9 +2302,9 @@ root.addEventListener('click', async event => {
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='fill-subscription-period'){const form=actionEl.closest('form[data-form="platform-subscription"]');if(!state.platformAdmin||!form)return;const days={trial:7,standard:30,pro:90}[form.elements.plan.value];if(!days){window.alert('기간형 플랜(7·30·90일)을 먼저 선택해 주세요.');return;}const start=form.elements.starts_at;const end=form.elements.ends_at; if(!start.value)start.value=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const date=new Date(`${start.value}T12:00:00+09:00`);if(Number.isNaN(date.getTime())){window.alert('시작일을 확인해 주세요.');return;}date.setUTCDate(date.getUTCDate()+days-1);end.value=date.toISOString().slice(0,10);return;}
-    if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const subscription=await getCompanySubscription(companyId); if(state.companyId!==companyId)return; state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
+    if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null; state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
-    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
+    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
     if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){

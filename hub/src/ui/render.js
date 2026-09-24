@@ -1,7 +1,8 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderHubHome } from './hubHome.js';
-import {canOpenWebContent,hasCompany} from '../platform/contentPolicy.js';
+import {canOpenWebContent,hasCompany,hasUnifiedPass} from '../platform/contentPolicy.js';
+import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
 import { hubReturnButton } from './hubReturnButton.js';
 import { companyPlanName, companyStatusName, companySubscriptionEnd, companySubscriptionPeriod } from './subscriptionPresentation.js';
 import { detectLayoutStudioPreset } from './layoutStudio.js';
@@ -83,10 +84,14 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : state.page === 'paid-content-guide' || !hasUnifiedPass(state) ? renderCompanyPassLanding(state) : renderAuthed(state)}
   `;
 }
 
+function renderCompanyPassLanding(state){
+  const target=state.page==='paid-content-guide'?state.requestedContent||'콘텐츠':'회사 관리';
+  return `<div class="runtime-auth runtime-auth--first-run"><div class="runtime-first-run"><button type="button" class="runtime-btn-ghost" data-action="go-hub">← LAC HUB로 돌아가기</button>${renderCompanyPassNotice(state,target)}${target==='회사 관리'?`<section class="runtime-first-run__sample lac-preview-frame" aria-label="회사 관리 미리보기"><div class="lac-preview-frame__head"><div><strong>회사 관리 화면 미리보기</strong><small>실제 회사 정보와 연결되지 않은 예시 화면</small></div><span>가상 데이터</span></div>${companyLedgerDemo}<p>가상 예시이며 실제 회사 자료는 표시되지 않습니다.</p></section>`:''}</div></div>`;
+}
 function renderStartupLoading() {
   return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card"><span class="runtime-startup-spinner" aria-hidden="true"></span><div><strong>LAC HUB</strong><p>회사 정보를 불러오는 중입니다.</p></div></div></section>`;
 }
@@ -124,6 +129,8 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
+const companyLedgerDemo=`<div class="runtime-ledger-demo" aria-label="공금 내역 예시"><div class="runtime-ledger-demo__toolbar"><div><small>COMPANY FUND</small><strong>공금내역</strong></div><span>2026년 09월</span><span class="runtime-ledger-demo__mock-button">수입·지출 등록</span></div><div class="runtime-ledger-demo__filters"><span>전체 이름 ▾</span><span>전체 구분 ▾</span><span>전체 계좌 ▾</span><small>예시 1건</small></div><div class="runtime-ledger-demo__scroll"><div class="runtime-ledger-demo__row runtime-ledger-demo__row--head"><span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span></div><div class="runtime-ledger-demo__row"><span>09.24</span><span>예시 멤버</span><span>공용계좌</span><strong>주간 공금 납부</strong><span>승인반영</span><b>+50,000원</b><span>보기</span><span>수정</span></div></div><div class="runtime-ledger-demo__footer">가상 거래 1건 · 실제 회사 데이터와 연결되지 않습니다.</div></div>`;
+
 function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false,contentKind='company',registrationOnly=false}={}) {
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
   const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
@@ -135,7 +142,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   const title=game?'게임 정보':'회사 관리';
   const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
   // Illustrative rows only. Never fetch another company's data for a preview.
-  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:`<div class="runtime-ledger-demo" aria-label="공금 내역 예시"><div class="runtime-ledger-demo__toolbar"><div><small>COMPANY FUND</small><strong>공금내역</strong></div><span>2026년 09월</span><span class="runtime-ledger-demo__mock-button">수입·지출 등록</span></div><div class="runtime-ledger-demo__filters"><span>전체 이름 ▾</span><span>전체 구분 ▾</span><span>전체 계좌 ▾</span><small>예시 1건</small></div><div class="runtime-ledger-demo__scroll"><div class="runtime-ledger-demo__row runtime-ledger-demo__row--head"><span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span></div><div class="runtime-ledger-demo__row"><span>09.24</span><span>예시 멤버</span><span>공용계좌</span><strong>주간 공금 납부</strong><span>승인반영</span><b>+50,000원</b><span>보기</span><span>수정</span></div></div><div class="runtime-ledger-demo__footer">가상 거래 1건 · 실제 회사 데이터와 연결되지 않습니다.</div></div>`;
+  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:companyLedgerDemo;
   const registrationMarkup=`
     <details class="runtime-first-run__registration" ${focus==='create'||focus==='member'?'open':''}><summary><span><strong>우리 회사에서 이용하기</strong><small>새 회사 대표라면 등록 안내, 기존 회사 팀원이라면 멤버 등록 방법 확인</small></span><span aria-hidden="true">⌄</span></summary>
     <div class="runtime-first-run__choice"><strong>어떤 상황에 해당하나요?</strong><span>새 회사 대표는 왼쪽, 기존 회사 팀원은 오른쪽 안내를 확인해 주세요.</span></div>
@@ -792,7 +799,7 @@ function renderPlatformContentSettings(state) {
   ].filter(item => !item.keys.some(key => knownKeys.has(key)));
   const awaiting = unlinked.length ? `<section class="lac-content-admin-unlinked"><h3>정책 연결 대기 중인 웹 콘텐츠</h3>${unlinked.map(item => `<article class="lac-content-admin-row lac-content-admin-row--pending"><div class="lac-content-admin-name"><strong>${esc(item.name)}</strong><span class="lac-content-admin-description">${esc(item.detail)}</span></div><span class="lac-content-admin-phase">설정 준비 중</span></article>`).join('')}</section>` : '';
   const bot = `<section class="lac-content-admin-unlinked"><h3>회사별 Discord BOT 기능</h3><p>공금 · 총알 · 무법지대 · 개조서 · 핀볼 · 요리 주문 · 계좌조회 · AI 질문(BETA)은 회사 설정에서 각각 관리합니다. AI 질문의 실제 활성화 및 콘텐츠별 이용 권한은 별도 연동 작업이 필요합니다.</p></section>`;
-  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사별 개별 이용권과 직접 주소의 서버 차단은 다음 단계에서 연결합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
+  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. COOK 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
 function renderPlatform(state){
@@ -826,7 +833,7 @@ function renderPlatform(state){
       </section>
       <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>SUBSCRIPTION</span><h2>회사 이용권 현황</h2><p>기존 회사 구독 데이터를 조회합니다.</p></div>
         <div class="platform-overview__status"><span>이용 가능 회사</span><strong>${active}<small> / ${all.length}개</small></strong></div>
-        <p class="platform-overview__hint">이용권 발급·등록 및 콘텐츠 접근 제어는 별도 개발 단계입니다. 현 화면에서는 기존 회사 정보만 조회합니다.</p>
+        <p class="platform-overview__hint">회사별 통합 이용권은 회사 관리 화면에서 별도로 부여·회수할 수 있습니다. 기존 구독 일시정지·만료 설정은 유지됩니다.</p>
         <button type="button" class="platform-overview__more" data-action="platform-view" data-platform-view="companies">회사별 이용권 확인 <span aria-hidden="true">→</span></button>
       </section>
     </div>
@@ -1067,7 +1074,9 @@ function platformSubscriptionModal(state,m){
         <h3>${esc(companyPlanName(plan))}</h3>
         <dl><div><dt>시작일</dt><dd>${esc(row.starts_at?fmtDate(row.starts_at,true):'미설정')}</dd></div><div><dt>종료일</dt><dd>${esc(originalEnd)}</dd></div>${hasGrace?`<div><dt>유예 종료일</dt><dd>${esc(fmtDate(row.grace_until,true))}</dd></div>`:''}</dl>
         ${missingEnd?'<p class="lac-subscription-warning">기간형 이용권이지만 종료일이 없습니다. 기존 기간을 추측해 자동 연장하지 않습니다. 실제 날짜를 확인한 뒤 새 기간을 설정하거나 상세 설정을 이용해 주세요.</p>':''}
-        <small>현재 저장된 회사 공통 이용권 정보입니다. 아래 편집은 최종 저장 전까지 반영되지 않습니다.</small>
+        <small>기존 회사 구독 상태입니다. 통합 이용권 부여 여부와 함께 활성화되어야 유료 콘텐츠를 이용할 수 있습니다.</small>
+      </section>
+      <section class="lac-company-pass-admin" aria-label="회사 통합 이용권 발급"><strong>회사 통합 이용권</strong><p>회사 가입만으로는 발급되지 않습니다. 아래 설정은 구독 일시정지·만료 상태를 해제하지 않습니다.</p><span>현재: ${!Array.isArray(state.platformCompanyAccess)?'조회 실패':((state.platformCompanyAccess||[]).find(item=>String(item.company_id)===String(row.company_id))?.enabled===true)?'부여됨':'미부여'}</span><button type="button" data-action="toggle-company-pass" data-company-id="${esc(row.company_id)}" ${!Array.isArray(state.platformCompanyAccess)?'disabled':''}>${((state.platformCompanyAccess||[]).find(item=>String(item.company_id)===String(row.company_id))?.enabled===true)?'통합 이용권 회수':'통합 이용권 부여'}</button>
       </section>
       <form data-form="platform-subscription" class="runtime-modal-form lac-subscription-form">
         <input type="hidden" name="company_id" value="${esc(row.company_id)}">
@@ -1093,7 +1102,7 @@ function platformSubscriptionModal(state,m){
             <div class="runtime-modal-hint is-full">기존 Discord 연결과 회사 정보는 이 화면에서 변경하지 않습니다. 무제한 상태로 저장할 경우 기존 종료일과 유예 종료일이 삭제될 수 있으므로 미리보기를 확인해 주세요.</div>
           </div>
         </details>
-        <section class="lac-subscription-review is-full" data-subscription-review hidden aria-live="polite"><h3>저장 전 변경 내용 확인</h3><div data-subscription-review-lines></div><p>이 내용으로 저장하면 회사 관리 이용권에 즉시 반영될 수 있습니다. BUILD 무료 이용 설정은 변경하지 않습니다.</p></section>
+        <section class="lac-subscription-review is-full" data-subscription-review hidden aria-live="polite"><h3>저장 전 변경 내용 확인</h3><div data-subscription-review-lines></div><p>이 내용으로 저장하면 회사 구독 상태에 즉시 반영됩니다. 통합 이용권 부여 여부는 위에서 별도로 설정합니다. BUILD 무료 이용 설정은 변경하지 않습니다.</p></section>
         <footer class="lac-subscription-footer is-full"><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><div><button type="button" class="runtime-btn-ghost" data-action="review-subscription">변경 내용 확인</button><button type="submit" class="runtime-btn-primary" data-subscription-submit disabled>확인 후 저장</button></div></footer>
       </form>
       <details class="lac-subscription-company-settings"><summary>별도 회사 설정 · 위험 작업</summary><p>회사 삭제는 구독 기간 설정과 다른 작업입니다. 아래에서 별도의 확인 절차로 이동합니다.</p><button type="button" class="runtime-btn-danger" data-action="open-delete-company" data-company-id="${esc(row.company_id)}">회사 삭제 관리</button></details>

@@ -1671,3 +1671,18 @@ export async function attachFundLedgerEvidence(companyId, entryId, payload = {})
   });
   return unwrap(result, '공금 첨부파일을 연결하지 못했습니다.');
 }
+
+// Unified company pass is independently granted; company membership alone does not unlock paid content.
+export async function getMyCompanyAccess(companyId) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_my_company_access',{p_company_id:companyId}), '회사 이용권을 확인하지 못했습니다.') || [];
+  return Array.isArray(rows) ? rows[0] || null : rows;
+}
+export async function listPlatformCompanyAccess() {
+  assertClient();
+  return unwrap(await supabase.rpc('lac_admin_list_company_access'), '회사별 통합 이용권을 확인하지 못했습니다.') || [];
+}
+export async function setPlatformCompanyAccess(companyId, enabled) {
+  assertClient();
+  return unwrap(await supabase.rpc('lac_admin_set_company_access',{p_company_id:companyId,p_enabled:enabled}), '회사 이용권 설정을 저장하지 못했습니다.');
+}
