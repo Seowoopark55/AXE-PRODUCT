@@ -93,9 +93,10 @@ function showCookPreview({ push = false } = {}) {
       <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
-      <div class="lac-cook-gate__sample" aria-label="가상 요리 제작 화면 예시"><div><strong>제작 작업대</strong><span>체험용 예시 · 실제 데이터가 아닙니다</span></div><div class="lac-cook-gate__item"><b>샘플 요리 · 2 SET</b><span>재료 3종</span></div><div class="lac-cook-gate__item"><b>재료 준비</b><span>예시 재료 A × 4 · B × 2 · C × 1</span></div><div class="lac-cook-gate__item"><b>작업 체크리스트</b><span>□ 재료 준비　□ 제작 완료</span></div></div>
+      <div class="lac-cook-demo" aria-label="LAC COOK 제작 계산 화면 예시"><div class="lac-cook-demo__top"><div><small>COOK WORKSPACE</small><strong>제작 계산</strong></div><span>가상 데이터 · 체험 예시</span></div><div class="lac-cook-demo__grid"><div><small>선택한 요리</small><strong>예시 요리 A</strong></div><div><small>제작 수량</small><strong>2 SET</strong></div><div><small>예상 결과</small><strong>완성품 2개</strong></div></div><div class="lac-cook-demo__table"><div class="lac-cook-demo__tr is-head"><span>필요 재료</span><span>1 SET</span><span>총 필요량</span><span>준비 상태</span></div><div class="lac-cook-demo__tr"><strong>예시 재료 A</strong><span>2개</span><b>4개</b><span>준비 전</span></div><div class="lac-cook-demo__tr"><strong>예시 재료 B</strong><span>1개</span><b>2개</b><span>준비 완료</span></div></div><small>실제 회사의 주문·재료·작업 기록은 표시하거나 변경하지 않습니다.</small></div>
+      <div class="lac-cook-demo__join"><strong>우리 회사에서 LAC COOK 이용하기</strong><p>이미 회사 멤버라면 소속 회사의 이용 설정을 확인해 주세요. 새 회사 대표라면 HUB의 회사 관리에서 등록 방법을 확인할 수 있습니다.</p><a class="lac-cook-gate__cta" href="/">회사 등록 · 이용 안내 보기 →</a></div>
       <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되어 있다면 바로 이용할 수 있습니다. 아직 회사가 없다면 HUB에서 회사 등록 안내를 확인해 주세요.'}</p>
-      <a class="lac-cook-gate__cta" href="/">LAC HUB로 이동 →</a>
+
     </section>`;
   } else if (!cookFrame) {
     cookHost.replaceChildren();
