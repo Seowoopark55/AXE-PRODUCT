@@ -165,3 +165,19 @@
 /* The whole eight-column list scrolls as one on compact viewports; it must
    not be clipped by the legacy company-list overflow rule. */
 .platform-center .platform-company-list { overflow:visible; }
+
+/* Content management: staged policy is visibly distinct from enforced access. */
+.platform-center .lac-content-admin>header>div { min-width:0; }
+.platform-center .lac-content-admin-intro { margin:5px 0 0; color:#9aa8b5; font-size:12px; line-height:1.55; }
+.platform-center .lac-content-admin-name { flex:1 1 260px; min-width:0; }
+.platform-center .lac-content-admin-description { color:#b9c3cd; font-size:12px; line-height:1.5; }
+.platform-center .lac-content-admin-actions { flex-wrap:wrap; justify-content:flex-end; gap:9px; }
+.platform-center .lac-content-admin-actions label { border:1px solid #323e49; border-radius:9px; background:#111820; padding:8px 9px; }
+.platform-center .lac-content-admin-actions label>span { display:grid; gap:2px; }
+.platform-center .lac-content-admin-actions label>span small { max-width:150px; color:#8796a3; font-size:10px; line-height:1.35; }
+.platform-center .lac-content-admin-unlinked { display:grid; gap:9px; padding-top:8px; border-top:1px solid #2c3741; }
+.platform-center .lac-content-admin-unlinked h3 { margin:0; color:#e6e9ed; font-size:14px; }
+.platform-center .lac-content-admin-unlinked p { margin:0; color:#9caab7; font-size:12px; line-height:1.65; }
+.platform-center .lac-content-admin-row--pending { background:#11171d; }
+.platform-center .lac-content-admin-phase { flex-shrink:0; border:1px solid #4d5360; border-radius:999px; padding:6px 10px; color:#b9c3cd; font-size:11px; }
+@media (max-width:750px) { .platform-center .lac-content-admin>header { flex-wrap:wrap; } .platform-center .lac-content-admin-actions { width:100%; justify-content:flex-start; } .platform-center .lac-content-admin-actions label { flex:1 1 175px; justify-content:space-between; } }

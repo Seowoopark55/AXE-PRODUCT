@@ -744,17 +744,33 @@ function renderPlatformSuggestionQueue(state){
   return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>기존 회사 건의 · 제보</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
 }
 
+// This screen displays stored policy intentions, NOT enforced authorization.
+// Do not add new permission toggles here until DB/RPC and server-side access gates exist.
 function renderPlatformContentSettings(state) {
   const rows = state.platformContentSettings;
-  const note = '<div class="lac-content-warning"><strong>설정 저장 단계</strong><span>현재 ON/OFF는 DB에 저장되는 운영 정책입니다. 실제 접근 차단·무료 이용권 판정·독립 BUILD 사이트에는 아직 적용되지 않습니다. 회사 관리 이용도 기존 방식으로 유지됩니다.</span></div>';
+  const note = '<div class="lac-content-warning"><strong>현재는 운영 정책 저장 단계입니다</strong><span>아래의 공개·무료 설정은 DB 저장값입니다. 실제 접근 차단·무료 이용권 판정·독립 BUILD 사이트에는 아직 적용되지 않습니다. 회사 관리 이용도 기존 방식으로 유지됩니다. 저장값만 바꿔도 기존 이용자의 화면이나 권한이 곧바로 달라지지는 않습니다.</span></div>';
   if (state.platformContentError) return `<section class="lac-content-admin">${note}<p class="lac-content-error">${esc(state.platformContentError)}</p><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">다시 불러오기</button></section>`;
   if (!Array.isArray(rows)) return `<section class="lac-content-admin">${note}<p>콘텐츠 설정을 불러오는 중입니다.</p></section>`;
+  const descriptions = {
+    company_management:'멤버 · 계좌 · 공금 · 자산을 관리하는 회사 운영 공간',
+    lac_build:'회사 등록 없이 이용하도록 계획한 개조서 조합 서비스',
+    lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 베타 서비스',
+    game_info:'소속 회사에 연결된 게임 자료 및 정보',
+  };
   const items = rows.map(row => `<article class="lac-content-admin-row">
-    <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><small>${esc(row.content_key)}</small></div>
-    <div class="lac-content-admin-actions"><label>콘텐츠 공개 <button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(row.display_name)} 공개 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'ON':'OFF'}</button></label>
-    <label>무료 개방 <button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(row.display_name)} 무료 개방 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'ON':'OFF'}</button></label></div>
+    <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 접근 정책 연동 전</small></div>
+    <div class="lac-content-admin-actions"><label><span>공개 설정 <small>메인 노출 정책 저장값</small></span><button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(row.display_name)} 공개 설정 ${row.is_published?'켜짐':'꺼짐'} (실제 노출 미연동)" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'켜짐':'꺼짐'}</button></label>
+    <label><span>무료 설정 <small>회사 등록 없이 이용할 정책 저장값</small></span><button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(row.display_name)} 무료 설정 ${row.is_free?'켜짐':'꺼짐'} (실제 권한 미연동)" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'켜짐':'꺼짐'}</button></label></div>
   </article>`).join('');
-  return `<section class="lac-content-admin">${note}<header><h2>콘텐츠 운영</h2><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div></section>`;
+  // The menu may contain more content than the current legacy policy RPC returns.
+  // Show missing entries explicitly instead of pretending they are configurable.
+  const knownKeys = new Set(rows.map(row => String(row.content_key)));
+  const unlinked = [
+    {keys:['game_info'],name:'게임 정보',detail:'현재 회사별 정보 권한 유지 · 콘텐츠 공개 정책 연결 전'},
+  ].filter(item => !item.keys.some(key => knownKeys.has(key)));
+  const awaiting = unlinked.length ? `<section class="lac-content-admin-unlinked"><h3>정책 연결 대기 중인 웹 콘텐츠</h3>${unlinked.map(item => `<article class="lac-content-admin-row lac-content-admin-row--pending"><div class="lac-content-admin-name"><strong>${esc(item.name)}</strong><span class="lac-content-admin-description">${esc(item.detail)}</span></div><span class="lac-content-admin-phase">설정 준비 중</span></article>`).join('')}</section>` : '';
+  const bot = `<section class="lac-content-admin-unlinked"><h3>회사별 Discord BOT 기능</h3><p>공금 · 총알 · 무법지대 · 개조서 · 핀볼 · 요리 주문 · 계좌조회 · AI 질문(BETA)은 회사 설정에서 각각 관리합니다. AI 질문의 실제 활성화 및 콘텐츠별 이용 권한은 별도 연동 작업이 필요합니다.</p></section>`;
+  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">현재 등록된 웹 콘텐츠 정책을 확인합니다. 회사별 이용 권한과 실제 접근 제어는 아직 제공하지 않습니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
 function renderPlatform(state){
