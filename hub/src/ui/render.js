@@ -157,7 +157,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   if(registrationOnly)return registrationMarkup;
   return `
     <header class="runtime-first-run__head"><span>${esc(title)} · 미리보기</span><h1>${esc(title)}를 먼저 살펴보세요.</h1><p>${esc(summary)}</p></header>
-    <section class="runtime-first-run__sample" aria-label="${esc(title)} 화면 예시">${demo}<p>미리보기는 실제 운영 화면을 설명하는 가상 예시입니다. 다른 회사의 정보는 표시하지 않습니다.</p></section>
+    <section class="runtime-first-run__sample lac-preview-frame" aria-label="${esc(title)} 화면 예시"><div class="lac-preview-frame__head"><div><strong>${esc(title)} 화면 미리보기</strong><small>실제 화면 형태를 참고한 가상 예시</small></div><span>화면 예시</span></div>${demo}<p>예시 데이터이며 실제 회사의 정보는 표시하지 않습니다.</p></section>
     ${registrationMarkup}`;
 }
 

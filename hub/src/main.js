@@ -86,12 +86,29 @@ function showCookPreview({ push = false } = {}) {
     cookHost.id='lac-cook-host';
     cookHost.setAttribute('aria-label','LAC COOK');
     root.insertAdjacentElement('afterend',cookHost);
-    // COOK lives beside #app; handle its registration buttons without routing
-    // users away merely to read the same company/teammate instructions.
+    // Close the on-page screenshot dialog by clicking its backdrop; native
+    // <dialog> handles Escape and restores keyboard focus to the opener.
+    cookHost.addEventListener('click', event=>{
+      const dialog=cookHost.querySelector('[data-cook-preview-dialog]');
+      if(dialog?.open && event.target===dialog)dialog.close();
+    });
+    // COOK has its own route: keep preview/registration actions inside COOK.
     cookHost.addEventListener('click', async event=>{
       const button=event.target.closest('button[data-action]');
       if(!button||!cookHost.contains(button))return;
       const action=button.dataset.action;
+      if(action==='cook-preview-open'){
+        event.preventDefault();
+        const dialog=cookHost.querySelector('[data-cook-preview-dialog]');
+        if(dialog && !dialog.open)dialog.showModal();
+        return;
+      }
+      if(action==='cook-preview-close'){
+        event.preventDefault();
+        cookHost.querySelector('[data-cook-preview-dialog]')?.close();
+        cookHost.querySelector('[data-action="cook-preview-open"]')?.focus({preventScroll:true});
+        return;
+      }
       if(!['open-create-company','copy-registration-info','check-member-registration'].includes(action))return;
       event.preventDefault();
       if(!state.session?.user){showCookRegistrationFeedback('먼저 Discord로 로그인해 주세요.',true);return;}
@@ -153,18 +170,23 @@ function showCookPreview({ push = false } = {}) {
       <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
-      <figure class="lac-cook-shot" aria-label="LAC COOK 실제 이용 화면 미리보기">
-        <div class="lac-cook-shot__head"><strong>실제 LAC COOK 이용 화면</strong><span>화면 캡처 · 미리보기에서는 저장/주문 불가</span></div>
-        <a href="/hub/lac-cook-screen-preview.png" target="_blank" rel="noopener noreferrer" aria-label="LAC COOK 실제 이용 화면 캡처 크게 보기">
-          <img src="/hub/lac-cook-screen-preview.png" alt="요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트가 함께 보이는 LAC COOK 실제 화면" loading="lazy">
-        </a>
-        <figcaption>작업할 요리를 선택하고 필요한 재료와 구매 리스트를 한곳에서 확인할 수 있어요. 이미지를 누르면 크게 볼 수 있습니다.</figcaption>
-      </figure>
       <section class="lac-cook-registration" aria-label="LAC COOK 회사 등록 안내">
         ${renderCookRegistration(state)}
         <p class="lac-cook-registration__feedback" data-cook-registration-feedback role="status" aria-live="polite" hidden></p>
       </section>
-      <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되지 않았다면 바로 위 ‘우리 회사에서 이용하기’를 펼쳐 등록 방법을 확인해 주세요.'}</p>
+      <figure class="lac-cook-shot lac-preview-frame" aria-label="LAC COOK 실제 이용 화면 미리보기">
+        <div class="lac-preview-frame__head"><div><strong>LAC COOK 화면 미리보기</strong><small>실제 이용 화면을 촬영한 이미지</small></div><span>화면 캡처</span></div>
+        <button type="button" class="lac-cook-shot__open" data-action="cook-preview-open" aria-haspopup="dialog" aria-controls="lac-cook-preview-dialog" aria-label="이 페이지에서 LAC COOK 실제 이용 화면 크게 보기">
+          <img src="/hub/lac-cook-screen-preview.png" alt="요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트가 함께 보이는 LAC COOK 실제 화면" loading="lazy">
+          <span class="lac-cook-shot__zoom">＋ 화면 전체 보기</span>
+        </button>
+        <figcaption>요리 제작부터 재료 구매 리스트까지 실제 화면으로 살펴보세요. 이미지를 누르면 이 페이지에서 확대됩니다.</figcaption>
+      </figure>
+      <dialog id="lac-cook-preview-dialog" class="lac-cook-preview-dialog" data-cook-preview-dialog aria-label="LAC COOK 실제 화면 확대 보기">
+        <div class="lac-cook-preview-dialog__head"><strong>LAC COOK · 실제 이용 화면</strong><button type="button" data-action="cook-preview-close" aria-label="확대 화면 닫기">닫기 ×</button></div>
+        <img src="/hub/lac-cook-screen-preview.png" alt="LAC COOK의 요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트 전체 화면">
+      </dialog>
+      ${(!loggedIn||!state.contentPoliciesLoaded||!published)?`<p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.'}</p>`:''}
 
     </section>`;
   } else if (!cookFrame) {
