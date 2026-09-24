@@ -294,3 +294,103 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
     overscroll-behavior:contain;
   }
 }
+
+
+/* Stage 17 · LAC HUB game information explorer.
+   Keep our original dark/gold identity and original live catalogue handlers.
+   The independent page alone gets a left category rail and a content-first
+   workspace; the embedded company information layout is untouched. */
+.game-center .game-info-rework{display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0;overflow:visible}
+.game-center .game-info-rework>.axe-info-toolbar{position:relative;top:auto;left:auto;right:auto;flex:0 0 44px;min-height:44px;height:44px;margin:0;padding:4px 10px;border-radius:9px}
+.game-center .game-info-rework>.axe-info-toolbar>input{height:33px;font-size:12px}
+.game-center .game-info-explorer{display:grid;grid-template-columns:172px minmax(0,1fr);gap:10px;flex:1 1 auto;min-height:0;min-width:0}
+.game-center .game-info-explorer__rail{display:flex;flex-direction:column;gap:9px;min-width:0;padding:13px 9px;background:#101821;border:1px solid #36404b;border-radius:10px}
+.game-center .game-info-explorer__rail-title{padding:0 9px;color:#e2bd80;font-size:12px;font-weight:850;letter-spacing:.015em}
+.game-center .game-info-explorer__rail-note{margin:auto 5px 1px;padding:12px 5px 0;border-top:1px solid #28323d;color:#82909c;font-size:10px;line-height:1.6}
+.game-center .game-info-explorer .axe-info-tabs{display:flex;flex:0 0 auto;flex-direction:column;gap:4px;height:auto;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none}
+.game-center .game-info-explorer .axe-info-tabs>button{display:flex;justify-content:flex-start;min-height:39px;height:auto;gap:10px;padding:8px 9px;border:1px solid transparent;border-left:2px solid transparent;border-radius:7px;color:#b9c4cd;background:transparent;text-align:left;font-size:12px;white-space:normal}
+.game-center .game-info-explorer .axe-info-tabs>button:last-child{border-right:1px solid transparent}
+.game-center .game-info-explorer .axe-info-tabs>button:hover{background:#202a34;border-color:#42505c;color:#fff1d8}
+.game-center .game-info-explorer .axe-info-tabs>button.is-active{border:1px solid rgba(223,175,104,.39);border-left:3px solid #e3b766;background:linear-gradient(90deg,rgba(198,150,76,.18),rgba(198,150,76,.035));color:#ffe2ae}
+.game-center .game-info-explorer .axe-info-tabs>button.is-active:after{display:none}
+.game-center .game-info-explorer .axe-info-tab-icon{width:17px;height:17px;flex:0 0 17px}
+.game-center .game-info-explorer__workspace{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0}
+.game-center .game-info-explorer__filters:empty{display:none}
+.game-center .game-info-explorer__filters{display:grid;gap:8px;min-width:0}
+.game-center .game-info-explorer .axe-info-subfilters{max-height:min(18vh,115px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;margin:0;padding:9px 12px;gap:6px;background:#111b24;border-color:#35424e}
+.game-center .game-info-explorer .axe-info-subfilter__label{color:#d2ac72;font-size:11px;flex-basis:66px}
+.game-center .game-info-explorer .axe-info-chips{gap:5px}
+.game-center .game-info-explorer .axe-info-chips>button{min-height:28px;padding:4px 9px;font-size:11px}
+.game-center .game-info-explorer .axe-info-content{display:grid;flex:1 1 auto;grid-template-columns:minmax(235px,.72fr) minmax(0,1.28fr);gap:10px;min-height:0;min-width:0;overflow:hidden;align-items:stretch}
+.game-center .game-info-explorer .axe-info-list,.game-center .game-info-explorer .axe-info-detail{border-color:#34404a;background:#111a23;border-radius:10px}
+.game-center .game-info-explorer .axe-info-list__heading{min-height:42px;flex:0 0 42px;padding:0 12px;background:#16212b;font-size:12px}
+.game-center .game-info-explorer .axe-info-list__items{min-height:0;max-height:none;flex:1 1 auto;padding:6px;overflow-y:auto;overscroll-behavior:contain}
+.game-center .game-info-explorer .axe-info-row{min-height:43px;padding:8px 25px 8px 10px;margin:0 0 4px;border-color:#273540;background:#131e27}
+.game-center .game-info-explorer .axe-info-row strong{font-size:12px}
+.game-center .game-info-explorer .axe-info-row.is-active{border-color:rgba(229,181,108,.6);border-left:3px solid #e4b664;background:#302b25}
+.game-center .game-info-explorer .axe-info-row::after{right:8px;font-size:19px}
+.game-center .game-info-explorer .axe-info-detail--studio{grid-template-rows:minmax(108px,26%) minmax(0,1fr);padding:0;overflow:hidden}
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse{grid-template-rows:minmax(118px,31%) minmax(0,1fr)}
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular{grid-template-rows:minmax(110px,27%) minmax(0,1fr)}
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense{grid-template-rows:minmax(88px,21%) minmax(0,1fr)}
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{grid-template-rows:minmax(82px,19%) auto;overflow-y:auto;overscroll-behavior:contain}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero{min-height:0;padding:9px 14px 12px;background:linear-gradient(90deg,rgba(6,12,19,.84),rgba(6,12,19,.43))}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero>header{flex:0 0 auto;min-height:0;padding:0 0 3px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero header strong{font-size:clamp(17px,1.65vw,21px)}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-sections{padding:8px;gap:8px;overflow-y:auto;overscroll-behavior:contain;background:#101922}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-section{border-color:#35434e;background:#182530}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-section--requirements{border-color:rgba(212,168,104,.36);background:#211f1d}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-section h3{min-height:33px;font-size:11px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-section dt{font-size:11px;color:#c7ab82}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-section dd{font-size:12px;line-height:1.55}
+.game-center .game-info-explorer .axe-info-detail--empty{min-height:0}
+.game-center .game-info-explorer .axe-info-detail--empty>.axe-info-detail__eyebrow{height:110px;min-height:0}
+.game-center .game-info-explorer .axe-info-detail--empty .axe-info-detail__placeholder{min-height:150px}
+/* Keep imagery as a small brand cue: the real selected data owns the page. */
+.game-center .game-center__body{grid-template-rows:112px minmax(0,1fr);gap:10px}
+.game-center .game-center__hero{min-height:0;padding:18px 25px;border-radius:0 0 10px 10px}
+.game-center .game-center__hero p{max-width:620px;font-size:12px;line-height:1.6}
+@media (min-width:1100px) and (min-height:755px){
+ .game-center .game-info-rework{height:100%;min-height:0}
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense .game-detail-section dl,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended .game-detail-section dl{grid-template-columns:1fr}
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense .game-detail-section .axe-info-detail__datum,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended .game-detail-section .axe-info-detail__datum{grid-template-columns:minmax(60px,.7fr) minmax(0,1.3fr);gap:6px}
+}
+@media (max-width:1099px), (max-height:754px){
+ body:has(.runtime-app--game-info.game-center){overflow-y:auto}
+ .game-center .game-center__body{display:flex;flex-direction:column;overflow:visible}
+ .game-center .game-center__hero{flex:0 0 112px}
+ .game-center .game-info-rework{height:auto;overflow:visible}
+ .game-center .game-info-explorer{flex:0 0 auto}
+ .game-center .game-info-explorer__workspace{min-height:0}
+ .game-center .game-info-explorer .axe-info-content{overflow:visible;align-items:start}
+ .game-center .game-info-explorer .axe-info-list{height:auto;max-height:460px}
+ .game-center .game-info-explorer .axe-info-list__items{max-height:400px}
+ .game-center .game-info-explorer .axe-info-detail--studio,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{grid-template-rows:minmax(115px,auto) auto;height:auto;max-height:none;overflow:visible}
+ .game-center .game-info-explorer .axe-info-detail--studio .game-detail-sections{overflow:visible;max-height:none}
+}
+@media (max-width:900px){
+ .game-center .game-info-explorer{grid-template-columns:1fr;gap:9px}
+ .game-center .game-info-explorer__rail{padding:9px;gap:5px}
+ .game-center .game-info-explorer__rail-title{font-size:11px}
+ .game-center .game-info-explorer .axe-info-tabs{flex-direction:row;flex-wrap:wrap;gap:5px}
+ .game-center .game-info-explorer .axe-info-tabs>button{flex:1 1 110px;justify-content:center;min-height:36px;padding:7px 6px;font-size:11px}
+ .game-center .game-info-explorer__rail-note{display:none}
+ .game-center .game-info-explorer .axe-info-content{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}
+}
+@media (max-width:620px){
+ .game-center .game-center__body{padding:0 9px 12px}
+ .game-center .game-center__hero{flex-basis:100px;padding:15px}
+ .game-center .game-center__hero p{font-size:11px}
+ .game-center .game-info-explorer .axe-info-tabs>button{flex:1 1 90px}
+ .game-center .game-info-explorer .axe-info-content{grid-template-columns:1fr;gap:9px}
+ .game-center .game-info-explorer .axe-info-list{max-height:310px}
+ .game-center .game-info-explorer .axe-info-list__items{max-height:260px}
+ .game-center .game-info-explorer .axe-info-subfilters{max-height:160px}
+ .game-center .game-info-explorer .axe-info-detail--studio .game-detail-sections{grid-template-columns:1fr}
+}
