@@ -118,8 +118,8 @@ function showCookPreview({ push = false } = {}) {
         const discordName=String(meta.full_name||meta.global_name||meta.name||meta.user_name||meta.preferred_username||'Discord 사용자').trim();
         if(!discordId){showCookRegistrationFeedback('Discord ID를 확인하지 못했습니다. 다시 로그인해 주세요.',true);return;}
         try{
-          await navigator.clipboard.writeText(`LAC HUB 멤버 등록 요청\nDiscord 이름: ${discordName}\nDiscord ID: ${discordId}`);
-          showCookRegistrationFeedback('대표·관리자에게 전달할 Discord 정보를 복사했습니다.');
+          await navigator.clipboard.writeText(`회사 대표·관리자에게 멤버 등록 요청\nDiscord 이름: ${discordName}\nDiscord ID: ${discordId}`);
+          showCookRegistrationFeedback('회사 대표·관리자에게 전달할 요청 정보를 복사했습니다.');
         }catch{showCookRegistrationFeedback('복사하지 못했습니다. 화면에 표시된 Discord ID를 직접 전달해 주세요.',true);}
         return;
       }
@@ -141,16 +141,28 @@ function showCookPreview({ push = false } = {}) {
         return;
       }
       if(action==='check-member-registration'){
+        // Checking registration must not automatically mount or navigate into COOK.
         button.disabled=true;
         try{
-          await claimDiscordMemberships();await loadCompanies();
-          if(!state.companies?.length){showCookRegistrationFeedback('아직 멤버 등록이 확인되지 않습니다. 대표·관리자에게 Discord 계정 등록을 요청해 주세요.',true);return;}
-          if(!state.companyId||!state.companies.some(row=>row.id===state.companyId))state.companyId=state.companies[0].id;
-          localStorage.setItem('axe_product_company_id',state.companyId);
-          await loadCompanyData();state.ready=true;
-          // Re-evaluate the COOK policy after the member account is linked.
-          showCookPreview();
-          if(!canOpenWebContent(state,'lac_cook'))showCookRegistrationFeedback('회사 등록은 확인됐지만 COOK 이용 권한은 확인이 필요합니다.',true);
+          await claimDiscordMemberships();
+          await loadCompanies();
+          if(!state.companies?.length){
+            showCookRegistrationFeedback('아직 회사에서 등록한 멤버가 아닙니다. 대표·관리자에게 등록을 요청해 주세요.',true);
+            return;
+          }
+          await loadCompanyData();
+          if(!currentMembership(state)){
+            showCookRegistrationFeedback('현재 계정의 회사 멤버 권한을 확인하지 못했습니다. 대표·관리자에게 문의해 주세요.',true);
+            return;
+          }
+          await loadWebContentPolicies();
+          if(!state.contentPoliciesLoaded || !canOpenWebContent(state,'lac_cook')){
+            showCookRegistrationFeedback('회사 소속은 확인됐지만 COOK 이용 조건이 충족되지 않았습니다. 회사 대표 또는 운영자에게 문의해 주세요.',true);
+            return;
+          }
+          showCookRegistrationFeedback('회사 멤버 등록을 확인했습니다. HUB로 돌아가 LAC COOK 카드를 다시 선택해 주세요.');
+          // Keep the preview mounted on this click. A separate navigation
+          // performs the ordinary content-entry check again.
         }catch(error){showCookRegistrationFeedback(String(error?.message||'멤버 등록 확인에 실패했습니다.'),true);}
         finally{if(button.isConnected)button.disabled=false;}
       }
@@ -1922,7 +1934,7 @@ root.addEventListener('click', async event => {
   if(action==='copy-registration-info'){
     const discord=currentDiscordIdentity();
     if(!discord.id){setError('Discord 계정 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');return;}
-    const text=`회사 관리 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
+    const text=`회사 대표·관리자에게 멤버 등록 요청\nDiscord 이름: ${discord.name}\nDiscord ID: ${discord.id}`;
     try{await navigator.clipboard.writeText(text);setNotice('대표에게 전달할 등록 정보를 복사했습니다.');}catch{setError('등록 정보를 복사하지 못했습니다. Discord ID를 직접 전달해 주세요.');}
     return;
   }
@@ -1930,13 +1942,16 @@ root.addEventListener('click', async event => {
     await withMutation(async()=>{
       await claimDiscordMemberships();
       await loadCompanies();
-      if(!state.companies.length) throw new Error('아직 멤버 등록이 확인되지 않습니다. 대표 또는 관리자에게 현재 Discord 계정 등록을 요청해 주세요.');
-      if(!state.companyId||!state.companies.some(company=>company.id===state.companyId)) state.companyId=state.companies[0].id;
-      localStorage.setItem('axe_product_company_id',state.companyId);
-      navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');
+      if(!state.companies.length) throw new Error('아직 회사 멤버로 등록되지 않았습니다. 회사 대표 또는 관리자에게 등록을 요청해 주세요.');
       await loadCompanyData();
+      if(!currentMembership(state)) throw new Error('현재 계정의 회사 멤버 권한을 확인하지 못했습니다. 대표 또는 관리자에게 문의해 주세요.');
+      await loadWebContentPolicies();
+      if(!state.contentPoliciesLoaded) throw new Error('콘텐츠 이용 정책을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       state.ready=true;
-      setNotice('멤버 등록을 확인했습니다. 소속 회사로 연결했습니다.');
+      // A registration check must never take users directly into a restricted
+      // company screen. Start at HUB, then re-check each selected content.
+      navigatePrimaryScreen('hub');
+      setNotice('회사 멤버 등록을 확인했습니다. HUB에서 이용할 콘텐츠를 선택해 주세요.');
     });
     return;
   }

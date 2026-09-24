@@ -145,12 +145,12 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
         ${canCreateCompany?`<button class="runtime-login-button runtime-first-run__primary-action" type="button" data-action="${createAction}">개설 코드로 회사 등록</button><small class="runtime-first-run__auto">코드에는 등록할 회사 이름이 지정되어 있습니다. 코드 발급이 중단된 경우 등록을 진행할 수 없습니다.</small>`:`<div class="runtime-first-run__warning">${accessError?'회사 생성 권한을 확인하지 못했습니다. 잠시 후 새로고침해 주세요.':'이미 회사를 생성한 계정은 새 회사를 만들 수 없습니다. 다른 회사의 멤버로 등록하는 것은 가능합니다.'}</div>`}
         <div class="runtime-first-run__warning">이미 회사에 소속된 팀원이라면 오른쪽의 멤버 등록 안내를 이용해 주세요.</div>
       </article>
-      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>02 · 기존 회사 팀원</span><em>멤버 등록 필요</em></div><h2>기존 회사에 합류하기</h2><p>대표 또는 관리자에게 내 Discord 계정을 <b>회사 멤버로 등록</b>해 달라고 요청해 주세요. 등록 후 아래 버튼으로 확인할 수 있습니다.</p>
-        <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="${copyAction}" ${discord.id?'':'disabled'}>등록 정보 복사</button></div>
+      <article class="runtime-onboarding-card runtime-first-run__member${memberFocus}"><div class="runtime-first-run__member-top"><span>02 · 기존 회사 팀원</span><em>멤버 등록 필요</em></div><h2>회사 대표에게 멤버 등록 요청하기</h2><p>회사 멤버 등록은 <b>회사 대표 또는 관리자</b>가 진행합니다. 아래 정보를 복사해 대표·관리자에게 전달해 주세요.</p>
+        <div class="runtime-first-run__identity"><div><span>현재 Discord</span><strong>${esc(discord.name)}</strong></div><div><span>Discord ID</span><strong>${esc(discord.id||'확인 중')}</strong></div><button type="button" data-action="${copyAction}" ${discord.id?'':'disabled'}>대표에게 보낼 정보 복사</button></div>
         <div class="runtime-first-run__blocked"><i>!</i><div><strong>회사에서 멤버 등록 후 이용할 수 있어요</strong><span>회사 검색이나 합류 코드는 사용하지 않습니다.</span></div></div>
-        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">멤버 등록 확인하기</button>
+        <button class="runtime-btn-ghost runtime-first-run__check-button" type="button" data-action="${checkAction}">대표가 등록한 후 확인하기</button>
         ${waiting}
-        <small class="runtime-first-run__auto">대표·관리자가 멤버 등록을 완료한 뒤 확인하면 자동으로 소속 회사에 연결됩니다.</small>
+        <small class="runtime-first-run__auto">확인 버튼만으로 회사에 가입되지 않습니다. 등록 여부를 확인한 뒤 HUB에서 이용 가능한 콘텐츠를 다시 선택할 수 있습니다.</small>
       </article>
     </div>
     </details>`;
