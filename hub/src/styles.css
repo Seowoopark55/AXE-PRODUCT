@@ -867,3 +867,17 @@ body:has(.runtime-app--game-info.game-center)::before {
 .lac-cook-demo .lac-cook-demo__foot{display:block;padding:13px 15px;color:#9fb0be;font-size:11px}
 .lac-cook-demo__join .lac-cook-gate__cta{font:inherit;font-size:13px;cursor:pointer;text-align:center}
 @media(max-width:550px){.lac-cook-demo__list{grid-template-columns:1fr}.lac-cook-demo__purchase>div{grid-template-columns:auto minmax(0,1fr)}.lac-cook-demo__purchase b{grid-column:2}}
+
+/* STAGE9: actual LAC COOK screenshot + shared, inline company registration UI. */
+.lac-cook-gate{width:min(100%,1240px)}
+.lac-cook-shot{margin:22px 0 18px;border:1px solid #435364;border-radius:13px;overflow:hidden;background:#111821}
+.lac-cook-shot__head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:13px 17px;background:#1b2731;border-bottom:1px solid #344451}
+.lac-cook-shot__head strong{font-size:14px;color:#eeeae1}.lac-cook-shot__head span{font-size:11px;color:#aebbc7}
+.lac-cook-shot>a{display:block;line-height:0;cursor:zoom-in}
+.lac-cook-shot img{display:block;width:100%;height:auto;object-fit:contain;max-height:none}
+.lac-cook-shot figcaption{padding:11px 16px;color:#afbac4;font-size:12px;line-height:1.55}
+.lac-cook-registration .runtime-first-run{width:100%}
+.lac-cook-registration .runtime-first-run__registration{margin:0}
+.lac-cook-registration__feedback{margin:10px 0 0!important;padding:12px 15px;border:1px solid #3b7054;border-radius:9px;background:#142a21;color:#bce3cd!important;font-size:12px!important}
+.lac-cook-registration__feedback.is-error{border-color:#7e4942;background:#291918;color:#f1bbb2!important}
+@media(max-width:760px){#lac-cook-host:has(.lac-cook-gate){padding:12px 9px}.lac-cook-gate{padding:16px 11px}.lac-cook-shot__head{padding:10px}.lac-cook-shot figcaption{padding:9px 11px}.lac-cook-registration .runtime-first-run__grid{grid-template-columns:1fr}}

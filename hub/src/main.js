@@ -20,7 +20,7 @@ import {
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks,
 } from './lib/productApi.js';
-import { renderShell, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
+import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
 import {canOpenWebContent,contentIsVisible,hasCompany} from './platform/contentPolicy.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
@@ -69,6 +69,13 @@ function showEmbeddedBuild({ push = false } = {}) {
   }
 }
 
+function showCookRegistrationFeedback(message,isError=false){
+  const el=cookHost?.querySelector('[data-cook-registration-feedback]');
+  if(!el)return;
+  el.hidden=false;el.textContent=message;
+  el.classList.toggle('is-error',isError);
+}
+
 // First-party COOK route. Recipe catalog is a bundled snapshot and cloud writes
 // remain disabled until a separately approved, tested Supabase migration.
 function showCookPreview({ push = false } = {}) {
@@ -79,22 +86,59 @@ function showCookPreview({ push = false } = {}) {
     cookHost.id='lac-cook-host';
     cookHost.setAttribute('aria-label','LAC COOK');
     root.insertAdjacentElement('afterend',cookHost);
-    // COOK is a separate /cook/ route; HUB's delegated click handler cannot
-    // receive clicks here. Navigate to onboarding directly, not HUB home.
-    cookHost.addEventListener('click',event=>{
-      const button=event.target.closest('[data-cook-action="company-start"]');
-      if(!button || !cookHost.contains(button))return;
+    // COOK lives beside #app; handle its registration buttons without routing
+    // users away merely to read the same company/teammate instructions.
+    cookHost.addEventListener('click', async event=>{
+      const button=event.target.closest('button[data-action]');
+      if(!button||!cookHost.contains(button))return;
+      const action=button.dataset.action;
+      if(!['open-create-company','copy-registration-info','check-member-registration'].includes(action))return;
       event.preventDefault();
-      if(!state.session?.user){
-        window.history.pushState({lac_hub_primary_screen_v1:'hub'},'', '/');
-        switchVisibleApp(false);render();return;
+      if(!state.session?.user){showCookRegistrationFeedback('먼저 Discord로 로그인해 주세요.',true);return;}
+      if(action==='copy-registration-info'){
+        const user=state.session.user,meta=user.user_metadata||{};
+        const discordId=String(meta.provider_id||meta.sub||user.identities?.find?.(row=>String(row?.provider||'').toLowerCase()==='discord')?.identity_data?.sub||'').trim();
+        const discordName=String(meta.full_name||meta.global_name||meta.name||meta.user_name||meta.preferred_username||'Discord 사용자').trim();
+        if(!discordId){showCookRegistrationFeedback('Discord ID를 확인하지 못했습니다. 다시 로그인해 주세요.',true);return;}
+        try{
+          await navigator.clipboard.writeText(`LAC HUB 멤버 등록 요청\nDiscord 이름: ${discordName}\nDiscord ID: ${discordId}`);
+          showCookRegistrationFeedback('대표·관리자에게 전달할 Discord 정보를 복사했습니다.');
+        }catch{showCookRegistrationFeedback('복사하지 못했습니다. 화면에 표시된 Discord ID를 직접 전달해 주세요.',true);}
+        return;
       }
-      window.history.pushState({lac_hub_primary_screen_v1:'hub'},'', '/');
-      state.companyStartSource='company';
-      navigatePrimaryScreen(state.companies?.length?'hub':'company-start');
-      switchVisibleApp(false);
-      render();window.scrollTo(0,0);
+      if(action==='open-create-company'){
+        if(state.companies?.length){showCookRegistrationFeedback('이미 소속 회사가 있습니다. 회사 대표에게 콘텐츠 이용 권한을 문의해 주세요.',true);return;}
+        button.disabled=true;
+        try{
+          state.canCreateCompany=await canCreateCompany();state.companyCreatePermissionError=false;
+          if(!state.canCreateCompany){showCookRegistrationFeedback('회사 생성 권한이 없습니다. 운영자에게 문의해 주세요.',true);return;}
+          // Opening the real company-creation form is an explicit action;
+          // the registration instructions themselves always stay within COOK.
+          window.history.pushState({lac_hub_primary_screen_v1:'company-start'},'','/');
+          state.companyStartSource='company';
+          navigatePrimaryScreen('company-start');
+          state.modal={type:'create-company'};
+          switchVisibleApp(false);render();window.scrollTo(0,0);
+        }catch(error){showCookRegistrationFeedback(String(error?.message||'회사 생성 권한을 확인하지 못했습니다.'),true);}
+        finally{if(button.isConnected)button.disabled=false;}
+        return;
+      }
+      if(action==='check-member-registration'){
+        button.disabled=true;
+        try{
+          await claimDiscordMemberships();await loadCompanies();
+          if(!state.companies?.length){showCookRegistrationFeedback('아직 멤버 등록이 확인되지 않습니다. 대표·관리자에게 Discord 계정 등록을 요청해 주세요.',true);return;}
+          if(!state.companyId||!state.companies.some(row=>row.id===state.companyId))state.companyId=state.companies[0].id;
+          localStorage.setItem('axe_product_company_id',state.companyId);
+          await loadCompanyData();state.ready=true;
+          // Re-evaluate the COOK policy after the member account is linked.
+          showCookPreview();
+          if(!canOpenWebContent(state,'lac_cook'))showCookRegistrationFeedback('회사 등록은 확인됐지만 COOK 이용 권한은 확인이 필요합니다.',true);
+        }catch(error){showCookRegistrationFeedback(String(error?.message||'멤버 등록 확인에 실패했습니다.'),true);}
+        finally{if(button.isConnected)button.disabled=false;}
+      }
     });
+
   }
   // Do not mount the working COOK iframe before authenticated policy and company
   // state have finished loading. Clearing it on revocation avoids a stale frame.
@@ -109,15 +153,18 @@ function showCookPreview({ push = false } = {}) {
       <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
-      <div class="lac-cook-demo" aria-label="LAC COOK 제작 작업대 예시">
-        <div class="lac-cook-demo__top"><div><small>LAC COOK · WORKSPACE</small><strong>요리 제작 작업대</strong></div><span>가상 데이터 · 저장 및 주문 불가</span></div>
-        <div class="lac-cook-demo__section"><div class="lac-cook-demo__heading"><strong>작업 목록</strong><span>예시 1건</span></div><div class="lac-cook-demo__order"><span>예시 요리 A</span><b>제작 2세트</b><small>제작 수량에 따라 아래 재료가 합산됩니다.</small></div></div>
-        <div class="lac-cook-demo__section"><div class="lac-cook-demo__heading"><strong>제작 레시피</strong><span>필요 재료 합계</span></div><div class="lac-cook-demo__list"><div><span>예시 재료 A</span><b>4개</b><small>1세트당 2개 × 2세트</small></div><div><span>예시 재료 B</span><b>2개</b><small>1세트당 1개 × 2세트</small></div></div></div>
-        <div class="lac-cook-demo__section lac-cook-demo__section--purchase"><div class="lac-cook-demo__heading"><strong>재료 리스트 · 구매 준비</strong><span>0 / 2 완료</span></div><p class="lac-cook-demo__explain">필요 수량과 묶음 단위를 비교해 구매할 수량을 확인하고 준비 여부를 체크합니다.</p><div class="lac-cook-demo__purchase"><div><span class="lac-cook-demo__check" aria-hidden="true">□</span><div><strong>예시 재료 A</strong><small>필요 4개 · 1묶음 3개</small></div><b>2묶음 구매</b></div><div><span class="lac-cook-demo__check" aria-hidden="true">□</span><div><strong>예시 재료 B</strong><small>필요 2개 · 1묶음 2개</small></div><b>1묶음 구매</b></div></div></div>
-        <small class="lac-cook-demo__foot">예시는 화면 구성을 설명하기 위한 가상 수량입니다. 실제 레시피·구매처·회사 기록과 연결되지 않습니다.</small>
-      </div>
-      <div class="lac-cook-demo__join"><strong>우리 회사에서 LAC COOK 이용하기</strong><p>새 회사 대표는 등록 안내를, 이미 등록된 회사의 팀원은 멤버 등록 방법을 확인할 수 있어요.</p><button type="button" class="lac-cook-gate__cta" data-cook-action="company-start">회사 등록 · 멤버 등록 안내 보기 →</button></div>
-      <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되어 있다면 바로 이용할 수 있습니다. 아직 회사가 없다면 HUB에서 회사 등록 안내를 확인해 주세요.'}</p>
+      <figure class="lac-cook-shot" aria-label="LAC COOK 실제 이용 화면 미리보기">
+        <div class="lac-cook-shot__head"><strong>실제 LAC COOK 이용 화면</strong><span>화면 캡처 · 미리보기에서는 저장/주문 불가</span></div>
+        <a href="/hub/lac-cook-screen-preview.png" target="_blank" rel="noopener noreferrer" aria-label="LAC COOK 실제 이용 화면 캡처 크게 보기">
+          <img src="/hub/lac-cook-screen-preview.png" alt="요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트가 함께 보이는 LAC COOK 실제 화면" loading="lazy">
+        </a>
+        <figcaption>작업할 요리를 선택하고 필요한 재료와 구매 리스트를 한곳에서 확인할 수 있어요. 이미지를 누르면 크게 볼 수 있습니다.</figcaption>
+      </figure>
+      <section class="lac-cook-registration" aria-label="LAC COOK 회사 등록 안내">
+        ${renderCookRegistration(state)}
+        <p class="lac-cook-registration__feedback" data-cook-registration-feedback role="status" aria-live="polite" hidden></p>
+      </section>
+      <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되지 않았다면 바로 위 ‘우리 회사에서 이용하기’를 펼쳐 등록 방법을 확인해 주세요.'}</p>
 
     </section>`;
   } else if (!cookFrame) {

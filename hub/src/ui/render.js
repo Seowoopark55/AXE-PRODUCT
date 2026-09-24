@@ -124,7 +124,7 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false,contentKind='company'}={}) {
+function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false,contentKind='company',registrationOnly=false}={}) {
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
   const copyAction=testMode?'test-center-copy-info':'copy-registration-info';
   const checkAction=testMode?'test-center-member-check':'check-member-registration';
@@ -136,9 +136,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
   // Illustrative rows only. Never fetch another company's data for a preview.
   const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:`<div class="runtime-ledger-demo" aria-label="공금 내역 예시"><div class="runtime-ledger-demo__toolbar"><div><small>COMPANY FUND</small><strong>공금내역</strong></div><span>2026년 09월</span><span class="runtime-ledger-demo__mock-button">수입·지출 등록</span></div><div class="runtime-ledger-demo__filters"><span>전체 이름 ▾</span><span>전체 구분 ▾</span><span>전체 계좌 ▾</span><small>예시 1건</small></div><div class="runtime-ledger-demo__scroll"><div class="runtime-ledger-demo__row runtime-ledger-demo__row--head"><span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span></div><div class="runtime-ledger-demo__row"><span>09.24</span><span>예시 멤버</span><span>공용계좌</span><strong>주간 공금 납부</strong><span>승인반영</span><b>+50,000원</b><span>보기</span><span>수정</span></div></div><div class="runtime-ledger-demo__footer">가상 거래 1건 · 실제 회사 데이터와 연결되지 않습니다.</div></div>`;
-  return `
-    <header class="runtime-first-run__head"><span>${esc(title)} · 미리보기</span><h1>${esc(title)}를 먼저 살펴보세요.</h1><p>${esc(summary)}</p></header>
-    <section class="runtime-first-run__sample" aria-label="${esc(title)} 화면 예시">${demo}<p>미리보기는 실제 운영 화면을 설명하는 가상 예시입니다. 다른 회사의 정보는 표시하지 않습니다.</p></section>
+  const registrationMarkup=`
     <details class="runtime-first-run__registration" ${focus==='create'||focus==='member'?'open':''}><summary><span><strong>우리 회사에서 이용하기</strong><small>새 회사 대표라면 등록 안내, 기존 회사 팀원이라면 멤버 등록 방법 확인</small></span><span aria-hidden="true">⌄</span></summary>
     <div class="runtime-first-run__choice"><strong>어떤 상황에 해당하나요?</strong><span>새 회사 대표는 왼쪽, 기존 회사 팀원은 오른쪽 안내를 확인해 주세요.</span></div>
     <div class="runtime-first-run__grid">
@@ -156,6 +154,21 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
       </article>
     </div>
     </details>`;
+  if(registrationOnly)return registrationMarkup;
+  return `
+    <header class="runtime-first-run__head"><span>${esc(title)} · 미리보기</span><h1>${esc(title)}를 먼저 살펴보세요.</h1><p>${esc(summary)}</p></header>
+    <section class="runtime-first-run__sample" aria-label="${esc(title)} 화면 예시">${demo}<p>미리보기는 실제 운영 화면을 설명하는 가상 예시입니다. 다른 회사의 정보는 표시하지 않습니다.</p></section>
+    ${registrationMarkup}`;
+}
+
+// The COOK preview uses the exact same on-page registration component as company management.
+export function renderCookRegistration(state) {
+  const discord=onboardingDiscordIdentity(state);
+  return `<div class="runtime-first-run">${firstRunContent(discord,{
+    canCreateCompany:state.canCreateCompany===true,
+    accessError:state.companyCreatePermissionError,
+    contentKind:'company',registrationOnly:true
+  })}</div>`;
 }
 
 function renderOnboarding(state) {
