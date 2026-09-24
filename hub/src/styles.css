@@ -992,3 +992,6 @@ body:has(.runtime-app--game-info.game-center)::before {
 .lac-company-shot__open:focus-visible{outline:3px solid #f0be6b;outline-offset:2px}
 .lac-company-shot .lac-cook-preview-dialog>img{max-width:100%;height:auto}
 @media(max-width:760px){.lac-company-shot__open img{height:175px}}
+
+/* Avoid upscaling the 1096px full-size ledger capture in the preview dialog. */
+.lac-company-shot .lac-cook-preview-dialog{width:min(96vw,1098px)}

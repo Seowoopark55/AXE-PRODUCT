@@ -129,12 +129,13 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-// Public screenshot only: the bundled image contains anonymized example rows.
+// Public screenshot only: use the user-provided screen captures.
 // This preview must never fetch a company's live ledger or evidence attachments.
 function renderCompanyLedgerPreview(){
   const screenshot='/hub/lac-company-ledger-preview.png';
+  const enlargedScreenshot='/hub/lac-company-ledger-preview-large.png';
   return `<figure class="lac-company-shot lac-preview-frame" aria-label="회사 관리 실제 화면 예시">
-    <div class="lac-preview-frame__head"><div><strong>회사 관리 화면 미리보기</strong><small>실제 공금 관리 화면 · 이름과 거래 내역은 예시로 변경</small></div><span>화면 캡처</span></div>
+    <div class="lac-preview-frame__head"><div><strong>회사 관리 화면 미리보기</strong><small>실제 공금 관리 화면 · 클릭하면 확대</small></div><span>화면 캡처</span></div>
     <button type="button" class="lac-company-shot__open lac-cook-shot__open" data-action="company-preview-open" aria-haspopup="dialog" aria-controls="lac-company-preview-dialog" aria-label="이 페이지에서 회사 관리 공금 화면 크게 보기">
       <img src="${screenshot}" alt="날짜, 이름, 계좌, 내역, 금액 및 증빙 항목이 있는 회사 공금 관리 화면 예시" loading="lazy">
       <span class="lac-cook-shot__zoom">＋ 화면 전체 보기</span>
@@ -142,7 +143,7 @@ function renderCompanyLedgerPreview(){
     <figcaption>공금 입출금 내역과 증빙을 확인하는 화면이에요. 이미지를 누르면 현재 페이지에서 확대됩니다.</figcaption>
     <dialog id="lac-company-preview-dialog" class="lac-cook-preview-dialog" data-company-preview-dialog aria-label="회사 관리 화면 확대 보기">
       <div class="lac-cook-preview-dialog__head"><strong>회사 관리 · 공금내역 예시</strong><button type="button" data-action="company-preview-close" aria-label="확대 화면 닫기">닫기 ×</button></div>
-      <img src="${screenshot}" alt="회사 관리 공금내역 실제 화면 캡처, 개인 및 거래 정보는 예시로 대체됨">
+      <img src="${enlargedScreenshot}" alt="회사 관리의 실제 공금내역 화면을 확대하여 표시">
     </dialog>
   </figure>`;
 }
