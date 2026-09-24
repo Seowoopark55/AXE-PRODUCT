@@ -2590,7 +2590,7 @@ root.addEventListener('submit', async event => {
         scheduleText:String(data.get('schedule_text')||''),
         extraGuide:String(data.get('extra_guide')||''),
       },membershipId);
-      setNotice('Discord 요리 주문 안내를 저장했습니다.');return;
+      setNotice('주문 안내를 저장했습니다. Discord 패널에는 BOT 동기화 후 반영됩니다.');return;
     }
     if(type==='cooking-menu'){
       if(!canAdmin(state))throw new Error('요리 메뉴 관리는 OWNER 또는 관리자만 가능합니다.');

@@ -830,9 +830,18 @@ function renderSettings(state){
   const guideProgress=state.companySettings?.settings?.guided_setup; const guideLabel=guideProgress&&!guideProgress.completed?'설정 이어하기':state.onboardingStatus?.status==='ready'?'초기설정 가이드':'설정 이어하기'; const previewAction=currentMembership(state)?.role==='owner'?`<button type="button" class="ops-setup-demo-launch" data-action="open-setup-guide"><span>GUIDED SETUP</span><strong>${guideLabel}</strong></button>`:''; return `<div class="ops-settings-page">${pageHeader('COMPANY SETTINGS','회사 설정','',previewAction)}<section class="ops-settings-overview"><article><span>현재 회사</span><strong>${esc(companyDisplayName(state))}</strong></article><article><span>Discord</span><strong class="${state.discordConnection?.status==='connected'?'is-positive':''}">${resetBusy?'정리 중':state.discordConnection?.status==='connected'?'연결됨':'미연결'}</strong></article><article><span>사용 기능</span><strong class="is-warning">${enabled} / ${visibleModules.length}</strong></article><article><span>관리 역할</span><strong>${esc(roleName(state.discordCompanyConfig?.admin_role_id,roles)||'미설정')}</strong></article></section>${renderOnboardingProgress(state)}<div class="ops-settings-nav-row">${tabs}${action}</div><div class="ops-settings-view">${view}</div></div>`;
 }
 
+// Match the company-notice fallback already used by the existing cooking bot.
+// This is display-only: saved company data changes only when an admin selects '안내 저장'.
+const COOKING_PANEL_GUIDE_DEFAULT = '주문하기 버튼을 누른 뒤 메뉴를 선택하고 선택 완료를 눌러 수량을 입력해주세요.';
+function cookingPanelGuideForEditor(value){
+  const saved=String(value||'').trim();
+  const normalized=saved.replace(/`/g,'').replace(/\s+/g,' ').trim();
+  const legacy=normalized.includes('바질/부추') && normalized.includes('바질티/군만두') && normalized.includes('SET당 200원');
+  return (!saved || legacy)?COOKING_PANEL_GUIDE_DEFAULT:saved;
+}
 function renderCookingMenuSettings(state){
   const admin=canAdmin(state); const cfg=state.cookingDiscordConfig||{}; const all=(state.cookingOrderTypes||[]).slice().sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)); const active=all.filter(row=>row.enabled!==false).length;
-  const guide=`<form data-form="cooking-guide" class="ops-cooking-guide-card"><div class="ops-cooking-guide-head"><div><strong>Discord 주문 안내</strong></div><button class="ops-compact-save" type="submit" ${!admin?'disabled':''}>${icon('save')}<span>안내 저장</span></button></div><div class="ops-cooking-guide-grid"><label><span>운영 일정</span><input name="schedule_text" maxlength="120" value="${esc(cfg.schedule_text||'')}" placeholder="예: 화·목·토 20:00" ${!admin?'disabled':''}></label><label><span>주문 안내</span><input name="extra_guide" maxlength="240" value="${esc(cfg.extra_guide||'')}" placeholder="주문하기 버튼을 누르시고 원하시는 음식 선택 후 수량을 기입하여 주문해주세요." ${!admin?'disabled':''}></label></div></form>`;
+  const guide=`<form data-form="cooking-guide" class="ops-cooking-guide-card"><div class="ops-cooking-guide-head"><div><strong>Discord 주문 안내</strong></div><button class="ops-compact-save" type="submit" ${!admin?'disabled':''}>${icon('save')}<span>안내 저장</span></button></div><div class="ops-cooking-guide-grid"><label><span>운영 일정</span><input name="schedule_text" maxlength="120" value="${esc(cfg.schedule_text||'')}" placeholder="예: 화·목·토 20:00" ${!admin?'disabled':''}></label><label><span>회사 안내 · Discord 주문 패널에 표시</span><input name="extra_guide" maxlength="240" value="${esc(cookingPanelGuideForEditor(cfg.extra_guide))}" placeholder="${esc(COOKING_PANEL_GUIDE_DEFAULT)}" ${!admin?'disabled':''}></label></div></form>`;
   const status=state.cookingStatus||'all'; const query=String(state.cookingQuery||'').trim().toLowerCase();
   let rows=all.filter(row=>status==='all'||(status==='enabled'?row.enabled!==false:row.enabled===false));
   if(query)rows=rows.filter(row=>`${row.label||''} ${row.short_label||''} ${row.detail||''} ${row.type_key||''}`.toLowerCase().includes(query));
