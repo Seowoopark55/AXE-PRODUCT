@@ -549,7 +549,7 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials dl>.game-detail-pair{min-height:0;padding:10px 1px;gap:7px}
 
 
-/* LAC HUB · game-info image pilot (five assets). Only the standalone studio UI. */
+/* LAC HUB · approved game-info assets. Only the standalone studio UI. */
 .game-center .game-info-explorer .axe-info-row--studio .game-list-symbol img{
   display:block;width:29px;height:29px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));
 }

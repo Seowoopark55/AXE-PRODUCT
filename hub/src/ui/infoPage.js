@@ -22,28 +22,95 @@ const INFO_TAB_ICONS=Object.freeze({
 const infoTabIcon=table=>`<svg class="axe-info-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${INFO_TAB_ICONS[table]||''}</svg>`;
 const ALL='__all__', UNSET='__unset__';
 const escapeText=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
-// Stage image pilot: five approved assets only. Name keys reflect existing DB strings;
-// no write to Supabase, no fallback to an unrelated item image.
-const PILOT_ITEM_IMAGE_FILES=Object.freeze({
-  '나이프':'knife.png',
-  '조악한 무기부품':'crude_weapon_parts.png',
-  '은주괴':'silver_ingot.png',
-  '상급 목재':'premium_wood.png',
-  '상급목재':'premium_wood.png', // current production spelling
-  '숙련가의 도구':'expert_tool.png',
+// Read-only image mapping from the verified game-info export and approved PNG ZIP.
+// Only known names are mapped. Do not infer a PNG from item names, IDs or category.
+const ITEM_IMAGE_FILES=Object.freeze({
+  ".44 매그넘 탄약": "ammo_44_magnum.png",
+  ".45 ACP 탄약": "ammo_45_acp.png",
+  ".50 AE 탄약": "ammo_50_ae.png",
+  "9mm 탄약": "ammo_9mm.png",
+  "SMG": "smg.png",
+  "SNS 피스톨": "sns_pistol.png",
+  "견습생의 도구": "apprentice_tool.png",
+  "견승생의 도구": "apprentice_tool.png",
+  "고급 삼나무": "premium_cedar.png",
+  "고철": "scrap_metal.png",
+  "금 주괴": "gold_ingot.png",
+  "금광석": "gold_ore.png",
+  "금주괴": "gold_ingot.png",
+  "기본 감정 키트(1)": "basic_appraisal_kit.png",
+  "기본 감정 키트(2)": "basic_appraisal_kit.png",
+  "나이프": "knife.png",
+  "낡은 락픽": "old_lockpick.png",
+  "녹슨 탄피": "rusted_casing.png",
+  "달인의 도구": "master_tool.png",
+  "동광석": "copper_ore.png",
+  "동주괴": "copper_ingot.png",
+  "마이크로 SMG": "micro_smg.png",
+  "목탄": "charcoal.png",
+  "무난한 무기부품": "standard_weapon_parts.png",
+  "미니 SMG": "mini_smg.png",
+  "배송 전표": "shipping_label.png",
+  "버려진 병뚜껑": "discarded_bottle_cap.png",
+  "볼품없는 락픽": "crude_lockpick.png",
+  "상급 목재": "premium_wood.png",
+  "상급목재": "premium_wood.png",
+  "석탄": "coal.png",
+  "세라믹 피스톨": "ceramic_pistol.png",
+  "소형 탄피": "small_casing.png",
+  "소형 탄피(20)": "small_casing.png",
+  "숙련가의 도구": "expert_tool.png",
+  "오래된 나사": "old_screw.png",
+  "유황": "sulfur.png",
+  "은광석": "silver_ore.png",
+  "은주괴": "silver_ingot.png",
+  "의료용 붕대": "medical_bandage.png",
+  "이단 산타의 리볼버": "heretic_santa_revolver.png",
+  "일반 삼나무": "common_cedar.png",
+  "저급 삼나무": "low_grade_cedar.png",
+  "전문가의 도구": "professional_tool.png",
+  "조악한 무기부품": "crude_weapon_parts.png",
+  "종이": "paper.png",
+  "중급 목재": "medium_grade_wood.png",
+  "중급목재": "medium_grade_wood.png",
+  "찢어진 천조각": "torn_cloth.png",
+  "철광석": "iron_ore.png",
+  "철주괴": "iron_ingot.png",
+  "초심자의 도구": "beginner_tool.png",
+  "최상급 목재": "top_grade_wood.png",
+  "최상급 삼나무": "top_grade_cedar.png",
+  "최상급목재": "top_grade_wood.png",
+  "캠프 파이어 키트(1)": "quick_campfire_kit.png",
+  "캠프 파이어 키트(2)": "quick_campfire_kit.png",
+  "캠프 파이어 키트(3)": "quick_campfire_kit.png",
+  "컴뱃 PDW": "combat_pdw.png",
+  "컴뱃 피스톨": "combat_pistol.png",
+  "폭죽 시리즈 I": "firework_series_1.png",
+  "플로우 생수": "flow_water.png",
+  "피스톨": "pistol.png",
+  "피스톨.50": "pistol_50.png",
+  "하급목재": "low_grade_wood.png",
+  "헤비 리볼버": "heavy_revolver.png",
+  "헤비 피스톨": "heavy_pistol.png",
+  "화약": "gunpowder.png",
 });
-const pilotItemImageUrl=name=>{
-  const file=PILOT_ITEM_IMAGE_FILES[String(name??'').trim()];
+const itemImageUrl=name=>{
+  const file=ITEM_IMAGE_FILES[String(name??'').trim()];
   return file?`/hub/game-info/items/${file}`:'';
 };
-// Detail ingredient tokens are escaped by renderFields before arriving here.
-const pilotMaterialBadge=part=>{
+// These labels/quantities have already been HTML-escaped by renderFields.
+// Keep the original text for unmapped items, instead of showing an unrelated image.
+const itemMaterialBadge=(rawName,rawQty='',fallbackText='')=>{
+  const name=String(rawName??'').trim();
+  const qty=String(rawQty??'').trim();
+  const image=itemImageUrl(name);
+  if(!image)return `<span class="game-detail-material">${fallbackText||`${name}${qty?' × '+qty:''}`}</span>`;
+  return `<span class="game-detail-material game-detail-material--art"><img src="${image}" alt="" loading="lazy" decoding="async"><span class="game-detail-material__name">${name}</span>${qty?`<b class="game-detail-material__qty">× ${qty}</b>`:''}</span>`;
+};
+const itemMaterialFromPart=part=>{
   const at=part.lastIndexOf(' × ');
-  const name=at>=0?part.slice(0,at):part;
-  const qty=at>=0?part.slice(at+3):'';
-  const url=pilotItemImageUrl(name);
-  if(!url)return `<span class="game-detail-material">${part}</span>`;
-  return `<span class="game-detail-material game-detail-material--art"><img src="${url}" alt="" loading="lazy" decoding="async"><span class="game-detail-material__name">${name}</span>${qty?`<b class="game-detail-material__qty">× ${qty}</b>`:''}</span>`;
+  if(at<0)return itemMaterialBadge(part,'',part);
+  return itemMaterialBadge(part.slice(0,at),part.slice(at+3),part);
 };
 
 const fieldValue=(row,key)=>row[key]===null||row[key]===undefined||row[key]===''?'—':String(row[key]);
@@ -146,12 +213,22 @@ const standaloneDetailSections=(htmlFields,table)=>{
  const isMaterial=field=>/재료|부품|투입/.test(field.plain);
  const materials=remainder.filter(isMaterial);
  const overview=remainder.filter(field=>!isMaterial(field));
- const materialValue=field=>field.plain==='필요 재료'&&field.value.includes(' · ')
-  ?`<span class="game-detail-materials">${field.value.split(' · ').map(pilotMaterialBadge).join('')}</span>`
-   :field.plain==='필요 재료'&&pilotItemImageUrl(field.value.split(' × ')[0])
-    ?`<span class="game-detail-materials">${pilotMaterialBadge(field.value)}</span>`
-    :field.value;
- const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map(field=>`<div class="game-detail-highlight"><span>${field.label}</span><strong>${field.value}</strong></div>`).join('')}</div>`:'';
+   // Reuse the same images for craft ingredients, process inputs and recipe inputs.
+  // Recipe input quantities stay visible as their original DB fields below.
+  const materialValue=field=>{
+    if(field.plain==='필요 재료'){
+      const parts=field.value.split(' · ');
+      return `<span class="game-detail-materials">${parts.map(itemMaterialFromPart).join('')}</span>`;
+    }
+    if(/^투입 재료 [1-4]$/.test(field.plain)){
+      return `<span class="game-detail-materials">${itemMaterialFromPart(field.value)}</span>`;
+    }
+    if(/^재료 [1-8]$/.test(field.plain)&&itemImageUrl(field.value)){
+      return `<span class="game-detail-materials">${itemMaterialBadge(field.value)}</span>`;
+    }
+    return field.value;
+  };
+  const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map(field=>`<div class="game-detail-highlight"><span>${field.label}</span><strong>${field.value}</strong></div>`).join('')}</div>`:'';
  const panel=(title,key,items,materialsPanel=false)=>items.length?`<section class="game-detail-panel game-detail-panel--${key}" aria-label="${title}"><h3>${title}</h3><dl>${items.map(field=>`<div class="game-detail-pair${field.value.length>100?' game-detail-pair--long':''}"><dt>${field.label}</dt><dd>${materialsPanel?materialValue(field):field.value}</dd></div>`).join('')}</dl></section>`:'';
  const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
  return `<div class="game-detail-body">${highlightsHtml}<div class="game-detail-panels">${panel('필요 재료','materials',materials,true)}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
@@ -166,7 +243,7 @@ const itemListSubtitle=(table,row)=>{
  return '';
 };
 const listDecor=(table,title,subtitle,search=false)=>{
-  const image=['info_crafts','info_material_recipes','info_processes'].includes(table)?pilotItemImageUrl(title):'';
+  const image=['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
@@ -368,7 +445,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const longestField=Array.from(existingFields.matchAll(/<dd>([\s\S]*?)<\/dd>/g),match=>match[1].replace(/<[^>]*>/g,'').length).reduce((max,n)=>Math.max(max,n),0);
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero${['info_crafts','info_material_recipes','info_processes'].includes(table)&&pilotItemImageUrl(detailTitle)?' game-detail-hero--art':''}">${detailHeading}${['info_crafts','info_material_recipes','info_processes'].includes(table)&&pilotItemImageUrl(detailTitle)?`<img class="game-detail-hero__item" src="${pilotItemImageUrl(detailTitle)}" alt="" decoding="async">`:''}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero${['info_crafts','info_material_recipes','info_processes'].includes(table)&&itemImageUrl(detailTitle)?' game-detail-hero--art':''}">${detailHeading}${['info_crafts','info_material_recipes','info_processes'].includes(table)&&itemImageUrl(detailTitle)?`<img class="game-detail-hero__item" src="${itemImageUrl(detailTitle)}" alt="" decoding="async">`:''}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
