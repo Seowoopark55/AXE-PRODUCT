@@ -133,11 +133,12 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   const game=contentKind==='game';
   const title=game?'게임 정보':'회사 관리';
   const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
-  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 예시</span><span>샘플 데이터</span></div><div class="runtime-sample-search">⌕ &nbsp; 찾고 싶은 게임 정보를 검색해 보세요</div><div class="runtime-sample-tiles"><div><span>제작법</span><strong>재료와 제작 정보</strong><small>필요한 항목을 한눈에</small></div><div><span>퀘스트 · 스킬</span><strong>진행 정보 확인</strong><small>자료를 주제별로 탐색</small></div><div><span>개조서</span><strong>회사별 정보</strong><small>소속 회사 연결 후 확인</small></div></div></div>`:`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>회사 관리 · 화면 예시</span><span>가상 데이터</span></div><div class="runtime-sample-metrics"><div><span>회사 멤버</span><strong>12명</strong></div><div><span>이번 주 공금</span><strong>125만</strong></div><div><span>등록 자산</span><strong>28개</strong></div></div><div class="runtime-sample-tiles"><div><span>멤버 관리</span><strong>구성원 · 역할</strong></div><div><span>공금 · 계좌</span><strong>납부 · 내역</strong></div><div><span>자산 관리</span><strong>등록 · 배정</strong></div></div></div>`;
+  // Illustrative rows only. Never fetch another company's data for a preview.
+  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 실제 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 요리 제작법</strong><span>재료 · 필요 수량 · 제작 결과</span></div><div><span>퀘스트</span><strong>예시 진행 항목</strong><span>진행 조건 · 보상 정보</span></div><div><span>스킬</span><strong>예시 스킬 정보</strong><span>효과 · 사용 조건</span></div></div></div>`:`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>회사 관리 · 공금 내역 예시</span><span>가상 거래 · 실제 데이터 아님</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>일자</span><span>내역</span><span>금액</span></div><div><span>09.24</span><strong>주간 공금 납부 · 예시 멤버</strong><span class="runtime-sample-positive">+50,000원</span></div><div><span>09.24</span><strong>회사 장비 구매 · 예시 지출</strong><span class="runtime-sample-negative">-20,000원</span></div></div><div class="runtime-sample-after"><span>처리 이력과 증빙을 확인하는 예시 화면입니다.</span><span>멤버 관리 · 자산 관리도 같은 공간에서 이용</span></div></div>`;
   return `
     <header class="runtime-first-run__head"><span>${esc(title)} · 미리보기</span><h1>${esc(title)}를 먼저 살펴보세요.</h1><p>${esc(summary)}</p></header>
     <section class="runtime-first-run__sample" aria-label="${esc(title)} 화면 예시">${demo}<p>미리보기는 실제 운영 화면을 설명하는 가상 예시입니다. 다른 회사의 정보는 표시하지 않습니다.</p></section>
-    <details class="runtime-first-run__registration" ${focus==='create'||focus==='member'?'open':''}><summary><span><strong>이 콘텐츠를 이용하려면?</strong><small>새 회사 등록 또는 기존 회사 멤버 등록 안내 보기</small></span><span aria-hidden="true">⌄</span></summary>
+    <details class="runtime-first-run__registration" ${focus==='create'||focus==='member'?'open':''}><summary><span><strong>이 기능, 우리 회사에서도 써볼까요?</strong><small>새 회사 대표라면 등록 안내, 기존 회사 팀원이라면 멤버 등록 방법 확인</small></span><span aria-hidden="true">⌄</span></summary>
     <div class="runtime-first-run__choice"><strong>본인에게 해당하는 방법을 선택해 주세요.</strong><span>이미 회사가 있다면 새 회사를 만들 필요가 없어요.</span></div>
     <div class="runtime-first-run__grid">
       <article class="runtime-onboarding-card runtime-onboarding-card--primary runtime-first-run__create${createFocus}"><span>NEW COMPANY · 회사 대표</span><h2>새 회사 등록 시작</h2><p>현재는 운영자가 발급한 <b>회사 개설 코드</b>로 등록할 수 있어요. 간편 신청·승인 기능은 아직 준비 중이며, 코드가 없다면 운영자의 안내를 기다려 주세요.</p>
@@ -761,7 +762,7 @@ function renderPlatformContentSettings(state) {
   const descriptions = {
     company_management:'멤버 · 계좌 · 공금 · 자산을 관리하는 회사 운영 공간',
     lac_build:'회사 등록 없이 이용하도록 계획한 개조서 조합 서비스',
-    lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 베타 서비스',
+    lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 서비스',
     game_info:'소속 회사에 연결된 게임 자료 및 정보',
   };
   const items = rows.map(row => `<article class="lac-content-admin-row">

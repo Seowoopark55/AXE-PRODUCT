@@ -807,3 +807,12 @@ body:has(.runtime-app--game-info.game-center)::before {
 .runtime-first-run__registration .runtime-first-run__choice{padding:3px 18px 12px}
 .runtime-first-run__registration .runtime-first-run__grid{padding:0 13px 13px}
 @media(max-width:600px){.runtime-sample-window{padding:12px}.runtime-sample-metrics,.runtime-sample-tiles{gap:5px}.runtime-sample-metrics>div,.runtime-sample-tiles>div{padding:8px}.runtime-sample-metrics strong{font-size:17px}.runtime-sample-tiles strong{font-size:11px}.runtime-first-run__registration>summary{padding:14px}}
+
+/* Stage 5: feature-shaped sample rows, no live company data. */
+.runtime-sample-list{display:grid;gap:0;border:1px solid #3b4856;border-radius:10px;overflow:hidden;background:#101822}
+.runtime-sample-list>div{display:grid;grid-template-columns:minmax(55px,.5fr) minmax(130px,1.5fr) minmax(120px,1.1fr);gap:9px;align-items:center;padding:12px 14px;border-bottom:1px solid #303d4b;color:#b8c7d4;font-size:12px}
+.runtime-sample-list>div:last-child{border-bottom:0}.runtime-sample-list__head{background:#1c2834;color:#91a5b6!important;font-size:10px!important;font-weight:800}.runtime-sample-list strong{color:#ebf0f5;font-size:12px;font-weight:750}.runtime-sample-positive{color:#9cdbb8}.runtime-sample-negative{color:#e2b4a9}
+.runtime-sample-after{display:flex;flex-wrap:wrap;justify-content:space-between;gap:7px;color:#a2b1be;font-size:11px}
+.runtime-first-run__registration>summary{background:linear-gradient(100deg,rgba(146,108,47,.17),rgba(16,21,27,.5));border-left:3px solid #bc9557}
+.runtime-first-run__registration>summary strong{font-size:16px}.runtime-first-run__registration>summary small{font-size:12px;line-height:1.5}
+@media(max-width:600px){.runtime-sample-list>div{grid-template-columns:minmax(42px,.45fr) minmax(80px,1.35fr) minmax(80px,1fr);gap:5px;padding:10px 7px;font-size:10px}.runtime-sample-list strong{font-size:10px}.runtime-sample-list__head{font-size:9px!important}}
