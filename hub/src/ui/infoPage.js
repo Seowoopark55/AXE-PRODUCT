@@ -104,13 +104,14 @@ const itemMaterialBadge=(rawName,rawQty='',fallbackText='')=>{
   const name=String(rawName??'').trim();
   const qty=String(rawQty??'').trim();
   const image=itemImageUrl(name);
-  if(!image)return `<span class="game-detail-material">${fallbackText||`${name}${qty?' × '+qty:''}`}</span>`;
-  return `<span class="game-detail-material game-detail-material--art"><img src="${image}" alt="" loading="lazy" decoding="async"><span class="game-detail-material__name">${name}</span>${qty?`<b class="game-detail-material__qty">× ${qty}</b>`:''}</span>`;
+  // A neutral icon is a visual fallback; never substitute a different item art.
+  const artwork=image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:'<span class="game-detail-material__placeholder" aria-hidden="true">◇</span>';
+  return `<span class="game-detail-material${image?' game-detail-material--art':' game-detail-material--missing'}">${artwork}<span class="game-detail-material__name">${fallbackText||name}</span>${qty?`<b class="game-detail-material__qty">× ${qty}</b>`:''}</span>`;
 };
 const itemMaterialFromPart=part=>{
   const at=part.lastIndexOf(' × ');
   if(at<0)return itemMaterialBadge(part,'',part);
-  return itemMaterialBadge(part.slice(0,at),part.slice(at+3),part);
+  return itemMaterialBadge(part.slice(0,at),part.slice(at+3));
 };
 
 const fieldValue=(row,key)=>row[key]===null||row[key]===undefined||row[key]===''?'—':String(row[key]);
@@ -191,11 +192,15 @@ const itemName=(table,row,data)=>{
  return String(row[CONFIG[table][1]]||'이름 없음');
 };
 const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,value])=>`<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('');
-// Standalone detail presentation: reorganize *existing* DB fields into readable
-// groups. Never synthesize game values or infer prices/conditions from artwork.
-const standaloneDetailSections=(htmlFields,table)=>{
- // All visible values come from detailFields/weaponPartDetails (existing DB
- // records). The standalone page only changes hierarchy, never source data.
+// Standalone catalogue detail is a presentation of existing records only.
+// Embedded company information keeps its original renderFields output.
+const presentSuccessRate=value=>{
+ const clean=String(value??'').trim();
+ // Source success_rate uses percent points (e.g. 40 means 40%). Never
+ // double-append a suffix, scale fractions, or invent values for free text.
+ return /^\d+(?:\.\d+)?$/.test(clean)?`${clean}%`:clean;
+};
+const standaloneDetailSections=(htmlFields,table,record)=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
  const fields=Array.from(htmlFields.matchAll(fieldRe),([,label,value],index)=>({
   label,value,index,plain:label.replace(/<[^>]+>/g,'')
@@ -208,30 +213,41 @@ const standaloneDetailSections=(htmlFields,table)=>{
   info_skill_ranks:['등급','필요 포인트','포인트 종류'],
   modbook_catalog:['성공률','최근 거래가격','최근 거래일']
  }[table]||[];
+ // Source name/category remain unchanged in DB. Human-readable grouping is
+ // used in the standalone UI instead of exposing a raw KNIFE/ETC code.
+ const displayedValue=field=>field.plain==='성공률'?presentSuccessRate(field.value):
+  field.plain==='분류'&&table==='info_crafts'&&/^(KNIFE|PISTOL|REVOLVER|SMG|ETC)$/.test(field.value)?escapeText(craftGroup(record)):field.value;
  const highlights=keyLabels.map(label=>fields.find(field=>field.plain===label)).filter(Boolean).slice(0,3);
  const remainder=fields.filter(field=>!highlights.includes(field));
  const isMaterial=field=>/재료|부품|투입/.test(field.plain);
- const materials=remainder.filter(isMaterial);
+ const materials=remainder.filter(isMaterial); // retain source order
  const overview=remainder.filter(field=>!isMaterial(field));
-   // Reuse the same images for craft ingredients, process inputs and recipe inputs.
-  // Recipe input quantities stay visible as their original DB fields below.
-  const materialValue=field=>{
-    if(field.plain==='필요 재료'){
-      const parts=field.value.split(' · ');
-      return `<span class="game-detail-materials">${parts.map(itemMaterialFromPart).join('')}</span>`;
-    }
-    if(/^투입 재료 [1-4]$/.test(field.plain)){
-      return `<span class="game-detail-materials">${itemMaterialFromPart(field.value)}</span>`;
-    }
-    if(/^재료 [1-8]$/.test(field.plain)&&itemImageUrl(field.value)){
-      return `<span class="game-detail-materials">${itemMaterialBadge(field.value)}</span>`;
-    }
-    return field.value;
-  };
-  const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map(field=>`<div class="game-detail-highlight"><span>${field.label}</span><strong>${field.value}</strong></div>`).join('')}</div>`:'';
- const panel=(title,key,items,materialsPanel=false)=>items.length?`<section class="game-detail-panel game-detail-panel--${key}" aria-label="${title}"><h3>${title}</h3><dl>${items.map(field=>`<div class="game-detail-pair${field.value.length>100?' game-detail-pair--long':''}"><dt>${field.label}</dt><dd>${materialsPanel?materialValue(field):field.value}</dd></div>`).join('')}</dl></section>`:'';
+ const qtyLookup=new Map(materials.filter(field=>/^재료 [1-8] 수량$/.test(field.plain)).map(field=>[field.plain,field.value]));
+ const ingredientFields=materials.filter(field=>!/^재료 [1-8] 수량$/.test(field.plain));
+ const ingredientMarkup=field=>{
+  if(field.plain==='필요 재료')return field.value.split(' · ').map(itemMaterialFromPart).join('');
+  const match=field.plain.match(/^재료 ([1-8])$/);
+  if(match)return itemMaterialBadge(field.value,qtyLookup.get(`재료 ${match[1]} 수량`)||'');
+  if(/^투입 재료 [1-4]$/.test(field.plain))return itemMaterialFromPart(field.value);
+  return `<span class="game-detail-material-note"><span>${field.label}</span><strong>${field.value}</strong></span>`;
+ };
+ const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map((field,index)=>`<div class="game-detail-highlight${field.plain==='성공률'?' game-detail-highlight--rate':''}"><span>${field.label}</span><strong>${displayedValue(field)}</strong></div>`).join('')}</div>`:'';
+ const panel=(title,key,items)=>items.length?`<section class="game-detail-panel game-detail-panel--${key}" aria-label="${title}"><h3>${title}</h3><dl>${items.map(field=>`<div class="game-detail-pair${field.value.length>100?' game-detail-pair--long':''}"><dt>${field.label}</dt><dd>${displayedValue(field)}</dd></div>`).join('')}</dl></section>`:'';
+ let ingredientHtml='';
+ if(ingredientFields.length){
+  // Connected weapon-part recipes may also include an ordinary crafting recipe;
+  // keep both ingredient sets, labeled by their respective original record.
+  const combine=fields=>fields.length?`<div class="game-detail-ingredient-grid">${fields.map(ingredientMarkup).join('')}</div>`:'';
+  if(table==='info_material_recipes'){
+   const combination=ingredientFields.filter(field=>/^재료 [1-8]$/.test(field.plain));
+   const craft=ingredientFields.filter(field=>field.plain==='필요 재료');
+   const other=ingredientFields.filter(field=>!combination.includes(field)&&!craft.includes(field));
+   ingredientHtml=`${combination.length?`<div class="game-detail-ingredient-set"><h4>조합 재료</h4>${combine(combination)}</div>`:''}${craft.length?`<div class="game-detail-ingredient-set"><h4>제작 재료</h4>${combine(craft)}</div>`:''}${other.length?combine(other):''}`;
+  }else ingredientHtml=combine(ingredientFields);
+ }
+ const materialsHtml=ingredientHtml?`<section class="game-detail-panel game-detail-panel--materials" aria-label="필요 재료"><h3>${table==='info_processes'?'가공 재료':table==='info_material_recipes'?'조합 · 제작 재료':'필요 재료'}</h3>${ingredientHtml}</section>`:'';
  const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
- return `<div class="game-detail-body">${highlightsHtml}<div class="game-detail-panels">${panel('필요 재료','materials',materials,true)}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
+ return `<div class="game-detail-body">${highlightsHtml}<div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
 };
 const itemListSubtitle=(table,row)=>{
  if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
@@ -439,13 +455,15 @@ export function renderInfoPage(state,{standalone=false}={}){
  const detailTitle=selected?itemName(table,selected,data):'';
  const existingFields=selected?(table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)):'';
  const detailHeading=selected?`<header><span>${standalone?escapeText(CONFIG[table][0]):'상세 정보'}${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
- // Detail density is based ONLY on the selected record's existing visible DB fields.
- // Sparse rows leave room for the scene; data-heavy rows gain columns and a shorter art header.
+ // Density is based only on actual visible DB fields; no sample content.
  const visibleFieldCount=(existingFields.match(/<dt>/g)||[]).length;
  const longestField=Array.from(existingFields.matchAll(/<dd>([\s\S]*?)<\/dd>/g),match=>match[1].replace(/<[^>]*>/g,'').length).reduce((max,n)=>Math.max(max,n),0);
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero${['info_crafts','info_material_recipes','info_processes'].includes(table)&&itemImageUrl(detailTitle)?' game-detail-hero--art':''}">${detailHeading}${['info_crafts','info_material_recipes','info_processes'].includes(table)&&itemImageUrl(detailTitle)?`<img class="game-detail-hero__item" src="${itemImageUrl(detailTitle)}" alt="" decoding="async">`:''}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const artSource=selected&&['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(detailTitle):'';
+ const heroSubtitle=selected?itemListSubtitle(table,selected):'';
+ const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><span class="game-detail-hero__eyebrow">${escapeText(CONFIG[table][0])}</span><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`${hero}${standaloneDetailSections(existingFields,table,selected)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
