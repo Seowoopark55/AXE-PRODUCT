@@ -14,12 +14,11 @@ const safeQty = raw => {
   return n != null && Number.isSafeInteger(n) && n > 0 ? n : null;
 };
 const sortKo = (a,b)=>a.name.localeCompare(b.name,'ko');
-// The uploaded AXE COOK snapshot uses an effective yield of one for dough
-// because of its legacy label mismatch. Preserve the already-tested toast
-// result ONLY while the source lists eight dough per run. For other processes,
-// use the active LAC catalog yield; notably, its broth yields five per run.
-// Actual in-game dough yield remains a data-verification item.
-const AXE_DOUGH_COMPATIBILITY = {name:'빵 반죽', catalogYield:8, effectiveYield:1};
+// AXE source CSV reports eight dough per run, but its live legacy calculator
+// treated dough as one due to a name mismatch. Retain the user-tested 27-run
+// result until an administrator explicitly confirms the in-game yield.
+// Do not replace the source data; expose the conflict in planning warnings.
+const DOUGH_CONFLICT={name:'빵 반죽',source:8,legacy:1};
 const add = (map, name, qty) => {
   if (!name || !Number.isSafeInteger(qty) || qty < 1 || !Number.isSafeInteger((map.get(name)||0)+qty)) return false;
   map.set(name,(map.get(name)||0)+qty);
@@ -99,8 +98,10 @@ export function calculatePlan(catalog,orders,choices={}){
       const triples=group.map(row=>[row.input_material_name,row.required_qty,row.result_qty].join('\u0001'));
       const outputs=[...new Set(group.map(row=>row.result_qty).filter(Boolean))];
       const sourceOutput = outputs.length===1 ? safeQty(outputs[0]) : null;
-      const output = key===AXE_DOUGH_COMPATIBILITY.name && sourceOutput===AXE_DOUGH_COMPATIBILITY.catalogYield && !group.some(row=>row.lac_user_override==='TRUE')
-        ? AXE_DOUGH_COMPATIBILITY.effectiveYield : sourceOutput;
+      const conflictingDough = key===DOUGH_CONFLICT.name && sourceOutput===DOUGH_CONFLICT.source &&
+        !group.some(row=>row.lac_user_override==='TRUE');
+      const output=conflictingDough?DOUGH_CONFLICT.legacy:sourceOutput;
+      if(conflictingDough)warn(`${key}: AXE 원본 가공 생산량 8개와 기존 AXE 화면의 1개 계산이 불일치합니다. 기존 화면 계산(1개)을 임시 유지 중 · 실제 게임 수량 확인 후 관리자 가공 수정에서 저장하세요.`);
       if(!outputs.length)return pending(key,quantity,`${key}: 1회 가공 생산량 미확정 · 관리자 가공 수정에서 확인 후 입력 필요`);
       const invalid = group.some(row=>!row.input_material_name||safeQty(row.required_qty)==null || (outputs.length===1 && !row.result_qty));
       if(invalid || output==null || outputs.length>1 || new Set(triples).size!==triples.length){

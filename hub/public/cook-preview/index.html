@@ -135,14 +135,17 @@
   <form id="cook-process-form" novalidate>
     <label class="cook-editor-field" id="cook-process-select-wrap" hidden>수정할 가공품<select id="cook-process-select"></select></label>
     <label class="cook-editor-field">가공 결과물 이름<input id="cook-process-name" type="text" maxlength="90" required placeholder="가공품 이름" autocomplete="off"/></label>
+    <label class="cook-process-yield-only"><input id="cook-process-yield-only" type="checkbox" checked/> 생산량만 변경 (기존 투입 재료 유지)</label>
     <div class="cook-editor-inline">
       <label class="cook-editor-field">1회 가공 생산량 (개)<input id="cook-process-output" type="number" min="1" max="100000" step="1" inputmode="numeric" required placeholder="실제 생산량"/></label>
       <label class="cook-editor-field">가공시간 (선택)<input id="cook-process-time" type="text" maxlength="40" placeholder="실제 가공 시간"/></label>
     </div>
     <p class="cook-editor-note">제작 횟수를 입력하는 칸이 아닙니다. 예: 1회 가공으로 반죽 8개가 나오면 생산량 8개를 입력하세요.</p>
+    <div id="cook-process-ingredients-panel">
     <div class="cook-editor-material-head"><strong>가공 1회에 필요한 투입 재료</strong><button class="subtle" id="cook-process-add-material" type="button">+ 재료</button></div>
     <div class="cook-editor-materials" id="cook-process-materials"></div>
     <datalist id="cook-process-material-options"></datalist>
+    </div>
     <p class="cook-editor-result" id="cook-process-result" role="status" aria-live="polite"></p>
     <div class="cook-editor-actions"><button class="subtle" id="cook-process-cancel" type="button">취소</button><button class="accent" id="cook-process-save" type="submit">가공 저장</button></div>
   </form>

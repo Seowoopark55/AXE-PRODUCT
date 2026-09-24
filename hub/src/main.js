@@ -279,13 +279,14 @@ window.addEventListener('message', async event => {
       const output=Number(record.result_qty), processTime=String(record.process_time||'').trim();
       if (name.length<1 || name.length>90 || !Number.isSafeInteger(output) || output<1 || output>100000 ||
           processTime.length>40 || !['new','override'].includes(record.source_kind) ||
-          !Array.isArray(parts) || parts.length<1 || parts.length>24 ||
-          parts.some(p=>typeof p?.name!=='string' || !p.name.trim() || p.name.length>90 ||
-             !Number.isSafeInteger(p.qty) || p.qty<1 || p.qty>999999) ||
-          new Set(parts.map(p=>p.name.trim().toLocaleLowerCase('ko'))).size!==parts.length ||
-          parts.some(p=>p.name.trim()===name)) throw Error('가공 1회 생산량 및 투입 재료를 확인해 주세요.');
+          !(parts===null && record.source_kind==='override' ||
+            Array.isArray(parts) && parts.length>=1 && parts.length<=24 &&
+            parts.every(p=>typeof p?.name==='string' && p.name.trim() && p.name.length<=90 &&
+              Number.isSafeInteger(p.qty) && p.qty>=1 && p.qty<=999999 && p.name.trim()!==name) &&
+            new Set(parts.map(p=>p.name.trim().toLocaleLowerCase('ko'))).size===parts.length)
+          ) throw Error('가공 1회 생산량 및 투입 재료를 확인해 주세요.');
       const entry={process_material_name:name,result_qty:output,process_time:processTime,
-        ingredients:parts.map(p=>({name:p.name.trim(),qty:p.qty})),source_kind:record.source_kind};
+        ingredients:parts===null?null:parts.map(p=>({name:p.name.trim(),qty:p.qty})),source_kind:record.source_kind};
       let result;
       if(payload?.expectedVersion != null){
         const version=Number(payload.expectedVersion);

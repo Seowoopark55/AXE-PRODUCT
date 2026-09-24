@@ -450,3 +450,8 @@
 /* Keep recipe and process management controls readable on narrow screens. */
 .cook-toolbar .toolbar-actions{flex-wrap:wrap;row-gap:6px}
 @media(max-width:700px){.cook-toolbar .toolbar-actions{width:100%;justify-content:flex-start}}
+
+/* Explicit production-yield-only editing never overwrites unverified source ingredients. */
+.cook-process-yield-only{display:flex;align-items:center;gap:10px;margin:12px 0;color:var(--text, #eaeaea);font-size:13px}
+.cook-process-yield-only input{accent-color:#d0aa64;width:17px;height:17px}
+#cook-process-ingredients-panel[hidden]{display:none!important}
