@@ -6,6 +6,7 @@ import {WORKSPACE_KEY,checklistItems,currentChecks,prepareWorkspace,parseWorkspa
 import {mountCookCloudPanel} from './cloudPanel.js';
 import {requestHostReturn} from './hostBridge.js';
 import {initializeCookRecipeEditor} from './recipeEditor.js';
+import {initializeCookProcessEditor} from './processEditor.js';
 
 const $ = id => document.getElementById(id);
 const state = {foods:[], recipes:[], orders:new Map(), query:'', choices:{offers:{},fish:{}}, checked:new Set(),memo:'', favorites:new Set()};
@@ -286,6 +287,7 @@ function paintMaterials() {
     title.append(elem('span','process-order',String(index+1)),elem('strong','',item.name));
     const times=[...new Set(source.map(row=>String(row.process_time||'').trim()).filter(Boolean))];
     title.append(elem('span','recipe-time',times.length===1?times[0]:'시간 미설정'));
+    title.append(elem('span','recipe-time',`1회 ${format(item.output)}개 · ${format(item.batches)}회 가공`));
     head.append(title);line.append(head);
     const base=elem('div','process-base');
     const ingredients=elem('div','recipe-ingredients');
@@ -513,6 +515,7 @@ async function start(){
       $('search-meta').textContent=`요리 ${usableFoods().length}종`;
       loadFavorites();paintFavorites();paintFoods();paintOrders();
     }});
+    await initializeCookProcessEditor({catalog,onSaved:()=>{paintOrders();}});
     $('search-meta').textContent=`요리 ${usableFoods().length}종`;
     loadFavorites();
     const canRestore=restoreCurrentWork();

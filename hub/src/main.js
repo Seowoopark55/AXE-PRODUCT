@@ -246,7 +246,7 @@ window.addEventListener('message', async event => {
       event.data.type !== 'lac-cook:recipes:request:v1') return;
   const { requestId, action, payload } = event.data;
   if (typeof requestId !== 'string' || requestId.length > 80 ||
-      !['list', 'save'].includes(action)) return;
+      !['list', 'save', 'process-save'].includes(action)) return;
   const reply = (result) => {
     if (event.source === cookFrame?.contentWindow)
       event.source.postMessage({ type:'lac-cook:recipes:response:v1',requestId,...result },event.origin);
@@ -260,12 +260,48 @@ window.addEventListener('message', async event => {
       if (error) throw error;
       const { data: authData } = await supabase.auth.getSession();
       const canEdit = Boolean(authData?.session?.user && await isPlatformAdmin());
-      reply({ok:true,entries:data || [],canEdit});
+      const processQuery = await supabase.from('lac_cook_process_entries')
+        .select('process_material_name,result_qty,process_time,ingredients,source_kind,version')
+        .order('process_material_name');
+      // An uninstalled optional process table must not disable food recipe editing.
+      reply({ok:true,entries:data || [],canEdit,
+        processReady:!processQuery.error,processEntries:processQuery.data || [],
+        processError:processQuery.error ? '가공 편집용 DB를 연결하지 못했습니다. SQL 적용 상태를 확인해 주세요.' : ''});
       return;
     }
     const { data: authData } = await supabase.auth.getSession();
     if (!authData?.session?.user || !(await isPlatformAdmin()))
       throw Error('레시피 등록과 수정은 플랫폼 관리자 계정에서만 가능합니다.');
+    if (action === 'process-save') {
+      const record = payload?.entry;
+      if (!record || typeof record !== 'object' || Array.isArray(record)) throw Error('가공 데이터 형식을 확인해 주세요.');
+      const name=String(record.process_material_name||'').trim(), parts=record.ingredients;
+      const output=Number(record.result_qty), processTime=String(record.process_time||'').trim();
+      if (name.length<1 || name.length>90 || !Number.isSafeInteger(output) || output<1 || output>100000 ||
+          processTime.length>40 || !['new','override'].includes(record.source_kind) ||
+          !Array.isArray(parts) || parts.length<1 || parts.length>24 ||
+          parts.some(p=>typeof p?.name!=='string' || !p.name.trim() || p.name.length>90 ||
+             !Number.isSafeInteger(p.qty) || p.qty<1 || p.qty>999999) ||
+          new Set(parts.map(p=>p.name.trim().toLocaleLowerCase('ko'))).size!==parts.length ||
+          parts.some(p=>p.name.trim()===name)) throw Error('가공 1회 생산량 및 투입 재료를 확인해 주세요.');
+      const entry={process_material_name:name,result_qty:output,process_time:processTime,
+        ingredients:parts.map(p=>({name:p.name.trim(),qty:p.qty})),source_kind:record.source_kind};
+      let result;
+      if(payload?.expectedVersion != null){
+        const version=Number(payload.expectedVersion);
+        if(!Number.isSafeInteger(version)||version<1||version>2147483645)throw Error('가공식 버전이 올바르지 않습니다.');
+        result=await supabase.from('lac_cook_process_entries')
+          .update({...entry,version:version+1,updated_at:new Date().toISOString()})
+          .eq('process_material_name',name).eq('version',version)
+          .select('process_material_name,result_qty,process_time,ingredients,source_kind,version').maybeSingle();
+        if(!result.error&&!result.data)throw Error('다른 곳에서 가공식이 먼저 수정되었습니다. 최신 데이터를 다시 불러오세요.');
+      }else{
+        result=await supabase.from('lac_cook_process_entries').insert(entry)
+          .select('process_material_name,result_qty,process_time,ingredients,source_kind,version').single();
+      }
+      if(result.error)throw result.error;
+      reply({ok:true,entry:result.data});return;
+    }
     const record = payload?.entry;
     if (!record || typeof record !== 'object' || Array.isArray(record)) throw Error('레시피 형식을 확인해 주세요.');
     const foodId=String(record.food_id||'');

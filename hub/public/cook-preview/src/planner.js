@@ -14,13 +14,12 @@ const safeQty = raw => {
   return n != null && Number.isSafeInteger(n) && n > 0 ? n : null;
 };
 const sortKo = (a,b)=>a.name.localeCompare(b.name,'ko');
-// AXE COOK parity: its PROCESS_OUTPUT map is keyed by '빵반죽', while its
-// alias resolver passes '빵 반죽' to the lookup, so the live AXE calculation
-// uses the fallback output of 1 for dough. It also falls back to 1 for broth
-// ('육수') even though the imported LAC snapshot declares outputs of 8 and 5.
-// Keep imported rows intact; these are compatibility overrides for planning,
-// NOT verified in-game manufacturing yields. Revisit if the game yield differs.
-const AXE_EFFECTIVE_OUTPUT = new Map([['빵 반죽', 1], ['육수', 1]]);
+// The uploaded AXE COOK snapshot uses an effective yield of one for dough
+// because of its legacy label mismatch. Preserve the already-tested toast
+// result ONLY while the source lists eight dough per run. For other processes,
+// use the active LAC catalog yield; notably, its broth yields five per run.
+// Actual in-game dough yield remains a data-verification item.
+const AXE_DOUGH_COMPATIBILITY = {name:'빵 반죽', catalogYield:8, effectiveYield:1};
 const add = (map, name, qty) => {
   if (!name || !Number.isSafeInteger(qty) || qty < 1 || !Number.isSafeInteger((map.get(name)||0)+qty)) return false;
   map.set(name,(map.get(name)||0)+qty);
@@ -41,13 +40,22 @@ export function calculatePlan(catalog,orders,choices={}){
     if(existing && existing !== item.standard_name) ambiguousAliases.add(item.alias_name);
     aliasMap.set(item.alias_name,item.standard_name);
   }
+  // The active recipe says '고기양념', while its sole corresponding process
+  // is recorded as '고기 양념'. Resolve only this verified spelling pair and
+  // only when no distinct material or processing item uses the compact name.
+  const compactSeasoning='고기양념', spacedSeasoning='고기 양념';
+  const seasoningExists=(catalog.processes||[]).some(row=>active(row) && row.process_material_name===spacedSeasoning);
+  const distinctCompact=(catalog.processes||[]).some(row=>active(row) && row.process_material_name===compactSeasoning)
+    || (catalog.materials||[]).some(row=>active(row) && row.material_name===compactSeasoning)
+    || (catalog.farms||[]).some(row=>active(row) && row.material_name===compactSeasoning);
+  const seasoningAlias=seasoningExists && !distinctCompact ? new Map([[compactSeasoning,spacedSeasoning]]) : new Map();
   const normalize = name => {
     if(ambiguousAliases.has(name)){
       warn(`${name}: 별칭이 여러 표준명을 가리켜 확인 필요`);
       return name;
     }
     // Compound recipe strings may encode quantities and alternatives; never split or normalize their parts.
-    return aliasMap.get(name) || name;
+    return aliasMap.get(name) || seasoningAlias.get(name) || name;
   };
   const farmNames = new Set((catalog.farms||[]).filter(active).map(x=>x.material_name));
   const offers = new Map();
@@ -90,13 +98,14 @@ export function calculatePlan(catalog,orders,choices={}){
     if(group){
       const triples=group.map(row=>[row.input_material_name,row.required_qty,row.result_qty].join('\u0001'));
       const outputs=[...new Set(group.map(row=>row.result_qty).filter(Boolean))];
-      const sourceOutput = outputs.length===1 ? safeQty(outputs[0]) : outputs.length===0 ? 1 : null;
-      const output = AXE_EFFECTIVE_OUTPUT.get(key) ?? sourceOutput;
+      const sourceOutput = outputs.length===1 ? safeQty(outputs[0]) : null;
+      const output = key===AXE_DOUGH_COMPATIBILITY.name && sourceOutput===AXE_DOUGH_COMPATIBILITY.catalogYield && !group.some(row=>row.lac_user_override==='TRUE')
+        ? AXE_DOUGH_COMPATIBILITY.effectiveYield : sourceOutput;
+      if(!outputs.length)return pending(key,quantity,`${key}: 1회 가공 생산량 미확정 · 관리자 가공 수정에서 확인 후 입력 필요`);
       const invalid = group.some(row=>!row.input_material_name||safeQty(row.required_qty)==null || (outputs.length===1 && !row.result_qty));
       if(invalid || output==null || outputs.length>1 || new Set(triples).size!==triples.length){
         return pending(key,quantity,`${key}: 가공식에 중복·투입 누락·생산 수량 불일치가 있어 자동 계산 보류`);
       }
-      if(!outputs.length)warn(`${key}: 가공 생산량 미설정 · 미리보기에서 1회 1개로 임시 가정`);
       const batch=Math.ceil(quantity/output);
       if(!Number.isSafeInteger(batch)||batch<=0) return pending(key,quantity,`${key}: 가공 횟수 초과`);
       const prev=processCount.get(key);
