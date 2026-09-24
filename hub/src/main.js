@@ -79,6 +79,22 @@ function showCookPreview({ push = false } = {}) {
     cookHost.id='lac-cook-host';
     cookHost.setAttribute('aria-label','LAC COOK');
     root.insertAdjacentElement('afterend',cookHost);
+    // COOK is a separate /cook/ route; HUB's delegated click handler cannot
+    // receive clicks here. Navigate to onboarding directly, not HUB home.
+    cookHost.addEventListener('click',event=>{
+      const button=event.target.closest('[data-cook-action="company-start"]');
+      if(!button || !cookHost.contains(button))return;
+      event.preventDefault();
+      if(!state.session?.user){
+        window.history.pushState({lac_hub_primary_screen_v1:'hub'},'', '/');
+        switchVisibleApp(false);render();return;
+      }
+      window.history.pushState({lac_hub_primary_screen_v1:'hub'},'', '/');
+      state.companyStartSource='company';
+      navigatePrimaryScreen(state.companies?.length?'hub':'company-start');
+      switchVisibleApp(false);
+      render();window.scrollTo(0,0);
+    });
   }
   // Do not mount the working COOK iframe before authenticated policy and company
   // state have finished loading. Clearing it on revocation avoids a stale frame.
@@ -93,8 +109,14 @@ function showCookPreview({ push = false } = {}) {
       <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
-      <div class="lac-cook-demo" aria-label="LAC COOK 제작 계산 화면 예시"><div class="lac-cook-demo__top"><div><small>COOK WORKSPACE</small><strong>제작 계산</strong></div><span>가상 데이터 · 체험 예시</span></div><div class="lac-cook-demo__grid"><div><small>선택한 요리</small><strong>예시 요리 A</strong></div><div><small>제작 수량</small><strong>2 SET</strong></div><div><small>예상 결과</small><strong>완성품 2개</strong></div></div><div class="lac-cook-demo__table"><div class="lac-cook-demo__tr is-head"><span>필요 재료</span><span>1 SET</span><span>총 필요량</span><span>준비 상태</span></div><div class="lac-cook-demo__tr"><strong>예시 재료 A</strong><span>2개</span><b>4개</b><span>준비 전</span></div><div class="lac-cook-demo__tr"><strong>예시 재료 B</strong><span>1개</span><b>2개</b><span>준비 완료</span></div></div><small>실제 회사의 주문·재료·작업 기록은 표시하거나 변경하지 않습니다.</small></div>
-      <div class="lac-cook-demo__join"><strong>우리 회사에서 LAC COOK 이용하기</strong><p>이미 회사 멤버라면 소속 회사의 이용 설정을 확인해 주세요. 새 회사 대표라면 HUB의 회사 관리에서 등록 방법을 확인할 수 있습니다.</p><a class="lac-cook-gate__cta" href="/">회사 등록 · 이용 안내 보기 →</a></div>
+      <div class="lac-cook-demo" aria-label="LAC COOK 제작 작업대 예시">
+        <div class="lac-cook-demo__top"><div><small>LAC COOK · WORKSPACE</small><strong>요리 제작 작업대</strong></div><span>가상 데이터 · 저장 및 주문 불가</span></div>
+        <div class="lac-cook-demo__section"><div class="lac-cook-demo__heading"><strong>작업 목록</strong><span>예시 1건</span></div><div class="lac-cook-demo__order"><span>예시 요리 A</span><b>제작 2세트</b><small>제작 수량에 따라 아래 재료가 합산됩니다.</small></div></div>
+        <div class="lac-cook-demo__section"><div class="lac-cook-demo__heading"><strong>제작 레시피</strong><span>필요 재료 합계</span></div><div class="lac-cook-demo__list"><div><span>예시 재료 A</span><b>4개</b><small>1세트당 2개 × 2세트</small></div><div><span>예시 재료 B</span><b>2개</b><small>1세트당 1개 × 2세트</small></div></div></div>
+        <div class="lac-cook-demo__section lac-cook-demo__section--purchase"><div class="lac-cook-demo__heading"><strong>재료 리스트 · 구매 준비</strong><span>0 / 2 완료</span></div><p class="lac-cook-demo__explain">필요 수량과 묶음 단위를 비교해 구매할 수량을 확인하고 준비 여부를 체크합니다.</p><div class="lac-cook-demo__purchase"><div><span class="lac-cook-demo__check" aria-hidden="true">□</span><div><strong>예시 재료 A</strong><small>필요 4개 · 1묶음 3개</small></div><b>2묶음 구매</b></div><div><span class="lac-cook-demo__check" aria-hidden="true">□</span><div><strong>예시 재료 B</strong><small>필요 2개 · 1묶음 2개</small></div><b>1묶음 구매</b></div></div></div>
+        <small class="lac-cook-demo__foot">예시는 화면 구성을 설명하기 위한 가상 수량입니다. 실제 레시피·구매처·회사 기록과 연결되지 않습니다.</small>
+      </div>
+      <div class="lac-cook-demo__join"><strong>우리 회사에서 LAC COOK 이용하기</strong><p>새 회사 대표는 등록 안내를, 이미 등록된 회사의 팀원은 멤버 등록 방법을 확인할 수 있어요.</p><button type="button" class="lac-cook-gate__cta" data-cook-action="company-start">회사 등록 · 멤버 등록 안내 보기 →</button></div>
       <p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':!published?'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.':'회사에 소속되어 있다면 바로 이용할 수 있습니다. 아직 회사가 없다면 HUB에서 회사 등록 안내를 확인해 주세요.'}</p>
 
     </section>`;

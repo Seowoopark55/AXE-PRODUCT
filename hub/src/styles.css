@@ -845,3 +845,25 @@ body:has(.runtime-app--game-info.game-center)::before {
 .runtime-first-run__choice{display:grid;gap:4px}.runtime-first-run__choice strong{color:#f0f2f4;font-size:14px}.runtime-first-run__choice span{line-height:1.6;color:#a8b5c0}
 .lac-cook-demo{display:grid;gap:0;margin:22px 0;border:1px solid #435364;border-radius:12px;overflow:hidden;background:#101820}.lac-cook-demo__top{padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#1b2731;border-bottom:1px solid #3a4957}.lac-cook-demo__top>div{display:grid;gap:4px}.lac-cook-demo__top small{font-size:9px;letter-spacing:.13em;color:#cba66d}.lac-cook-demo__top strong{font-size:18px}.lac-cook-demo__top>span{font-size:10px;color:#b6c8d5}.lac-cook-demo__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:13px}.lac-cook-demo__grid>div{display:grid;gap:6px;min-width:0;padding:12px;border:1px solid #364858;border-radius:8px;background:#1c2b36}.lac-cook-demo__grid small{font-size:10px;color:#a9bac7}.lac-cook-demo__grid strong{font-size:13px;color:#f0f4f7}.lac-cook-demo__table{padding:0 13px 13px}.lac-cook-demo__tr{display:grid;grid-template-columns:1.6fr .8fr .8fr 1fr;gap:8px;padding:11px;border-bottom:1px solid #354450;font-size:11px;align-items:center}.lac-cook-demo__tr.is-head{background:#253543;color:#aabecb;font-size:10px}.lac-cook-demo__tr strong{color:#eff3f5}.lac-cook-demo__tr b{color:#eac98e}.lac-cook-demo>small{padding:0 13px 13px;font-size:10px;color:#9fb0be}.lac-cook-demo__join{border:1px solid #795e35;background:#221d17;border-radius:12px;padding:17px}.lac-cook-demo__join strong{font-size:16px;color:#ffe0aa}.lac-cook-demo__join p{margin:9px 0 5px}.lac-cook-demo__join .lac-cook-gate__cta{margin-top:10px}
 @media(max-width:600px){.lac-cook-demo__grid{grid-template-columns:1fr}.lac-cook-demo__tr{grid-template-columns:1.4fr .55fr .65fr .9fr;gap:4px;padding:9px 5px;font-size:10px}.lac-cook-demo__tr.is-head{font-size:9px}}
+
+/* LAC COOK gated preview: mirror the real workspace sections without data access. */
+.lac-cook-demo__section{padding:15px;border-bottom:1px solid #354450;display:grid;gap:10px}
+.lac-cook-demo__heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lac-cook-demo__heading strong{font-size:14px;color:#f0f4f7}
+.lac-cook-demo__heading span{font-size:11px;color:#c1af91}
+.lac-cook-demo__order,.lac-cook-demo__list>div,.lac-cook-demo__purchase>div{background:#1b2833;border:1px solid #364858;border-radius:8px;padding:11px;display:grid;gap:5px;min-width:0}
+.lac-cook-demo__order{grid-template-columns:1fr auto}
+.lac-cook-demo__order small{grid-column:1/-1;color:#a9bac7}
+.lac-cook-demo__order b,.lac-cook-demo__list b,.lac-cook-demo__purchase b{color:#eac98e;font-size:12px}
+.lac-cook-demo__list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lac-cook-demo__list>div{grid-template-columns:1fr auto}
+.lac-cook-demo__list small{grid-column:1/-1;color:#a9bac7}
+.lac-cook-demo__section .lac-cook-demo__explain{margin:0;color:#a9bac7;font-size:12px}
+.lac-cook-demo__purchase{display:grid;gap:7px}
+.lac-cook-demo__purchase>div{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}
+.lac-cook-demo__purchase>div>div{display:grid;gap:5px;min-width:0}
+.lac-cook-demo__purchase small{font-size:11px;color:#a9bac7}
+.lac-cook-demo__check{font-size:20px;color:#eac98e}
+.lac-cook-demo .lac-cook-demo__foot{display:block;padding:13px 15px;color:#9fb0be;font-size:11px}
+.lac-cook-demo__join .lac-cook-gate__cta{font:inherit;font-size:13px;cursor:pointer;text-align:center}
+@media(max-width:550px){.lac-cook-demo__list{grid-template-columns:1fr}.lac-cook-demo__purchase>div{grid-template-columns:auto minmax(0,1fr)}.lac-cook-demo__purchase b{grid-column:2}}
