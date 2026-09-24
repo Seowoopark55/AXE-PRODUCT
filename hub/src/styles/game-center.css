@@ -394,3 +394,156 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
  .game-center .game-info-explorer .axe-info-subfilters{max-height:160px}
  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-sections{grid-template-columns:1fr}
 }
+
+/* Stage 18 · Content-led standalone Game Info.
+   Preserve LAC's scene artwork and gold accent; let real DB facts size their
+   own panels instead of stretching two nearly-empty cards to viewport height.
+   Company-embedded info keeps its independent stylesheet and DOM. */
+.game-center .game-center__body{
+  grid-template-rows:clamp(150px,19vh,184px) minmax(0,1fr);
+  gap:11px;
+}
+.game-center .game-center__hero{
+  min-height:0;
+  padding:20px 28px;
+  background-position:center 53%;
+}
+.game-center .game-center__hero::before{
+  background:linear-gradient(90deg,rgba(7,13,19,.90),rgba(7,13,19,.52) 38%,rgba(7,13,19,.12) 85%);
+}
+.game-center .game-center__hero p{font-size:12px;line-height:1.75;max-width:610px}
+.game-center .game-info-explorer .axe-info-content{
+  grid-template-columns:minmax(230px,.68fr) minmax(0,1.32fr);
+}
+/* Header image is a title context, not an empty second content panel. */
+.game-center .game-info-explorer .axe-info-detail--studio,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+  display:grid;
+  grid-template-rows:clamp(116px,24%,155px) minmax(0,1fr);
+  overflow:hidden;
+  background:#101922;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero{
+  display:flex;align-items:flex-end;min-height:0;
+  padding:14px 18px;
+  background:linear-gradient(90deg,rgba(6,12,19,.71),rgba(6,12,19,.17) 80%);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero header strong{
+  font-size:clamp(19px,1.75vw,26px);
+}
+/* One scrollable detail canvas, rather than two permanently full-height boxes. */
+.game-center .game-info-explorer .game-detail-body{
+  position:relative;z-index:1;display:flex;flex-direction:column;
+  gap:11px;min-width:0;min-height:0;overflow-y:auto;
+  overscroll-behavior:contain;padding:13px;
+  border-top:1px solid rgba(227,178,106,.37);
+  background:linear-gradient(165deg,#121e28 0%,#111a23 64%,#0e1720 100%);
+  scrollbar-width:thin;scrollbar-color:#52606d transparent;
+}
+.game-center .game-detail-highlights{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;min-width:0;
+}
+.game-center .game-detail-highlight{
+  position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  gap:8px;min-width:0;min-height:83px;padding:12px 11px 11px;
+  border:1px solid rgba(209,170,111,.27);border-radius:9px;
+  background:linear-gradient(150deg,rgba(52,47,38,.72),rgba(27,34,41,.92));
+}
+.game-center .game-detail-highlight:before{
+  content:"";position:absolute;left:11px;top:11px;width:3px;height:11px;
+  background:#dfb16d;border-radius:3px;
+}
+.game-center .game-detail-highlight>span{
+  padding-left:9px;font-size:10px;font-weight:750;color:#c9b08a;line-height:1.4;
+}
+.game-center .game-detail-highlight>strong{
+  font-size:clamp(14px,1.25vw,17px);font-weight:830;color:#f9f1df;
+  line-height:1.3;overflow-wrap:anywhere;
+}
+.game-center .game-detail-panels{display:grid;grid-template-columns:1fr;gap:10px;min-width:0;align-content:start}
+.game-center .game-detail-panel{
+  min-width:0;align-self:start;overflow:hidden;border:1px solid #394753;
+  border-radius:9px;background:rgba(22,34,44,.93);
+}
+.game-center .game-detail-panel--materials{border-color:rgba(218,173,102,.40);background:rgba(35,33,29,.72)}
+.game-center .game-detail-panel h3{
+  display:flex;align-items:center;gap:8px;min-height:34px;margin:0;padding:8px 12px;
+  border-bottom:1px solid rgba(169,183,191,.17);font-size:11px;
+  font-weight:830;color:#eec88a;letter-spacing:.01em;
+}
+.game-center .game-detail-panel h3:before{content:"";height:13px;width:3px;border-radius:2px;background:#ddb16a}
+.game-center .game-detail-panel dl{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0 16px;margin:0;padding:4px 12px 8px;
+}
+.game-center .game-detail-pair{
+  display:flex;flex-direction:column;gap:5px;min-width:0;min-height:58px;
+  padding:11px 1px 9px;border-bottom:1px solid rgba(156,173,186,.15);
+}
+.game-center .game-detail-pair:nth-last-child(-n+2){border-bottom-color:transparent}
+.game-center .game-detail-pair--long{grid-column:1/-1}
+.game-center .game-detail-pair dt{
+  font-size:10px;line-height:1.3;font-weight:730;color:#c7ad84;
+}
+.game-center .game-detail-pair dd{
+  min-width:0;margin:0;font-size:12px;line-height:1.55;font-weight:690;
+  color:#e7edf1;overflow-wrap:anywhere;
+}
+.game-center .game-detail-panel--materials dl{grid-template-columns:1fr}
+.game-center .game-detail-panel--materials .game-detail-pair{
+  min-height:0;padding:10px 1px;gap:7px;
+}
+.game-center .game-detail-panel--materials .game-detail-pair:last-child{border-bottom:0}
+.game-center .game-detail-panel--materials .game-detail-pair dt{color:#edc58b}
+.game-center .game-detail-panel--materials .game-detail-materials{
+  display:flex;flex-wrap:wrap;gap:7px;
+}
+.game-center .game-detail-panel--materials .game-detail-material{
+  display:inline-flex;align-items:center;min-height:31px;
+  border:1px solid rgba(219,174,106,.34);border-radius:7px;
+  background:rgba(13,23,31,.85);padding:6px 10px;
+  color:#f2e4ce;font-size:11px;font-weight:680;
+}
+.game-center .game-detail-panel--materials .game-detail-material:before{
+  content:"";flex:0 0 5px;width:5px;height:5px;margin-right:8px;
+  transform:rotate(45deg);border:1px solid #dfb36e;
+}
+@media(max-width:1099px),(max-height:754px){
+ .game-center .game-center__body{display:flex;flex-direction:column;overflow:visible}
+ .game-center .game-center__hero{flex:0 0 160px;min-height:160px}
+ .game-center .game-info-explorer .axe-info-detail--studio,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+  height:auto;max-height:none;grid-template-rows:155px auto;overflow:visible;
+ }
+ .game-center .game-info-explorer .game-detail-body{overflow:visible;max-height:none}
+}
+@media(max-width:900px){
+ .game-center .game-info-explorer .axe-info-content{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)}
+ .game-center .game-detail-highlights{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+ .game-center .game-center__hero{flex-basis:136px;min-height:136px;padding:17px 15px}
+ .game-center .game-info-explorer .axe-info-content{grid-template-columns:1fr}
+ .game-center .game-info-explorer .game-detail-body{padding:10px}
+ .game-center .game-detail-highlights{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .game-center .game-detail-highlight{min-height:72px;padding:10px}
+ .game-center .game-detail-panel dl{grid-template-columns:1fr}
+ .game-center .game-detail-pair:nth-last-child(-n+2){border-bottom-color:rgba(156,173,186,.15)}
+ .game-center .game-detail-pair:last-child{border-bottom:0}
+}
+/* Reset legacy direct-<dl> field-card rules for the new record-driven panels. */
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel dl>.game-detail-pair{
+  display:flex;flex-direction:column;min-width:0;min-height:58px;
+  margin:0;padding:11px 1px 9px;gap:5px;
+  border:0;border-bottom:1px solid rgba(156,173,186,.15);
+  border-radius:0;background:transparent;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel dl>.game-detail-pair:last-child{border-bottom:0}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials dl>.game-detail-pair{min-height:0;padding:10px 1px;gap:7px}

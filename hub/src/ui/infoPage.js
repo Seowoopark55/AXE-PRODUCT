@@ -103,37 +103,32 @@ const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,
 // Standalone detail presentation: reorganize *existing* DB fields into readable
 // groups. Never synthesize game values or infer prices/conditions from artwork.
 const standaloneDetailSections=(htmlFields,table)=>{
- // Only group fields already produced by detailFields/weaponPartDetails. This
- // layout never adds inferred game data or duplicates any existing DB value.
+ // All visible values come from detailFields/weaponPartDetails (existing DB
+ // records). The standalone page only changes hierarchy, never source data.
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
  const fields=Array.from(htmlFields.matchAll(fieldRe),([,label,value],index)=>({
   label,value,index,plain:label.replace(/<[^>]+>/g,'')
  }));
- const priority=/^(?:분류|직업|등급|제작 등급|가공 종류|접두·접미|적용 분야|획득 장소|획득처|포인트 종류)$/;
- const materials=/재료|부품|투입/;
- const target=Math.ceil(fields.length/2);
- const left=fields.filter(field=>priority.test(field.plain)||materials.test(field.plain));
- const right=fields.filter(field=>!left.includes(field));
- // Balance the visible density without severing or changing any source data.
- while(left.length>target){
-  const candidate=left.findLastIndex(field=>!materials.test(field.plain));
-  const index=candidate<0?left.length-1:candidate;
-  right.unshift(left.splice(index,1)[0]);
- }
- while(left.length<target&&right.length) left.push(right.shift());
- left.sort((a,b)=>a.index-b.index);
- right.sort((a,b)=>a.index-b.index);
- const datum=field=>{
-  // Show each real ingredient in a small readable chip; these are NOT inventory
-  // counts, fabricated item artwork, or an actionable "craft" control.
-  const value=field.plain==='필요 재료'&&field.value.includes(' · ')
-   ?`<span class="game-detail-materials">${field.value.split(' · ').map(part=>`<span class="game-detail-material">${part}</span>`).join('')}</span>`
-   :field.value;
-  return `<div class="axe-info-detail__datum${/비고|메모|설명|가격 비고/.test(field.plain)?' is-narrative':''}${materials.test(field.plain)?' is-material':''}"><dt>${field.label}</dt><dd>${value}</dd></div>`;
- };
- const column=(title,key,entries)=>entries.length?`<section class="game-detail-section game-detail-section--${key}" aria-label="${title}"><h3>${title}</h3><dl>${entries.map(datum).join('')}</dl></section>`:'';
- const sectionTitle=({info_processes:'생산 · 보상',info_quests:'퀘스트 · 보상',info_skill_ranks:'성장 · 조건',modbook_catalog:'개조 · 효과'})[table]||'제작 · 조건 · 보상';
- return `<div class="game-detail-sections${right.length?'':' game-detail-sections--single'}">${column('기본 정보','primary',left)}${column(sectionTitle,'requirements',right)}</div>`;
+ const keyLabels={
+  info_crafts:['성공률','제작 등급','획득 장소'],
+  info_material_recipes:['제작 등급','성공률','획득 장소'],
+  info_processes:['생산 수량','보상 금액','보상 경험치'],
+  info_quests:['보상 금액','보상 경험치','등급'],
+  info_skill_ranks:['등급','필요 포인트','포인트 종류'],
+  modbook_catalog:['성공률','최근 거래가격','최근 거래일']
+ }[table]||[];
+ const highlights=keyLabels.map(label=>fields.find(field=>field.plain===label)).filter(Boolean).slice(0,3);
+ const remainder=fields.filter(field=>!highlights.includes(field));
+ const isMaterial=field=>/재료|부품|투입/.test(field.plain);
+ const materials=remainder.filter(isMaterial);
+ const overview=remainder.filter(field=>!isMaterial(field));
+ const materialValue=field=>field.plain==='필요 재료'&&field.value.includes(' · ')
+  ?`<span class="game-detail-materials">${field.value.split(' · ').map(part=>`<span class="game-detail-material">${part}</span>`).join('')}</span>`
+  :field.value;
+ const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map(field=>`<div class="game-detail-highlight"><span>${field.label}</span><strong>${field.value}</strong></div>`).join('')}</div>`:'';
+ const panel=(title,key,items,materialsPanel=false)=>items.length?`<section class="game-detail-panel game-detail-panel--${key}" aria-label="${title}"><h3>${title}</h3><dl>${items.map(field=>`<div class="game-detail-pair${field.value.length>100?' game-detail-pair--long':''}"><dt>${field.label}</dt><dd>${materialsPanel?materialValue(field):field.value}</dd></div>`).join('')}</dl></section>`:'';
+ const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
+ return `<div class="game-detail-body">${highlightsHtml}<div class="game-detail-panels">${panel('필요 재료','materials',materials,true)}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
 };
 const itemListSubtitle=(table,row)=>{
  if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
@@ -337,7 +332,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
  const detailTitle=selected?itemName(table,selected,data):'';
  const existingFields=selected?(table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)):'';
- const detailHeading=selected?`<header><span>상세 정보${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
+ const detailHeading=selected?`<header><span>${standalone?escapeText(CONFIG[table][0]):'상세 정보'}${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
  // Detail density is based ONLY on the selected record's existing visible DB fields.
  // Sparse rows leave room for the scene; data-heavy rows gain columns and a shorter art header.
  const visibleFieldCount=(existingFields.match(/<dt>/g)||[]).length;
