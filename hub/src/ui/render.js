@@ -292,6 +292,7 @@ function renderManagementCenter(state) {
   if (!state.session?.user || state.platformAdmin !== true) return renderPermission(state);
   const username = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || 'Discord 사용자';
   const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
+  const passQueue=(state.adminPassRequests||[]).filter(item=>item.status==='pending').length;
   const queue=siteOpen+Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
     +Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
@@ -306,6 +307,7 @@ function renderManagementCenter(state) {
         <nav class="platform-center__nav" aria-label="플랫폼 관리 화면">
           ${renderPlatformRailItem(state,'overview','대시보드','dashboard')}
           ${renderPlatformRailItem(state,'companies','이용권 관리','platform')}
+          ${renderPlatformRailItem(state,'pass-requests','이용권 신청','feedback',passQueue)}
           ${renderPlatformRailItem(state,'contents','콘텐츠 관리','assets')}
           ${renderPlatformRailItem(state,'inbox','고객 문의','feedback',queue)}
           <span class="platform-center__nav-divider" role="presentation"></span>
@@ -802,11 +804,18 @@ function renderPlatformContentSettings(state) {
   return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. COOK 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
+function renderPlatformPassRequests(state){
+  const rows=state.adminPassRequests||[];
+  const count=rows.filter(row=>row.status==='pending').length;
+  if(state.adminPassRequestsError)return `<section class="lac-pass-admin"><h2>이용권 신청</h2><p role="alert">${esc(state.adminPassRequestsError)}</p><button type="button" data-action="refresh-pass-requests">다시 시도</button></section>`;
+  return `<section class="lac-pass-admin"><header><div><span>🎟️ COMPANY PASS</span><h2>이용권 신청 <em>${count}건 대기</em></h2><p>승인 시 회사 통합 이용권을 발급합니다. 기존 일시정지·만료 상태는 자동으로 해제되지 않습니다.</p></div><button type="button" data-action="refresh-pass-requests">새로고침</button></header><div class="lac-pass-admin__list">${rows.length?rows.map(row=>`<article class="lac-pass-admin__row"><div><strong>${esc(row.company_name)}</strong><span>신청자: ${esc(row.requester_name)} · ${esc(fmtDate(row.requested_at))}</span><small>${row.status==='pending'?'⏳ 승인 대기':row.status==='approved'?'✓ 승인 완료':'반려 완료'}</small></div>${row.status==='pending'?`<div class="lac-pass-admin__actions"><button type="button" data-action="approve-pass-request" data-request-id="${esc(row.id)}">✓ 승인 및 발급</button><button type="button" data-action="reject-pass-request" data-request-id="${esc(row.id)}">반려</button></div>`:''}</article>`).join(''):'<p class="lac-pass-admin__empty">접수된 이용권 신청이 없습니다.</p>'}</div></section>`;
+}
+
 function renderPlatform(state){
   const all=state.platformSnapshot||[];
   const q=String(state.platformQuery||'').trim().toLowerCase();
   const filter=String(state.platformStatus||'all');
-  const view=['overview','companies','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
+  const view=['overview','companies','pass-requests','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
   let rows=all.filter(r=>filter==='all'||String(r.effective_status||r.subscription_status)===filter);
   if(q)rows=rows.filter(r=>`${r.company_name||''} ${r.owner_name||''} ${r.guild_name||''} ${r.plan||''} ${platformPlanLabel(r.plan)}`.toLowerCase().includes(q));
   const active=all.filter(r=>!['expired','paused'].includes(String(r.effective_status||r.subscription_status))).length;
@@ -820,7 +829,7 @@ function renderPlatform(state){
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
   const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>사이트 문의 · 기존 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>기존 회사 건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
-  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):companyBoard;
+  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):view==='pass-requests'?renderPlatformPassRequests(state):companyBoard;
   const overview=`<section class="platform-overview" aria-label="운영 대시보드">
     ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}
     <div class="platform-overview__columns">
@@ -838,8 +847,8 @@ function renderPlatform(state){
       </section>
     </div>
   </section>`;
-  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='contents'?'콘텐츠 관리':'고객 문의';
-  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
+  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='pass-requests'?'이용권 신청':view==='contents'?'콘텐츠 관리':'고객 문의';
+  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='pass-requests'?'회사별 신청을 확인하고 이용권을 발급합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
   const actions=view==='overview'||view==='companies'?`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`:'';
   return `<div class="platform-page platform-page--${view}">${pageHeader('PLATFORM OWNER',heading,description,actions)}${view==='overview'?overview:`${['support','suggestions'].includes(view)?supportTabs:''}<div class="platform-service-view">${content}</div>`}</div>`;
 }

@@ -19,5 +19,7 @@ export function contentCardStatus(state,key){
   if(!contentIsVisible(state,key))return null;
   if(key!=='company_management'&&contentPolicy(state,key)?.is_free===true)return '자유 이용';
   if(!hasCompany(state))return '회사 등록 후';
-  return hasUnifiedPass(state)?'이용 가능':'이용 신청';
+  if(hasUnifiedPass(state))return '이용 가능';
+  if(state.companyAccess?.company_id===state.companyId && state.companyAccess?.entitlement_enabled===true)return '이용 제한';
+  return '이용 신청';
 }

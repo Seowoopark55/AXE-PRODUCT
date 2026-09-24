@@ -1,15 +1,32 @@
 function escapeHtml(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
-export function companyPassRequestText(view, contentName='LAC HUB'){
-  const company=(view.companies||[]).find(c=>c.id===view.companyId);
-  const role=(view.memberships||[]).find(m=>m.user_id===view.session?.user?.id && m.company_id===view.companyId)?.role;
-  return (role==='owner'||role==='admin'?'LAC HUB 운영자에게 통합 이용권 신청':'회사 대표·관리자에게 통합 이용권 신청 요청')+`\n회사: ${company?.name||'확인 필요'}\n요청 콘텐츠: ${contentName}\n통합 이용권 확인 및 이용 안내를 부탁드립니다.`;
-}
-export function renderCompanyPassNotice(view,contentName,forCook=false){
-  const role=(view.memberships||[]).find(m=>m.user_id===view.session?.user?.id && m.company_id===view.companyId)?.role;
-  const owner=role==='owner'||role==='admin';
-  const status=view.companyAccess?.subscription_status;
-  const paused=status==='paused'||status==='expired';
-  const missing=view.companyAccessError;
-  const explanation=missing?'이용권 상태를 확인하지 못했습니다. 잠시 후 새로고침해 주세요.':paused?'현재 회사의 통합 이용권이 일시정지 또는 만료된 상태입니다. 회사 대표·관리자가 운영자에게 문의해 주세요.':view.companyAccess?.entitlement_enabled?'이용권 상태를 확인 중입니다. 회사 대표·관리자가 운영자에게 문의해 주세요.':'회사 소속은 확인됐지만 통합 이용권이 아직 부여되지 않았습니다.';
-  return `<section class="lac-company-pass-guide" aria-label="통합 이용권 이용 안내"><div class="lac-company-pass-guide__status"><span>통합 이용권 · 이용 신청</span><strong>${escapeHtml(contentName)} 이용 안내</strong><p>${explanation}</p></div><div class="lac-company-pass-guide__steps"><strong>${owner?'운영자에게 이용권 신청하기':'대표·관리자에게 이용 요청하기'}</strong><p>${owner?'아래 요청 문구를 복사해 LAC HUB 운영자에게 전달하세요. 운영자가 회사의 통합 이용권을 부여하면 소속 멤버에게 함께 적용됩니다.':'회사 대표 또는 관리자에게 통합 이용권 신청을 부탁해 주세요. 멤버 개인에게 별도의 이용권 등록 코드를 요구하지 않습니다.'}</p><button type="button" data-action="copy-company-pass-request" ${missing?'disabled':''}>${owner?'운영자에게 보낼 요청 복사':'대표에게 보낼 요청 복사'}</button>${forCook?'':'<button type="button" data-action="refresh-company-pass">이용권 상태 새로고침</button>'}</div></section>`;
+// Both company management and COOK render the same application component.
+export function renderCompanyPassNotice(view){
+  const error=view.companyAccessError||view.companyPassRequestError;
+  const access=view.companyAccess;
+  const request=view.companyPassRequest;
+  const entitled=access?.entitlement_enabled===true;
+  const status=access?.subscription_status;
+  const paused=['paused','expired','pending','unassigned'].includes(status);
+  let heading='통합 이용권 등록 후 사용할 수 있어요';
+  let detail='신청 후 운영자가 승인하면 우리 회사의 모든 멤버에게 이용권이 적용됩니다.';
+  let action='';
+  if(error){
+    heading='이용권 상태를 확인하지 못했어요';
+    detail='잠시 후 페이지를 새로 열어 주세요. 확인 전에는 신청과 콘텐츠 이용이 제한됩니다.';
+  }else if(entitled && paused){
+    heading='이용권이 발급되었지만 현재 이용이 제한돼요';
+    detail='회사의 기존 구독이 일시정지·만료 또는 시작 대기 중입니다. 대표·관리자에게 운영자 확인을 요청해 주세요.';
+  }else if(entitled){
+    heading='회사 이용권이 발급되었습니다';
+    detail='HUB에서 원하는 콘텐츠를 선택해 주세요.';
+  }else if(request?.status==='pending'){
+    heading='🎟️ 이용권 신청이 접수되었어요';
+    detail='운영자가 확인 중입니다. 승인되면 회사 멤버 모두에게 적용됩니다.';
+    action='<span class="lac-pass-application__pending" role="status">⏳ 승인 대기 중</span>';
+  }else{
+    if(status==='paused')detail='이용권 신청 후 운영자가 승인하면 발급됩니다. 회사의 기존 일시정지 해제 후 실제로 이용할 수 있습니다.';
+    if(request?.status==='rejected')detail='이전 신청이 반려되었습니다. 일정 시간 후 다시 신청할 수 있습니다.';
+    action='<button type="button" class="lac-pass-application__submit" data-action="submit-company-pass-request">✉️ 이용권 신청하기 <span aria-hidden="true">→</span></button>';
+  }
+  return `<section class="lac-company-pass-guide lac-pass-application" aria-label="통합 이용권 신청"><div class="lac-pass-application__icon" aria-hidden="true">🎟️</div><div class="lac-pass-application__body"><strong>${escapeHtml(heading)}</strong><p>${escapeHtml(detail)}</p>${action}</div></section>`;
 }

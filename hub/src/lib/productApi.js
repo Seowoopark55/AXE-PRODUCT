@@ -1686,3 +1686,35 @@ export async function setPlatformCompanyAccess(companyId, enabled) {
   assertClient();
   return unwrap(await supabase.rpc('lac_admin_set_company_access',{p_company_id:companyId,p_enabled:enabled}), '회사 이용권 설정을 저장하지 못했습니다.');
 }
+
+// Company-wide pass applications: the DB enforces membership, uniqueness and admin review.
+export async function createCompanyPassRequest(companyId) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_pass_request_create',{p_company_id:companyId}), '이용권 신청을 접수하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function getCompanyPassRequest(companyId) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_pass_request_my_latest',{p_company_id:companyId}), '이용권 신청 상태를 확인하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function listAdminPassRequests() {
+  assertClient();
+  return unwrap(await supabase.rpc('lac_admin_list_pass_requests'), '이용권 신청 목록을 불러오지 못했습니다.')||[];
+}
+export async function reviewCompanyPassRequest(requestId,approve) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_admin_review_pass_request',{p_request_id:requestId,p_approve:approve}), '이용권 신청을 처리하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function notifyPassRequestOwner(requestId){
+  assertClient();
+  const {data:{session},error}=await supabase.auth.getSession();
+  if(error||!session?.access_token) return {sent:false,reason:'login_required'};
+  const response=await fetch('/api/pass/notify',{
+    method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},
+    body:JSON.stringify({request_id:requestId}),
+  });
+  if(!response.ok)return {sent:false,reason:'notification_unavailable'};
+  return response.json();
+}

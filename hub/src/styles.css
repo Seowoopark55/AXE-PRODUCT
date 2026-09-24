@@ -917,3 +917,35 @@ body:has(.runtime-app--game-info.game-center)::before {
 /* Unified company pass: same preview frame and prominent request panel for COOK/company. */
 .lac-company-pass-guide{display:grid;gap:14px;padding:18px;border:1px solid #98764a;border-radius:13px;background:linear-gradient(130deg,#26221d,#171a20);color:#eef1f5;margin:15px 0;}
 .lac-company-pass-guide__status{display:grid;gap:7px}.lac-company-pass-guide__status>span{font-size:12px;color:#ecc389;font-weight:700}.lac-company-pass-guide__status>strong{font-size:20px}.lac-company-pass-guide p{color:#cad0d9;font-size:13px;line-height:1.65;margin:0}.lac-company-pass-guide__steps{display:grid;gap:10px}.lac-company-pass-guide__steps>strong{font-size:14px}.lac-company-pass-guide__steps button,.lac-company-pass-admin button{border:1px solid #bd9455;background:#4b361c;color:#fff1db;border-radius:9px;padding:11px 15px;font:inherit;cursor:pointer}.lac-company-pass-guide__steps button:disabled{opacity:.55;cursor:not-allowed}.lac-company-pass-admin{display:grid;gap:9px;padding:15px;border:1px solid #8c764f;border-radius:10px}.lac-company-pass-admin p{font-size:12px;color:#a6b4c2}.lac-company-pass-admin span{font-size:13px;color:#ecc389}.lac-cook-registration:has(.lac-company-pass-guide){margin:0 0 14px}.hub-feature__tag--request{background:#55516a;color:#faf0ff;}
+
+/* Stage 13: the same concise company-pass application on company and COOK previews. */
+.lac-company-pass-guide.lac-pass-application{display:flex;align-items:flex-start;gap:15px;margin:12px 0 16px;padding:19px 20px;border:1px solid #8d724b;border-radius:13px;background:linear-gradient(120deg,#25221e,#181e24);color:#f4f1eb}
+.lac-pass-application__icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;font-size:21px;border-radius:12px;background:#3c3224}
+.lac-pass-application__body{display:grid;gap:8px;min-width:0;flex:1}
+.lac-pass-application__body>strong{font-size:17px;line-height:1.45;color:#f5f1e8}
+.lac-company-pass-guide.lac-pass-application p{margin:0;color:#c9cbd0;font-size:13px;line-height:1.55}
+.lac-pass-application__submit{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:fit-content;max-width:100%;margin-top:5px;padding:12px 20px;border:1px solid #ecc17e;border-radius:10px;background:#ba873b;color:#161c23;font:inherit;font-weight:800;cursor:pointer;transition:filter .15s ease,transform .15s ease}
+.lac-pass-application__submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.lac-pass-application__submit:disabled{opacity:.6;cursor:wait;transform:none}
+.lac-pass-application__pending{display:inline-block;justify-self:start;padding:8px 12px;border:1px solid #927a45;border-radius:999px;color:#f1d79c;background:#3a3223;font-size:13px;font-weight:800}
+.hub-pass-alert{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;padding:12px;border:1px solid #695637;border-radius:9px;background:#26241f;color:#e6c88f;font:inherit;font-weight:750;cursor:pointer}
+.hub-pass-alert b,.hub-pass-alert__dot{display:inline-grid;place-items:center;padding:3px 7px;min-width:23px;border-radius:999px;background:#bc7833;color:#171d25;font-size:11px}
+.hub-pass-alert small{font-size:11px;color:#bfc3ca}
+.lac-pass-admin{display:grid;gap:15px;color:#ececec}
+.lac-pass-admin>header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:18px 20px;border:1px solid #394551;border-radius:12px;background:#1b222a}
+.lac-pass-admin>header>div{display:grid;gap:5px}
+.lac-pass-admin>header span{font-size:11px;letter-spacing:.1em;color:#d6b374}
+.lac-pass-admin h2{margin:0;font-size:21px}.lac-pass-admin h2 em{font-size:12px;font-style:normal;color:#f2d394;margin-left:6px}
+.lac-pass-admin p{margin:0;color:#afbccc;font-size:12px;line-height:1.55}
+.lac-pass-admin>header button,.lac-pass-admin__actions button{border:1px solid #56616e;background:#27313b;color:#f1f1f1;border-radius:9px;padding:10px 13px;font:inherit;cursor:pointer}
+.lac-pass-admin__list{display:grid;gap:10px}
+.lac-pass-admin__row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:13px;padding:16px 18px;border:1px solid #37434f;background:#192028;border-radius:11px}
+.lac-pass-admin__row>div:first-child{display:grid;gap:6px}
+.lac-pass-admin__row strong{font-size:16px;color:#f4f1e8}
+.lac-pass-admin__row span,.lac-pass-admin__row small{font-size:12px;color:#c2cbd2}
+.lac-pass-admin__actions{display:flex;gap:8px;flex-wrap:wrap}
+.lac-pass-admin__actions button:first-child{border-color:#c6a16b;background:#66502d;color:#ffedcd;font-weight:750}
+.lac-pass-admin__empty{padding:20px;border:1px dashed #536271;border-radius:9px}
+@media(max-width:650px){.lac-company-pass-guide.lac-pass-application{padding:14px;gap:10px}.lac-pass-application__icon{width:32px;height:32px;flex-basis:32px;font-size:18px}.lac-pass-application__submit{width:100%}.lac-pass-admin__actions,.lac-pass-admin__actions button{width:100%}}
+
+.hub-feature__tag--restricted{background:#4b332d;color:#ffdbbb;border-color:#8b6653}
