@@ -90,7 +90,7 @@ export function renderShell(root, state) {
 
 function renderCompanyPassLanding(state){
   const target=state.page==='paid-content-guide'?state.requestedContent||'콘텐츠':'회사 관리';
-  return `<div class="runtime-auth runtime-auth--first-run"><div class="runtime-first-run"><header class="lac-pass-landing__top"><button type="button" class="lac-pass-back" data-action="go-hub" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></button><span class="lac-pass-landing__context">${esc(target)} <span aria-hidden="true">·</span> 이용 안내</span></header>${renderCompanyPassNotice(state,target)}${target==='회사 관리'?`<section class="runtime-first-run__sample lac-preview-frame" aria-label="회사 관리 미리보기"><div class="lac-preview-frame__head"><div><strong>회사 관리 화면 미리보기</strong><small>실제 회사 정보와 연결되지 않은 예시 화면</small></div><span>가상 데이터</span></div>${companyLedgerDemo}<p>가상 예시이며 실제 회사 자료는 표시되지 않습니다.</p></section>`:''}</div></div>`;
+  return `<div class="runtime-auth runtime-auth--first-run"><div class="runtime-first-run"><header class="lac-pass-landing__top"><button type="button" class="lac-pass-back" data-action="go-hub" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></button><span class="lac-pass-landing__context">${esc(target)} <span aria-hidden="true">·</span> 이용 안내</span></header>${renderCompanyPassNotice(state,target)}${target==='회사 관리'?renderCompanyLedgerPreview():''}</div></div>`;
 }
 function renderStartupLoading() {
   return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card"><span class="runtime-startup-spinner" aria-hidden="true"></span><div><strong>LAC HUB</strong><p>회사 정보를 불러오는 중입니다.</p></div></div></section>`;
@@ -129,7 +129,23 @@ function onboardingDiscordIdentity(state) {
   return {id,name};
 }
 
-const companyLedgerDemo=`<div class="runtime-ledger-demo" aria-label="공금 내역 예시"><div class="runtime-ledger-demo__toolbar"><div><small>COMPANY FUND</small><strong>공금내역</strong></div><span>2026년 09월</span><span class="runtime-ledger-demo__mock-button">수입·지출 등록</span></div><div class="runtime-ledger-demo__filters"><span>전체 이름 ▾</span><span>전체 구분 ▾</span><span>전체 계좌 ▾</span><small>예시 1건</small></div><div class="runtime-ledger-demo__scroll"><div class="runtime-ledger-demo__row runtime-ledger-demo__row--head"><span>날짜</span><span>이름</span><span>계좌</span><span>내역</span><span>구분</span><span>금액</span><span>증빙</span><span>관리</span></div><div class="runtime-ledger-demo__row"><span>09.24</span><span>예시 멤버</span><span>공용계좌</span><strong>주간 공금 납부</strong><span>승인반영</span><b>+50,000원</b><span>보기</span><span>수정</span></div></div><div class="runtime-ledger-demo__footer">가상 거래 1건 · 실제 회사 데이터와 연결되지 않습니다.</div></div>`;
+// Public screenshot only: the bundled image contains anonymized example rows.
+// This preview must never fetch a company's live ledger or evidence attachments.
+function renderCompanyLedgerPreview(){
+  const screenshot='/hub/lac-company-ledger-preview.png';
+  return `<figure class="lac-company-shot lac-preview-frame" aria-label="회사 관리 실제 화면 예시">
+    <div class="lac-preview-frame__head"><div><strong>회사 관리 화면 미리보기</strong><small>실제 공금 관리 화면 · 이름과 거래 내역은 예시로 변경</small></div><span>화면 캡처</span></div>
+    <button type="button" class="lac-company-shot__open lac-cook-shot__open" data-action="company-preview-open" aria-haspopup="dialog" aria-controls="lac-company-preview-dialog" aria-label="이 페이지에서 회사 관리 공금 화면 크게 보기">
+      <img src="${screenshot}" alt="날짜, 이름, 계좌, 내역, 금액 및 증빙 항목이 있는 회사 공금 관리 화면 예시" loading="lazy">
+      <span class="lac-cook-shot__zoom">＋ 화면 전체 보기</span>
+    </button>
+    <figcaption>공금 입출금 내역과 증빙을 확인하는 화면이에요. 이미지를 누르면 현재 페이지에서 확대됩니다.</figcaption>
+    <dialog id="lac-company-preview-dialog" class="lac-cook-preview-dialog" data-company-preview-dialog aria-label="회사 관리 화면 확대 보기">
+      <div class="lac-cook-preview-dialog__head"><strong>회사 관리 · 공금내역 예시</strong><button type="button" data-action="company-preview-close" aria-label="확대 화면 닫기">닫기 ×</button></div>
+      <img src="${screenshot}" alt="회사 관리 공금내역 실제 화면 캡처, 개인 및 거래 정보는 예시로 대체됨">
+    </dialog>
+  </figure>`;
+}
 
 function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCreateCompany=true,accessError=false,contentKind='company',registrationOnly=false}={}) {
   const createAction=testMode?'test-center-open-new-company':'open-create-company';
@@ -142,7 +158,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   const title=game?'게임 정보':'회사 관리';
   const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
   // Illustrative rows only. Never fetch another company's data for a preview.
-  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:companyLedgerDemo;
+  const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:renderCompanyLedgerPreview();
   const registrationMarkup=`
     <details class="runtime-first-run__registration" ${focus==='create'||focus==='member'?'open':''}><summary><span><strong>우리 회사에서 이용하기</strong><small>새 회사 대표라면 등록 안내, 기존 회사 팀원이라면 멤버 등록 방법 확인</small></span><span aria-hidden="true">⌄</span></summary>
     <div class="runtime-first-run__choice"><strong>어떤 상황에 해당하나요?</strong><span>새 회사 대표는 왼쪽, 기존 회사 팀원은 오른쪽 안내를 확인해 주세요.</span></div>
@@ -164,7 +180,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   if(registrationOnly)return registrationMarkup;
   return `
     <header class="runtime-first-run__head"><span>${esc(title)} · 미리보기</span><h1>${esc(title)}를 먼저 살펴보세요.</h1><p>${esc(summary)}</p></header>
-    <section class="runtime-first-run__sample lac-preview-frame" aria-label="${esc(title)} 화면 예시"><div class="lac-preview-frame__head"><div><strong>${esc(title)} 화면 미리보기</strong><small>실제 화면 형태를 참고한 가상 예시</small></div><span>화면 예시</span></div>${demo}<p>예시 데이터이며 실제 회사의 정보는 표시하지 않습니다.</p></section>
+    ${game?`<section class="runtime-first-run__sample lac-preview-frame" aria-label="게임 정보 화면 예시"><div class="lac-preview-frame__head"><div><strong>게임 정보 화면 미리보기</strong><small>실제 화면 형태를 참고한 가상 예시</small></div><span>화면 예시</span></div>${demo}<p>예시 데이터이며 실제 회사의 정보는 표시하지 않습니다.</p></section>`:demo}
     ${registrationMarkup}`;
 }
 

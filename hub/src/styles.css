@@ -984,3 +984,11 @@ body:has(.runtime-app--game-info.game-center)::before {
 .runtime-first-run__sample.lac-preview-frame>.runtime-ledger-demo .runtime-ledger-demo__footer{padding:6px 10px;background:#0b141e}
 .runtime-first-run__sample.lac-preview-frame>p{padding:0 12px 10px;font-size:10px;color:#a8b9c7}
 @media(max-width:650px){.lac-pass-landing__top{align-items:flex-start}.lac-pass-landing__context{padding-top:7px}.lac-company-pass-guide.lac-pass-application{padding:15px;gap:11px}.lac-pass-application__icon{flex-basis:36px;width:36px;height:36px;font-size:18px}.lac-pass-application__body>strong{font-size:16px}.lac-pass-application__submit{width:100%}.runtime-first-run__sample.lac-preview-frame>.runtime-ledger-demo{margin:8px}}
+
+/* Stage 16: company/COOK previews share the same compact screenshot frame and modal. */
+.lac-company-shot{margin:0 0 14px}
+.lac-company-shot__open img{display:block;width:100%;height:clamp(160px,24vw,240px);object-fit:contain;object-position:center;background:#0d1116}
+.lac-company-shot figcaption{padding:10px 15px;color:#aebbc7;font-size:12px;line-height:1.55}
+.lac-company-shot__open:focus-visible{outline:3px solid #f0be6b;outline-offset:2px}
+.lac-company-shot .lac-cook-preview-dialog>img{max-width:100%;height:auto}
+@media(max-width:760px){.lac-company-shot__open img{height:175px}}

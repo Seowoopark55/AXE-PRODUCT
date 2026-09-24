@@ -1691,6 +1691,12 @@ async function saveModuleSettingsData(form,data){
   }
 }
 
+// Same-page enlargement for the public company screenshot, independent of COOK's route.
+root.addEventListener('click', event => {
+  const dialog=event.target;
+  if(dialog instanceof HTMLDialogElement && dialog.matches('[data-company-preview-dialog]') && dialog.open){dialog.close();}
+});
+
 root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
@@ -1734,6 +1740,18 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(action==='company-preview-open'){
+    event.preventDefault();
+    const dialog=root.querySelector('[data-company-preview-dialog]');
+    if(dialog && !dialog.open)dialog.showModal();
+    return;
+  }
+  if(action==='company-preview-close'){
+    event.preventDefault();
+    root.querySelector('[data-company-preview-dialog]')?.close();
+    root.querySelector('[data-action="company-preview-open"]')?.focus({preventScroll:true});
+    return;
+  }
   if(action==='list-page'){
     const key=String(actionEl.dataset.listKey||''); const page=Math.max(1,Number(actionEl.dataset.listPage||1));
     const map={fundLedger:'fundLedgerPage',fundReview:'fundReviewPage',members:'memberPage',assets:'assetPage',returns:'returnPage',accounts:'accountPage',cooking:'cookingPage',questions:'questionPage',suggestions:'suggestionPage',platform:'platformPage'};
