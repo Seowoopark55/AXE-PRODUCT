@@ -22,6 +22,30 @@ const INFO_TAB_ICONS=Object.freeze({
 const infoTabIcon=table=>`<svg class="axe-info-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${INFO_TAB_ICONS[table]||''}</svg>`;
 const ALL='__all__', UNSET='__unset__';
 const escapeText=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+// Stage image pilot: five approved assets only. Name keys reflect existing DB strings;
+// no write to Supabase, no fallback to an unrelated item image.
+const PILOT_ITEM_IMAGE_FILES=Object.freeze({
+  '나이프':'knife.png',
+  '조악한 무기부품':'crude_weapon_parts.png',
+  '은주괴':'silver_ingot.png',
+  '상급 목재':'premium_wood.png',
+  '상급목재':'premium_wood.png', // current production spelling
+  '숙련가의 도구':'expert_tool.png',
+});
+const pilotItemImageUrl=name=>{
+  const file=PILOT_ITEM_IMAGE_FILES[String(name??'').trim()];
+  return file?`/hub/game-info/items/${file}`:'';
+};
+// Detail ingredient tokens are escaped by renderFields before arriving here.
+const pilotMaterialBadge=part=>{
+  const at=part.lastIndexOf(' × ');
+  const name=at>=0?part.slice(0,at):part;
+  const qty=at>=0?part.slice(at+3):'';
+  const url=pilotItemImageUrl(name);
+  if(!url)return `<span class="game-detail-material">${part}</span>`;
+  return `<span class="game-detail-material game-detail-material--art"><img src="${url}" alt="" loading="lazy" decoding="async"><span class="game-detail-material__name">${name}</span>${qty?`<b class="game-detail-material__qty">× ${qty}</b>`:''}</span>`;
+};
+
 const fieldValue=(row,key)=>row[key]===null||row[key]===undefined||row[key]===''?'—':String(row[key]);
 const filterName=value=>value===null||value===undefined||String(value).trim()===''?UNSET:String(value).trim();
 const showFilterName=value=>value===UNSET?'미지정':value;
@@ -123,8 +147,10 @@ const standaloneDetailSections=(htmlFields,table)=>{
  const materials=remainder.filter(isMaterial);
  const overview=remainder.filter(field=>!isMaterial(field));
  const materialValue=field=>field.plain==='필요 재료'&&field.value.includes(' · ')
-  ?`<span class="game-detail-materials">${field.value.split(' · ').map(part=>`<span class="game-detail-material">${part}</span>`).join('')}</span>`
-  :field.value;
+  ?`<span class="game-detail-materials">${field.value.split(' · ').map(pilotMaterialBadge).join('')}</span>`
+   :field.plain==='필요 재료'&&pilotItemImageUrl(field.value.split(' × ')[0])
+    ?`<span class="game-detail-materials">${pilotMaterialBadge(field.value)}</span>`
+    :field.value;
  const highlightsHtml=highlights.length?`<div class="game-detail-highlights" aria-label="핵심 정보">${highlights.map(field=>`<div class="game-detail-highlight"><span>${field.label}</span><strong>${field.value}</strong></div>`).join('')}</div>`:'';
  const panel=(title,key,items,materialsPanel=false)=>items.length?`<section class="game-detail-panel game-detail-panel--${key}" aria-label="${title}"><h3>${title}</h3><dl>${items.map(field=>`<div class="game-detail-pair${field.value.length>100?' game-detail-pair--long':''}"><dt>${field.label}</dt><dd>${materialsPanel?materialValue(field):field.value}</dd></div>`).join('')}</dl></section>`:'';
  const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
@@ -139,7 +165,10 @@ const itemListSubtitle=(table,row)=>{
  if(table==='modbook_catalog')return [row.type,modbookCategories(row).slice(0,2).join(', ')].filter(Boolean).join(' · ');
  return '';
 };
-const listDecor=(table,title,subtitle,search=false)=>`<span class="game-list-symbol" aria-hidden="true">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
+const listDecor=(table,title,subtitle,search=false)=>{
+  const image=['info_crafts','info_material_recipes','info_processes'].includes(table)?pilotItemImageUrl(title):'';
+  return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
+};
 
 const detailFields=(table,row,data,info,owner)=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
@@ -339,7 +368,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const longestField=Array.from(existingFields.matchAll(/<dd>([\s\S]*?)<\/dd>/g),match=>match[1].replace(/<[^>]*>/g,'').length).reduce((max,n)=>Math.max(max,n),0);
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero">${detailHeading}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-hero${['info_crafts','info_material_recipes','info_processes'].includes(table)&&pilotItemImageUrl(detailTitle)?' game-detail-hero--art':''}">${detailHeading}${['info_crafts','info_material_recipes','info_processes'].includes(table)&&pilotItemImageUrl(detailTitle)?`<img class="game-detail-hero__item" src="${pilotItemImageUrl(detailTitle)}" alt="" decoding="async">`:''}</div>${standaloneDetailSections(existingFields,table)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;

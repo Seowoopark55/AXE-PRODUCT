@@ -547,3 +547,36 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 }
 .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel dl>.game-detail-pair:last-child{border-bottom:0}
 .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials dl>.game-detail-pair{min-height:0;padding:10px 1px;gap:7px}
+
+
+/* LAC HUB · game-info image pilot (five assets). Only the standalone studio UI. */
+.game-center .game-info-explorer .axe-info-row--studio .game-list-symbol img{
+  display:block;width:29px;height:29px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art{
+  position:relative;isolation:isolate;padding-right:clamp(105px,13vw,160px);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art>header{
+  position:relative;z-index:1;min-width:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__item{
+  position:absolute;z-index:0;right:clamp(7px,2vw,20px);top:50%;
+  transform:translateY(-50%);width:clamp(90px,12vw,145px);height:clamp(92px,13vw,145px);
+  object-fit:contain;pointer-events:none;filter:drop-shadow(0 9px 11px rgba(0,0,0,.55));
+}
+.game-center .game-detail-panel--materials .game-detail-material--art{
+  gap:7px;padding:5px 8px 5px 5px;min-height:39px;
+}
+.game-center .game-detail-panel--materials .game-detail-material--art::before{content:none}
+.game-center .game-detail-panel--materials .game-detail-material--art>img{
+  display:block;flex:0 0 29px;width:29px;height:29px;object-fit:contain;
+  border:1px solid rgba(220,178,112,.22);border-radius:5px;background:rgba(218,176,110,.08);
+}
+.game-center .game-detail-material--art .game-detail-material__name{min-width:0;overflow-wrap:anywhere}
+.game-center .game-detail-material--art .game-detail-material__qty{
+  margin-left:auto;color:#efd29c;font-weight:750;white-space:nowrap;
+}
+@media(max-width:620px){
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art{padding-right:104px}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__item{right:5px;width:94px;height:96px}
+}
