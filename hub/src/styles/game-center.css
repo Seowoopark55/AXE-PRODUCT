@@ -1658,3 +1658,80 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
  .game-center .game-info-explorer .game-skill-content .game-skill-detail__body{overflow:visible}
  .game-center .game-info-explorer .game-skill-content .game-skill-detail__ranks{grid-template-columns:1fr}
 }
+
+/* Skill detail: framed, content-sized embed panel. No other game-info tabs touched. */
+.game-center .game-info-explorer .game-skill-content .game-skill-detail{
+ display:flex;flex-direction:column;gap:7px;align-self:start;
+ height:max-content;max-height:none;min-height:0;overflow:visible;
+ margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail > .game-skill-detail__header{
+ display:flex;flex:0 0 auto;align-items:center;gap:9px;
+ padding:8px 11px;min-height:0;height:auto;
+ border:1px solid rgba(198,163,107,.37);border-radius:9px;
+ background:linear-gradient(100deg,#1b2833,#17222b 72%,#24251f);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail .game-skill-art--large{
+ flex:0 0 37px;width:37px;height:37px;border-radius:7px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name{gap:1px}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name h2{font-size:17px;line-height:1.2}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name p{font-size:10px;line-height:1.15}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__body{
+ display:block;flex:0 0 auto;min-height:0;overflow:visible;
+ padding:0;margin:0;background:transparent;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__sheet{
+ min-width:0;max-width:100%;padding:10px 11px 11px;
+ border:1px solid rgba(203,162,99,.4);border-radius:9px;
+ background:linear-gradient(145deg,#1b2833,#17232d 55%,#151e26);
+ box-shadow:inset 0 1px 0 rgba(242,216,177,.055);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__columns{
+ display:grid;grid-template-columns:1fr auto;align-items:center;
+ min-height:0;margin:0 0 7px;padding:0 3px 7px;
+ border-bottom:1px solid rgba(205,166,110,.24);font-size:10px;
+ color:#c6aa80;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__ranks{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 7px;
+ padding:0;min-width:0;align-content:start;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank{
+ min-width:0;min-height:35px;padding:6px 8px;gap:3px 8px;
+ border:1px solid rgba(135,155,167,.26);border-radius:6px;
+ background:linear-gradient(100deg,#1d2a34,#19252e);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__track{
+ flex-basis:2px;width:2px;height:14px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__tier{gap:6px}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__tier strong{
+ font-size:12px;white-space:normal;overflow-wrap:anywhere;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__cost{gap:4px}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__cost b{font-size:14px}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank--has-note{
+ grid-column:1/-1;grid-template-columns:minmax(0,1fr) auto;
+ border-color:rgba(216,170,100,.45);background:linear-gradient(95deg,#2b2b28,#1b2b35);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__note{
+ display:flex;align-items:center;gap:7px;margin:2px 0 0;
+ padding:5px 0 0;border-top:1px solid rgba(208,171,118,.23);
+ font-size:11px;line-height:1.25;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-training-icon{
+ flex-basis:22px;width:22px;height:22px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-training-icon img{
+ width:22px;height:26px;
+}
+@media(max-width:800px){
+ .game-center .game-info-explorer .game-skill-content .game-skill-detail{
+   height:max-content;max-height:none;overflow:visible;
+ }
+}
+@media(max-width:700px){
+ .game-center .game-info-explorer .game-skill-content .game-skill-detail__ranks{grid-template-columns:1fr}
+ .game-center .game-info-explorer .game-skill-content .game-skill-detail__sheet{padding:9px}
+}
