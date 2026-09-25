@@ -282,8 +282,8 @@ function renderStandaloneGameInfo(state) {
     <main class="game-center__body">
       <section class="game-center__hero" aria-label="게임 정보 소개">
         <div class="game-center__hero-copy">
-          <h2>제작 · 퀘스트 · 스킬 · 개조서 정보</h2>
-          <p>${company?'필요한 게임 정보와 선택한 회사의 개조서를 한곳에서 확인할 수 있습니다.':'필요한 게임 정보를 한곳에서 확인할 수 있습니다.'}</p>
+          <h2>필요한 정보를 한곳에 모아, 더 빠르고 편하게 확인할 수 있습니다.</h2>
+          <p>${company?'제작, 퀘스트, 스킬, 개조서 정보를 한눈에 확인해보세요.':'제작, 퀘스트, 스킬 정보를 한눈에 확인해보세요.'}</p>
         </div>
       </section>
       ${renderInfoPage(state,{standalone:true})}
