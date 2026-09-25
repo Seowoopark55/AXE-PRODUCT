@@ -216,9 +216,11 @@ const skillDetailPanel=(skill,rows)=>{
   const required=row.required_point===null||row.required_point===undefined||String(row.required_point).trim()===''?'미등록':String(row.required_point);
   const pointType=String(row.point_type??'').trim();
   const note=String(row.note??'').trim();
-  return `<div class="game-skill-rank" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${note?`<p class="game-skill-rank__note">${escapeText(note)}</p>`:''}</div>`;
+  const needsManual=/수련서/.test(note);
+  const noteContent=note?`<p class="game-skill-rank__note">${needsManual?'<span class="game-skill-training-icon" aria-hidden="true"><img src="/hub/game-info/skills/training_manual.png" alt="" loading="lazy" decoding="async"></span>':''}<span>${escapeText(note)}</span></p>`:'';
+  return `<div class="game-skill-rank${note?' game-skill-rank--has-note':''}" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${noteContent}</div>`;
  }).join('');
- return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 필요 포인트</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
+ return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
 };
 
 const MODBOOK_GROUPS=Object.freeze({
@@ -272,13 +274,15 @@ const craftSubtype=craft=>{
  if(['PISTOL','REVOLVER','SMG'].includes(category))return ({PISTOL:'피스톨',REVOLVER:'리볼버',SMG:'SMG'})[category];
  return ETC_GROUPS[String(craft?.item_name)]||'기타';
 };
+// Display alias only: the DB craft name and output count remain unchanged.
+const craftDisplayName=name=>String(name??'')==='소형 탄피(20)'?'소형 탄피':String(name??'');
 const itemName=(table,row,data)=>{
  if(table==='info_craft_materials'){
   const parent=(data.info_crafts||[]).find(c=>String(c.id)===String(row.craft_id));
   return parent?String(parent.item_name):String(row.material_name||'이름 없음');
  }
  if(table==='info_skill_ranks')return [row.skill,row.rank].filter(Boolean).join(' · ')||'이름 없음';
- return String(row[CONFIG[table][1]]||'이름 없음');
+ return table==='info_crafts'?craftDisplayName(row.item_name||'이름 없음'):String(row[CONFIG[table][1]]||'이름 없음');
 };
 const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,value])=>`<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('');
 // Standalone catalogue detail is a presentation of existing records only.
