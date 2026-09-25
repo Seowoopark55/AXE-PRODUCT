@@ -94,6 +94,53 @@ const ITEM_IMAGE_FILES=Object.freeze({
   "헤비 피스톨": "heavy_pistol.png",
   "화약": "gunpowder.png",
 });
+// Quest titles can be task labels rather than item names. Resolve only confirmed
+// deliveries and obvious A/B variants of an existing, exactly named ore item.
+// Never infer artwork from job/rank alone or assign an unrelated item image.
+const QUEST_ITEM_ALIASES=Object.freeze({
+ '벌목|저급A':'저급 삼나무',
+ '벌목|저급B':'저급 삼나무',
+ '채광|석탄A':'석탄',
+ '채광|석탄B':'석탄',
+ '채광|철광석A':'철광석',
+ '채광|철광석B':'철광석',
+});
+const questTargetName=row=>{
+ const name=String(row?.item_name??'').trim();
+ const job=String(row?.job??'').trim();
+ return QUEST_ITEM_ALIASES[`${job}|${name}`]||name;
+};
+const questItemArt=row=>itemImageUrl(questTargetName(row));
+// Only source-listed A/B job+name pairs may be grouped; each original DB row
+// remains distinct and keeps its original quantity, reward, rank and ID.
+const QUEST_PAIR_NAMES=Object.freeze({벌목:['저급','일반'],채광:['석탄','철광석']});
+const questPairInfo=row=>{
+ const job=String(row?.job??'').trim();
+ const name=String(row?.item_name??'').trim();
+ const found=name.match(/^(.+?)([AB])$/);
+ if(!found||!QUEST_PAIR_NAMES[job]?.includes(found[1]))return null;
+ return {key:`${job}|${found[1]}`,variant:found[2],base:found[1]};
+};
+const questGroupedRows=rows=>{
+ const groups=new Map();
+ for(const row of rows){
+  const pair=questPairInfo(row);
+  if(pair){const entries=groups.get(pair.key)||[];entries.push(row);groups.set(pair.key,entries);}
+ }
+ const seen=new Set();
+ return rows.flatMap(row=>{
+  const pair=questPairInfo(row);
+  if(!pair||groups.get(pair.key).length<2)return [{row,variants:[row]}];
+  if(seen.has(pair.key))return [];
+  seen.add(pair.key);
+  return [{row,variants:groups.get(pair.key).slice().sort((a,b)=>questPairInfo(a).variant.localeCompare(questPairInfo(b).variant))}];
+ });
+};
+const questGroupedTitle=(row,variants)=>variants.length>1?(
+ questItemArt(row)?questTargetName(row):questPairInfo(row)?.base||String(row.item_name||'이름 없음')
+):String(row.item_name||'이름 없음');
+const questQtyText=value=>value===null||value===undefined||String(value).trim()===''?'미등록':
+ /^\d+(?:\.\d+)?$/.test(String(value).trim())?Number(value).toLocaleString('ko-KR'):escapeText(value);
 const itemImageUrl=name=>{
   const file=ITEM_IMAGE_FILES[String(name??'').trim()];
   return file?`/hub/game-info/items/${file}`:'';
@@ -233,7 +280,28 @@ const processDetailBody=record=>{
  const quest=hasQuest||rewards.length?`<section class="game-process-section game-process-section--quest" aria-label="${hasQuest?'별도 퀘스트 정보':'보상 정보'}"><header class="game-process-section__heading"><span class="game-process-section__icon" aria-hidden="true">✧</span><div><h3>${hasQuest?'퀘스트':'보상 정보'}</h3><p>${hasQuest?'생산과 별도로 납품하여 보상 획득':'지급 조건 확인 필요'}</p></div></header>${handin}${reward}</section>`:'';
  return `<div class="game-detail-body game-detail-body--process"><div class="game-process-split${quest?'':' game-process-split--production-only'}">${production}${quest}</div></div>`;
 };
-const standaloneDetailSections=(htmlFields,table,record)=>{
+// The quest page is an independent lookup. A/B variants are two distinct
+// quests displayed in one collection, not a combined hand-in or combined reward.
+const questDetailBody=(record,variants=[record])=>{
+ const target=questTargetName(record), image=questItemArt(record);
+ const art=image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:'<span class="game-quest-art-fallback" aria-hidden="true">◇</span>';
+ const pair=questPairInfo(record);
+ const group=variants.length>1;
+ const options=variants.map(variant=>{
+  const variantPair=questPairInfo(variant);
+  const title=group?`${variantPair?.variant||''} 퀘스트`:'납품 조건';
+  const qty=questQtyText(variant.required_qty);
+  const rank=String(variant.rank??'').trim();
+  const reward=(label,value,tone)=>value===null||value===undefined||String(value).trim()===''?'':
+   `<div class="game-quest-reward game-quest-reward--${tone}"><span>${label}</span><strong>${questQtyText(value)}</strong></div>`;
+  const money=reward('보상 금액',variant.reward_money,'money');
+  const xp=reward('보상 경험치',variant.reward_xp,'xp');
+  const note=String(variant.note??'').trim();
+  return `<section class="game-quest-option" aria-label="${escapeText(title)}"><header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header><div class="game-quest-delivery"><span>납품 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div>${money||xp?`<div class="game-quest-rewards" aria-label="퀘스트 완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">완료 보상이 등록되지 않았습니다.</p>'}${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
+ }).join('');
+ return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-target"><div class="game-quest-target__art">${art}</div><div class="game-quest-target__copy"><span>납품 아이템</span><strong>${escapeText(target||'이름 미등록')}</strong>${target!==String(record.item_name??'').trim()&&!group?`<small>원본 퀘스트명: ${escapeText(record.item_name)}</small>`:''}</div></div><div class="game-quest-options${group?' game-quest-options--grouped':''}">${options}</div>${group?'<p class="game-quest-disclaimer">A와 B는 별도 퀘스트입니다. 각 납품 수량과 완료 보상이 따로 적용됩니다.</p>':''}</div>`;
+};
+const standaloneDetailSections=(htmlFields,table,record,questVariants=[record])=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
  const fields=Array.from(htmlFields.matchAll(fieldRe),([,label,value],index)=>({
   label,value,index,plain:label.replace(/<[^>]+>/g,'')
@@ -283,6 +351,7 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
  // Processing is a conversion flow, not a crafting dashboard. The rail above
  // still uses the original output/reward fields; the body only moves DB data.
  if(table==='info_processes')return {highlightsHtml,bodyHtml:processDetailBody(record)};
+ if(table==='info_quests')return {highlightsHtml:'',bodyHtml:questDetailBody(record,questVariants)};
  return {highlightsHtml,bodyHtml:`<div class="game-detail-body"><div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`};
 };
 const itemListSubtitle=(table,row)=>{
@@ -294,8 +363,8 @@ const itemListSubtitle=(table,row)=>{
  if(table==='modbook_catalog')return [row.type,modbookCategories(row).slice(0,2).join(', ')].filter(Boolean).join(' · ');
  return '';
 };
-const listDecor=(table,title,subtitle,search=false)=>{
-  const image=['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
+const listDecor=(table,title,subtitle,search=false,imageName=null)=>{
+  const image=table==='info_quests'?itemImageUrl(imageName||title):['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
@@ -401,14 +470,13 @@ export function categoryFilters(table,info,data,owner,{standalone=false}={}){
   const chosen=jobs.includes(primary)?primary:jobs[0];
   controls+=chipRow('직업','primary',jobs,chosen,shown,jobOf);
   shown=shown.filter(row=>jobOf(row)===chosen);
-  const valueOf=row=>filterName(row.rank),types=distinct(shown.map(valueOf));
-  if(types.length>1){
-   const rank=types.includes(secondary)?secondary:ALL;
-   // Grade is an optional toggle: click selected grade again to see the full job, without an "전체" chip.
-   controls+=chipRow('등급 (선택)','secondary',types,rank,shown,valueOf);
-   shown=shown.filter(row=>rank===ALL||valueOf(row)===rank);
-  }
+  // Quest grade is shown in each detail, not as a second category/filter.
+  // Keep A/B records available together for side-by-side quantity/reward comparison.
   heading=`퀘스트 · ${showFilterName(chosen)}`;
+  if(standalone){
+   const groups=questGroupedRows(shown);
+   if(groups.length<shown.length)countNote=`${shown.length}건 · ${groups.length}개 항목`;
+  }
  }else if(table==='info_skill_ranks'){
   const types=distinct(shown.map(row=>skillGroup(row.skill)));
   const groups=['생활','생산','전투','기술','기타'].filter(group=>types.includes(group));
@@ -506,7 +574,8 @@ export function renderInfoPage(state,{standalone=false}={}){
  const table=searching?'':filters.table;
  const rows=searching?matches:filters.rows;
  const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
- const detailTitle=selected?itemName(table,selected,data):'';
+ const selectedVariants=selected&&standalone&&table==='info_quests'?(questGroupedRows(rows).find(group=>group.variants.some(row=>String(row.id)===String(selected.id)))?.variants||[selected]):[];
+ const detailTitle=selected?table==='info_quests'&&standalone&&selectedVariants.length>1?questGroupedTitle(selected,selectedVariants):itemName(table,selected,data):'';
  const selectedPartRecipe=standalone&&selected&&table==='info_crafts'?visibleRows(data,'info_material_recipes',info,owner).find(recipe=>String(recipe.item_name).trim()===String(selected.item_name).trim()):null;
  const existingFields=selected?(selectedPartRecipe?weaponPartDetails(selectedPartRecipe,data,info,owner,{dedupe:true}):table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner,{dedupe:standalone}):detailFields(table,selected,data,info,owner)):'';
  const detailHeading=selected?`<header><span>${standalone?escapeText(CONFIG[table][0]):'상세 정보'}${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
@@ -515,20 +584,23 @@ export function renderInfoPage(state,{standalone=false}={}){
  const longestField=Array.from(existingFields.matchAll(/<dd>([\s\S]*?)<\/dd>/g),match=>match[1].replace(/<[^>]*>/g,'').length).reduce((max,n)=>Math.max(max,n),0);
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
- const artSource=selected&&['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(detailTitle):'';
- const heroSubtitle=selected&&table==='info_processes'?'':selected?itemListSubtitle(table,selected):'';
- const heroEyebrow=selected&&table==='info_processes'?String(selected.job||'').trim():selected?CONFIG[table][0]:'';
+ const artSource=selected&&table==='info_quests'?questItemArt(selected):selected&&['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(detailTitle):'';
+ const heroSubtitle=selected&&['info_processes','info_quests'].includes(table)?'':selected?itemListSubtitle(table,selected):'';
+ const heroEyebrow=selected&&['info_processes','info_quests'].includes(table)?String(selected.job||'').trim():selected?CONFIG[table][0]:'';
  const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy">${heroEyebrow?`<span class="game-detail-hero__eyebrow">${escapeText(heroEyebrow)}</span>`:''}<strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
- const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected):null;
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
- const rowList=rows.length?rows.map(entry=>{
+ const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected,selectedVariants):null;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':table==='info_quests'?' game-detail--quest':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const listEntries=!searching&&standalone&&table==='info_quests'?questGroupedRows(rows):rows.map(row=>({row,variants:[row]}));
+ const rowList=rows.length?listEntries.map(({row:entry,variants})=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
-   return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
+   return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true,source==='info_quests'?questTargetName(row):null):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
   }
-  const id=String(entry.id),active=id===String(info.selectedId||'');
-  const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):itemName(table,entry,data);
-  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,''):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
+  const id=String(entry.id),active=variants.some(row=>String(row.id)===String(info.selectedId||''));
+  const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
+  const artTitle=table==='info_quests'?questTargetName(entry):title;
+  const subtitle=table==='info_quests'&&variants.length>1?'A / B · 별도 납품 2종':'';
+  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artTitle):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
