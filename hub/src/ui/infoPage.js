@@ -109,12 +109,30 @@ const QUEST_ITEM_ALIASES=Object.freeze({
  '채광|철광석A':'철광석',
  '채광|철광석B':'철광석',
 });
+const QUEST_JOB_FALLBACK_FILES=Object.freeze({
+ '벌목':'quest_logging_bundle.png',
+ '채광':'quest_mining_sack.png',
+ '배송':'quest_delivery_box.png',
+ '택배':'quest_delivery_box.png',
+ '낚시':'quest_fishing_crate.png',
+ '요리':'quest_cooking_meal.png',
+ '채집':'quest_herb_basket.png',
+ '감정':'quest_tactical_clipboard.png',
+ '미션':'quest_tactical_clipboard.png',
+ '기타':'quest_tactical_clipboard.png',
+ '범용':'quest_tactical_clipboard.png',
+});
+const questFallbackImageUrl=row=>{
+ const job=String(row?.job??'').trim();
+ const file=QUEST_JOB_FALLBACK_FILES[job]||QUEST_JOB_FALLBACK_FILES[String(row?.category??'').trim()]||'';
+ return file?`/hub/game-info/items/${file}`:'';
+};
 const questTargetName=row=>{
  const name=String(row?.item_name??'').trim();
  const job=String(row?.job??'').trim();
  return QUEST_ITEM_ALIASES[`${job}|${name}`]||name;
 };
-const questItemArt=row=>itemImageUrl(questTargetName(row));
+const questItemArt=row=>itemImageUrl(questTargetName(row))||questFallbackImageUrl(row);
 // Only source-listed A/B job+name pairs may be grouped; each original DB row
 // remains distinct and keeps its original quantity, reward, rank and ID.
 const QUEST_PAIR_NAMES=Object.freeze({벌목:['저급','일반'],채광:['석탄','철광석']});
