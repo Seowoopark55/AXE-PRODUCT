@@ -221,7 +221,7 @@ const processDetailBody=record=>{
  const entries=[['직업',record.job],['가공 종류',record.process_type],['퀘스트 수량',record.quest_qty],['등급',record.rank],['비고',record.note]]
   .filter(([,value])=>hasValue(value));
  const meta=entries.length?`<section class="game-process-meta" aria-label="가공·재련 추가 정보">${entries.map(([label,value])=>`<div class="game-process-meta__entry${label==='비고'?' game-process-meta__entry--note':''}"><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}</section>`:'';
- return `<div class="game-detail-body game-detail-body--process"><section class="game-process-flow" aria-label="가공·재련 과정"><h3>가공·재련 과정</h3><div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">투입 재료</span><div class="game-process-flow__materials">${inputCards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">가공 결과</span><div class="game-process-result__card">${resultArtHtml}<span class="game-process-result__name">${escapeText(itemName||'이름 미등록')}</span>${outputQty}</div></div></div></section>${meta}</div>`;
+ return `<div class="game-detail-body game-detail-body--process"><section class="game-process-flow" aria-label="가공·재련 과정"><h3>재료에서 결과물까지</h3><div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">필요 재료</span><div class="game-process-flow__materials">${inputCards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">가공 결과</span><div class="game-process-result__card">${resultArtHtml}<span class="game-process-result__name">${escapeText(itemName||'이름 미등록')}</span>${outputQty}</div></div></div></section>${meta}</div>`;
 };
 const standaloneDetailSections=(htmlFields,table,record)=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
@@ -328,7 +328,7 @@ const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false,craftChil
   const tone=modbook&&field==='secondary'?(value==='접두'?' axe-info-chip--prefix':value==='접미'?' axe-info-chip--suffix':''):'';
   return `<button type="button" data-info-filter="${field}" data-info-value="${escapeText(value)}" class="${selected===value?'is-active':''}${tone}" aria-pressed="${selected===value?'true':'false'}">${modbook?modbookIcon(value):''}${escapeText(showFilterName(value))}<small>${count}</small></button>`;
  }).join('');
- return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}${craftChild?' axe-info-subfilter--craft-child':''}"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
+ return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}${craftChild?' axe-info-subfilter--craft-child':''}"><span class="axe-info-subfilter__label">${craftChild?'<span class="axe-info-subfilter__branch" aria-hidden="true">↳</span>':''}${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
 };
 const recipeIngredientSignature=entries=>JSON.stringify(entries
  .filter(([name])=>name!==null&&name!==undefined&&String(name).trim()!=='')
@@ -517,7 +517,7 @@ export function renderInfoPage(state,{standalone=false}={}){
   }
   const id=String(entry.id),active=id===String(info.selectedId||'');
   const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):itemName(table,entry,data);
-  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,itemListSubtitle(table,entry)):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
+  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,''):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
