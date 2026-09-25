@@ -881,3 +881,141 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
   }
   .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__artwork > .game-detail-hero__item{max-height:122px}
 }
+
+/* Stage 21 · Unified crafted materials + premium item sheet.
+   A continuous hero/spec header replaces the detached dashboard strip.
+   The remaining space becomes one balanced item sheet: real ingredient and
+   DB metadata only, with no placeholder statistics or duplicate recipes. */
+.game-center .game-info-explorer .axe-info-detail--studio,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+  display:grid;grid-template-rows:auto minmax(0,1fr);
+  align-content:stretch;overflow:hidden;
+  background:#111a23;border:1px solid rgba(195,155,100,.40);
+  box-shadow:0 10px 34px rgba(0,0,0,.14),inset 0 1px rgba(255,255,255,.05);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature{
+  position:relative;z-index:1;min-width:0;
+  background:linear-gradient(180deg,rgba(12,19,25,.18),rgba(12,20,27,.98));
+  border-bottom:1px solid rgba(209,167,106,.27);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero,
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art{
+  min-height:154px;grid-template-columns:minmax(0,1fr) minmax(110px,36%);
+  padding:15px 18px 11px 21px;border:0;background:linear-gradient(90deg,rgba(6,12,18,.80),rgba(6,12,18,.14) 85%);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__artwork > .game-detail-hero__item{
+  width:100%;height:100%;max-width:220px;max-height:152px;object-fit:contain;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__copy > strong{
+  font-size:clamp(20px,1.85vw,27px);line-height:1.25;
+}
+/* One integrated, low-profile specification rail under the hero art. */
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature > .game-detail-highlights{
+  position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:stretch;
+  gap:0;min-height:0;margin:0 15px 11px;padding:2px 7px;
+  border:1px solid rgba(206,171,115,.25);border-radius:9px;
+  background:linear-gradient(100deg,rgba(12,19,25,.93),rgba(28,34,36,.87));
+  box-shadow:0 4px 18px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.025);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight{
+  display:flex;flex:1 1 0;flex-direction:row;align-items:center;justify-content:flex-start;
+  gap:8px;min-width:0;min-height:43px;margin:0;padding:7px 11px;
+  border:0;border-radius:0;background:none;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight + .game-detail-highlight{
+  border-left:1px solid rgba(202,172,123,.18);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight > span{
+  flex:0 0 auto;padding:0;color:#c4b295;font-size:10px;line-height:1.2;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight > strong{
+  min-width:0;font-size:clamp(11px,1.12vw,15px);line-height:1.35;
+  color:#f7e9d1;font-weight:800;overflow-wrap:anywhere;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight--rate > strong{
+  font-size:clamp(15px,1.4vw,19px);color:#f9c778;
+}
+/* The sheet uses deliberate internal breathing room rather than empty tiles.
+   It expands to the available desktop height and naturally grows for dense data. */
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-body{
+  position:relative;z-index:1;min-height:0;overflow-y:auto;
+  padding:13px 13px 15px;background:
+    radial-gradient(ellipse at 10% 100%,rgba(173,125,64,.055),transparent 60%),
+    linear-gradient(145deg,#141f28 0%,#111b24 58%,#0e1720 100%);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panels{
+  display:grid;grid-template-columns:minmax(0,1.65fr) minmax(150px,1fr);
+  grid-auto-flow:row;align-items:stretch;gap:11px;min-height:100%;min-width:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel{
+  position:relative;min-width:0;align-self:stretch;min-height:0;
+  margin:0;padding:12px 12px 13px;
+  border:1px solid rgba(127,150,158,.22);border-radius:10px;
+  background:linear-gradient(145deg,rgba(28,40,48,.81),rgba(16,27,35,.90) 82%);
+  box-shadow:inset 0 1px rgba(255,255,255,.025);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials{
+  border-color:rgba(214,172,107,.25);
+  background:linear-gradient(150deg,rgba(43,41,36,.46),rgba(19,30,37,.93) 82%);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel > h3{
+  margin:0 0 11px;padding:0 0 9px;min-height:0;
+  border-bottom:1px solid rgba(204,177,130,.22);font-size:11px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-ingredient-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-material{
+  min-height:52px;gap:8px;padding:6px 8px;font-size:11px;
+  background:linear-gradient(125deg,rgba(37,48,54,.86),rgba(22,32,39,.83));
+  border-color:rgba(178,162,139,.26);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-material > img,
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-material__placeholder{
+  flex:0 0 34px;width:34px;height:34px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{
+  grid-template-columns:1fr;gap:0;
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair{
+  padding:8px 1px 10px;gap:4px;border-bottom:1px solid rgba(153,167,169,.15);
+}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair:last-child{border-bottom:0}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview .game-detail-pair dt{font-size:10px}
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview .game-detail-pair dd{font-size:12px;line-height:1.48}
+/* No phantom highlights: when DB has none, the artwork and sheet still join. */
+.game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature:not(:has(> .game-detail-highlights)){
+  border-bottom-color:rgba(206,166,105,.33);
+}
+@media (max-width:1099px), (max-height:800px){
+  .game-center .game-info-explorer .axe-info-detail--studio,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--sparse,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--regular,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--dense,
+  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--extended{
+    grid-template-rows:auto auto;height:auto;max-height:none;overflow:visible;
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-body{overflow:visible;min-height:0}
+}
+@media (max-width:1100px){
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panels{grid-template-columns:1fr;gap:9px}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview dl > .game-detail-pair:nth-last-child(-n+2){border-bottom:0}
+}
+@media (max-width:620px){
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero,
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero--art{
+    min-height:139px;padding:12px 10px 9px 14px;grid-template-columns:minmax(0,1fr) minmax(86px,35%);
+  }
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-hero__artwork > .game-detail-hero__item{max-height:121px}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature > .game-detail-highlights{margin:0 8px 8px;gap:0;flex-wrap:wrap}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight{flex:1 1 48%;min-height:38px;padding:6px 8px;gap:6px}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-feature .game-detail-highlight:nth-child(3){border-left:0;border-top:1px solid rgba(202,172,123,.18)}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-ingredient-grid{grid-template-columns:1fr}
+  .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{grid-template-columns:1fr}
+}

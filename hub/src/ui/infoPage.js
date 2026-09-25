@@ -173,7 +173,9 @@ const craftGroup=craft=>{
  const category=String(craft?.category||'').toUpperCase();
  if(category==='KNIFE')return '근접무기';
  if(['PISTOL','REVOLVER','SMG'].includes(category))return '총기류';
- if(category==='ETC'&&['조악한 무기부품','무난한 무기부품'].includes(String(craft.item_name)))return '무기부품';
+ // Weapon parts are crafting materials, not weapons; the linked composition recipe
+ // is only a second source of material details, not a second item or category.
+ if(category==='ETC'&&['조악한 무기부품','무난한 무기부품'].includes(String(craft.item_name)))return '부품·원재료';
  if(category==='ETC'&&ETC_GROUPS[String(craft.item_name)]==='부품·원재료')return '부품·원재료';
  return '기타 제작품';
 };
@@ -216,7 +218,7 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
  // Source name/category remain unchanged in DB. Human-readable grouping is
  // used in the standalone UI instead of exposing a raw KNIFE/ETC code.
  const displayedValue=field=>field.plain==='성공률'?presentSuccessRate(field.value):
-  field.plain==='분류'&&table==='info_crafts'&&/^(KNIFE|PISTOL|REVOLVER|SMG|ETC)$/.test(field.value)?escapeText(craftGroup(record)):field.value;
+  field.plain==='분류'&&/^(KNIFE|PISTOL|REVOLVER|SMG|ETC)$/.test(field.value)?escapeText(table==='info_material_recipes'?'부품·원재료':craftGroup(record)):field.value;
  const highlights=keyLabels.map(label=>fields.find(field=>field.plain===label)).filter(Boolean).slice(0,3);
  const remainder=fields.filter(field=>!highlights.includes(field));
  const isMaterial=field=>/재료|부품|투입/.test(field.plain);
@@ -242,15 +244,15 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
    const combination=ingredientFields.filter(field=>/^재료 [1-8]$/.test(field.plain));
    const craft=ingredientFields.filter(field=>field.plain==='필요 재료');
    const other=ingredientFields.filter(field=>!combination.includes(field)&&!craft.includes(field));
-   ingredientHtml=`${combination.length?`<div class="game-detail-ingredient-set"><h4>조합 재료</h4>${combine(combination)}</div>`:''}${craft.length?`<div class="game-detail-ingredient-set"><h4>제작 재료</h4>${combine(craft)}</div>`:''}${other.length?combine(other):''}`;
+   ingredientHtml=`${combination.length?`<div class="game-detail-ingredient-set">${craft.length?'<h4>조합 재료</h4>':''}${combine(combination)}</div>`:''}${craft.length?`<div class="game-detail-ingredient-set"><h4>별도 등록된 제작 재료</h4>${combine(craft)}</div>`:''}${other.length?combine(other):''}`;
   }else ingredientHtml=combine(ingredientFields);
  }
- const materialsHtml=ingredientHtml?`<section class="game-detail-panel game-detail-panel--materials" aria-label="필요 재료"><h3>${table==='info_processes'?'가공 재료':table==='info_material_recipes'?'조합 · 제작 재료':'필요 재료'}</h3>${ingredientHtml}</section>`:'';
+ const materialsHtml=ingredientHtml?`<section class="game-detail-panel game-detail-panel--materials" aria-label="필요 재료"><h3>${table==='info_processes'?'가공 재료':'필요 재료'}</h3>${ingredientHtml}</section>`:'';
  const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
- return `${highlightsHtml}<div class="game-detail-body"><div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`;
+ return {highlightsHtml,bodyHtml:`<div class="game-detail-body"><div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`};
 };
 const itemListSubtitle=(table,row)=>{
- if(table==='info_crafts')return [craftGroup(row),craftSubtype(row)].filter(Boolean).join(' · ');
+ if(table==='info_crafts')return [...new Set([craftGroup(row),craftSubtype(row)].filter(Boolean))].join(' · ');
  if(table==='info_material_recipes')return '무기부품 · 조합';
  if(table==='info_processes')return [row.job,row.process_type].filter(Boolean).join(' · ');
  if(table==='info_quests')return [row.job,row.rank].filter(Boolean).join(' · ');
@@ -263,7 +265,7 @@ const listDecor=(table,title,subtitle,search=false)=>{
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
-const detailFields=(table,row,data,info,owner)=>{
+const detailFields=(table,row,data,info,owner,{includeCraftMaterials=true}={})=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
   const classification=modbookClassification(row);
@@ -281,7 +283,7 @@ const detailFields=(table,row,data,info,owner)=>{
  if(table==='info_processes')for(let i=1;i<=4;i++){
   if(row[`input${i}`])fields.push([`투입 재료 ${i}`,`${row[`input${i}`]} × ${fieldValue(row,`input${i}_qty`)}`]);
  }
- if(table==='info_crafts'){
+ if(table==='info_crafts'&&includeCraftMaterials){
   const materials=visibleRows(data,'info_craft_materials',info,owner).filter(m=>String(m.craft_id)===String(row.id));
   if(materials.length)fields.push(['필요 재료',materials.map(m=>`${m.material_name} × ${m.quantity}`).join(' · ')]);
  }
@@ -304,10 +306,25 @@ const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false}={})=>{
  }).join('');
  return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
 };
-const weaponPartDetails=(recipe,data,info,owner)=>{
- const craft=visibleRows(data,'info_crafts',info,owner).find(row=>String(row.item_name)===String(recipe.item_name));
+const recipeIngredientSignature=entries=>JSON.stringify(entries
+ .filter(([name])=>name!==null&&name!==undefined&&String(name).trim()!=='')
+ .map(([name,qty])=>[String(name).trim(),String(qty??'').trim()])
+ .sort(([nameA,qtyA],[nameB,qtyB])=>nameA.localeCompare(nameB,'ko')||qtyA.localeCompare(qtyB,'ko')));
+// A part exists in both tables. When both tables describe the SAME material
+// quantities, show one ingredient set and retain the craft-only factual fields.
+// If they differ, both source recipes remain visible as distinct alternatives.
+const weaponPartDetails=(recipe,data,info,owner,{dedupe=false}={})=>{
+ const craft=visibleRows(data,'info_crafts',info,owner).find(row=>String(row.item_name).trim()===String(recipe.item_name).trim());
  const source=detailFields('info_material_recipes',recipe,data,info,owner);
- return craft?`${source}<div class="axe-info-detail__section"><dt>연결된 제작법</dt><dd>${escapeText(craft.item_name)}</dd></div>${detailFields('info_crafts',craft,data,info,owner)}`:source;
+ if(!craft)return source;
+ if(!dedupe)return `${source}<div class="axe-info-detail__section"><dt>연결된 제작법</dt><dd>${escapeText(craft.item_name)}</dd></div>${detailFields('info_crafts',craft,data,info,owner)}`;
+ const craftInputs=visibleRows(data,'info_craft_materials',info,owner)
+  .filter(row=>String(row.craft_id)===String(craft.id))
+  .map(row=>[row.material_name,row.quantity]);
+ const combination=Array.from({length:8},(_,i)=>[recipe[`input${i+1}`],recipe[`input${i+1}_qty`]]);
+ const sameIngredients=craftInputs.length>0&&recipeIngredientSignature(craftInputs)===recipeIngredientSignature(combination);
+ const craftFields=detailFields('info_crafts',craft,data,info,owner,{includeCraftMaterials:!sameIngredients});
+ return `${source}${craftFields}`;
 };
 
 // Browsing has no "전체" chips. The unified search below is the sole cross-category search.
@@ -315,14 +332,17 @@ export function categoryFilters(table,info,data,owner){
  const primary=String(info.filterPrimary||ALL),secondary=String(info.filterSecondary||ALL);
  let shown=visibleRows(data,table,info,owner),controls='',chosenSkill='',heading=CONFIG[table][0],countNote='';
  if(['info_crafts','info_craft_materials','info_material_recipes'].includes(table)){
-  const groupNames=['근접무기','총기류','부품·원재료','무기부품','기타 제작품'];
   const craftRows=visibleRows(data,'info_crafts',info,owner);
   const recipes=visibleRows(data,'info_material_recipes',info,owner);
+  const unlinkedRecipes=recipes.filter(recipe=>!craftRows.some(craft=>String(craft.item_name).trim()===String(recipe.item_name).trim()));
+  // The legacy composition tab is only exposed when a future recipe has no
+  // corresponding craft record, so those records cannot silently disappear.
+  const groupNames=['근접무기','총기류','부품·원재료',...(unlinkedRecipes.length?['무기부품']:[]),'기타 제작품'];
   const group=groupNames.includes(info.craftGroup)?info.craftGroup:groupNames[0];
-  const groupCount=key=>key==='무기부품'?recipes.length:craftRows.filter(row=>craftGroup(row)===key).length;
-  controls+=`<div class="axe-info-subfilter"><span class="axe-info-subfilter__label">제작 구분</span><div class="axe-info-chips" role="group" aria-label="제작 구분">${groupNames.map(value=>`<button type="button" data-info-filter="craftGroup" data-info-value="${escapeText(value)}" class="${group===value?'is-active':''}" aria-pressed="${group===value?'true':'false'}">${escapeText(value)}<small>${groupCount(value)}</small></button>`).join('')}</div></div>`;
+  const groupCount=key=>key==='무기부품'?unlinkedRecipes.length:craftRows.filter(row=>craftGroup(row)===key).length;
+  controls+=`<div class="axe-info-subfilter"><span class="axe-info-subfilter__label">제작 구분</span><div class="axe-info-chips" role="group" aria-label="제작 구분">${groupNames.map(value=>`<button type="button" data-info-filter="craftGroup" data-info-value="${escapeText(value)}" class="${group===value?'is-active':''}" aria-pressed="${group===value?'true':'false'}">${escapeText(value==='무기부품'?'부품 조합':value)}<small>${groupCount(value)}</small></button>`).join('')}</div></div>`;
   if(group==='무기부품'){
-   table='info_material_recipes';shown=recipes;heading='무기부품 조합';
+   table='info_material_recipes';shown=unlinkedRecipes;heading='부품 조합';
   }else{
    table='info_crafts';shown=craftRows.filter(craft=>craftGroup(craft)===group);
    if(['근접무기','총기류','기타 제작품'].includes(group)){
@@ -404,17 +424,17 @@ export function searchInformation(data,query,info={},owner=false){
  const results=[];
  for(const row of crafts){
   const group=craftGroup(row);
-  const recipe=group==='무기부품'?recipes.find(item=>String(item.item_name)===String(row.item_name)):null;
-  if(recipe)continue; // the combination result includes the linked craft and ingredients
+  const recipe=recipes.find(item=>String(item.item_name).trim()===String(row.item_name).trim());
   const ingredients=materials.filter(item=>String(item.craft_id)===String(row.id));
-  if(matchText([Object.values(row),ingredients.map(item=>[item.material_name,item.quantity])],q))
+  if(matchText([Object.values(row),recipe?Object.values(recipe):[],ingredients.map(item=>[item.material_name,item.quantity])],q))
    results.push({table:'info_crafts',row,group,primary:craftSubtype(row),secondary:'',path:['제작법',group,craftSubtype(row)].filter((value,index)=>index<2||!['부품·원재료','무기부품'].includes(group)),title:itemName('info_crafts',row,data)});
  }
  for(const row of recipes){
-  const craft=crafts.find(item=>String(item.item_name)===String(row.item_name));
-  const ingredients=craft?materials.filter(item=>String(item.craft_id)===String(craft.id)):[];
+  const craft=crafts.find(item=>String(item.item_name).trim()===String(row.item_name).trim());
+  if(craft)continue; // shown in the materials group as one crafted item
+  const ingredients=[];
   if(matchText([Object.values(row),craft?Object.values(craft):[],ingredients.map(item=>[item.material_name,item.quantity])],q))
-   results.push({table:'info_material_recipes',row,group:'무기부품',primary:'',secondary:'',path:['제작법','무기부품'],title:itemName('info_material_recipes',row,data)});
+   results.push({table:'info_material_recipes',row,group:'무기부품',primary:'',secondary:'',path:['제작법','부품 조합'],title:itemName('info_material_recipes',row,data)});
  }
  for(const table of ['info_processes','info_quests','info_skill_ranks']){
   for(const row of visibleRows(data,table,info,owner)){
@@ -453,7 +473,8 @@ export function renderInfoPage(state,{standalone=false}={}){
  const rows=searching?matches:filters.rows;
  const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
  const detailTitle=selected?itemName(table,selected,data):'';
- const existingFields=selected?(table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner):detailFields(table,selected,data,info,owner)):'';
+ const selectedPartRecipe=standalone&&selected&&table==='info_crafts'?visibleRows(data,'info_material_recipes',info,owner).find(recipe=>String(recipe.item_name).trim()===String(selected.item_name).trim()):null;
+ const existingFields=selected?(selectedPartRecipe?weaponPartDetails(selectedPartRecipe,data,info,owner,{dedupe:true}):table==='info_material_recipes'?weaponPartDetails(selected,data,info,owner,{dedupe:standalone}):detailFields(table,selected,data,info,owner)):'';
  const detailHeading=selected?`<header><span>${standalone?escapeText(CONFIG[table][0]):'상세 정보'}${table==='modbook_catalog'&&['접두','접미'].includes(selected.type)?` <span class="axe-info-type-badge axe-info-type-badge--${selected.type==='접두'?'prefix':'suffix'}">${modbookIcon(selected.type)}${escapeText(selected.type)}</span>`:''}</span><strong>${escapeText(detailTitle)}</strong>${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header>`:'';
  // Density is based only on actual visible DB fields; no sample content.
  const visibleFieldCount=(existingFields.match(/<dt>/g)||[]).length;
@@ -463,7 +484,8 @@ export function renderInfoPage(state,{standalone=false}={}){
  const artSource=selected&&['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(detailTitle):'';
  const heroSubtitle=selected?itemListSubtitle(table,selected):'';
  const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><span class="game-detail-hero__eyebrow">${escapeText(CONFIG[table][0])}</span><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`${hero}${standaloneDetailSections(existingFields,table,selected)}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected):null;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
