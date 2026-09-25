@@ -1745,7 +1745,20 @@ root.addEventListener('click', async event => {
   const infoResult=event.target.closest('[data-info-result-table]');
   if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(source==='modbook_catalog'&&!hasCompany(state))return;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
-  if(infoRow){state.info.selectedId=infoRow.dataset.infoId;render();return;}
+  if(infoRow){
+    // Render replaces the entire game-info list. Keep its current position when
+    // selecting a different item (especially long '기타 제작품' lists).
+    // Category/filter/search transitions still start at their intended position.
+    const previousList=infoRow.closest('.axe-info-list__items');
+    const previousScroll=previousList?.scrollTop;
+    state.info.selectedId=infoRow.dataset.infoId;
+    render();
+    if(previousScroll!==undefined){
+      const nextList=root.querySelector('.axe-info-list__items');
+      if(nextList)nextList.scrollTop=previousScroll;
+    }
+    return;
+  }
   const fundTab=event.target.closest('[data-fund-tab]');
   if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;state.memberPage=1;render();return;}

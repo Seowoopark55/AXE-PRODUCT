@@ -1019,3 +1019,31 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
   .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--materials .game-detail-ingredient-grid{grid-template-columns:1fr}
   .game-center .game-info-explorer .axe-info-detail--studio .game-detail-panel--overview > dl{grid-template-columns:1fr}
 }
+
+/* Craft explorer: the second row is a child of the selected top-level group.
+   Keep the existing two-row footprint; other explorer tabs are unaffected. */
+.game-center .game-info-explorer .axe-info-subfilters--craft{
+  gap:3px;
+}
+.game-center .game-info-explorer .axe-info-subfilter--craft-parent{
+  min-height:30px;
+}
+.game-center .game-info-explorer .axe-info-subfilter--craft-child{
+  position:relative;
+  margin-left:12px;
+  padding:4px 8px 4px 10px;
+  border-left:2px solid rgba(217,171,100,.57);
+  border-radius:0 6px 6px 0;
+  background:linear-gradient(90deg,rgba(193,149,86,.085),rgba(193,149,86,.015) 85%);
+}
+.game-center .game-info-explorer .axe-info-subfilter--craft-child .axe-info-subfilter__label{
+  color:#c0a983;
+}
+.game-center .game-info-explorer .axe-info-subfilter--craft-child .axe-info-chips>button{
+  background:#1a252e;
+  border-color:#33414b;
+}
+.game-center .game-info-explorer .axe-info-subfilter--craft-child .axe-info-chips>button.is-active{
+  background:rgba(179,128,57,.20);
+  border-color:#bc9257;
+}

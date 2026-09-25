@@ -298,13 +298,13 @@ const MODBOOK_ICONS=Object.freeze({
  '접미':'<path d="M7 12h10M13 8l4 4-4 4"/>',
 });
 const modbookIcon=value=>MODBOOK_ICONS[value]?`<svg class="axe-info-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MODBOOK_ICONS[value]}</svg>`:'';
-const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false}={})=>{
+const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false,craftChild=false}={})=>{
  const items=values.map(value=>{
   const count=rows.filter(row=>{const category=valueOf(row);return Array.isArray(category)?category.includes(value):category===value;}).length;
   const tone=modbook&&field==='secondary'?(value==='접두'?' axe-info-chip--prefix':value==='접미'?' axe-info-chip--suffix':''):'';
   return `<button type="button" data-info-filter="${field}" data-info-value="${escapeText(value)}" class="${selected===value?'is-active':''}${tone}" aria-pressed="${selected===value?'true':'false'}">${modbook?modbookIcon(value):''}${escapeText(showFilterName(value))}<small>${count}</small></button>`;
  }).join('');
- return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
+ return `<div class="axe-info-subfilter${modbook?' axe-info-subfilter--modbook':''}${craftChild?' axe-info-subfilter--craft-child':''}"><span class="axe-info-subfilter__label">${escapeText(title)}</span><div class="axe-info-chips" role="group" aria-label="${escapeText(title)}">${items}</div></div>`;
 };
 const recipeIngredientSignature=entries=>JSON.stringify(entries
  .filter(([name])=>name!==null&&name!==undefined&&String(name).trim()!=='')
@@ -340,7 +340,7 @@ export function categoryFilters(table,info,data,owner){
   const groupNames=['근접무기','총기류','부품·원재료',...(unlinkedRecipes.length?['무기부품']:[]),'기타 제작품'];
   const group=groupNames.includes(info.craftGroup)?info.craftGroup:groupNames[0];
   const groupCount=key=>key==='무기부품'?unlinkedRecipes.length:craftRows.filter(row=>craftGroup(row)===key).length;
-  controls+=`<div class="axe-info-subfilter"><span class="axe-info-subfilter__label">제작 구분</span><div class="axe-info-chips" role="group" aria-label="제작 구분">${groupNames.map(value=>`<button type="button" data-info-filter="craftGroup" data-info-value="${escapeText(value)}" class="${group===value?'is-active':''}" aria-pressed="${group===value?'true':'false'}">${escapeText(value==='무기부품'?'부품 조합':value)}<small>${groupCount(value)}</small></button>`).join('')}</div></div>`;
+  controls+=`<div class="axe-info-subfilter axe-info-subfilter--craft-parent"><span class="axe-info-subfilter__label">제작 구분</span><div class="axe-info-chips" role="group" aria-label="제작 구분">${groupNames.map(value=>`<button type="button" data-info-filter="craftGroup" data-info-value="${escapeText(value)}" class="${group===value?'is-active':''}" aria-pressed="${group===value?'true':'false'}">${escapeText(value==='무기부품'?'부품 조합':value)}<small>${groupCount(value)}</small></button>`).join('')}</div></div>`;
   if(group==='무기부품'){
    table='info_material_recipes';shown=unlinkedRecipes;heading='부품 조합';
   }else{
@@ -350,7 +350,7 @@ export function categoryFilters(table,info,data,owner){
     const values=preferred.filter(value=>shown.some(craft=>craftSubtype(craft)===value));
     if(values.length>1){
      const chosen=values.includes(primary)?primary:values[0];
-     controls+=chipRow('세부 분류','primary',values,chosen,shown,craftSubtype);
+     controls+=chipRow('세부 분류','primary',values,chosen,shown,craftSubtype,{craftChild:true});
      shown=shown.filter(craft=>craftSubtype(craft)===chosen);
     }
    }
@@ -500,7 +500,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const modbookError=info.modbookError&&(tabTable==='modbook_catalog'||searching)?`<div class="axe-info-error">개조서 조회 실패: ${escapeText(info.modbookError)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 생산 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
  const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 생산 · 퀘스트 · 스킬 정보 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
- const controls=!searching&&filters.controls?`<div class="axe-info-subfilters">${filters.controls}</div>`:'';
+ const controls=!searching&&filters.controls?`<div class="axe-info-subfilters${tabTable==='info_crafts'?' axe-info-subfilters--craft':''}">${filters.controls}</div>`:'';
  const result=info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?`<div class="runtime-inline-loading">${standalone?'게임 정보를 불러오지 못했습니다. HUB 메인으로 돌아갔다가 다시 접속해 주세요.':'정보를 불러오려면 새로고침을 눌러 주세요.'}</div>`:`<div class="axe-info-content"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>`;
  if(standalone){
   // The public standalone hub uses a compact category rail + real-record explorer.
