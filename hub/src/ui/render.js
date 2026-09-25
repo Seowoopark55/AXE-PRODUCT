@@ -282,9 +282,8 @@ function renderStandaloneGameInfo(state) {
     <main class="game-center__body">
       <section class="game-center__hero" aria-label="게임 정보 소개">
         <div class="game-center__hero-copy">
-          <span class="game-center__hero-eyebrow">LAC HUB · GAME INFO</span>
-          <h2>제작부터 퀘스트, 스킬, 개조서까지 한눈에</h2>
-          <p>${company?'제작 재료와 생산 결과, 퀘스트 보상, 스킬 등급, 선택한 회사의 개조서 정보를 한곳에서 빠르게 확인할 수 있습니다.':'제작 재료와 생산 결과, 퀘스트 보상, 스킬 등급 등 공통 게임 정보를 한곳에서 편하게 확인할 수 있습니다.'}</p>
+          <h2>제작 · 퀘스트 · 스킬 · 개조서 정보</h2>
+          <p>${company?'필요한 게임 정보와 선택한 회사의 개조서를 한곳에서 확인할 수 있습니다.':'필요한 게임 정보를 한곳에서 확인할 수 있습니다.'}</p>
         </div>
       </section>
       ${renderInfoPage(state,{standalone:true})}
