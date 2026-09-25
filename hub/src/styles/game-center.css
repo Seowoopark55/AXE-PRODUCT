@@ -88,7 +88,7 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .axe-info-content{display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1.17fr);gap:10px;min-width:0;min-height:0;overflow:hidden;align-items:stretch}
 .game-center .axe-info-list,.game-center .axe-info-detail{position:relative;min-width:0;min-height:0;height:100%;max-height:100%;border:1px solid #364653;border-radius:10px;background:#101a23;overflow:hidden}
 .game-center .axe-info-list{display:flex;flex-direction:column}
-.game-center .axe-info-list__heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 39px;min-height:39px;padding:0 13px;background:rgba(17,25,34,.92);border-bottom:1px solid rgba(156,175,187,.19);font-size:12px;color:#f1ebe3;font-weight:800}
+.game-center .axe-info-list__heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 39px;min-height:39px;padding:0 13px;background:linear-gradient(90deg,#1a2731,#111a23 72%);border-bottom:1px solid rgba(201,163,105,.21);font-size:12px;color:#f1ebe3;font-weight:800}
 .game-center .axe-info-list__heading small{font-size:11px;color:#e4ba78}
 .game-center .axe-info-list__items{min-height:0;flex:1 1 auto;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding:7px;scrollbar-width:thin;scrollbar-color:#48525c transparent}
 .game-center .axe-info-row{width:100%;min-height:46px;margin:0 0 5px;padding:9px 32px 9px 12px;position:relative;display:flex;align-items:center;gap:7px;border:1px solid #344550;border-radius:7px;background:linear-gradient(90deg,#1a2934,#16212b);color:#dce4eb;text-align:left}
@@ -304,7 +304,7 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .game-info-rework>.axe-info-toolbar{position:relative;top:auto;left:auto;right:auto;flex:0 0 44px;min-height:44px;height:44px;margin:0;padding:4px 10px;border-radius:9px}
 .game-center .game-info-rework>.axe-info-toolbar>input{height:33px;font-size:12px}
 .game-center .game-info-explorer{display:grid;grid-template-columns:172px minmax(0,1fr);gap:10px;flex:1 1 auto;min-height:0;min-width:0}
-.game-center .game-info-explorer__rail{display:flex;flex-direction:column;gap:9px;min-width:0;padding:13px 9px;background:#101821;border:1px solid #36404b;border-radius:10px}
+.game-center .game-info-explorer__rail{display:flex;flex-direction:column;gap:9px;min-width:0;padding:13px 9px;background:linear-gradient(145deg,#111c26,#101821 72%);border:1px solid #36404b;border-radius:10px;box-shadow:inset 0 1px rgba(223,190,138,.05)}
 .game-center .game-info-explorer__rail-title{padding:0 9px;color:#e2bd80;font-size:12px;font-weight:850;letter-spacing:.015em}
 .game-center .game-info-explorer__rail-note{margin:auto 5px 1px;padding:12px 5px 0;border-top:1px solid #28323d;color:#82909c;font-size:10px;line-height:1.6}
 .game-center .game-info-explorer .axe-info-tabs{display:flex;flex:0 0 auto;flex-direction:column;gap:4px;height:auto;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none}
@@ -1734,4 +1734,28 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 @media(max-width:700px){
  .game-center .game-info-explorer .game-skill-content .game-skill-detail__ranks{grid-template-columns:1fr}
  .game-center .game-info-explorer .game-skill-content .game-skill-detail__sheet{padding:9px}
+}
+
+/* LAC HUB / restrained cyber-web accents extracted from the approved UI board.
+   Scope: public game-information explorer only. Other modules are untouched. */
+.game-center .game-info-explorer .game-info-explorer__rail-title{
+ display:flex;align-items:center;gap:7px;
+}
+.game-center .game-info-explorer .game-info-explorer__rail-title::before{
+ content:"";flex:0 0 5px;width:5px;height:5px;transform:rotate(45deg);
+ border:1px solid rgba(225,184,121,.8);background:rgba(213,168,99,.25);
+}
+.game-center .game-info-explorer .axe-info-list__heading{
+ position:relative;box-shadow:inset 2px 0 rgba(206,165,102,.52);
+}
+.game-center .game-info-explorer .axe-info-list__heading::after{
+ content:"";position:absolute;right:11px;bottom:-1px;width:104px;height:11px;
+ pointer-events:none;opacity:.45;
+ background:url('/hub/ui-kit/hud-divider.png') right center / contain no-repeat;
+}
+.game-center .game-info-explorer .axe-info-row--studio.is-active{
+ box-shadow:inset 2px 0 rgba(230,189,126,.76),inset 0 1px rgba(240,213,161,.055);
+}
+.game-center .game-info-explorer .axe-info-tabs>button.is-active{
+ box-shadow:inset 2px 0 rgba(228,188,123,.55),inset 0 1px rgba(237,203,153,.07);
 }
