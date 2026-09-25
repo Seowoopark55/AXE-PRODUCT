@@ -100,6 +100,10 @@ const ITEM_IMAGE_FILES=Object.freeze({
 const QUEST_ITEM_ALIASES=Object.freeze({
  '벌목|저급A':'저급 삼나무',
  '벌목|저급B':'저급 삼나무',
+ '벌목|일반A':'일반 삼나무',
+ '벌목|일반B':'일반 삼나무',
+ '벌목|고급':'고급 삼나무',
+ '벌목|최고급':'최상급 삼나무',
  '채광|석탄A':'석탄',
  '채광|석탄B':'석탄',
  '채광|철광석A':'철광석',
@@ -280,16 +284,14 @@ const processDetailBody=record=>{
  const quest=hasQuest||rewards.length?`<section class="game-process-section game-process-section--quest" aria-label="${hasQuest?'별도 퀘스트 정보':'보상 정보'}"><header class="game-process-section__heading"><span class="game-process-section__icon" aria-hidden="true">✧</span><div><h3>${hasQuest?'퀘스트':'보상 정보'}</h3><p>${hasQuest?'생산과 별도로 납품하여 보상 획득':'지급 조건 확인 필요'}</p></div></header>${handin}${reward}</section>`:'';
  return `<div class="game-detail-body game-detail-body--process"><div class="game-process-split${quest?'':' game-process-split--production-only'}">${production}${quest}</div></div>`;
 };
-// The quest page is an independent lookup. A/B variants are two distinct
-// quests displayed in one collection, not a combined hand-in or combined reward.
+// A/B entries share one catalogue card but remain DISTINCT source quests.
+// Never merge their quantities or rewards. The hero already identifies the item,
+// so do not repeat a large target panel and waste the detail viewport.
 const questDetailBody=(record,variants=[record])=>{
- const target=questTargetName(record), image=questItemArt(record);
- const art=image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:'<span class="game-quest-art-fallback" aria-hidden="true">◇</span>';
- const pair=questPairInfo(record);
  const group=variants.length>1;
  const options=variants.map(variant=>{
   const variantPair=questPairInfo(variant);
-  const title=group?`${variantPair?.variant||''} 퀘스트`:'납품 조건';
+  const title=group?`${variantPair?.variant||''} 퀘스트`:'퀘스트 정보';
   const qty=questQtyText(variant.required_qty);
   const rank=String(variant.rank??'').trim();
   const reward=(label,value,tone)=>value===null||value===undefined||String(value).trim()===''?'':
@@ -297,9 +299,9 @@ const questDetailBody=(record,variants=[record])=>{
   const money=reward('보상 금액',variant.reward_money,'money');
   const xp=reward('보상 경험치',variant.reward_xp,'xp');
   const note=String(variant.note??'').trim();
-  return `<section class="game-quest-option" aria-label="${escapeText(title)}"><header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header><div class="game-quest-delivery"><span>납품 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div>${money||xp?`<div class="game-quest-rewards" aria-label="퀘스트 완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">완료 보상이 등록되지 않았습니다.</p>'}${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
+  return `<section class="game-quest-option" aria-label="${escapeText(title)}"><header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header><div class="game-quest-option__facts"><div class="game-quest-delivery"><span>필요 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div><div class="game-quest-option__reward-block"><span class="game-quest-option__reward-label">완료 보상</span>${money||xp?`<div class="game-quest-rewards" aria-label="완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">보상 정보 미등록</p>'}</div></div>${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
  }).join('');
- return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-target"><div class="game-quest-target__art">${art}</div><div class="game-quest-target__copy"><span>납품 아이템</span><strong>${escapeText(target||'이름 미등록')}</strong>${target!==String(record.item_name??'').trim()&&!group?`<small>원본 퀘스트명: ${escapeText(record.item_name)}</small>`:''}</div></div><div class="game-quest-options${group?' game-quest-options--grouped':''}">${options}</div>${group?'<p class="game-quest-disclaimer">A와 B는 별도 퀘스트입니다. 각 납품 수량과 완료 보상이 따로 적용됩니다.</p>':''}</div>`;
+ return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-body-heading"><strong>퀘스트 납품</strong>${group?'<span>A / B · 각각 개별 완료</span>':''}</div><div class="game-quest-options${group?' game-quest-options--grouped':''}">${options}</div></div>`;
 };
 const standaloneDetailSections=(htmlFields,table,record,questVariants=[record])=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
@@ -466,7 +468,7 @@ export function categoryFilters(table,info,data,owner,{standalone=false}={}){
   shown=shown.filter(row=>productionGroup(row)===chosen);
   heading=standalone?chosen:`가공·재련 · ${chosen}`;
  }else if(table==='info_quests'){
-  const jobOf=row=>filterName(row.job),jobs=distinct(shown.map(jobOf));
+  const jobOf=row=>filterName(row.job),jobs=distinct(shown.map(jobOf)).sort((a,b)=>{const order=['벌목','채광'];const aIndex=order.indexOf(a),bIndex=order.indexOf(b);return aIndex<0?(bIndex<0?a.localeCompare(b,'ko'):1):bIndex<0?-1:aIndex-bIndex;});
   const chosen=jobs.includes(primary)?primary:jobs[0];
   controls+=chipRow('직업','primary',jobs,chosen,shown,jobOf);
   shown=shown.filter(row=>jobOf(row)===chosen);
@@ -599,7 +601,7 @@ export function renderInfoPage(state,{standalone=false}={}){
   const id=String(entry.id),active=variants.some(row=>String(row.id)===String(info.selectedId||''));
   const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
   const artTitle=table==='info_quests'?questTargetName(entry):title;
-  const subtitle=table==='info_quests'&&variants.length>1?'A / B · 별도 납품 2종':'';
+  const subtitle='';
   return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artTitle):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';

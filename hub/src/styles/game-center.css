@@ -1281,3 +1281,93 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest{grid-template-rows:minmax(145px,auto) auto;height:auto;overflow:visible}
  .game-center .game-info-explorer .game-detail--quest .game-detail-body--quest{overflow:visible}
 }
+
+/* Quest atlas v2: item-first compact quest information, scoped ONLY to quest. */
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest.game-detail--sparse,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest.game-detail--regular,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest.game-detail--dense,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest.game-detail--extended{
+ display:grid;grid-template-rows:clamp(126px,30%,162px) minmax(0,1fr);
+ height:100%;min-height:0;overflow:hidden;
+}
+.game-center .game-info-explorer .game-detail--quest .game-detail-hero,
+.game-center .game-info-explorer .game-detail--quest .game-detail-hero--art{
+ min-height:0;padding:12px 17px 11px 21px;
+}
+.game-center .game-info-explorer .game-detail--quest .game-detail-hero__item{
+ max-height:133px;max-width:210px;object-fit:contain;
+}
+.game-center .game-info-explorer .game-detail--quest .game-detail-body--quest{
+ display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;
+ gap:10px;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+ padding:12px 13px 13px;container-type:inline-size;
+}
+.game-center .game-info-explorer .game-quest-body-heading{
+ display:flex;justify-content:space-between;align-items:center;gap:8px;
+ min-height:22px;padding:0 1px 7px;border-bottom:1px solid rgba(209,177,125,.28);
+}
+.game-center .game-info-explorer .game-quest-body-heading strong{
+ display:flex;align-items:center;gap:8px;font-size:12px;font-weight:820;color:#f1d3a0;
+}
+.game-center .game-info-explorer .game-quest-body-heading strong::before{
+ content:"";width:3px;height:12px;border-radius:2px;background:#dfb267;
+}
+.game-center .game-info-explorer .game-quest-body-heading span{font-size:10px;color:#9fb4c4}
+.game-center .game-info-explorer .game-quest-options{
+ display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-height:0;
+}
+.game-center .game-info-explorer .game-quest-options--grouped{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.game-center .game-info-explorer .game-quest-option{
+ display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0;
+ padding:11px 12px;border:1px solid rgba(191,166,125,.31);border-radius:10px;
+ background:linear-gradient(150deg,#1c2831,#16212a);box-shadow:inset 0 1px rgba(255,255,255,.025);
+}
+.game-center .game-info-explorer .game-quest-option__head{
+ display:flex;align-items:center;justify-content:space-between;gap:6px;
+ min-height:22px;padding:0 0 7px;border-bottom:1px solid rgba(200,177,142,.20);
+}
+.game-center .game-info-explorer .game-quest-option__head>strong{font-size:12px;color:#ffe0aa}
+.game-center .game-info-explorer .game-quest-option__head>span{
+ font-size:10px;padding:2px 7px;border-radius:999px;
+ border:1px solid rgba(216,176,114,.28);color:#e7c994;background:rgba(180,137,78,.09);
+}
+.game-center .game-info-explorer .game-quest-option__facts{display:grid;gap:9px;min-width:0}
+.game-center .game-info-explorer .game-quest-delivery{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ min-height:45px;padding:8px 11px;border:1px solid rgba(210,171,111,.29);
+ border-radius:8px;background:rgba(11,18,24,.63);
+}
+.game-center .game-info-explorer .game-quest-delivery>span{font-size:11px;color:#d8c5a9}
+.game-center .game-info-explorer .game-quest-delivery>strong{
+ font-size:clamp(17px,1.65vw,22px);color:#f8cd85;font-weight:850;
+ font-variant-numeric:tabular-nums;
+}
+.game-center .game-info-explorer .game-quest-option__reward-block{display:grid;gap:5px}
+.game-center .game-info-explorer .game-quest-option__reward-label{font-size:10px;color:#c6af8a;font-weight:750}
+.game-center .game-info-explorer .game-quest-rewards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.game-center .game-info-explorer .game-quest-reward{
+ display:flex;flex-direction:column;gap:3px;min-width:0;
+ padding:8px 9px;border-radius:8px;
+}
+.game-center .game-info-explorer .game-quest-reward>strong{font-size:clamp(14px,1.5vw,19px);line-height:1.2}
+.game-center .game-info-explorer .game-quest-note{padding-top:6px;border-top:1px solid rgba(187,171,148,.13)}
+/* In a single-quest record the two pieces of information can share one row. */
+@container (min-width:490px){
+ .game-center .game-info-explorer .game-quest-options:not(.game-quest-options--grouped) .game-quest-option__facts{
+  grid-template-columns:minmax(110px,.75fr) minmax(0,1.25fr);align-items:stretch;
+ }
+}
+/* Only genuinely narrow detail panes stack A/B; do not force stacking at 530px. */
+@container (max-width:480px){
+ .game-center .game-info-explorer .game-quest-options--grouped{grid-template-columns:1fr}
+}
+/* Small screens: preserve readable data instead of clipping it to hide a scrollbar. */
+@media (max-width:850px),(max-height:620px){
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--quest{
+  height:auto;grid-template-rows:minmax(130px,auto) auto;overflow:visible;
+ }
+ .game-center .game-info-explorer .game-detail--quest .game-detail-body--quest{overflow:visible}
+}
