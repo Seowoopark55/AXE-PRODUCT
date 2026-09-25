@@ -93,6 +93,24 @@ const ITEM_IMAGE_FILES=Object.freeze({
   "헤비 리볼버": "heavy_revolver.png",
   "헤비 피스톨": "heavy_pistol.png",
   "화약": "gunpowder.png",
+  "셰프의 야생 블루베리": "quest_wild_blueberry.png",
+  "야생 블루베리": "quest_wild_blueberry.png",
+  "삼나무 베리": "quest_cedar_berry.png",
+  "암염": "quest_rock_salt.png",
+  "산딸기": "quest_raspberry.png",
+  "홀리리프 체리": "quest_hollyleaf_cherry.png",
+  "솔리리프 베리": "quest_hollyleaf_cherry.png",
+  "삼나무 솔방울": "quest_cedar_cone.png",
+  "평범한 잎사귀": "quest_plain_leaf.png",
+  "네잎클로버": "quest_four_leaf_clover.png",
+  "느타리 버섯": "quest_oyster_mushroom.png",
+  "광대 버섯": "quest_fly_agaric.png",
+  "큰갓 버섯": "quest_big_cap_mushroom.png",
+  "식물줄기": "quest_plant_stem.png",
+  "그물버섯": "quest_net_mushroom.png",
+  "모빌버섯": "quest_mobil_mushroom.png",
+  "달빛잎사귀": "quest_moonlight_leaf.png",
+  "반짝이는 보석": "quest_shining_gem.png",
 });
 // Quest titles can be task labels rather than item names. Resolve only confirmed
 // deliveries and obvious A/B variants of an existing, exactly named ore item.
@@ -109,45 +127,65 @@ const QUEST_ITEM_ALIASES=Object.freeze({
  '채광|철광석A':'철광석',
  '채광|철광석B':'철광석',
 });
-// Exact known quest targets use an existing representative image, without
-// changing the source quest name or implying that it is an individual item PNG.
-const QUEST_TARGET_FALLBACK_FILES=Object.freeze({
- '셰프의 야생 블루베리':'quest_herb_basket.png',
- '삼나무 베리':'quest_herb_basket.png',
- '산딸기':'quest_herb_basket.png',
- '솔리리프 베리':'quest_herb_basket.png',
- '암염':'quest_mining_sack.png',
-});
 const QUEST_JOB_FALLBACK_FILES=Object.freeze({
- '셰프':'quest_cooking_meal.png',
- '할머니':'quest_tactical_clipboard.png',
  '벌목':'quest_logging_bundle.png',
  '채광':'quest_mining_sack.png',
  '배송':'quest_delivery_box.png',
  '택배':'quest_delivery_box.png',
  '낚시':'quest_fishing_crate.png',
  '요리':'quest_cooking_meal.png',
+ '셰프':'quest_cooking_meal.png',
  '채집':'quest_herb_basket.png',
+ '할머니':'quest_tactical_clipboard.png',
  '감정':'quest_tactical_clipboard.png',
  '미션':'quest_tactical_clipboard.png',
  '기타':'quest_tactical_clipboard.png',
  '범용':'quest_tactical_clipboard.png',
 });
-const questFallbackImageUrl=row=>{
- const job=String(row?.job??'').trim();
- const file=QUEST_JOB_FALLBACK_FILES[job]||QUEST_JOB_FALLBACK_FILES[String(row?.category??'').trim()]||'';
- return file?`/hub/game-info/items/${file}`:'';
-};
+const QUEST_NAME_FALLBACK_FILES=Object.freeze({
+ '셰프의 야생 블루베리':'quest_wild_blueberry.png',
+ '야생 블루베리':'quest_wild_blueberry.png',
+ '삼나무 베리':'quest_cedar_berry.png',
+ '산딸기':'quest_raspberry.png',
+ '홀리리프 체리':'quest_hollyleaf_cherry.png',
+ '솔리리프 베리':'quest_hollyleaf_cherry.png',
+ '암염':'quest_rock_salt.png',
+ '삼나무 솔방울':'quest_cedar_cone.png',
+ '평범한 잎사귀':'quest_plain_leaf.png',
+ '네잎클로버':'quest_four_leaf_clover.png',
+ '느타리 버섯':'quest_oyster_mushroom.png',
+ '광대 버섯':'quest_fly_agaric.png',
+ '큰갓 버섯':'quest_big_cap_mushroom.png',
+ '식물줄기':'quest_plant_stem.png',
+ '그물버섯':'quest_net_mushroom.png',
+ '모빌버섯':'quest_mobil_mushroom.png',
+ '달빛잎사귀':'quest_moonlight_leaf.png',
+ '반짝이는 보석':'quest_shining_gem.png',
+});
 const questTargetName=row=>{
  const name=String(row?.item_name??'').trim();
  const job=String(row?.job??'').trim();
  return QUEST_ITEM_ALIASES[`${job}|${name}`]||name;
 };
-const questItemArt=row=>{
- const exact=itemImageUrl(questTargetName(row));
- const knownFallback=QUEST_TARGET_FALLBACK_FILES[String(row?.item_name??'').trim()];
- return exact||(knownFallback?`/hub/game-info/items/${knownFallback}`:'')||questFallbackImageUrl(row);
+const questKeywordFallbackFile=name=>{
+ const clean=String(name??'').trim();
+ if(!clean)return '';
+ if(QUEST_NAME_FALLBACK_FILES[clean])return QUEST_NAME_FALLBACK_FILES[clean];
+ if(/(베리|허브|약초|꽃|버섯)/.test(clean))return 'quest_herb_basket.png';
+ if(/(광석|원석|암염|석탄|주괴|광물)/.test(clean))return 'quest_mining_sack.png';
+ if(/(장작|통나무|목재|삼나무)/.test(clean))return 'quest_logging_bundle.png';
+ if(/(도시락|요리|음식|식사)/.test(clean))return 'quest_cooking_meal.png';
+ if(/(생선|어획|낚시)/.test(clean))return 'quest_fishing_crate.png';
+ if(/(상자|배송|택배)/.test(clean))return 'quest_delivery_box.png';
+ return '';
 };
+const questFallbackImageUrl=row=>{
+ const job=String(row?.job??'').trim();
+ const target=questTargetName(row);
+ const file=questKeywordFallbackFile(target)||QUEST_JOB_FALLBACK_FILES[job]||QUEST_JOB_FALLBACK_FILES[String(row?.category??'').trim()]||'';
+ return file?`/hub/game-info/items/${file}`:'';
+};
+const questItemArt=row=>itemImageUrl(questTargetName(row))||questFallbackImageUrl(row);
 // Only source-listed A/B job+name pairs may be grouped; each original DB row
 // remains distinct and keeps its original quantity, reward, rank and ID.
 const QUEST_PAIR_NAMES=Object.freeze({벌목:['저급','일반'],채광:['석탄','철광석']});
@@ -485,11 +523,9 @@ const itemListSubtitle=(table,row)=>{
  if(table==='modbook_catalog')return [row.type,modbookCategories(row).slice(0,2).join(', ')].filter(Boolean).join(' · ');
  return '';
 };
-const listDecor=(table,title,subtitle,search=false,imageName=null)=>{
-  // Quest lists and search must resolve art from the SAME row as their detail
-  // hero and delivery card; a title-only lookup skips job/target fallbacks.
-  const image=table==='info_quests'?questItemArt(imageName):['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
-  if(table==='info_skill_ranks')return `${skillIconMarkup(imageName||title)}<span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
+const listDecor=(table,title,subtitle,search=false,imageRef=null)=>{
+  const image=table==='info_quests'?questItemArt(imageRef):['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
+  if(table==='info_skill_ranks')return `${skillIconMarkup(imageRef||title)}<span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
@@ -765,9 +801,9 @@ export function renderInfoPage(state,{standalone=false}={}){
   }
   const id=String(entry.id),active=standalone&&table==='info_skill_ranks'?Boolean(selected&&String(entry.skill)===String(selected.skill)):variants.some(row=>String(row.id)===String(info.selectedId||''));
   const title=standalone&&table==='info_skill_ranks'?skillDisplayName(entry.skill||'이름 없음'):filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
-  const artTitle=table==='info_quests'?entry:title;
+  const artRef=table==='info_quests'?entry:title;
   const subtitle='';
-  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artTitle):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
+  return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artRef):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
