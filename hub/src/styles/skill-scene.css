@@ -180,3 +180,9 @@
 .game-center .game-info-explorer .game-skill-content {
  overflow-y:auto;overflow-x:hidden;align-items:stretch;
 }
+
+/* New screenshot-derived icons are already cropped to their square frames.
+   Do not zoom them again: it cuts off the user's original artwork. */
+.game-center .game-info-explorer .game-skill-art img[src*="/skills/addons/"] {
+ transform:none;object-fit:contain;filter:saturate(.9) contrast(1.03);
+}

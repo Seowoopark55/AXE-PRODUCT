@@ -184,13 +184,30 @@ const SKILL_GROUPS=Object.freeze({
  '전투':['SMG 마스터리','피스톨 마스터리','돌진','전력질주','체력','컴뱃롤'],
  '기술':['감정','운전','차량 정비','전문가 치료(EMS)','몸 수색(경찰)','절도','제작','악기연주','작곡'],
 });
-const skillGroup=skill=>Object.entries(SKILL_GROUPS).find(([,names])=>names.includes(String(skill)))?.[0]||'기타';
+// Presentation aliases only: preserve source row.skill and row.id for lookups.
+const skillDisplayName=skill=>{
+ const name=String(skill??'').trim();
+ return name==='제련'||name==='재련'?'재련':name;
+};
+const skillIconKey=skill=>{
+ const name=skillDisplayName(skill).replace(/\s+/g,'');
+ return name==='목재가공'?'목재 가공':name==='차량정비'?'차량 정비':name;
+};
+const skillGroup=skill=>Object.entries(SKILL_GROUPS).find(([,names])=>names.some(name=>skillIconKey(name)===skillIconKey(skill)))?.[0]||'기타';
 
-// Source-file icons are shown as provisional artwork. Keep the seven originals
-// unchanged until the game operator has reviewed their use on the site.
+// Read-only, explicit per-skill image mapping. The seven existing lifestyle icons
+// retain their original files; source screenshots are cropped into isolated icons.
 const SKILL_ICON_FILES=Object.freeze({
  '낚시':'fishing.png','벌목':'logging.png','보물찾기':'treasure.png',
- '요리':'cooking.png','채광':'mining.png','채집':'gathering.png','택배':'delivery.png'
+ '요리':'cooking.png','채광':'mining.png','채집':'gathering.png','택배':'delivery.png',
+ '목재 가공':'addons/woodworking.png','재련':'addons/refining.png',
+ '돌진':'addons/charge.png','전력질주':'addons/sprinting.png',
+ '체력':'addons/strength.png','컴뱃롤':'addons/combat-roll.png',
+ '피스톨마스터리':'addons/pistol-mastery.png','SMG마스터리':'addons/smg-mastery.png',
+ '감정':'addons/appraisal.png','운전':'addons/driving.png','절도':'addons/theft.png',
+ '제작':'addons/crafting.png','차량 정비':'addons/vehicle-repair.png',
+ '전문가치료(EMS)':'addons/ems.png','몸수색(경찰)':'addons/police-search.png',
+ '악기연주':'addons/music-performance.png','작곡':'addons/composing.png'
 });
 const SKILL_LIFE_ORDER=Object.freeze(['낚시','벌목','보물찾기','요리','채광','채집','택배']);
 const SKILL_SCENE_FILES=Object.freeze({
@@ -198,7 +215,7 @@ const SKILL_SCENE_FILES=Object.freeze({
  '요리':'cooking.webp', '채광':'mining.webp', '채집':'gathering.webp', '택배':'delivery.webp'
 });
 
-const skillIconUrl=skill=>SKILL_ICON_FILES[String(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[String(skill)]}`:'';
+const skillIconUrl=skill=>SKILL_ICON_FILES[skillIconKey(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[skillIconKey(skill)]}`:'';
 const skillIconMarkup=(skill,large=false)=>{
  const url=skillIconUrl(skill);
  return url?`<span class="game-skill-art${large?' game-skill-art--large':''}" aria-hidden="true"><img src="${url}" alt="" loading="lazy" decoding="async"></span>`:
@@ -231,13 +248,18 @@ const skillDetailPanel=(skill,rows)=>{
   const {from,to}=parseSkillRank(rank);
   const required=row.required_point===null||row.required_point===undefined||String(row.required_point).trim()===''?'미등록':String(row.required_point);
   const pointType=String(row.point_type??'').trim()||'sp';
-  const note=String(row.note??'').trim();
+  const rawNote=String(row.note??'').trim();
+  // For the refining skill only, hide the imported CSV naming annotation.
+  // All other notes and the actual rank-point data are left untouched.
+  const note=skillDisplayName(skill)==='재련'
+   ?rawNote.split(/\r?\n/).filter(line=>!/^[\s]*CSV\s*표기\s*[:：]\s*(?:제련|재련)\s*[.!]?\s*$/.test(line)).join('\n').trim()
+   :rawNote;
   const needsManual=/수련서/.test(note);
   const noteContent=note?`<p class="game-skill-rank__note">${needsManual?'<span class="game-skill-training-icon" aria-hidden="true"><img src="/hub/game-info/skills/training_manual.png" alt="" loading="lazy" decoding="async"></span>':''}<span>${escapeText(note)}</span></p>`:'';
   const flow=`<div class="game-skill-rank__tier"><span class="game-skill-rank__from">${escapeText(from)}</span>${to?`<span class="game-skill-rank__arrow" aria-hidden="true">→</span><span class="game-skill-rank__to">${escapeText(to)}</span>`:''}<span class="game-skill-rank__fill" aria-hidden="true"></span></div>`;
   return `<div class="game-skill-rank${note?' game-skill-rank--has-note':''}" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건">${flow}<div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${noteContent}</div>`;
  }).join('');
- return `<section class="axe-info-detail game-skill-detail game-skill-detail--atlas${scene?' game-skill-detail--illustrated':''}" aria-label="${escapeText(skill)} 스킬 승급 정보">${sceneImg}<div class="game-skill-detail__information"><header class="game-skill-detail__header"><div class="game-skill-detail__eyebrow"><span>LAC HUB</span><span>SKILL INFORMATION</span></div><div class="game-skill-detail__hero">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></div></section>`;
+ return `<section class="axe-info-detail game-skill-detail game-skill-detail--atlas${scene?' game-skill-detail--illustrated':''}" aria-label="${escapeText(skill)} 스킬 승급 정보">${sceneImg}<div class="game-skill-detail__information"><header class="game-skill-detail__header"><div class="game-skill-detail__eyebrow"><span>LAC HUB</span><span>SKILL INFORMATION</span></div><div class="game-skill-detail__hero">${image}<div class="game-skill-detail__name"><h2>${escapeText(skillDisplayName(skill))}</h2><p>등급별 승급 조건</p></div></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></div></section>`;
 };
 
 const MODBOOK_GROUPS=Object.freeze({
@@ -298,7 +320,7 @@ const itemName=(table,row,data)=>{
   const parent=(data.info_crafts||[]).find(c=>String(c.id)===String(row.craft_id));
   return parent?String(parent.item_name):String(row.material_name||'이름 없음');
  }
- if(table==='info_skill_ranks')return [row.skill,row.rank].filter(Boolean).join(' · ')||'이름 없음';
+ if(table==='info_skill_ranks')return [skillDisplayName(row.skill),row.rank].filter(Boolean).join(' · ')||'이름 없음';
  return table==='info_crafts'?craftDisplayName(row.item_name||'이름 없음'):String(row[CONFIG[table][1]]||'이름 없음');
 };
 const renderFields=fields=>fields.filter(([,value])=>value!=='—').map(([label,value])=>`<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('');
@@ -680,7 +702,7 @@ export function renderInfoPage(state,{standalone=false}={}){
    return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true,source==='info_quests'?questTargetName(row):null):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
   }
   const id=String(entry.id),active=standalone&&table==='info_skill_ranks'?Boolean(selected&&String(entry.skill)===String(selected.skill)):variants.some(row=>String(row.id)===String(info.selectedId||''));
-  const title=standalone&&table==='info_skill_ranks'?String(entry.skill||'이름 없음'):filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
+  const title=standalone&&table==='info_skill_ranks'?skillDisplayName(entry.skill||'이름 없음'):filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
   const artTitle=table==='info_quests'?questTargetName(entry):title;
   const subtitle='';
   return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artTitle):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
