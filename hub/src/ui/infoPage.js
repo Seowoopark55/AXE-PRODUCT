@@ -458,6 +458,31 @@ const listDecor=(table,title,subtitle,search=false,imageName=null)=>{
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
+const nonEmptyLines=value=>String(value??'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+const modbookDisplayTitle=row=>`${String(row?.type||'개조서').trim()||'개조서'} 개조서: ${String(row?.name||'이름 없음').trim()||'이름 없음'}`;
+const modbookApplicableLabel=row=>{
+ const classified=modbookCategories(row).filter(Boolean);
+ if(classified.length)return [...new Set(classified)].join(' · ');
+ const fallbacks=[row?.category,row?.parts].flatMap(splitModbookLabels).filter(Boolean);
+ return fallbacks.length?[...new Set(fallbacks)].join(' · '):'미등록';
+};
+const modbookEffectLines=row=>[row?.option1,row?.option2,row?.option3].flatMap(nonEmptyLines).filter(Boolean);
+const modbookSupportLines=row=>[row?.note,row?.price_note].flatMap(nonEmptyLines).filter(Boolean);
+const modbookDetailPanel=row=>{
+ const type=String(row?.type||'').trim();
+ const theme=type==='접미'?'suffix':'prefix';
+ const title=modbookDisplayTitle(row);
+ const subtitle=type?`${type} 계열 개조서 정보`:'개조서 정보';
+ const facts=[
+  ['개조 위치',type||'미등록'],
+  ['성공 확률',presentSuccessRate(row?.success_rate)||'미등록'],
+  ['적용 가능 부위',modbookApplicableLabel(row)],
+ ];
+ const effects=modbookEffectLines(row);
+ const support=modbookSupportLines(row);
+ return `<section class="axe-info-detail axe-info-detail--studio game-modbook-detail game-modbook-detail--${theme}" aria-label="${escapeText(title)} 상세 정보"><div class="game-modbook-detail__hero"><div class="game-modbook-detail__eyebrow"><span>LAC HUB</span><span>MOD BOOK DATABASE</span></div><div class="game-modbook-detail__hero-main"><div class="game-modbook-detail__title-wrap"><span class="game-modbook-detail__kind">${escapeText(type||'개조서')}</span><h2>${escapeText(title)}</h2><p>${escapeText(subtitle)}</p></div><div class="game-modbook-detail__book-slot" aria-hidden="true"><span class="game-modbook-detail__book"><span class="game-modbook-detail__book-spine"></span><span class="game-modbook-detail__book-ring game-modbook-detail__book-ring--top"></span><span class="game-modbook-detail__book-ring game-modbook-detail__book-ring--mid"></span><span class="game-modbook-detail__book-ring game-modbook-detail__book-ring--bot"></span><span class="game-modbook-detail__book-emblem"></span></span></div></div></div><div class="game-modbook-detail__body"><div class="game-modbook-detail__facts">${facts.map(([label,value])=>`<div class="game-modbook-detail__fact"><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}</div><section class="game-modbook-detail__panel game-modbook-detail__panel--effects" aria-label="개조 효과"><header><h3>개조 효과</h3></header><div class="game-modbook-detail__effects">${effects.length?`<ul>${effects.map(line=>`<li>${escapeText(line)}</li>`).join('')}</ul>`:'<p class="game-modbook-detail__empty">등록된 개조 효과가 없습니다.</p>'}</div></section><section class="game-modbook-detail__panel game-modbook-detail__panel--support" aria-label="추가 정보"><header><h3>추가 정보</h3></header><div class="game-modbook-detail__support">${support.length?support.map(line=>`<p>${escapeText(line)}</p>`).join(''):'<p class="game-modbook-detail__empty">추가 안내가 없습니다.</p>'}</div></section></div></section>`;
+};
+
 const detailFields=(table,row,data,info,owner,{includeCraftMaterials=true}={})=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
@@ -691,7 +716,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const heroSubtitle=selected&&['info_processes','info_quests'].includes(table)?'':selected?itemListSubtitle(table,selected):'';
  const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
  const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected,selectedVariants):null;
- const details=selected&&standalone&&table==='info_skill_ranks'?skillDetailPanel(String(selected.skill),visibleRows(data,'info_skill_ranks',info,owner).filter(row=>String(row.skill)===String(selected.skill))):selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':table==='info_quests'?' game-detail--quest':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected&&standalone&&table==='info_skill_ranks'?skillDetailPanel(String(selected.skill),visibleRows(data,'info_skill_ranks',info,owner).filter(row=>String(row.skill)===String(selected.skill))):selected&&standalone&&table==='modbook_catalog'?modbookDetailPanel(selected):selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':table==='info_quests'?' game-detail--quest':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const listEntries=!searching&&standalone&&table==='info_quests'?questGroupedRows(rows):rows.map(row=>({row,variants:[row]}));
  const rowList=rows.length?listEntries.map(({row:entry,variants})=>{
   if(searching){
