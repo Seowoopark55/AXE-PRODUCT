@@ -193,6 +193,11 @@ const SKILL_ICON_FILES=Object.freeze({
  '요리':'cooking.png','채광':'mining.png','채집':'gathering.png','택배':'delivery.png'
 });
 const SKILL_LIFE_ORDER=Object.freeze(['낚시','벌목','보물찾기','요리','채광','채집','택배']);
+const SKILL_SCENE_FILES=Object.freeze({
+ '낚시':'fishing.webp', '벌목':'logging.webp', '보물찾기':'treasure.webp',
+ '요리':'cooking.webp', '채광':'mining.webp', '채집':'gathering.webp', '택배':'delivery.webp'
+});
+
 const skillIconUrl=skill=>SKILL_ICON_FILES[String(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[String(skill)]}`:'';
 const skillIconMarkup=(skill,large=false)=>{
  const url=skillIconUrl(skill);
@@ -210,6 +215,10 @@ const skillRankSortValue=rank=>{
 };
 const skillDetailPanel=(skill,rows)=>{
  const image=skillIconMarkup(skill,true);
+ // Only bundled, approved lifestyle art is eligible. Never construct a path from a DB label.
+ const scene=SKILL_SCENE_FILES[String(skill)]||'';
+ const sceneImg=scene?`<div class="game-skill-detail__scene" aria-hidden="true"><img src="/hub/game-info/skills/scenes/${scene}" alt="" decoding="async" loading="lazy"></div>`:'';
+
  const ordered=[...rows].sort((a,b)=>skillRankSortValue(a.rank)-skillRankSortValue(b.rank)||String(a.rank??'').localeCompare(String(b.rank??''),'ko'));
  const rankRows=ordered.map(row=>{
   const rank=String(row.rank??'').trim();
@@ -220,7 +229,7 @@ const skillDetailPanel=(skill,rows)=>{
   const noteContent=note?`<p class="game-skill-rank__note">${needsManual?'<span class="game-skill-training-icon" aria-hidden="true"><img src="/hub/game-info/skills/training_manual.png" alt="" loading="lazy" decoding="async"></span>':''}<span>${escapeText(note)}</span></p>`:'';
   return `<div class="game-skill-rank${note?' game-skill-rank--has-note':''}" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${noteContent}</div>`;
  }).join('');
- return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></section>`;
+ return `<section class="axe-info-detail game-skill-detail game-skill-detail--atlas${scene?' game-skill-detail--illustrated':''}" aria-label="${escapeText(skill)} 스킬 승급 정보"><div class="game-skill-detail__information"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></div>${sceneImg}</section>`;
 };
 
 const MODBOOK_GROUPS=Object.freeze({
