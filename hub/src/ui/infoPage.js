@@ -206,22 +206,32 @@ const presentSuccessRate=value=>{
 // Blank source values remain visibly unconfirmed rather than becoming x1.
 const processDetailBody=record=>{
  const hasValue=value=>value!==null&&value!==undefined&&String(value).trim()!=='';
- const itemName=String(record.item_name??'').trim();
- const resultArt=itemImageUrl(itemName);
- const resultArtHtml=resultArt?`<img src="${resultArt}" alt="" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
- const outputQty=hasValue(record.output_qty)?`<b class="game-process-result__qty">× ${escapeText(record.output_qty)}</b>`:'<span class="game-process-result__unknown">생산 수량 미등록</span>';
- const ingredients=Array.from({length:4},(_,i)=>({name:record[`input${i+1}`],qty:record[`input${i+1}_qty`]}))
-  .filter(item=>hasValue(item.name));
- const inputCards=ingredients.length?ingredients.map(item=>{
-  const name=String(item.name).trim(),art=itemImageUrl(name);
-  const artHtml=art?`<img src="${art}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
-  const qty=hasValue(item.qty)?`<b class="game-process-input__qty">× ${escapeText(item.qty)}</b>`:'<small class="game-process-input__unknown">수량 미등록</small>';
-  return `<div class="game-process-input__card">${artHtml}<span class="game-process-input__name">${escapeText(name)}</span>${qty}</div>`;
+ const hasQuest=hasValue(record.quest_qty)&&String(record.quest_qty).trim()!=='0';
+ const item=String(record.item_name??'').trim();
+ const image=itemImageUrl(item);
+ const art=image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
+ // Quantities and rewards are displayed verbatim except for thousands separators on numbers.
+ const count=value=>/^\d+(?:\.\d+)?$/.test(String(value??'').trim())?Number(value).toLocaleString('ko-KR'):escapeText(value);
+ const output=hasValue(record.output_qty)?`<strong class="game-process-result__qty">× ${count(record.output_qty)}</strong>`:'<small class="game-process-input__unknown">수량 미등록</small>';
+ const ingredients=Array.from({length:4},(_,i)=>({name:record[`input${i+1}`],qty:record[`input${i+1}_qty`]})).filter(input=>hasValue(input.name));
+ const cards=ingredients.length?ingredients.map(input=>{
+   const name=String(input.name).trim(),src=itemImageUrl(name);
+   const itemArt=src?`<img src="${src}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
+   const qty=hasValue(input.qty)?`<strong class="game-process-input__qty">× ${count(input.qty)}</strong>`:'<small class="game-process-input__unknown">수량 미등록</small>';
+   return `<div class="game-process-input__card">${itemArt}<span class="game-process-input__name">${escapeText(name)}</span>${qty}</div>`;
  }).join(''):'<p class="game-process-empty">등록된 투입 재료가 없습니다.</p>';
- const entries=[['직업',record.job],['가공 종류',record.process_type],['퀘스트 수량',record.quest_qty],['등급',record.rank],['비고',record.note]]
-  .filter(([,value])=>hasValue(value));
- const meta=entries.length?`<section class="game-process-meta" aria-label="가공·재련 추가 정보">${entries.map(([label,value])=>`<div class="game-process-meta__entry${label==='비고'?' game-process-meta__entry--note':''}"><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}</section>`:'';
- return `<div class="game-detail-body game-detail-body--process"><section class="game-process-flow" aria-label="가공·재련 과정"><h3>재료에서 결과물까지</h3><div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">필요 재료</span><div class="game-process-flow__materials">${inputCards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">가공 결과</span><div class="game-process-result__card">${resultArtHtml}<span class="game-process-result__name">${escapeText(itemName||'이름 미등록')}</span>${outputQty}</div></div></div></section>${meta}</div>`;
+ const stage=(number,title)=>`<h3 class="game-process-stage__title"><span class="game-process-stage__number" aria-hidden="true">${number}</span>${title}</h3>`;
+ const conversion=`<section class="game-process-flow" aria-label="재료 및 결과">${stage('01','재료 가공')}<div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">필요 재료</span><div class="game-process-flow__materials">${cards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">획득 아이템</span><div class="game-process-result__card">${art}<span class="game-process-result__name">${escapeText(item||'이름 미등록')}</span>${output}</div></div></div></section>`;
+ const rewardFields=[['보상 금액',record.reward_money,'coins'],['보상 경험치',record.reward_xp,'xp']].filter(([,value])=>hasValue(value));
+ const quest=hasQuest?`<section class="game-process-quest" aria-label="퀘스트 납품">${stage('02','퀘스트 납품')}<div class="game-process-quest__line">${art}<span class="game-process-quest__name">${escapeText(item||'이름 미등록')} <small>납품 필요 수량</small></span><strong class="game-process-quest__qty">× ${count(record.quest_qty)}</strong></div></section>`:'';
+ const reward=rewardFields.length?`<section class="game-process-rewards" aria-label="${hasQuest?'퀘스트 완료 보상':'보상 정보'}">${stage(hasQuest?'03':'02',hasQuest?'퀘스트 완료 보상':'보상 정보')}<div class="game-process-rewards__grid">${rewardFields.map(([label,value,type])=>`<div class="game-process-reward game-process-reward--${type}"><span>${escapeText(label)}</span><strong>${count(value)}</strong></div>`).join('')}</div>${!hasQuest?'<p class="game-process-rewards__note">지급 조건이 등록되지 않았습니다.</p>':''}</section>`:'';
+ const extra=[['등급',record.rank],['비고',record.note]].filter(([,value])=>hasValue(value));
+ // Job is presented once in the hero. process_type repeats the current filter,
+ // so show it only when it is a distinct value that adds information.
+ const kind=String(record.process_type??'').trim();
+ if(kind&&!['가공','재련','제련'].includes(kind))extra.unshift(['작업 유형',kind]);
+ const foot=extra.length?`<div class="game-process-footnote">${extra.map(([label,value])=>`<span><b>${escapeText(label)}</b> ${escapeText(value)}</span>`).join('')}</div>`:'';
+ return `<div class="game-detail-body game-detail-body--process">${conversion}${quest||reward?`<div class="game-process-after">${quest}${reward}</div>`:''}${foot}</div>`;
 };
 const standaloneDetailSections=(htmlFields,table,record)=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
@@ -231,7 +241,7 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
  const keyLabels={
   info_crafts:['성공률','제작 등급','획득 장소'],
   info_material_recipes:['제작 등급','성공률','획득 장소'],
-  info_processes:['생산 수량','보상 금액','보상 경험치'],
+  info_processes:[], // Output and quest rewards have separate, correctly labeled stages below.
   info_quests:['보상 금액','보상 경험치','등급'],
   info_skill_ranks:['등급','필요 포인트','포인트 종류'],
   modbook_catalog:['성공률','최근 거래가격','최근 거래일']
@@ -352,7 +362,7 @@ const weaponPartDetails=(recipe,data,info,owner,{dedupe=false}={})=>{
 };
 
 // Browsing has no "전체" chips. The unified search below is the sole cross-category search.
-export function categoryFilters(table,info,data,owner){
+export function categoryFilters(table,info,data,owner,{standalone=false}={}){
  const primary=String(info.filterPrimary||ALL),secondary=String(info.filterSecondary||ALL);
  let shown=visibleRows(data,table,info,owner),controls='',chosenSkill='',heading=CONFIG[table][0],countNote='';
  if(['info_crafts','info_craft_materials','info_material_recipes'].includes(table)){
@@ -383,9 +393,9 @@ export function categoryFilters(table,info,data,owner){
  }else if(table==='info_processes'){
   const types=['목재','재련','기타'].filter(type=>shown.some(row=>productionGroup(row)===type));
   const chosen=types.includes(primary)?primary:(types[0]||'목재');
-  controls+=chipRow('가공·재련 종류','primary',types,chosen,shown,productionGroup);
+  controls+=chipRow(standalone?'분류':'가공·재련 종류','primary',types,chosen,shown,productionGroup);
   shown=shown.filter(row=>productionGroup(row)===chosen);
-  heading=`가공·재련 · ${chosen}`;
+  heading=standalone?chosen:`가공·재련 · ${chosen}`;
  }else if(table==='info_quests'){
   const jobOf=row=>filterName(row.job),jobs=distinct(shown.map(jobOf));
   const chosen=jobs.includes(primary)?primary:jobs[0];
@@ -491,7 +501,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const categories=TOP_TABS.filter(([key])=>hasCompany || key!=='modbook_catalog').map(([key,label])=>{
   return `<button type="button" data-info-table="${key}" class="${!searching&&tabTable===key?'is-active':''}" aria-current="${!searching&&tabTable===key?'true':'false'}">${infoTabIcon(key)}<span>${escapeText(label)}</span></button>`;
  }).join('');
- const filters=searching?null:categoryFilters(tabTable,info,data,owner);
+ const filters=searching?null:categoryFilters(tabTable,info,data,owner,{standalone});
  const matches=searching?searchInformation(data,q,info,owner):[];
  const table=searching?'':filters.table;
  const rows=searching?matches:filters.rows;
@@ -506,8 +516,9 @@ export function renderInfoPage(state,{standalone=false}={}){
  const detailDensity=visibleFieldCount<=4?'sparse':visibleFieldCount<=8?'regular':visibleFieldCount<=14?'dense':'extended';
  const detailOverflow=longestField>160?' game-detail--long-copy':'';
  const artSource=selected&&['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(detailTitle):'';
- const heroSubtitle=selected?itemListSubtitle(table,selected):'';
- const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><span class="game-detail-hero__eyebrow">${escapeText(CONFIG[table][0])}</span><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
+ const heroSubtitle=selected&&table==='info_processes'?'':selected?itemListSubtitle(table,selected):'';
+ const heroEyebrow=selected&&table==='info_processes'?String(selected.job||'').trim():selected?CONFIG[table][0]:'';
+ const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy">${heroEyebrow?`<span class="game-detail-hero__eyebrow">${escapeText(heroEyebrow)}</span>`:''}<strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
  const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected):null;
  const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{

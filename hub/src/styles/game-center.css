@@ -1051,119 +1051,163 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
   border-color:#bc9257;
 }
 
-/* Process/refining: a compact conversion sheet that prioritizes the actual
-   input and output over generic dashboard labels. Does not affect crafting. */
+/* Process/refining catalogue: item -> quest hand-in -> reward.
+   Display-only changes; no transformation of DB quantities or reward semantics.
+   Scoped to the standalone game-info process detail, not crafting or COOK. */
 .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process{
   grid-template-rows:auto minmax(0,1fr);
 }
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-hero,
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-hero--art{
+  min-height:127px;padding-top:8px;padding-bottom:8px;
+}
+.game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-hero__item{
+  max-height:127px;
+}
 .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-body--process{
-  display:flex;flex-direction:column;justify-content:flex-start;gap:11px;min-height:0;
-  overflow-y:auto;padding:13px 14px 14px;
-  background:linear-gradient(155deg,#17232c 0%,#101b24 100%);
+  display:flex;flex-direction:column;gap:9px;min-height:0;overflow-y:auto;
+  padding:10px 11px 11px;
+  background:linear-gradient(153deg,#17232d,#101b24 80%);
+  scrollbar-width:thin;scrollbar-color:#66727b transparent;
 }
-.game-center .game-info-explorer .game-process-flow{
-  flex:0 0 auto;display:flex;flex-direction:column;min-width:0;min-height:168px;
-  padding:14px 15px 15px;border:1px solid rgba(211,168,102,.34);border-radius:11px;
-  background:linear-gradient(135deg,rgba(52,48,40,.52),rgba(21,33,42,.94) 70%);
-  box-shadow:inset 0 1px rgba(255,255,255,.04),0 6px 16px rgba(0,0,0,.08);
+.game-center .game-info-explorer .game-process-flow,
+.game-center .game-info-explorer .game-process-quest,
+.game-center .game-info-explorer .game-process-rewards{
+  min-width:0;padding:11px 13px;border:1px solid rgba(164,175,178,.24);
+  border-radius:10px;background:linear-gradient(128deg,rgba(26,40,50,.95),rgba(18,29,38,.91));
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
 }
-.game-center .game-info-explorer .game-process-flow > h3{
-  display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:0 0 10px;
-  border-bottom:1px solid rgba(222,180,110,.23);color:#eed0a0;font-size:12px;
-  font-weight:850;letter-spacing:.01em;
+.game-center .game-info-explorer .game-process-flow{border-color:rgba(214,169,105,.43)}
+.game-center .game-info-explorer .game-process-stage__title{
+  display:flex;align-items:center;gap:8px;margin:0 0 9px;color:#f1e3cb;
+  font-size:12px;line-height:1.35;font-weight:850;
 }
-.game-center .game-info-explorer .game-process-flow > h3::before{
-  content:"";display:block;width:3px;height:13px;border-radius:3px;background:#dcb16b;
+.game-center .game-info-explorer .game-process-stage__number{
+  display:inline-grid;place-items:center;width:23px;height:20px;flex:0 0 23px;
+  border-radius:5px;background:rgba(219,173,101,.14);color:#e8bb79;
+  font-size:10px;font-variant-numeric:tabular-nums;
 }
 .game-center .game-info-explorer .game-process-flow__route{
-  display:grid;grid-template-columns:minmax(0,1.1fr) 30px minmax(0,1fr);
-  align-items:center;gap:9px;min-width:0;
+  display:grid;grid-template-columns:minmax(0,1.06fr) 22px minmax(0,.94fr);
+  align-items:center;gap:7px;min-width:0;
 }
 .game-center .game-info-explorer .game-process-flow__input,
 .game-center .game-info-explorer .game-process-result{
-  display:flex;flex-direction:column;gap:7px;min-width:0;
+  display:flex;flex-direction:column;gap:6px;min-width:0;
 }
 .game-center .game-info-explorer .game-process-flow__label{
-  color:#d4bd99;font-size:11px;font-weight:780;letter-spacing:.01em;
+  color:#aebbc5;font-size:10px;font-weight:750;line-height:1.3;
 }
 .game-center .game-info-explorer .game-process-flow__materials{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));
-  gap:7px;min-width:0;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,132px),1fr));gap:5px;min-width:0;
 }
 .game-center .game-info-explorer .game-process-input__card,
 .game-center .game-info-explorer .game-process-result__card{
-  display:flex;align-items:center;gap:9px;min-width:0;min-height:66px;
-  padding:8px 10px;border:1px solid rgba(139,157,164,.38);border-radius:9px;
-  background:linear-gradient(125deg,#23303a,#17242d);
+  display:flex;align-items:center;gap:7px;min-width:0;min-height:55px;
+  padding:6px 7px;border:1px solid rgba(132,151,160,.33);border-radius:8px;
+  background:#1d2b35;
 }
 .game-center .game-info-explorer .game-process-input__card > img,
 .game-center .game-info-explorer .game-process-result__card > img,
+.game-center .game-info-explorer .game-process-quest__line > img,
 .game-center .game-info-explorer .game-process-image-fallback{
-  display:block;flex:0 0 45px;width:45px;height:45px;object-fit:contain;
-  border:1px solid rgba(212,175,114,.22);border-radius:8px;background:rgba(214,176,111,.075);
+  display:block;flex:0 0 38px;width:38px;height:38px;object-fit:contain;
+  border:1px solid rgba(212,175,114,.20);border-radius:7px;background:rgba(211,172,108,.065);
 }
 .game-center .game-info-explorer .game-process-image-fallback{
-  display:grid;place-items:center;color:#b1bdc5;font-size:20px;
+  display:grid;place-items:center;color:#a5b6c1;font-size:17px;
 }
 .game-center .game-info-explorer .game-process-input__name,
 .game-center .game-info-explorer .game-process-result__name{
-  min-width:0;flex:1 1 auto;overflow-wrap:anywhere;color:#f5f0e7;
-  font-size:13px;font-weight:800;line-height:1.4;
+  flex:1 1 auto;min-width:0;overflow-wrap:anywhere;color:#f5f1e9;
+  font-size:12px;line-height:1.4;font-weight:790;
 }
 .game-center .game-info-explorer .game-process-input__qty,
 .game-center .game-info-explorer .game-process-result__qty{
-  flex:0 0 auto;padding:4px 6px;border-radius:6px;
-  background:rgba(220,176,102,.10);color:#ffd18c;font-size:14px;
-  font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums;
+  flex:0 0 auto;white-space:nowrap;color:#ffce80;font-size:13px;
+  font-weight:850;font-variant-numeric:tabular-nums;
 }
-.game-center .game-info-explorer .game-process-input__unknown,
-.game-center .game-info-explorer .game-process-result__unknown{
-  color:#c1b5ad;font-size:11px;line-height:1.4;
+.game-center .game-info-explorer .game-process-input__unknown{
+  color:#b7c3cb;font-size:10px;
 }
 .game-center .game-info-explorer .game-process-flow__arrow{
-  display:grid;place-items:center;align-self:end;width:29px;height:29px;margin-bottom:20px;
-  border:1px solid rgba(218,178,113,.39);border-radius:50%;
-  color:#ffd28e;background:#3a3025;font-size:18px;line-height:1;
+  align-self:end;display:grid;place-items:center;width:22px;height:25px;margin-bottom:14px;
+  color:#e9b871;font-size:21px;line-height:1;
 }
 .game-center .game-info-explorer .game-process-result__card{
-  min-height:72px;border-color:rgba(237,189,110,.62);
-  background:linear-gradient(120deg,rgba(98,73,41,.58),rgba(29,41,46,.92));
-  box-shadow:inset 3px 0 rgba(242,188,104,.75);
+  border-color:rgba(227,175,94,.55);
+  background:linear-gradient(120deg,rgba(88,65,38,.45),rgba(29,41,49,.95));
+  box-shadow:inset 2px 0 #d4a460;
 }
-.game-center .game-info-explorer .game-process-result__name{color:#fff2db}
-.game-center .game-info-explorer .game-process-result__qty{
-  background:rgba(236,186,100,.18);color:#ffe0a5;
+.game-center .game-info-explorer .game-process-result__name{color:#fff0d1}
+.game-center .game-info-explorer .game-process-empty{margin:0;color:#aebdc9;font-size:11px}
+.game-center .game-info-explorer .game-process-after{
+  display:flex;flex-direction:column;gap:8px;min-width:0;
 }
-.game-center .game-info-explorer .game-process-empty{margin:0;color:#b6c2ca;font-size:12px}
-.game-center .game-info-explorer .game-process-meta{
-  display:flex;flex:0 0 auto;flex-wrap:wrap;gap:7px;min-width:0;
-  padding:9px;border:1px solid rgba(132,155,165,.30);border-radius:9px;
-  background:rgba(24,36,45,.92);
+.game-center .game-info-explorer .game-process-quest{
+  padding:9px 12px;background:linear-gradient(110deg,#1a2933,#18252f);
 }
-.game-center .game-info-explorer .game-process-meta__entry{
-  display:flex;flex:1 1 120px;align-items:baseline;justify-content:space-between;
-  gap:8px;min-width:0;padding:6px 9px;border:1px solid rgba(155,169,173,.15);
-  border-radius:6px;background:rgba(8,17,24,.16);
+.game-center .game-info-explorer .game-process-quest .game-process-stage__title,
+.game-center .game-info-explorer .game-process-rewards .game-process-stage__title{margin-bottom:7px}
+.game-center .game-info-explorer .game-process-quest__line{
+  display:flex;align-items:center;gap:9px;min-width:0;
 }
-.game-center .game-info-explorer .game-process-meta__entry > span{
-  flex:0 0 auto;color:#b9b1a2;font-size:11px;font-weight:700;
+.game-center .game-info-explorer .game-process-quest__line > img,
+.game-center .game-info-explorer .game-process-quest__line > .game-process-image-fallback{
+  flex-basis:30px;width:30px;height:30px;
 }
-.game-center .game-info-explorer .game-process-meta__entry > strong{
-  color:#f0eee9;font-size:12px;line-height:1.4;font-weight:800;text-align:right;overflow-wrap:anywhere;
+.game-center .game-info-explorer .game-process-quest__name{
+  display:flex;flex:1 1 auto;align-items:baseline;flex-wrap:wrap;gap:5px;
+  min-width:0;color:#f0ebe3;font-size:12px;font-weight:800;
 }
-.game-center .game-info-explorer .game-process-meta__entry--note{flex:1 1 100%;align-items:flex-start}
-/* The small-screen layout grows naturally: no source value is hidden or clipped. */
+.game-center .game-info-explorer .game-process-quest__name small{
+  color:#b2bec9;font-size:10px;font-weight:580;
+}
+.game-center .game-info-explorer .game-process-quest__qty{
+  flex:0 0 auto;color:#f6c47c;font-size:18px;font-weight:850;
+  font-variant-numeric:tabular-nums;
+}
+.game-center .game-info-explorer .game-process-rewards{
+  padding:9px 12px;border-color:rgba(211,168,101,.34);
+  background:linear-gradient(110deg,rgba(57,44,29,.45),rgba(21,33,43,.94));
+}
+.game-center .game-info-explorer .game-process-rewards__grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+}
+.game-center .game-info-explorer .game-process-reward{
+  display:flex;align-items:center;justify-content:space-between;gap:7px;
+  min-width:0;padding:8px 10px;border:1px solid rgba(207,169,109,.27);
+  border-radius:7px;background:rgba(14,23,31,.50);
+}
+.game-center .game-info-explorer .game-process-reward > span{
+  min-width:0;color:#c9baa2;font-size:10px;font-weight:750;
+}
+.game-center .game-info-explorer .game-process-reward > strong{
+  color:#ffcf81;font-size:18px;line-height:1.15;font-weight:850;
+  font-variant-numeric:tabular-nums;
+}
+.game-center .game-info-explorer .game-process-reward--xp{border-color:rgba(119,170,184,.28)}
+.game-center .game-info-explorer .game-process-reward--xp > strong{color:#bedfe5}
+.game-center .game-info-explorer .game-process-rewards__note{
+  margin:6px 0 0;color:#b6c0c9;font-size:10px;
+}
+.game-center .game-info-explorer .game-process-footnote{
+  display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 3px;color:#c9d0d5;font-size:11px;
+}
+.game-center .game-info-explorer .game-process-footnote b{
+  margin-right:4px;color:#b5a88f;font-weight:650;
+}
+/* Narrow displays may scroll when real data cannot fit. No field is clipped. */
 @media(max-width:1100px){
-  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process{grid-template-rows:auto auto}
-  .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-body--process{overflow:visible}
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process{grid-template-rows:auto auto}
+ .game-center .game-info-explorer .axe-info-detail--studio.game-detail--process .game-detail-body--process{overflow:visible}
 }
 @media(max-width:740px){
-  .game-center .game-info-explorer .game-process-flow__route{grid-template-columns:1fr;gap:10px}
-  .game-center .game-info-explorer .game-process-flow__arrow{
-    align-self:center;margin:0;transform:rotate(90deg);
-  }
-  .game-center .game-info-explorer .game-process-flow__materials{
-    grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));
-  }
-  .game-center .game-info-explorer .game-process-flow{min-height:0}
+ .game-center .game-info-explorer .game-process-flow__route{grid-template-columns:1fr;gap:7px}
+ .game-center .game-info-explorer .game-process-flow__arrow{justify-self:center;align-self:center;margin:0;transform:rotate(90deg)}
+ .game-center .game-info-explorer .game-process-flow__materials{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}
+}
+@media(max-width:480px){
+ .game-center .game-info-explorer .game-process-rewards__grid{grid-template-columns:1fr}
+ .game-center .game-info-explorer .game-process-quest__name small{flex-basis:100%}
 }
