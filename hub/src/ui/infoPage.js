@@ -288,10 +288,13 @@ const processDetailBody=record=>{
 // Never merge their quantities or rewards. The hero already identifies the item,
 // so do not repeat a large target panel and waste the detail viewport.
 const questDetailBody=(record,variants=[record])=>{
- const group=variants.length>1;
+ const grouped=variants.length>1;
+ const target=questTargetName(record);
+ const art=questItemArt(record);
+ const itemArt=art?`<img src="${escapeText(art)}" alt="" loading="lazy" decoding="async">`:`<span class="game-quest-entry__fallback" aria-hidden="true">${infoTabIcon('info_quests')}</span>`;
  const options=variants.map(variant=>{
-  const variantPair=questPairInfo(variant);
-  const title=group?`${variantPair?.variant||''} 퀘스트`:'퀘스트 정보';
+  const pair=questPairInfo(variant);
+  const title=grouped?`${pair?.variant||String(variant.item_name||'').trim()} 퀘스트`:'퀘스트 정보';
   const qty=questQtyText(variant.required_qty);
   const rank=String(variant.rank??'').trim();
   const reward=(label,value,tone)=>value===null||value===undefined||String(value).trim()===''?'':
@@ -299,9 +302,14 @@ const questDetailBody=(record,variants=[record])=>{
   const money=reward('보상 금액',variant.reward_money,'money');
   const xp=reward('보상 경험치',variant.reward_xp,'xp');
   const note=String(variant.note??'').trim();
-  return `<section class="game-quest-option" aria-label="${escapeText(title)}"><header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header><div class="game-quest-option__facts"><div class="game-quest-delivery"><span>필요 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div><div class="game-quest-option__reward-block"><span class="game-quest-option__reward-label">완료 보상</span>${money||xp?`<div class="game-quest-rewards" aria-label="완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">보상 정보 미등록</p>'}</div></div>${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
+  return `<section class="game-quest-option" aria-label="${escapeText(title)}">
+   <header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header>
+   <div class="game-quest-option__facts">
+    <div class="game-quest-delivery" aria-label="납품 정보"><span class="game-quest-delivery__art">${itemArt}</span><div class="game-quest-delivery__copy"><span>납품 아이템</span><strong>${escapeText(target||String(variant.item_name||'이름 미등록'))}</strong></div><div class="game-quest-delivery__quantity"><span>필요 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div></div>
+    <div class="game-quest-option__reward-block"><span class="game-quest-option__reward-label">완료 보상</span>${money||xp?`<div class="game-quest-rewards" aria-label="완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">보상 정보 미등록</p>'}</div>
+   </div>${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
  }).join('');
- return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-body-heading"><strong>퀘스트 납품</strong>${group?'<span>A / B · 각각 개별 완료</span>':''}</div><div class="game-quest-options${group?' game-quest-options--grouped':''}">${options}</div></div>`;
+ return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-body-heading"><strong>납품 조건 · 완료 보상</strong>${grouped?'<span>A와 B는 각각 별도의 퀘스트</span>':''}</div><div class="game-quest-options${grouped?' game-quest-options--grouped':''}">${options}</div></div>`;
 };
 const standaloneDetailSections=(htmlFields,table,record,questVariants=[record])=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
