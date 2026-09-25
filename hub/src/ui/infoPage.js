@@ -218,7 +218,7 @@ const skillDetailPanel=(skill,rows)=>{
   const note=String(row.note??'').trim();
   return `<div class="game-skill-rank" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${note?`<p class="game-skill-rank__note">${escapeText(note)}</p>`:''}</div>`;
  }).join('');
- return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header"><div class="game-skill-detail__name"><span class="game-skill-detail__eyebrow">스킬 승급 정보</span><h2>${escapeText(skill)}</h2><p>등급별 필요 포인트</p></div>${image}</header><div class="game-skill-detail__body"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 등급</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
+ return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 필요 포인트</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
 };
 
 const MODBOOK_GROUPS=Object.freeze({

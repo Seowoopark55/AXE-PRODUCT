@@ -1520,3 +1520,76 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
  .game-center .game-info-explorer .game-skill-detail__columns,
  .game-center .game-info-explorer .game-skill-rank{grid-template-columns:minmax(0,1fr) minmax(90px,.7fr)}
 }
+
+
+/* Skill catalogue / compact detail: title, actual skill icon, and every DB rank
+   remain visible as one legible sheet. Do not change other tabs or embedded UI. */
+.game-center .game-info-explorer .game-skill-content .game-skill-detail{
+  display:flex;flex-direction:column;align-self:stretch;
+  min-width:0;min-height:0;height:100%;max-height:100%;
+  overflow:hidden;padding:0;
+  border:1px solid rgba(198,163,107,.37);
+  border-radius:10px;background:#131e27;
+}
+/* The generic .axe-info-detail header has flex-basis:43%, min-height:118px,
+   flex-direction:column. Override all of these to stop the 200px empty hero. */
+.game-center .game-info-explorer .game-skill-content .game-skill-detail > .game-skill-detail__header{
+  display:flex;flex:0 0 auto;flex-direction:row;align-items:center;
+  justify-content:flex-start;gap:13px;width:100%;height:auto;min-height:0;
+  margin:0;padding:12px 16px;
+  border:0;border-bottom:1px solid rgba(217,174,110,.3);
+  background:linear-gradient(95deg,#192631,#161f27 78%,#24231f);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail::before,
+.game-center .game-info-explorer .game-skill-content .game-skill-detail::after{
+  content:none;background:none;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail .game-skill-art--large{
+  flex:0 0 56px;width:56px;height:56px;border-radius:10px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name{
+  flex:1 1 auto;min-width:0;gap:4px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name h2{
+  margin:0;font-size:clamp(20px,2vw,24px);line-height:1.18;color:#f8edda;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__name p{
+  margin:0;font-size:11px;line-height:1.4;color:#b5c1cb;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__body{
+  flex:1 1 auto;display:flex;flex-direction:column;gap:0;
+  min-width:0;min-height:0;overflow-y:auto;
+  padding:10px 13px 12px;background:#131e27;
+  scrollbar-width:thin;scrollbar-color:#56616d transparent;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__columns,
+.game-center .game-info-explorer .game-skill-content .game-skill-rank{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__columns{
+  flex:0 0 auto;padding:0 10px 8px;
+  border-bottom:1px solid rgba(206,172,116,.21);
+  color:#c7b18e;font-size:10px;font-weight:750;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__columns span:last-child{text-align:right}
+.game-center .game-info-explorer .game-skill-content .game-skill-detail__ranks{
+  display:grid;grid-template-columns:minmax(0,1fr);align-content:start;
+  gap:5px;min-width:0;padding-top:8px;
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank{
+  min-width:0;min-height:40px;padding:7px 10px;
+  border:1px solid rgba(124,148,163,.23);border-radius:7px;
+  background:linear-gradient(90deg,#1c2a35,#18232c);
+}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__tier{gap:9px}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__tier strong{font-size:13px;line-height:1.3}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__cost{gap:5px;white-space:nowrap}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__cost b{font-size:15px;line-height:1.2}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__cost span{font-size:10px}
+.game-center .game-info-explorer .game-skill-content .game-skill-rank__note{line-height:1.4;padding-top:5px}
+@media(max-width:850px){
+  .game-center .game-info-explorer .game-skill-content .game-skill-detail{
+    height:auto;max-height:none;overflow:visible;
+  }
+  .game-center .game-info-explorer .game-skill-content .game-skill-detail__body{overflow:visible}
+}
