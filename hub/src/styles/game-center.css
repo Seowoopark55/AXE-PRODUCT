@@ -2100,3 +2100,36 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
   min-height:0;
  }
 }
+
+/* Modbook effect semantics: buff text neutral white, debuff text red, marker neutral */
+.game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effects li.game-modbook-detail__effect {
+ display:flex;
+ align-items:flex-start;
+ gap:8px;
+ padding-left:0;
+ color:#e7ebef;
+}
+.game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effects li.game-modbook-detail__effect::before {
+ content:none;
+}
+.game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effect-mark {
+ flex:0 0 auto;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:12px;
+ min-width:12px;
+ margin-top:.27em;
+ color:#c8b08b;
+ font-size:10px;
+ line-height:1;
+ opacity:.95;
+}
+.game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effect-text {
+ flex:1 1 auto;
+ min-width:0;
+ color:#eef2f5;
+}
+.game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effect--debuff .game-modbook-detail__effect-text {
+ color:#f08d80;
+}
