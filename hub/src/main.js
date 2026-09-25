@@ -22,6 +22,7 @@ import {
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
+import { renderInfoPage } from './ui/infoPage.js';
 import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass} from './platform/contentPolicy.js';
 import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
@@ -2537,6 +2538,39 @@ root.addEventListener('compositionend', event => {
   field.dispatchEvent(new Event('input', {bubbles:true}));
 });
 
+// Refresh game-info results without remounting the active search box.
+// A full render() replaces #app.innerHTML on each input and can cancel Korean
+// IME composition even when we defer its on-composition input events.
+function refreshGameInfoSearchResults(field) {
+  const currentPage=field?.closest('section.axe-info');
+  if(!currentPage || !root.contains(currentPage)) return;
+  const toolbar=currentPage.querySelector(':scope > .axe-info-toolbar');
+  if(!toolbar || !toolbar.contains(field)) return;
+
+  // Render the existing view using the same state and data, but off-DOM.
+  const scratch=document.createElement('div');
+  scratch.innerHTML=renderInfoPage(state,{standalone:currentPage.classList.contains('game-info-rework')});
+  const nextPage=scratch.querySelector('section.axe-info');
+  const nextToolbar=nextPage?.querySelector(':scope > .axe-info-toolbar');
+  if(!nextToolbar) return;
+
+  // Search hint changes with the query; input and its parent stay mounted.
+  const oldHint=toolbar.querySelector(':scope > .axe-info-search-hint');
+  const nextHint=nextToolbar.querySelector(':scope > .axe-info-search-hint');
+  if(nextHint){
+    if(oldHint) oldHint.replaceWith(nextHint);
+    else toolbar.insertBefore(nextHint,toolbar.querySelector('label'));
+  }else oldHint?.remove();
+
+  // Leave the header and search toolbar (including input/caret/IME) untouched;
+  // replace only filters, lists and detail/search-result panes.
+  for(const child of [...currentPage.children])
+    if(child!==toolbar && !child.classList.contains('axe-info-header')) child.remove();
+  for(const child of [...nextPage.children])
+    if(!child.classList.contains('axe-info-header') && !child.classList.contains('axe-info-toolbar'))
+      currentPage.appendChild(child);
+}
+
 // The member search field must remain the SAME DOM input across every keystroke.
 // Delaying full render until compositionend is insufficient: Chrome's IME may
 // still be committing its last input, and Latin/paste input also loses focus.
@@ -2567,7 +2601,7 @@ root.addEventListener('input', event => {
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
-  if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';const pos=event.target.selectionStart;render();const el=root.querySelector('[data-info-query]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
+  if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';refreshGameInfoSearchResults(event.target);return;}
   if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;refreshMemberSearchResults(event.target);return;}
   if(event.target.matches('[data-asset-query]')){state.assetQuery=event.target.value;state.assetPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-asset-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
   if(event.target.matches('[data-account-query]')){state.accountQuery=event.target.value;state.accountPage=1;const pos=event.target.selectionStart;render();const el=root.querySelector('[data-account-query]');el?.focus();el?.setSelectionRange?.(pos,pos);}
