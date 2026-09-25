@@ -6,10 +6,10 @@ const CONFIG = Object.freeze({
   info_material_recipes: ['무기부품','item_name',Array.from({length:8},(_,i)=>[`input${i+1}`,`재료 ${i+1}`]).concat([['note','비고']])],
   info_processes: ['가공·재련','item_name',[['job','직업'],['process_type','가공 종류'],['output_qty','생산 수량'],['quest_qty','퀘스트 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_quests: ['퀘스트','item_name',[['job','직업'],['required_qty','필요 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
-  info_skill_ranks: ['스킬 등급','skill',[['rank','등급'],['required_point','필요 포인트'],['point_type','포인트 종류'],['note','비고']]],
+  info_skill_ranks: ['스킬','skill',[['rank','등급'],['required_point','필요 포인트'],['point_type','포인트 종류'],['note','비고']]],
   modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['recent_price','최근 거래가격'],['recent_date','최근 거래일'],['price_note','가격 비고'],['note','비고']]],
 });
-const TOP_TABS=[['info_crafts','제작법'],['info_processes','가공·재련'],['info_quests','퀘스트'],['info_skill_ranks','스킬 등급'],['modbook_catalog','개조서']];
+const TOP_TABS=[['info_crafts','제작법'],['info_processes','가공·재련'],['info_quests','퀘스트'],['info_skill_ranks','스킬'],['modbook_catalog','개조서']];
 // Stage 10: lightweight, consistent line symbols for the five top-level categories.
 // These are presentation-only; no data or navigation semantics change.
 const INFO_TAB_ICONS=Object.freeze({
@@ -185,6 +185,42 @@ const SKILL_GROUPS=Object.freeze({
  '기술':['감정','운전','차량 정비','전문가 치료(EMS)','몸 수색(경찰)','절도','제작','악기연주','작곡'],
 });
 const skillGroup=skill=>Object.entries(SKILL_GROUPS).find(([,names])=>names.includes(String(skill)))?.[0]||'기타';
+
+// Source-file icons are shown as provisional artwork. Keep the seven originals
+// unchanged until the game operator has reviewed their use on the site.
+const SKILL_ICON_FILES=Object.freeze({
+ '낚시':'fishing.png','벌목':'logging.png','보물찾기':'treasure.png',
+ '요리':'cooking.png','채광':'mining.png','채집':'gathering.png','택배':'delivery.png'
+});
+const SKILL_LIFE_ORDER=Object.freeze(['낚시','벌목','보물찾기','요리','채광','채집','택배']);
+const skillIconUrl=skill=>SKILL_ICON_FILES[String(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[String(skill)]}`:'';
+const skillIconMarkup=(skill,large=false)=>{
+ const url=skillIconUrl(skill);
+ return url?`<span class="game-skill-art${large?' game-skill-art--large':''}" aria-hidden="true"><img src="${url}" alt="" loading="lazy" decoding="async"></span>`:
+  `<span class="game-skill-art${large?' game-skill-art--large':''} game-skill-art--fallback" aria-hidden="true">${infoTabIcon('info_skill_ranks')}</span>`;
+};
+// Rank order uses the transition's source tier, never its required_point.
+// Unknown source labels remain visible after the known progression.
+const SKILL_RANK_ORDER=['연습','F','E','D','C','B','A','9'];
+const skillRankSortValue=rank=>{
+ const raw=String(rank??'').trim().toUpperCase().replace(/\s+/g,'');
+ const from=raw.split(/→|->|⇒|➡|~|-/)[0];
+ const index=SKILL_RANK_ORDER.findIndex(tier=>tier.toUpperCase()===from);
+ return index<0?99:index;
+};
+const skillDetailPanel=(skill,rows)=>{
+ const image=skillIconMarkup(skill,true);
+ const ordered=[...rows].sort((a,b)=>skillRankSortValue(a.rank)-skillRankSortValue(b.rank)||String(a.rank??'').localeCompare(String(b.rank??''),'ko'));
+ const rankRows=ordered.map(row=>{
+  const rank=String(row.rank??'').trim();
+  const required=row.required_point===null||row.required_point===undefined||String(row.required_point).trim()===''?'미등록':String(row.required_point);
+  const pointType=String(row.point_type??'').trim();
+  const note=String(row.note??'').trim();
+  return `<div class="game-skill-rank" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${note?`<p class="game-skill-rank__note">${escapeText(note)}</p>`:''}</div>`;
+ }).join('');
+ return `<section class="axe-info-detail game-skill-detail" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-detail__header"><div class="game-skill-detail__name"><span class="game-skill-detail__eyebrow">스킬 승급 정보</span><h2>${escapeText(skill)}</h2><p>등급별 필요 포인트</p></div>${image}</header><div class="game-skill-detail__body"><div class="game-skill-detail__columns" aria-hidden="true"><span>승급 등급</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
+};
+
 const MODBOOK_GROUPS=Object.freeze({
  '무기':['SMG','피스톨','라이플','저격소총','머신건','근접무기'],
  '생활':['벌목','채광','채집','낚시','요리','제련','제작','감정','절도'],
@@ -375,6 +411,7 @@ const itemListSubtitle=(table,row)=>{
 };
 const listDecor=(table,title,subtitle,search=false,imageName=null)=>{
   const image=table==='info_quests'?itemImageUrl(imageName||title):['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
+  if(table==='info_skill_ranks')return `${skillIconMarkup(imageName||title)}<span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
   return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
@@ -493,13 +530,29 @@ export function categoryFilters(table,info,data,owner,{standalone=false}={}){
   const group=groups.includes(primary)?primary:groups[0];
   controls+=chipRow('스킬 분야','primary',groups,group,shown,row=>skillGroup(row.skill));
   shown=shown.filter(row=>skillGroup(row.skill)===group);
-  const skills=distinct(shown.map(row=>filterName(row.skill)));
-  const chosen=skills.includes(secondary)?secondary:'';
-  controls+=chipRow('세부 스킬','secondary',skills,chosen,shown,row=>filterName(row.skill));
-  shown=chosen?shown.filter(row=>filterName(row.skill)===chosen):[];
-  countNote=chosen?`${shown.length}개 등급`:'스킬을 선택해 주세요';
-  chosenSkill=chosen;
-  heading=`스킬 등급 · ${group}`;
+  if(standalone){
+   // A skill is the selectable list unit. Rank rows remain intact in data,
+   // and are rendered together in the selected skill's detail pane.
+   const unique=new Map();
+   for(const row of shown)if(!unique.has(String(row.skill)))unique.set(String(row.skill),row);
+   const order=group==='생활'?SKILL_LIFE_ORDER:[];
+   shown=[...unique.values()].sort((a,b)=>{
+    const ia=order.indexOf(String(a.skill)),ib=order.indexOf(String(b.skill));
+    if(ia>=0||ib>=0)return ia<0?1:ib<0?-1:ia-ib;
+    return String(a.skill).localeCompare(String(b.skill),'ko');
+   });
+   heading=group;
+   countNote=`${shown.length}개 스킬`;
+  }else{
+   // Embedded company info keeps its existing per-rank selection flow.
+   const skills=distinct(shown.map(row=>filterName(row.skill)));
+   const chosen=skills.includes(secondary)?secondary:'';
+   controls+=chipRow('세부 스킬','secondary',skills,chosen,shown,row=>filterName(row.skill));
+   shown=chosen?shown.filter(row=>filterName(row.skill)===chosen):[];
+   countNote=chosen?`${shown.length}개 등급`:'스킬을 선택해 주세요';
+   chosenSkill=chosen;
+   heading=`스킬 등급 · ${group}`;
+  }
  }else if(table==='modbook_catalog'){
   const groupNames=['무기','생활','전투'];
   const hasUnclassified=shown.some(row=>modbookGroups(row).includes('분류 확인 필요'));
@@ -583,7 +636,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const matches=searching?searchInformation(data,q,info,owner):[];
  const table=searching?'':filters.table;
  const rows=searching?matches:filters.rows;
- const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||null;
+ const selected=searching?null:rows.find(row=>String(row.id)===String(info.selectedId||''))||(standalone&&table==='info_skill_ranks'?rows.find(row=>String(row.skill)===String(info.filterSecondary||'')):null)||null;
  const selectedVariants=selected&&standalone&&table==='info_quests'?(questGroupedRows(rows).find(group=>group.variants.some(row=>String(row.id)===String(selected.id)))?.variants||[selected]):[];
  const detailTitle=selected?table==='info_quests'&&standalone&&selectedVariants.length>1?questGroupedTitle(selected,selectedVariants):itemName(table,selected,data):'';
  const selectedPartRecipe=standalone&&selected&&table==='info_crafts'?visibleRows(data,'info_material_recipes',info,owner).find(recipe=>String(recipe.item_name).trim()===String(selected.item_name).trim()):null;
@@ -598,15 +651,15 @@ export function renderInfoPage(state,{standalone=false}={}){
  const heroSubtitle=selected&&['info_processes','info_quests'].includes(table)?'':selected?itemListSubtitle(table,selected):'';
  const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
  const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected,selectedVariants):null;
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':table==='info_quests'?' game-detail--quest':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected&&standalone&&table==='info_skill_ranks'?skillDetailPanel(String(selected.skill),visibleRows(data,'info_skill_ranks',info,owner).filter(row=>String(row.skill)===String(selected.skill))):selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':table==='info_quests'?' game-detail--quest':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const listEntries=!searching&&standalone&&table==='info_quests'?questGroupedRows(rows):rows.map(row=>({row,variants:[row]}));
  const rowList=rows.length?listEntries.map(({row:entry,variants})=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
    return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true,source==='info_quests'?questTargetName(row):null):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
   }
-  const id=String(entry.id),active=variants.some(row=>String(row.id)===String(info.selectedId||''));
-  const title=filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
+  const id=String(entry.id),active=standalone&&table==='info_skill_ranks'?Boolean(selected&&String(entry.skill)===String(selected.skill)):variants.some(row=>String(row.id)===String(info.selectedId||''));
+  const title=standalone&&table==='info_skill_ranks'?String(entry.skill||'이름 없음'):filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
   const artTitle=table==='info_quests'?questTargetName(entry):title;
   const subtitle='';
   return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artTitle):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
@@ -617,7 +670,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 가공·재련 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
  const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 가공·재련 · 퀘스트 · 스킬 정보 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
  const controls=!searching&&filters.controls?`<div class="axe-info-subfilters${tabTable==='info_crafts'?' axe-info-subfilters--craft':''}">${filters.controls}</div>`:'';
- const result=info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?`<div class="runtime-inline-loading">${standalone?'게임 정보를 불러오지 못했습니다. HUB 메인으로 돌아갔다가 다시 접속해 주세요.':'정보를 불러오려면 새로고침을 눌러 주세요.'}</div>`:`<div class="axe-info-content"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>`;
+ const result=info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?`<div class="runtime-inline-loading">${standalone?'게임 정보를 불러오지 못했습니다. HUB 메인으로 돌아갔다가 다시 접속해 주세요.':'정보를 불러오려면 새로고침을 눌러 주세요.'}</div>`:`<div class="axe-info-content${standalone&&table==='info_skill_ranks'?' game-skill-content':''}"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>`;
  if(standalone){
   // The public standalone hub uses a compact category rail + real-record explorer.
   // Embedded company information keeps its original DOM/layout below.
