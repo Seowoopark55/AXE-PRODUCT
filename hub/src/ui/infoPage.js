@@ -186,6 +186,20 @@ const questFallbackImageUrl=row=>{
  return file?`/hub/game-info/items/${file}`:'';
 };
 const questItemArt=row=>itemImageUrl(questTargetName(row))||questFallbackImageUrl(row);
+const QUEST_BONUS_REWARD_ART=Object.freeze({
+ '삼나무 솔방울':[{label:'보따리',file:'quest_logging_bundle.png'}],
+ '반짝이는 보석':[{label:'상자',file:'quest_delivery_box.png'}],
+});
+const questBonusRewards=row=>{
+ const name=String(row?.item_name??'').trim();
+ const note=String(row?.note??'').trim();
+ const explicit=QUEST_BONUS_REWARD_ART[name];
+ if(explicit?.length)return explicit;
+ const items=[];
+ if(note.includes('보따리'))items.push({label:'보따리',file:'quest_logging_bundle.png'});
+ if(note.includes('상자'))items.push({label:'상자',file:'quest_delivery_box.png'});
+ return items;
+};
 // Only source-listed A/B job+name pairs may be grouped; each original DB row
 // remains distinct and keeps its original quantity, reward, rank and ID.
 const QUEST_PAIR_NAMES=Object.freeze({벌목:['저급','일반'],채광:['석탄','철광석']});
@@ -452,11 +466,13 @@ const questDetailBody=(record,variants=[record])=>{
   const money=reward('보상 금액',variant.reward_money,'money');
   const xp=reward('보상 경험치',variant.reward_xp,'xp');
   const note=String(variant.note??'').trim();
+  const bonusRewards=questBonusRewards(variant);
+  const bonus=bonusRewards.length?`<div class="game-quest-bonus-rewards" aria-label="보상 아이템">${bonusRewards.map(item=>`<div class="game-quest-bonus-reward"><span class="game-quest-bonus-reward__art"><img src="/hub/game-info/items/${escapeText(item.file)}" alt="" loading="lazy" decoding="async"></span><div class="game-quest-bonus-reward__copy"><span>보상 아이템</span><strong>${escapeText(item.label)}</strong></div></div>`).join('')}</div>`:'';
   return `<section class="game-quest-option" aria-label="${escapeText(title)}">
    <header class="game-quest-option__head"><strong>${escapeText(title)}</strong>${rank?`<span>등급 ${escapeText(rank)}</span>`:''}</header>
    <div class="game-quest-option__facts">
     <div class="game-quest-delivery" aria-label="납품 정보"><span class="game-quest-delivery__art">${itemArt}</span><div class="game-quest-delivery__copy"><span>납품 아이템</span><strong>${escapeText(target||String(variant.item_name||'이름 미등록'))}</strong></div><div class="game-quest-delivery__quantity"><span>필요 수량</span><strong>${qty==='미등록'?qty:`× ${qty}`}</strong></div></div>
-    <div class="game-quest-option__reward-block"><span class="game-quest-option__reward-label">완료 보상</span>${money||xp?`<div class="game-quest-rewards" aria-label="완료 보상">${money}${xp}</div>`:'<p class="game-quest-missing">보상 정보 미등록</p>'}</div>
+    <div class="game-quest-option__reward-block"><span class="game-quest-option__reward-label">완료 보상</span>${money||xp?`<div class="game-quest-rewards" aria-label="완료 보상">${money}${xp}</div>`:''}${bonus||(!(money||xp)?'<p class="game-quest-missing">보상 정보 미등록</p>':'')}</div>
    </div>${note?`<p class="game-quest-note"><b>비고</b> ${escapeText(note)}</p>`:''}</section>`;
  }).join('');
  return `<div class="game-detail-body game-detail-body--quest"><div class="game-quest-body-heading"><strong>납품 조건 · 완료 보상</strong>${grouped?'<span>A와 B는 각각 별도의 퀘스트</span>':''}</div><div class="game-quest-options${grouped?' game-quest-options--grouped':''}">${options}</div></div>`;
@@ -525,8 +541,9 @@ const itemListSubtitle=(table,row)=>{
 };
 const listDecor=(table,title,subtitle,search=false,imageRef=null)=>{
   const image=table==='info_quests'?questItemArt(imageRef):['info_crafts','info_material_recipes','info_processes'].includes(table)?itemImageUrl(title):'';
+  const fallbackIcon=table==='modbook_catalog'?modbookListIcon(imageRef):infoTabIcon(table==='info_material_recipes'?'info_crafts':table);
   if(table==='info_skill_ranks')return `${skillIconMarkup(imageRef||title)}<span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
-  return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
+  return `<span class="game-list-symbol" aria-hidden="true">${image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:fallbackIcon}</span><span class="game-list-label"><strong>${escapeText(title)}</strong>${subtitle?`<small>${escapeText(subtitle)}</small>`:''}</span>`;
 };
 
 const nonEmptyLines=value=>String(value??'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
@@ -592,6 +609,34 @@ const MODBOOK_ICONS=Object.freeze({
  '접미':'<path d="M7 12h10M13 8l4 4-4 4"/>',
 });
 const modbookIcon=value=>MODBOOK_ICONS[value]?`<svg class="axe-info-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MODBOOK_ICONS[value]}</svg>`:'';
+const MODBOOK_ROW_ICONS=Object.freeze({
+ 'SMG':'<path d="M3 14h11l3-3h4v2h-3l-2 2v2h-2v-2H9l-2 2H4l1.5-2H3z"/><path d="M9 14v-2"/>',
+ '피스톨':'<path d="M4 10h9l4 2h3v2h-3l-2 2h-2v-2H9l-2 3H5l1-3H4z"/>',
+ '라이플':'<path d="M3 13h12l5-3v2l-3 2 3 2v2l-5-3H9l-2 3H5l1-3H3z"/>',
+ '저격소총':'<path d="M3 13h14l4-2v2l-3 1 3 1v2l-4-2H9"/><path d="M8 13v5"/>',
+ '머신건':'<rect x="4" y="10" width="12" height="4" rx="1"/><path d="M16 12h4M8 14v4"/>',
+ '근접무기':'<path d="M5 18 18 5"/><path d="m12 4 3-1 5 5-1 3"/><path d="m4 12 4 4"/>',
+ '벌목':'<path d="M6 4v7"/><path d="M6 8h6c2.5 0 4-1.5 4-4-4 0-5.5 1.5-5.5 4"/><path d="M6 11c0 5 2 8 6 9"/>',
+ '채광':'<path d="M14 4 6 12"/><path d="M10 6 18 14"/><path d="M9 13 5 19"/><path d="M15 13l4 6"/>',
+ '채집':'<path d="M12 20V9"/><path d="M12 11c-4 0-7-2-8-7 5 0 8 3 8 7Z"/><path d="M12 13c4 0 7-2 8-7-5 0-8 3-8 7Z"/>',
+ '낚시':'<path d="M17 5c-4 1-7 5-7 9a4 4 0 0 0 8 0"/><path d="M17 5V3"/>',
+ '요리':'<path d="M6 11h12l-1 6H7l-1-6Z"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M18 12h2a2 2 0 0 1 0 4h-1"/>',
+ '제련':'<path d="M12 3 7 9v4a5 5 0 0 0 10 0V9l-5-6Z"/><path d="M10 12h4"/>',
+ '제작':'<path d="M4 14l6-6 6 6"/><path d="M10 8 8 6l2-2 2 2-2 2Z"/><path d="M14 8l2-2 4 4-2 2-4-4Z"/>',
+ '감정':'<path d="m12 3 6 5-6 13L6 8l6-5Z"/><path d="M9.5 9.5h5"/>',
+ '절도':'<rect x="6" y="11" width="12" height="8" rx="2"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/><circle cx="12" cy="15" r="1"/>',
+ '체력':'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.6-7 10-7 10Z"/>',
+ '이동속도':'<path d="M4 15h7l2-3h3l-2 3h4l-3 4h-3l1-2H8Z"/><path d="M10 8h6"/>',
+ '접두':'<path d="M7 12h10M11 8l-4 4 4 4"/>',
+ '접미':'<path d="M7 12h10M13 8l4 4-4 4"/>',
+ 'default':'<path d="M5 4.5c2-.8 4.4-.7 6 .5 1.6-1.2 4-.9 8-.5V19c-3-1.2-5.8-1.4-8 .2-2.2-1.6-5-.4-8 .8V4.5Z"/><path d="M11 5v14"/>'
+});
+const modbookListIcon=row=>{
+ const categories=modbookCategories(row);
+ const key=categories.find(value=>MODBOOK_ROW_ICONS[value])||row?.type||'default';
+ const path=MODBOOK_ROW_ICONS[key]||MODBOOK_ROW_ICONS.default;
+ return `<svg class="axe-info-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${path}</svg>`;
+};
 const chipRow=(title,field,values,selected,rows,valueOf,{modbook=false,craftChild=false}={})=>{
  const items=values.map(value=>{
   const tone=modbook&&field==='secondary'?(value==='접두'?' axe-info-chip--prefix':value==='접미'?' axe-info-chip--suffix':''):'';
@@ -797,11 +842,11 @@ export function renderInfoPage(state,{standalone=false}={}){
  const rowList=rows.length?listEntries.map(({row:entry,variants})=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
-   return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true,source==='info_quests'?row:null):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
+   return `<button type="button" class="axe-info-row axe-info-row--search${standalone?' axe-info-row--studio':''}" data-info-result-table="${escapeText(source)}" data-info-result-id="${escapeText(row.id)}" data-info-result-group="${escapeText(group)}" data-info-result-primary="${escapeText(primary)}" data-info-result-secondary="${escapeText(secondary)}" data-info-result-modbook-category="${escapeText(modbookCategory||'')}">${standalone?listDecor(source,title,path.join(' › '),true,['info_quests','modbook_catalog'].includes(source)?row:null):`<strong>${escapeText(title)}</strong><span class="axe-info-row__path">${escapeText(path.join(' › '))}</span>`}${row.is_active===false||row.active===false?'<em>비활성</em>':''}</button>`;
   }
   const id=String(entry.id),active=standalone&&table==='info_skill_ranks'?Boolean(selected&&String(entry.skill)===String(selected.skill)):variants.some(row=>String(row.id)===String(info.selectedId||''));
   const title=standalone&&table==='info_skill_ranks'?skillDisplayName(entry.skill||'이름 없음'):filters.selectedSkill&&table==='info_skill_ranks'?String(entry.rank||'미지정'):table==='info_quests'&&standalone?questGroupedTitle(entry,variants):itemName(table,entry,data);
-  const artRef=table==='info_quests'?entry:title;
+  const artRef=['info_quests','modbook_catalog'].includes(table)?entry:title;
   const subtitle='';
   return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artRef):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
