@@ -202,36 +202,36 @@ const presentSuccessRate=value=>{
  // double-append a suffix, scale fractions, or invent values for free text.
  return /^\d+(?:\.\d+)?$/.test(clean)?`${clean}%`:clean;
 };
-// Dedicated read-only processing view. No input, output or reward is inferred.
-// Blank source values remain visibly unconfirmed rather than becoming x1.
+// Process and quest are INDEPENDENT gameplay activities. This standalone,
+// read-only view never implies that processing itself grants quest rewards.
+// Do not convert a blank quantity into x1 or infer a quest from reward fields.
 const processDetailBody=record=>{
  const hasValue=value=>value!==null&&value!==undefined&&String(value).trim()!=='';
  const hasQuest=hasValue(record.quest_qty)&&String(record.quest_qty).trim()!=='0';
  const item=String(record.item_name??'').trim();
  const image=itemImageUrl(item);
  const art=image?`<img src="${image}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
- // Quantities and rewards are displayed verbatim except for thousands separators on numbers.
  const count=value=>/^\d+(?:\.\d+)?$/.test(String(value??'').trim())?Number(value).toLocaleString('ko-KR'):escapeText(value);
  const output=hasValue(record.output_qty)?`<strong class="game-process-result__qty">× ${count(record.output_qty)}</strong>`:'<small class="game-process-input__unknown">수량 미등록</small>';
- const ingredients=Array.from({length:4},(_,i)=>({name:record[`input${i+1}`],qty:record[`input${i+1}_qty`]})).filter(input=>hasValue(input.name));
- const cards=ingredients.length?ingredients.map(input=>{
-   const name=String(input.name).trim(),src=itemImageUrl(name);
-   const itemArt=src?`<img src="${src}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
-   const qty=hasValue(input.qty)?`<strong class="game-process-input__qty">× ${count(input.qty)}</strong>`:'<small class="game-process-input__unknown">수량 미등록</small>';
-   return `<div class="game-process-input__card">${itemArt}<span class="game-process-input__name">${escapeText(name)}</span>${qty}</div>`;
+ const inputs=Array.from({length:4},(_,i)=>({name:record[`input${i+1}`],qty:record[`input${i+1}_qty`]})).filter(input=>hasValue(input.name));
+ const cards=inputs.length?inputs.map(input=>{
+  const name=String(input.name).trim(),src=itemImageUrl(name);
+  const itemArt=src?`<img src="${src}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
+  const qty=hasValue(input.qty)?`<strong class="game-process-input__qty">× ${count(input.qty)}</strong>`:'<small class="game-process-input__unknown">수량 미등록</small>';
+  return `<div class="game-process-input__card">${itemArt}<span class="game-process-input__name">${escapeText(name)}</span>${qty}</div>`;
  }).join(''):'<p class="game-process-empty">등록된 투입 재료가 없습니다.</p>';
- const stage=(number,title)=>`<h3 class="game-process-stage__title"><span class="game-process-stage__number" aria-hidden="true">${number}</span>${title}</h3>`;
- const conversion=`<section class="game-process-flow" aria-label="재료 및 결과">${stage('01','재료 가공')}<div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">필요 재료</span><div class="game-process-flow__materials">${cards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">획득 아이템</span><div class="game-process-result__card">${art}<span class="game-process-result__name">${escapeText(item||'이름 미등록')}</span>${output}</div></div></div></section>`;
- const rewardFields=[['보상 금액',record.reward_money,'coins'],['보상 경험치',record.reward_xp,'xp']].filter(([,value])=>hasValue(value));
- const quest=hasQuest?`<section class="game-process-quest" aria-label="퀘스트 납품">${stage('02','퀘스트 납품')}<div class="game-process-quest__line">${art}<span class="game-process-quest__name">${escapeText(item||'이름 미등록')} <small>납품 필요 수량</small></span><strong class="game-process-quest__qty">× ${count(record.quest_qty)}</strong></div></section>`:'';
- const reward=rewardFields.length?`<section class="game-process-rewards" aria-label="${hasQuest?'퀘스트 완료 보상':'보상 정보'}">${stage(hasQuest?'03':'02',hasQuest?'퀘스트 완료 보상':'보상 정보')}<div class="game-process-rewards__grid">${rewardFields.map(([label,value,type])=>`<div class="game-process-reward game-process-reward--${type}"><span>${escapeText(label)}</span><strong>${count(value)}</strong></div>`).join('')}</div>${!hasQuest?'<p class="game-process-rewards__note">지급 조건이 등록되지 않았습니다.</p>':''}</section>`:'';
  const extra=[['등급',record.rank],['비고',record.note]].filter(([,value])=>hasValue(value));
- // Job is presented once in the hero. process_type repeats the current filter,
- // so show it only when it is a distinct value that adds information.
  const kind=String(record.process_type??'').trim();
  if(kind&&!['가공','재련','제련'].includes(kind))extra.unshift(['작업 유형',kind]);
  const foot=extra.length?`<div class="game-process-footnote">${extra.map(([label,value])=>`<span><b>${escapeText(label)}</b> ${escapeText(value)}</span>`).join('')}</div>`:'';
- return `<div class="game-detail-body game-detail-body--process">${conversion}${quest||reward?`<div class="game-process-after">${quest}${reward}</div>`:''}${foot}</div>`;
+ const production=`<section class="game-process-section game-process-section--production" aria-label="생산 정보"><header class="game-process-section__heading"><span class="game-process-section__icon" aria-hidden="true">⌁</span><div><h3>생산</h3><p>재료를 가공하여 아이템 획득</p></div></header><div class="game-process-flow"><span class="game-process-flow__label">필요 재료</span><div class="game-process-flow__materials">${cards}</div><div class="game-process-flow__arrow" aria-hidden="true">↓</div><span class="game-process-flow__label">생산 결과</span><div class="game-process-result__card">${art}<span class="game-process-result__name">${escapeText(item||'이름 미등록')}</span>${output}</div></div>${foot}</section>`;
+ const rewards=[['보상 금액',record.reward_money,'coins'],['보상 경험치',record.reward_xp,'xp']].filter(([,value])=>hasValue(value));
+ // Source row stores quest_qty and reward data together. With no quest quantity,
+ // a reward is shown only as unverified metadata, NOT as a quest completion reward.
+ const handin=hasQuest?`<div class="game-process-quest__section"><span class="game-process-flow__label">별도 납품 필요 수량</span><div class="game-process-quest__line">${art}<span class="game-process-quest__name">${escapeText(item||'이름 미등록')}</span><strong class="game-process-quest__qty">× ${count(record.quest_qty)}</strong></div></div>`:'';
+ const reward=rewards.length?`<div class="game-process-quest__section game-process-quest__section--reward"><span class="game-process-flow__label">${hasQuest?'퀘스트 완료 보상':'보상 정보'}</span><div class="game-process-rewards__grid">${rewards.map(([label,value,type])=>`<div class="game-process-reward game-process-reward--${type}"><span>${escapeText(label)}</span><strong>${count(value)}</strong></div>`).join('')}</div>${!hasQuest?'<p class="game-process-rewards__note">지급 조건이 등록되지 않았습니다.</p>':''}</div>`:'';
+ const quest=hasQuest||rewards.length?`<section class="game-process-section game-process-section--quest" aria-label="${hasQuest?'별도 퀘스트 정보':'보상 정보'}"><header class="game-process-section__heading"><span class="game-process-section__icon" aria-hidden="true">✧</span><div><h3>${hasQuest?'퀘스트':'보상 정보'}</h3><p>${hasQuest?'생산과 별도로 납품하여 보상 획득':'지급 조건 확인 필요'}</p></div></header>${handin}${reward}</section>`:'';
+ return `<div class="game-detail-body game-detail-body--process"><div class="game-process-split${quest?'':' game-process-split--production-only'}">${production}${quest}</div></div>`;
 };
 const standaloneDetailSections=(htmlFields,table,record)=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
