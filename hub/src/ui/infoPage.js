@@ -4,12 +4,12 @@ const CONFIG = Object.freeze({
   info_crafts: ['제작법','item_name',[['category','분류'],['success_rate','성공률'],['craft_rank','제작 등급'],['obtain_place','획득 장소'],['note','비고']]],
   info_craft_materials: ['제작 재료','material_name',[['craft_id','제작법 ID'],['quantity','필요 수량']]],
   info_material_recipes: ['무기부품','item_name',Array.from({length:8},(_,i)=>[`input${i+1}`,`재료 ${i+1}`]).concat([['note','비고']])],
-  info_processes: ['생산','item_name',[['job','직업'],['process_type','가공 종류'],['output_qty','생산 수량'],['quest_qty','퀘스트 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
+  info_processes: ['가공·재련','item_name',[['job','직업'],['process_type','가공 종류'],['output_qty','생산 수량'],['quest_qty','퀘스트 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_quests: ['퀘스트','item_name',[['job','직업'],['required_qty','필요 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_skill_ranks: ['스킬 등급','skill',[['rank','등급'],['required_point','필요 포인트'],['point_type','포인트 종류'],['note','비고']]],
   modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['recent_price','최근 거래가격'],['recent_date','최근 거래일'],['price_note','가격 비고'],['note','비고']]],
 });
-const TOP_TABS=[['info_crafts','제작법'],['info_processes','생산'],['info_quests','퀘스트'],['info_skill_ranks','스킬 등급'],['modbook_catalog','개조서']];
+const TOP_TABS=[['info_crafts','제작법'],['info_processes','가공·재련'],['info_quests','퀘스트'],['info_skill_ranks','스킬 등급'],['modbook_catalog','개조서']];
 // Stage 10: lightweight, consistent line symbols for the five top-level categories.
 // These are presentation-only; no data or navigation semantics change.
 const INFO_TAB_ICONS=Object.freeze({
@@ -202,6 +202,27 @@ const presentSuccessRate=value=>{
  // double-append a suffix, scale fractions, or invent values for free text.
  return /^\d+(?:\.\d+)?$/.test(clean)?`${clean}%`:clean;
 };
+// Dedicated read-only processing view. No input, output or reward is inferred.
+// Blank source values remain visibly unconfirmed rather than becoming x1.
+const processDetailBody=record=>{
+ const hasValue=value=>value!==null&&value!==undefined&&String(value).trim()!=='';
+ const itemName=String(record.item_name??'').trim();
+ const resultArt=itemImageUrl(itemName);
+ const resultArtHtml=resultArt?`<img src="${resultArt}" alt="" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
+ const outputQty=hasValue(record.output_qty)?`<b class="game-process-result__qty">× ${escapeText(record.output_qty)}</b>`:'<span class="game-process-result__unknown">생산 수량 미등록</span>';
+ const ingredients=Array.from({length:4},(_,i)=>({name:record[`input${i+1}`],qty:record[`input${i+1}_qty`]}))
+  .filter(item=>hasValue(item.name));
+ const inputCards=ingredients.length?ingredients.map(item=>{
+  const name=String(item.name).trim(),art=itemImageUrl(name);
+  const artHtml=art?`<img src="${art}" alt="" loading="lazy" decoding="async">`:'<span class="game-process-image-fallback" aria-hidden="true">◇</span>';
+  const qty=hasValue(item.qty)?`<b class="game-process-input__qty">× ${escapeText(item.qty)}</b>`:'<small class="game-process-input__unknown">수량 미등록</small>';
+  return `<div class="game-process-input__card">${artHtml}<span class="game-process-input__name">${escapeText(name)}</span>${qty}</div>`;
+ }).join(''):'<p class="game-process-empty">등록된 투입 재료가 없습니다.</p>';
+ const entries=[['직업',record.job],['가공 종류',record.process_type],['퀘스트 수량',record.quest_qty],['등급',record.rank],['비고',record.note]]
+  .filter(([,value])=>hasValue(value));
+ const meta=entries.length?`<section class="game-process-meta" aria-label="가공·재련 추가 정보">${entries.map(([label,value])=>`<div class="game-process-meta__entry${label==='비고'?' game-process-meta__entry--note':''}"><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}</section>`:'';
+ return `<div class="game-detail-body game-detail-body--process"><section class="game-process-flow" aria-label="가공·재련 과정"><h3>가공·재련 과정</h3><div class="game-process-flow__route"><div class="game-process-flow__input"><span class="game-process-flow__label">투입 재료</span><div class="game-process-flow__materials">${inputCards}</div></div><span class="game-process-flow__arrow" aria-hidden="true">→</span><div class="game-process-result"><span class="game-process-flow__label">가공 결과</span><div class="game-process-result__card">${resultArtHtml}<span class="game-process-result__name">${escapeText(itemName||'이름 미등록')}</span>${outputQty}</div></div></div></section>${meta}</div>`;
+};
 const standaloneDetailSections=(htmlFields,table,record)=>{
  const fieldRe=/<div(?: class="axe-info-detail__section")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g;
  const fields=Array.from(htmlFields.matchAll(fieldRe),([,label,value],index)=>({
@@ -248,7 +269,10 @@ const standaloneDetailSections=(htmlFields,table,record)=>{
   }else ingredientHtml=combine(ingredientFields);
  }
  const materialsHtml=ingredientHtml?`<section class="game-detail-panel game-detail-panel--materials" aria-label="필요 재료"><h3>${table==='info_processes'?'가공 재료':'필요 재료'}</h3>${ingredientHtml}</section>`:'';
- const supplementaryTitle=({info_processes:'생산 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
+ const supplementaryTitle=({info_processes:'가공·재련 정보',info_quests:'퀘스트 정보',info_skill_ranks:'스킬 정보',modbook_catalog:'개조서 정보'})[table]||'제작 정보';
+ // Processing is a conversion flow, not a crafting dashboard. The rail above
+ // still uses the original output/reward fields; the body only moves DB data.
+ if(table==='info_processes')return {highlightsHtml,bodyHtml:processDetailBody(record)};
  return {highlightsHtml,bodyHtml:`<div class="game-detail-body"><div class="game-detail-panels">${materialsHtml}${panel(supplementaryTitle,'overview',overview)}</div></div>`};
 };
 const itemListSubtitle=(table,row)=>{
@@ -359,9 +383,9 @@ export function categoryFilters(table,info,data,owner){
  }else if(table==='info_processes'){
   const types=['목재','재련','기타'].filter(type=>shown.some(row=>productionGroup(row)===type));
   const chosen=types.includes(primary)?primary:(types[0]||'목재');
-  controls+=chipRow('생산 종류','primary',types,chosen,shown,productionGroup);
+  controls+=chipRow('가공·재련 종류','primary',types,chosen,shown,productionGroup);
   shown=shown.filter(row=>productionGroup(row)===chosen);
-  heading=`생산 · ${chosen}`;
+  heading=`가공·재련 · ${chosen}`;
  }else if(table==='info_quests'){
   const jobOf=row=>filterName(row.job),jobs=distinct(shown.map(jobOf));
   const chosen=jobs.includes(primary)?primary:jobs[0];
@@ -485,7 +509,7 @@ export function renderInfoPage(state,{standalone=false}={}){
  const heroSubtitle=selected?itemListSubtitle(table,selected):'';
  const hero=selected?`<div class="game-detail-hero${artSource?' game-detail-hero--art':''}"><header class="game-detail-hero__copy"><span class="game-detail-hero__eyebrow">${escapeText(CONFIG[table][0])}</span><strong>${escapeText(detailTitle)}</strong>${heroSubtitle?`<span class="game-detail-hero__subtitle">${escapeText(heroSubtitle)}</span>`:''}${selected.is_active===false||selected.active===false?'<em>비활성</em>':''}</header><div class="game-detail-hero__artwork" aria-hidden="true">${artSource?`<img class="game-detail-hero__item" src="${artSource}" alt="" decoding="async">`:`<span class="game-detail-hero__symbol">${infoTabIcon(table==='info_material_recipes'?'info_crafts':table)}</span>`}</div></div>`:'';
  const detailSections=selected&&standalone?standaloneDetailSections(existingFields,selectedPartRecipe?'info_material_recipes':table,selected):null;
- const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
+ const details=selected?`<section class="axe-info-detail${standalone?' axe-info-detail--studio game-detail--'+detailDensity+(table==='info_processes'?' game-detail--process':'')+detailOverflow:''}" aria-label="상세 정보">${standalone?`<div class="game-detail-feature">${hero}${detailSections.highlightsHtml}</div>${detailSections.bodyHtml}`:`${detailHeading}<dl>${existingFields}</dl>`}</section>`:`<section class="axe-info-detail axe-info-detail--empty" aria-label="상세 정보"><span class="axe-info-detail__eyebrow">상세 정보</span><div class="axe-info-detail__placeholder"><span class="axe-info-detail__placeholder-mark" aria-hidden="true">◇</span><strong>${searching?'검색 결과를 선택해 주세요':'정보를 선택해 주세요'}</strong><p>왼쪽 목록에서 항목을 선택하면<br>상세 정보가 여기에 표시됩니다.</p></div></section>`;
  const rowList=rows.length?rows.map(entry=>{
   if(searching){
    const {table:source,row,group,primary,secondary,path,title,modbookCategory}=entry;
@@ -498,8 +522,8 @@ export function renderInfoPage(state,{standalone=false}={}){
  const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const modbookError=info.modbookError&&(tabTable==='modbook_catalog'||searching)?`<div class="axe-info-error">개조서 조회 실패: ${escapeText(info.modbookError)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
- const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 생산 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
- const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 생산 · 퀘스트 · 스킬 정보 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
+ const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 가공·재련 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
+ const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 가공·재련 · 퀘스트 · 스킬 정보 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
  const controls=!searching&&filters.controls?`<div class="axe-info-subfilters${tabTable==='info_crafts'?' axe-info-subfilters--craft':''}">${filters.controls}</div>`:'';
  const result=info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?`<div class="runtime-inline-loading">${standalone?'게임 정보를 불러오지 못했습니다. HUB 메인으로 돌아갔다가 다시 접속해 주세요.':'정보를 불러오려면 새로고침을 눌러 주세요.'}</div>`:`<div class="axe-info-content"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span><small>${searching?`${rows.length}건`:escapeText(filters.countNote||`${rows.length}건`)}</small></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>`;
  if(standalone){
