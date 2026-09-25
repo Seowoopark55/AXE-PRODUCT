@@ -220,6 +220,22 @@ const skillDetailPanel=(skill,rows)=>{
  const sceneImg=scene?`<div class="game-skill-detail__scene" aria-hidden="true"><img src="/hub/game-info/skills/scenes/${scene}" alt="" decoding="async" loading="lazy"></div>`:'';
 
  const ordered=[...rows].sort((a,b)=>skillRankSortValue(a.rank)-skillRankSortValue(b.rank)||String(a.rank??'').localeCompare(String(b.rank??''),'ko'));
+ // LAC HUB / fishing-only layout trial: a single DB-driven progression timeline.
+ // Rank/cost/note are still taken verbatim from the same source rows; no progress
+ // status, extra requirements, or other gameplay assumptions are invented.
+ if(skill==='낚시'&&scene){
+  const timelineRows=ordered.map((row,index)=>{
+   const rank=String(row.rank??'').trim();
+   const sourceRank=rank.split(/→|->|⇒|➡|~|-/)[0].trim()||'—';
+   const required=row.required_point===null||row.required_point===undefined||String(row.required_point).trim()===''?'미등록':String(row.required_point);
+   const pointType=String(row.point_type??'').trim();
+   const note=String(row.note??'').trim();
+   const needsManual=/수련서/.test(note);
+   const noteContent=note?`<p class="game-skill-timeline__note">${needsManual?'<span class="game-skill-timeline__manual" aria-hidden="true"><img src="/hub/game-info/skills/training_manual.png" alt="" loading="lazy" decoding="async"></span>':''}<span>${escapeText(note)}</span></p>`:'';
+   return `<div class="game-skill-timeline__row${note?' game-skill-timeline__row--noted':''}"><div class="game-skill-timeline__rail" aria-hidden="true"><span class="game-skill-timeline__node${index===ordered.length-1?' game-skill-timeline__node--last':''}">${escapeText(sourceRank)}</span></div><div class="game-skill-timeline__entry"><div class="game-skill-timeline__entry-main"><strong>${escapeText(rank||'등급 미등록')}</strong><span class="game-skill-timeline__cost"><b>${escapeText(required)}</b>${pointType?`<small>${escapeText(pointType)}</small>`:''}</span></div>${noteContent}</div></div>`;
+  }).join('');
+  return `<section class="axe-info-detail game-skill-detail game-skill-detail--timeline-trial" aria-label="${escapeText(skill)} 스킬 승급 정보"><header class="game-skill-timeline__header"><span class="game-skill-timeline__scene" aria-hidden="true"><img src="/hub/game-info/skills/scenes/${scene}" alt="" decoding="async" loading="lazy"></span><div class="game-skill-timeline__identity">${image}<div class="game-skill-timeline__name"><h2>${escapeText(skill)}</h2><span>등급별 승급 조건</span></div></div></header><div class="game-skill-timeline__content"><div class="game-skill-timeline__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-timeline__rows">${timelineRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></section>`;
+ }
  const rankRows=ordered.map(row=>{
   const rank=String(row.rank??'').trim();
   const required=row.required_point===null||row.required_point===undefined||String(row.required_point).trim()===''?'미등록':String(row.required_point);
@@ -229,7 +245,7 @@ const skillDetailPanel=(skill,rows)=>{
   const noteContent=note?`<p class="game-skill-rank__note">${needsManual?'<span class="game-skill-training-icon" aria-hidden="true"><img src="/hub/game-info/skills/training_manual.png" alt="" loading="lazy" decoding="async"></span>':''}<span>${escapeText(note)}</span></p>`:'';
   return `<div class="game-skill-rank${note?' game-skill-rank--has-note':''}" aria-label="${escapeText(rank||'등급 미등록')} 승급 조건"><div class="game-skill-rank__tier"><span class="game-skill-rank__track" aria-hidden="true"></span><strong>${escapeText(rank||'등급 미등록')}</strong></div><div class="game-skill-rank__cost"><b>${escapeText(required)}</b>${pointType?`<span>${escapeText(pointType)}</span>`:''}</div>${noteContent}</div>`;
  }).join('');
- return `<section class="axe-info-detail game-skill-detail game-skill-detail--atlas${scene?' game-skill-detail--illustrated':''}${skill==='낚시'&&scene?' game-skill-detail--hud-trial':''}" aria-label="${escapeText(skill)} 스킬 승급 정보"><div class="game-skill-detail__information"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></div>${sceneImg}</section>`;
+ return `<section class="axe-info-detail game-skill-detail game-skill-detail--atlas${scene?' game-skill-detail--illustrated':''}" aria-label="${escapeText(skill)} 스킬 승급 정보"><div class="game-skill-detail__information"><header class="game-skill-detail__header">${image}<div class="game-skill-detail__name"><h2>${escapeText(skill)}</h2><p>등급별 승급 조건</p></div></header><div class="game-skill-detail__body"><div class="game-skill-detail__sheet"><div class="game-skill-detail__columns"><span>승급 구간</span><span>필요 포인트</span></div><div class="game-skill-detail__ranks">${rankRows||'<p class="axe-info-empty">등록된 승급 정보가 없습니다.</p>'}</div></div></div></div>${sceneImg}</section>`;
 };
 
 const MODBOOK_GROUPS=Object.freeze({
