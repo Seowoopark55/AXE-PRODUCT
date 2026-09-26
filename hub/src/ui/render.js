@@ -1,5 +1,6 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
+import { renderGameInfoAdmin } from './gameInfoAdmin.js';
 import { renderHubHome } from './hubHome.js';
 import {canOpenWebContent,hasCompany,hasUnifiedPass} from '../platform/contentPolicy.js';
 import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
@@ -278,15 +279,16 @@ function renderStandaloneGameInfo(state) {
     <header class="game-center__header">
       <div class="game-center__actions">${hubReturnButton('game-center__back')}</div>
       <h1 class="game-center__title" id="game-info-heading">게임 정보</h1>
+      ${state.platformAdmin?`<button type="button" class="game-center__admin-trigger" data-game-admin-action="${state.gameAdminOpen?'close':'open'}">${state.gameAdminOpen?'← 게임정보 보기':'⚙ 정보 관리'}</button>`:''}
     </header>
     <main class="game-center__body">
-      <section class="game-center__hero" aria-label="게임 정보 소개">
+      ${state.gameAdminOpen&&state.platformAdmin?renderGameInfoAdmin(state):`<section class="game-center__hero" aria-label="게임 정보 소개">
         <div class="game-center__hero-copy">
           <p class="game-center__hero-line">제작부터 퀘스트, 스킬까지 필요한 정보를 한곳에서 확인하세요.</p>
         </div>
       </section>
       ${renderInfoPage(state,{standalone:true})}
-      <p class="game-center__context">${company?'회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.':'회사별 개조서는 회사 등록 후 소속 회사의 자료만 볼 수 있습니다.'}</p>
+      <p class="game-center__context">${company?'회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.':'회사별 개조서는 회사 등록 후 소속 회사의 자료만 볼 수 있습니다.'}</p>`}
     </main>
     ${renderModal(state)}
   </div>`;

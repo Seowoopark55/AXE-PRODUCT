@@ -23,6 +23,14 @@ export async function getGameInformation(includeInactive = false) {
     const activeCraftIds = new Set(data.info_crafts.map(row => String(row.id)));
     data.info_craft_materials = data.info_craft_materials.filter(row => activeCraftIds.has(String(row.craft_id)));
   }
+  // Independently stored image associations override static item artwork without
+  // rewriting existing CSS or the approved game-info image catalogue.
+  const images = await supabase.from('info_images').select('item_key,image_path');
+  // Ordinary game-info remains readable if the admin-only migration has not been run.
+  data.info_images = images.error ? [] : (images.data||[]).map(row=>({
+    ...row,
+    url:supabase.storage.from('lac-game-info').getPublicUrl(row.image_path).data.publicUrl
+  }));
   return data;
 }
 
@@ -38,7 +46,7 @@ export async function getCompanyModbooks(companyId, includeInactive = false) {
   // company's rows so a growing catalog is not silently truncated.
   for (let offset = 0; ; offset += 500) {
     let query = supabase.from('modbook_catalog')
-      .select('id,company_id,type,category,name,parts,option1,option2,option3,success_rate,recent_price,recent_date,price_note,note,sort_order,active')
+      .select('id,company_id,type,category,name,parts,option1,option2,option3,success_rate,recent_price,recent_date,price_note,note,sort_order,active,updated_at')
       .eq('company_id', id)
       .order('sort_order').order('id')
       .range(offset, offset + 499);
@@ -1731,4 +1739,37 @@ export async function notifyPassRequestOwner(requestId){
   });
   if(!response.ok)return {sent:false,reason:'notification_unavailable'};
   return response.json();
+}
+
+
+// Game-information administration: all writes go through the DB's admin-checked,
+// atomic RPC. No service-role key or direct table write is present in the browser.
+export async function saveGameInfoAdminRow({table,id=null,payload,expectedAt=null,companyId=null,materials=null,imagePath=null}) {
+  assertClient();
+  const result=await supabase.rpc('lac_admin_save_game_info',{
+    p_table:table,p_id:id,p_payload:payload,p_expected_updated_at:expectedAt,
+    p_company_id:companyId,p_materials:materials,p_image_path:imagePath
+  });
+  return unwrap(result,'게임정보를 저장하지 못했습니다. 관리자 DB 마이그레이션 적용 상태를 확인하세요.');
+}
+export async function getGameInfoAdminHistory(){
+  assertClient();
+  const result=await supabase.from('info_admin_history')
+    .select('table_name,record_id,company_id,action,before_data,after_data,actor_id,created_at')
+    .order('created_at',{ascending:false}).limit(30);
+  return unwrap(result,'변경 기록을 조회하지 못했습니다.')||[];
+}
+export async function uploadGameInfoAdminImage(file){
+  assertClient();
+  const extensions={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'};
+  const ext=extensions[file?.type];
+  if(!ext||!file?.size||file.size>2097152) throw new Error('PNG, JPG, WebP 이미지를 2MB 이하로 선택해 주세요.');
+  const path=`items/${crypto.randomUUID()}.${ext}`;
+  const result=await supabase.storage.from('lac-game-info').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+  if(result.error)throw new Error(`이미지 업로드 실패: ${result.error.message}`);
+  return path;
+}
+export async function cleanupUnlinkedGameInfoAdminImage(path){
+  if(!path)return;
+  await supabase.storage.from('lac-game-info').remove([path]);
 }

@@ -185,7 +185,7 @@ const questFallbackImageUrl=row=>{
  const file=questKeywordFallbackFile(target)||QUEST_JOB_FALLBACK_FILES[job]||QUEST_JOB_FALLBACK_FILES[String(row?.category??'').trim()]||'';
  return file?`/hub/game-info/items/${file}`:'';
 };
-const questItemArt=row=>itemImageUrl(questTargetName(row))||questFallbackImageUrl(row);
+const questItemArt=row=>adminItemImages.get(String(row?.item_name??'').trim())||itemImageUrl(questTargetName(row))||questFallbackImageUrl(row);
 const QUEST_BONUS_REWARD_ART=Object.freeze({
  '삼나무 솔방울':[{label:'보따리',file:'quest_logging_bundle.png'}],
  '반짝이는 보석':[{label:'상자',file:'quest_delivery_box.png'}],
@@ -230,8 +230,15 @@ const questGroupedTitle=(row,variants)=>variants.length>1?(
 ):String(row.item_name||'이름 없음');
 const questQtyText=value=>value===null||value===undefined||String(value).trim()===''?'미등록':
  /^\d+(?:\.\d+)?$/.test(String(value).trim())?Number(value).toLocaleString('ko-KR'):escapeText(value);
+let adminItemImages = new Map();
+export function setGameInfoImageMap(rows=[]){
+ adminItemImages=new Map((rows||[]).filter(row=>row?.item_key && /^https:\/\//.test(String(row?.url||'')))
+  .map(row=>[String(row.item_key).trim(),row.url]));
+}
 const itemImageUrl=name=>{
-  const file=ITEM_IMAGE_FILES[String(name??'').trim()];
+  const key=String(name??'').trim();
+  if(adminItemImages.has(key))return adminItemImages.get(key);
+  const file=ITEM_IMAGE_FILES[key];
   return file?`/hub/game-info/items/${file}`:'';
 };
 // These labels/quantities have already been HTML-escaped by renderFields.
@@ -300,7 +307,7 @@ const SKILL_SCENE_FILES=Object.freeze({
  '요리':'cooking.webp', '채광':'mining.webp', '채집':'gathering.webp', '택배':'delivery.webp'
 });
 
-const skillIconUrl=skill=>SKILL_ICON_FILES[skillIconKey(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[skillIconKey(skill)]}`:'';
+const skillIconUrl=skill=>adminItemImages.get('skill:'+String(skill??'').trim())||(SKILL_ICON_FILES[skillIconKey(skill)]?`/hub/game-info/skills/${SKILL_ICON_FILES[skillIconKey(skill)]}`:'');
 const skillIconMarkup=(skill,large=false)=>{
  const url=skillIconUrl(skill);
  return url?`<span class="game-skill-art${large?' game-skill-art--large':''}" aria-hidden="true"><img src="${url}" alt="" loading="lazy" decoding="async"></span>`:
@@ -807,6 +814,7 @@ export function searchInformation(data,query,info={},owner=false){
 }
 
 export function renderInfoPage(state,{standalone=false}={}){
+ setGameInfoImageMap(state.info?.data?.info_images||[]);
  const info=state.info||{},owner=Boolean(state.platformAdmin);
  // Stale company-specific rows must never survive a company/account switch.
  const data=!state.companyId||(info.companyId&&String(info.companyId)!==String(state.companyId))?{...(info.data||{}),modbook_catalog:[]}:(info.data||{});
@@ -850,7 +858,7 @@ export function renderInfoPage(state,{standalone=false}={}){
   const subtitle='';
   return `<button type="button" class="axe-info-row ${active?'is-active':''}${standalone?' axe-info-row--studio':''}${standalone&&table==='info_quests'?' game-quest-list-row':''}" data-info-id="${escapeText(id)}" aria-pressed="${active?'true':'false'}">${standalone?listDecor(table,title,subtitle,false,artRef):`<strong>${escapeText(title)}</strong>`}${entry.is_active===false||entry.active===false?'<em>비활성</em>':''}</button>`;
  }).join(''):`<p class="axe-info-empty">${!searching&&tabTable==='info_skill_ranks'&&!filters.selectedSkill?'세부 스킬을 선택해 주세요.':searching?'전체 정보에서 검색 결과가 없습니다.':'조건에 맞는 정보가 없습니다.'}</p>`;
- const ownerNote=owner?'<span class="axe-info-owner-note">조회 전용 · 관리자 편집 기능은 준비 중</span>':'';
+ const ownerNote=owner?'<span class="axe-info-owner-note">독립 게임정보 화면의 정보 관리 버튼에서 항목을 추가·수정할 수 있습니다.</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const modbookError=info.modbookError&&(tabTable==='modbook_catalog'||searching)?`<div class="axe-info-error">개조서 조회 실패: ${escapeText(info.modbookError)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 가공·재련 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;

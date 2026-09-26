@@ -19,10 +19,12 @@ import {
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
+  saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage,
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
-import { renderInfoPage } from './ui/infoPage.js';
+import { renderInfoPage, setGameInfoImageMap } from './ui/infoPage.js';
+import { GAME_ADMIN_SCHEMAS, GAME_ADMIN_TABLES, GAME_ADMIN_IMAGE_TABLES, renderGameInfoAdmin } from './ui/gameInfoAdmin.js';
 import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass} from './platform/contentPolicy.js';
 import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
@@ -408,6 +410,7 @@ const state = {
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
   hubBoard:{notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,error:'',userId:null},
   info: { table:'info_crafts', craftGroup:'근접무기', modbookCategory:'', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', modbookError:'', companyId:null, data:{} },
+  gameAdminOpen:false,gameAdmin:{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:''},
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -1311,6 +1314,7 @@ async function loadGameInfo(){
     }
     if(request!==infoLoadSequence||String(state.companyId||'')!==companyId||state.session?.user?.id!==userId)return;
     state.info.data={...data,modbook_catalog:modbooks};
+    setGameInfoImageMap(data.info_images||[]);
     state.info.companyId=companyId;
     state.info.modbookError=modbookError;
     state.info.loaded=true;
@@ -1735,7 +1739,185 @@ root.addEventListener('click', event => {
   if(dialog instanceof HTMLDialogElement && dialog.matches('[data-company-preview-dialog]') && dialog.open){dialog.close();}
 });
 
+function gameAdminInlineError(error){
+  const form=root.querySelector('form[data-form="game-admin-save"]');
+  if(!form){setError(error);return;}
+  let message=form.querySelector('[data-ga-form-error]');
+  if(!message){message=document.createElement('p');message.className='lac-ga__error';message.dataset.gaFormError='';message.setAttribute('role','alert');form.prepend(message);}
+  message.textContent=String(error?.message||error||'저장에 실패했습니다.');
+  message.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function gameAdminConfirmDiscard(){
+  if(!state.gameAdmin?.dirty)return true;
+  return window.confirm('저장하지 않은 변경 내용이 있습니다. 현재 작업을 취소할까요?');
+}
+function gameAdminResetForm(){
+  state.gameAdmin.dirty=false;
+  if(state.gameAdmin.previewUrl){URL.revokeObjectURL(state.gameAdmin.previewUrl);state.gameAdmin.previewUrl='';}
+}
+async function gameAdminRefreshHistory(){
+  if(!state.platformAdmin)return;
+  try{state.gameAdmin.history=await getGameInfoAdminHistory();state.gameAdmin.historyError='';}
+  catch(error){state.gameAdmin.historyError=String(error?.message||error);}
+}
+async function gameAdminAction(button){
+  if(state.page!=='game-info'||!state.platformAdmin)return;
+  const admin=state.gameAdmin;
+  const action=button.dataset.gameAdminAction;
+  if(action==='open'){
+    admin.table=GAME_ADMIN_SCHEMAS[state.info.table]?state.info.table:'info_crafts';
+    admin.selectedId='';admin.mode='';admin.query='';admin.showInactive=false;
+    state.gameAdminOpen=true;
+    render();return;
+  }
+  if(action==='close'){
+    if(!gameAdminConfirmDiscard())return;
+    gameAdminResetForm();state.gameAdminOpen=false;render();return;
+  }
+  if(!state.gameAdminOpen)return;
+  if(action==='table'){
+    const next=button.dataset.gameAdminTable;
+    if(!GAME_ADMIN_TABLES.includes(next)||!gameAdminConfirmDiscard())return;
+    gameAdminResetForm();Object.assign(admin,{table:next,selectedId:'',mode:'',query:'',showInactive:false});render();return;
+  }
+  if(action==='new'||action==='select'){
+    if(!gameAdminConfirmDiscard())return;
+    gameAdminResetForm();admin.mode=action==='new'?'new':'edit';admin.selectedId=action==='new'?'':String(button.dataset.gameAdminId||'');render();return;
+  }
+  if(action==='add-material'){
+    const list=root.querySelector('[data-ga-material-list]');
+    if(!list||list.children.length>=40)return;
+    const first=list.querySelector('[data-ga-material]');
+    let row;
+    if(first){row=first.cloneNode(true);row.querySelector('[name="material_name"]').value='';row.querySelector('[name="quantity"]').value='1';}
+    else{row=document.createElement('div');row.className='lac-ga__material';row.dataset.gaMaterial='';row.innerHTML='<label><span>재료 이름</span><input name="material_name" maxlength="160" required placeholder="아이템 이름"></label><label><span>필요 수량</span><input name="quantity" type="number" min="0.000001" step="any" value="1" required></label><button type="button" class="lac-ga__quiet" data-game-admin-action="remove-material">제거</button>';}
+    list.append(row);admin.dirty=true;row.querySelector('[name="material_name"]')?.focus();return;
+  }
+  if(action==='remove-material'){
+    button.closest('[data-ga-material]')?.remove();admin.dirty=true;return;
+  }
+  if(action==='toggle-history'){
+    admin.showHistory=!admin.showHistory;
+    if(admin.showHistory)await gameAdminRefreshHistory();
+    // Updating a separate history region without remounting an unsaved form.
+    const history=root.querySelector('.lac-ga__history');
+    if(history)history.remove();
+    const h=button.closest('.lac-ga__top')?.parentElement;
+    if(h){const temp=document.createElement('div');temp.innerHTML=renderGameInfoAdmin(state);const next=temp.querySelector('.lac-ga__history');if(next)h.querySelector('.lac-ga__tabs')?.after(next);}
+    button.textContent=admin.showHistory?'변경 기록 닫기':'변경 기록';return;
+  }
+  if(action==='history-refresh'){
+    await gameAdminRefreshHistory();
+    const old=root.querySelector('.lac-ga__history');
+    const temp=document.createElement('div');temp.innerHTML=renderGameInfoAdmin(state);
+    if(old)old.replaceWith(temp.querySelector('.lac-ga__history'));
+  }
+}
+function gameAdminFormData(form,record){
+  const admin=state.gameAdmin,table=admin.table,schema=GAME_ADMIN_SCHEMAS[table];
+  if(!schema)throw new Error('관리 항목을 선택해 주세요.');
+  const payload={};
+  for(const [name,label,type='text',required=false] of schema.fields){
+    const input=form.elements.namedItem(name);
+    const raw=String(input?.value??'').trim();
+    if(required&&!raw)throw new Error(`${label}을(를) 입력해 주세요.`);
+    if(raw.length>2000)throw new Error(`${label}의 내용이 너무 깁니다.`);
+    if(type==='number'||type==='integer'){
+      if(!raw){
+        // Optional DB values remain NULL; non-null DB numeric fields default to zero.
+        const nullable=['success_rate','reward_xp','recent_price'];
+        payload[name]=nullable.includes(name)?null:0;
+      }else{
+        const value=Number(raw);
+        if(!Number.isFinite(value)||value<0||value>1e9||(type==='integer'&&!Number.isSafeInteger(value)))throw new Error(`${label}의 수량을 확인해 주세요.`);
+        if(name==='success_rate'&&value>100)throw new Error('성공률은 0~100% 사이로 입력해 주세요.');
+        payload[name]=value;
+      }
+    }else if(type==='date')payload[name]=raw||null;
+    else if(name==='parts')payload[name]=raw;
+    else payload[name]=raw||null;
+  }
+  const activeKey=table==='modbook_catalog'?'active':'is_active';
+  payload[activeKey]=Boolean(form.elements.namedItem(activeKey)?.checked);
+  let materials=null;
+  if(table==='info_crafts'){
+    const ingredients=[...form.querySelectorAll('[data-ga-material]')];
+    materials=ingredients.map((row,index)=>{
+      const name=String(row.querySelector('[name="material_name"]')?.value||'').trim();
+      const raw=String(row.querySelector('[name="quantity"]')?.value||'').trim();
+      if(!name&&!raw)return null;
+      const qty=Number(raw);
+      if(!name||name.length>160||!Number.isFinite(qty)||qty<=0||qty>1e9)throw new Error(`${index+1}번째 제작 재료의 이름과 수량을 확인해 주세요.`);
+      return {material_name:name,quantity:qty};
+    }).filter(Boolean);
+    const original=record?(state.info.data.info_craft_materials||[]).filter(row=>String(row.craft_id)===String(record.id)&&row.is_active!==false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(row=>({material_name:String(row.material_name||'').trim(),quantity:Number(row.quantity)})):[];
+    if(JSON.stringify(original)===JSON.stringify(materials))materials=null;
+  }
+  return {table,payload,materials};
+}
+function gameAdminReviewDialog({table,record,payload,materials,file}){
+  return new Promise(resolve=>{
+    const dialog=document.createElement('dialog');dialog.className='lac-hub-confirm lac-ga__review';
+    const title=GAME_ADMIN_SCHEMAS[table]?.label||table;
+    const changed=Object.entries(payload).filter(([name,value])=>!record||String(record[name]??'')!==String(value??'')).map(([name,value])=>{
+      const field=GAME_ADMIN_SCHEMAS[table].fields.find(item=>item[0]===name);
+      return `${field?.[1]||'공개 상태'}: ${String(record?.[name]??'—')} → ${String(value??'—')}`;
+    });
+    dialog.innerHTML='<form method="dialog" class="lac-hub-confirm__content"><h2 id="lac-ga-review-title"></h2><p id="lac-ga-review-intro"></p><div class="lac-ga__review-list" data-ga-review-list></div><div class="lac-hub-confirm__actions"><button type="submit" class="runtime-btn-ghost" value="cancel">돌아가기</button><button type="submit" class="runtime-btn-ghost" value="confirm">확인 후 저장</button></div></form>';
+    dialog.setAttribute('aria-labelledby','lac-ga-review-title');
+    dialog.querySelector('h2').textContent=`${title} ${record?'수정':'등록'} 확인`;
+    dialog.querySelector('#lac-ga-review-intro').textContent='아래 변경 내용을 확인한 다음 저장해 주세요.';
+    const review=dialog.querySelector('[data-ga-review-list]');
+    const lines=changed.length?changed:['변경된 기본 입력값 없음'];
+    if(materials!==null)lines.push(`제작 재료 ${materials.length}개 등록`);
+    if(file)lines.push(`대표 이미지 교체: ${file.name}`);
+    for(const line of lines){const p=document.createElement('p');p.textContent=line;review.append(p);}
+    dialog.addEventListener('close',()=>{const yes=dialog.returnValue==='confirm';dialog.remove();resolve(yes);},{once:true});
+    document.body.append(dialog);dialog.showModal();
+  });
+}
+async function gameAdminSaveForm(form){
+  if(!state.platformAdmin||!state.gameAdminOpen||state.page!=='game-info')return;
+  const admin=state.gameAdmin;
+  const table=admin.table;
+  const selected=admin.mode==='new'?null:(state.info?.data?.[table]||[]).find(row=>String(row.id)===String(admin.selectedId));
+  if(admin.mode!=='new'&&!selected)throw new Error('수정할 항목을 찾지 못했습니다. 목록을 새로고침해 주세요.');
+  if(table==='modbook_catalog'&&!state.companyId)throw new Error('먼저 회사를 선택해 주세요.');
+  if(!form.reportValidity())return;
+  const {payload,materials}=gameAdminFormData(form,selected);
+  const file=form.querySelector('[data-ga-image]')?.files?.[0]||null;
+  if(file&&!GAME_ADMIN_IMAGE_TABLES.includes(table))throw new Error('이 항목은 대표 이미지 업로드를 지원하지 않습니다.');
+  if(file&&(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2097152||file.size===0))throw new Error('2MB 이하 PNG·JPG·WebP 이미지를 선택해 주세요.');
+  if(!await gameAdminReviewDialog({table,record:selected,payload,materials,file}))return;
+  if(mutationBusy)return;
+  let uploadedPath=null;
+  mutationBusy=true;
+  const save=form.querySelector('[data-ga-save-button]');
+  if(save){save.disabled=true;save.textContent='저장 중…';}
+  try{
+    // An upload gets a fresh immutable path; a failed DB transaction removes it.
+    if(file)uploadedPath=await uploadGameInfoAdminImage(file);
+    const saved=await saveGameInfoAdminRow({table,id:selected?.id==null?null:String(selected.id),payload,
+      expectedAt:selected?.updated_at||null,companyId:table==='modbook_catalog'?state.companyId:null,
+      materials,imagePath:uploadedPath});
+    uploadedPath=null; // The image was committed; do not delete it on a later refresh error.
+    gameAdminResetForm();admin.selectedId=String(saved.id);admin.mode='edit';admin.showInactive ||= payload[table==='modbook_catalog'?'active':'is_active']===false;
+    // Reload all read models so the viewer, list and search always agree.
+    await loadGameInfo();
+    await gameAdminRefreshHistory();
+    setNotice('게임정보를 저장했습니다. 일반 사용자 화면에도 반영되었습니다.');
+  }catch(error){
+    if(uploadedPath){try{await cleanupUnlinkedGameInfoAdminImage(uploadedPath);}catch{/* dangling uploaded object is safe; no data reference was written */}}
+    gameAdminInlineError(error);
+  }finally{
+    mutationBusy=false;
+    if(save?.isConnected){save.disabled=false;save.textContent=selected?'변경 내용 저장하기':'새 정보 등록하기';}
+  }
+}
+
 root.addEventListener('click', async event => {
+  const gameAdminButton=event.target.closest('[data-game-admin-action]');
+  if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
@@ -2474,6 +2656,23 @@ root.addEventListener('click', async event => {
 });
 
 root.addEventListener('change', async event => {
+  if(state.gameAdminOpen&&state.platformAdmin&&event.target.matches('[data-game-admin-inactive]')){
+    state.gameAdmin.showInactive=event.target.checked;
+    // This filter controls only the list; the current draft is not discarded.
+    const list=root.querySelector('.lac-ga__items');
+    if(list){const rows=(state.info?.data?.[state.gameAdmin.table]||[]);const activeKey=state.gameAdmin.table==='modbook_catalog'?'active':'is_active';
+      const byId=new Map(rows.map(row=>[String(row.id),row]));
+      for(const button of list.querySelectorAll('[data-game-admin-id]')){const row=byId.get(button.dataset.gameAdminId);button.hidden=!state.gameAdmin.showInactive&&row?.[activeKey]===false;}}
+    return;
+  }
+  if(state.gameAdminOpen&&event.target.matches('[data-ga-image]')){
+    const file=event.target.files?.[0];const preview=root.querySelector('[data-ga-image-preview]');
+    if(state.gameAdmin.previewUrl){URL.revokeObjectURL(state.gameAdmin.previewUrl);state.gameAdmin.previewUrl='';}
+    if(file&&preview){state.gameAdmin.previewUrl=URL.createObjectURL(file);preview.textContent='';
+      const img=document.createElement('img');img.src=state.gameAdmin.previewUrl;img.alt='업로드할 이미지 미리보기';
+      const span=document.createElement('span');span.textContent=file.name;preview.append(img,span);state.gameAdmin.dirty=true;}
+    return;
+  }
   try{
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
     if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
@@ -2593,6 +2792,14 @@ function refreshMemberSearchResults(field) {
 }
 
 root.addEventListener('input', event => {
+  if(state.platformAdmin&&state.gameAdminOpen&&event.target.matches('[data-game-admin-search]')){
+    const query=String(event.target.value||'').trim().toLocaleLowerCase('ko-KR');
+    state.gameAdmin.query=event.target.value;
+    root.querySelectorAll('.lac-ga__item[data-ga-search-text]').forEach(item=>{item.hidden=!item.dataset.gaSearchText.includes(query);});
+    return;
+  }
+  if(state.platformAdmin&&state.gameAdminOpen&&event.target.closest('[data-ga-form]'))state.gameAdmin.dirty=true;
+
   if (state.modal?.type === 'member-register' && event.target.matches('form[data-form="member-register"] input[name="discord_user_id"]')) {
     state.modal.discordUserId = event.target.value;
     return;
@@ -2663,6 +2870,7 @@ root.addEventListener('change', event => {
 
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
+  if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}
   // Confirm a new departure BEFORE withMutation renders/replaces the form.
@@ -2916,3 +3124,9 @@ setInterval(async()=>{
     }
   }catch{ /* Poll errors do not erase previously fetched, access-checked state. */ }
 },45000);
+
+
+// -----------------------------------------------------------------------------
+// Standalone GAME INFO: platform administrator's self-service content editor.
+// This view does not change any user-facing game-info DOM or its existing handlers.
+// -----------------------------------------------------------------------------
