@@ -7,15 +7,45 @@ const INFO_TABLES = Object.freeze([
   'info_processes', 'info_quests', 'info_skill_ranks',
 ]);
 
-export async function getGameInformation(includeInactive = false) {
-  assertClient();
-  const entries = await Promise.all(INFO_TABLES.map(async table => {
-    let query = supabase.from(table).select('*').order('sort_order').order('id');
+const INFO_PAGE_SIZE = 500;
+
+async function getAllInfoRows(table, includeInactive = false) {
+  const rows = [];
+  for (let offset = 0; ; offset += INFO_PAGE_SIZE) {
+    let query = supabase.from(table)
+      .select('*')
+      .order('sort_order')
+      .order('id')
+      .range(offset, offset + INFO_PAGE_SIZE - 1);
     if (!includeInactive) query = query.eq('is_active', true);
     const result = await query;
     if (result.error) throw new Error(`${table}: ${result.error.message}`);
-    return [table, result.data || []];
-  }));
+    const page = result.data || [];
+    rows.push(...page);
+    if (page.length < INFO_PAGE_SIZE) break;
+  }
+  return rows;
+}
+
+async function getAllInfoImages() {
+  const rows = [];
+  for (let offset = 0; ; offset += INFO_PAGE_SIZE) {
+    const result = await supabase.from('info_images')
+      .select('item_key,image_path')
+      .order('item_key')
+      .range(offset, offset + INFO_PAGE_SIZE - 1);
+    // The catalogue must remain readable before/without the optional admin migration.
+    if (result.error) return [];
+    const page = result.data || [];
+    rows.push(...page);
+    if (page.length < INFO_PAGE_SIZE) break;
+  }
+  return rows;
+}
+
+export async function getGameInformation(includeInactive = false) {
+  assertClient();
+  const entries = await Promise.all(INFO_TABLES.map(async table => [table, await getAllInfoRows(table, includeInactive)]));
   const data = Object.fromEntries(entries);
   // A retired craft must not leave its still-active ingredient rows visible
   // to ordinary viewers. No database rows are changed by this read filter.
@@ -25,9 +55,8 @@ export async function getGameInformation(includeInactive = false) {
   }
   // Independently stored image associations override static item artwork without
   // rewriting existing CSS or the approved game-info image catalogue.
-  const images = await supabase.from('info_images').select('item_key,image_path');
-  // Ordinary game-info remains readable if the admin-only migration has not been run.
-  data.info_images = images.error ? [] : (images.data||[]).map(row=>({
+  const images = await getAllInfoImages();
+  data.info_images = images.map(row=>({
     ...row,
     url:supabase.storage.from('lac-game-info').getPublicUrl(row.image_path).data.publicUrl
   }));
@@ -1765,7 +1794,7 @@ export async function uploadGameInfoAdminImage(file){
   const ext=extensions[file?.type];
   if(!ext||!file?.size||file.size>2097152) throw new Error('PNG, JPG, WebP 이미지를 2MB 이하로 선택해 주세요.');
   const path=`items/${crypto.randomUUID()}.${ext}`;
-  const result=await supabase.storage.from('lac-game-info').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+  const result=await supabase.storage.from('lac-game-info').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});
   if(result.error)throw new Error(`이미지 업로드 실패: ${result.error.message}`);
   return path;
 }

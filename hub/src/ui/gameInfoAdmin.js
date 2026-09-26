@@ -31,6 +31,7 @@ export const GAME_ADMIN_IMAGE_TABLES = Object.freeze(['info_crafts','info_materi
 const str = value => value === undefined || value === null ? '' : String(value);
 const normalized = value => str(value).trim().toLocaleLowerCase('ko-KR');
 const labelFor = (table,row) => str(row?.[GAME_ADMIN_SCHEMAS[table]?.title] || '이름 없음');
+const searchTextFor = (table,row) => normalized([labelFor(table,row),row?.job,row?.category,row?.rank,row?.process_type,row?.point_type].filter(Boolean).join(' '));
 
 function field(table,row,[key,label,type='text',required=false]) {
   const value = str(row?.[key]);
@@ -68,17 +69,20 @@ export function renderGameInfoAdmin(state) {
   const selected=admin.selectedId?rows.find(row=>String(row.id)===String(admin.selectedId)):null;
   const isNew=admin.mode==='new';
   const editing=isNew||Boolean(selected);
-  const visible=rows.filter(row=>admin.showInactive||row[table==='modbook_catalog'?'active':'is_active']!==false);
   const activeKey=table==='modbook_catalog'?'active':'is_active';
+  const query=normalized(admin.query||'');
+  const visible=rows.filter(row=>admin.showInactive||row[activeKey]!==false);
+  const matchesQuery=row=>!query||searchTextFor(table,row).includes(query);
+  const matchCount=visible.filter(matchesQuery).length;
   const imageKey=table==='info_skill_ranks'&&selected?.skill?'skill:'+String(selected.skill).trim():selected?.item_name?.trim();
   const image=(state.info?.data?.info_images||[]).find(i=>i.item_key===imageKey);
   const canAdd=table!=='modbook_catalog'||Boolean(state.companyId);
   return `<section class="lac-ga" aria-label="게임정보 관리자"><div class="lac-ga__top"><div><span class="lac-ga__eyebrow">PLATFORM ADMIN · CONTENT MANAGER</span><h2>게임정보 관리</h2><p>자료를 선택해 수정하거나 새로운 정보를 등록하세요. 저장한 내용은 게임정보 페이지에 반영됩니다.</p></div><button type="button" class="lac-ga__quiet" data-game-admin-action="toggle-history">${admin.showHistory?'변경 기록 닫기':'변경 기록'}</button></div>
     <nav class="lac-ga__tabs" aria-label="관리 카테고리">${GAME_ADMIN_TABLES.map(key=>`<button type="button" class="${key===table?'is-active':''}" data-game-admin-action="table" data-game-admin-table="${key}" aria-pressed="${key===table}">${e(GAME_ADMIN_SCHEMAS[key].label)}</button>`).join('')}</nav>
     ${historyPanel(state)}
-    <div class="lac-ga__layout"><aside class="lac-ga__list"><div class="lac-ga__list-top"><strong>${e(schema.label)} <small>${visible.length}건</small></strong><button type="button" data-game-admin-action="new" ${canAdd?'':'disabled'}>+ 새로 등록</button></div><label class="lac-ga__search"><span class="sr-only">자료 이름 검색</span><input type="search" data-game-admin-search placeholder="이름으로 검색" value="${e(admin.query||'')}"></label><label class="lac-ga__inactive"><input type="checkbox" data-game-admin-inactive ${admin.showInactive?'checked':''}> 비활성 정보 포함</label>
+    <div class="lac-ga__layout"><aside class="lac-ga__list"><div class="lac-ga__list-top"><strong>${e(schema.label)} <small>${matchCount}건</small></strong><button type="button" data-game-admin-action="new" ${canAdd?'':'disabled'}>+ 새로 등록</button></div><label class="lac-ga__search"><span class="sr-only">자료 이름 검색</span><input type="search" data-game-admin-search placeholder="이름으로 검색" value="${e(admin.query||'')}"></label><label class="lac-ga__inactive"><input type="checkbox" data-game-admin-inactive ${admin.showInactive?'checked':''}> 비활성 정보 포함</label>
     ${table==='modbook_catalog'?`<p class="lac-ga__company">${state.companyId?'현재 선택한 회사의 개조서만 관리합니다.':'개조서를 관리하려면 HUB에서 회사를 선택해 주세요.'}</p>`:''}
-    <div class="lac-ga__items">${visible.map(row=>`<button type="button" class="lac-ga__item ${String(selected?.id)===String(row.id)&&!isNew?'is-active':''}" data-game-admin-action="select" data-game-admin-id="${e(row.id)}" data-ga-search-text="${e(normalized([labelFor(table,row),row.job,row.category,row.rank].join(' ')))}"><strong>${e(labelFor(table,row))}</strong><span>${e([row.job,row.category,row.rank].filter(Boolean).join(' · '))}${row[activeKey]===false?' · 비활성':''}</span></button>`).join('')||'<div class="lac-ga__empty">등록된 자료가 없습니다.</div>'}</div></aside>
+    <div class="lac-ga__items">${visible.map(row=>`<button type="button" class="lac-ga__item ${String(selected?.id)===String(row.id)&&!isNew?'is-active':''}" data-game-admin-action="select" data-game-admin-id="${e(row.id)}" data-ga-search-text="${e(searchTextFor(table,row))}" ${matchesQuery(row)?'':'hidden'}><strong>${e(labelFor(table,row))}</strong><span>${e([row.job,row.category,row.rank].filter(Boolean).join(' · '))}${row[activeKey]===false?' · 비활성':''}</span></button>`).join('')||'<div class="lac-ga__empty">등록된 자료가 없습니다.</div>'}</div></aside>
     <div class="lac-ga__editor">${!editing?`<div class="lac-ga__empty lac-ga__empty--editor"><strong>관리할 항목을 선택해 주세요</strong><p>왼쪽 목록에서 정보를 선택하거나 새로 등록하세요.</p></div>`:`<form data-form="game-admin-save" class="lac-ga__form" data-ga-form><div class="lac-ga__form-head"><div><span>${isNew?'새 정보 등록':'기존 정보 수정'}</span><h3>${e(isNew?'새 '+schema.label:labelFor(table,selected))}</h3></div>${selected?`<span class="lac-ga__id">ID · ${e(selected.id)}</span>`:''}</div>
     <div class="lac-ga__fields">${schema.fields.map(def=>field(table,selected,def)).join('')}</div>
     ${table==='info_crafts'?materialEditor(state,selected):''}

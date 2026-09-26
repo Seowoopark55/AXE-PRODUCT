@@ -453,6 +453,11 @@ function resetScopedGameInfo(){
   state.info.selectedId='';
   state.info.query='';
   state.info.data={};
+  // Admin drafts are scoped to the currently loaded catalogue/company.
+  // Never carry a stale edit or object URL across a company/account reset.
+  if(state.gameAdmin?.previewUrl){try{URL.revokeObjectURL(state.gameAdmin.previewUrl);}catch{}}
+  state.gameAdminOpen=false;
+  if(state.gameAdmin)Object.assign(state.gameAdmin,{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:'',previewUrl:''});
 }
 
 function subscriptionEffectiveStatus(row){
@@ -1755,6 +1760,29 @@ function gameAdminResetForm(){
   state.gameAdmin.dirty=false;
   if(state.gameAdmin.previewUrl){URL.revokeObjectURL(state.gameAdmin.previewUrl);state.gameAdmin.previewUrl='';}
 }
+function gameAdminApplyListSearch(){
+  const list=root.querySelector('.lac-ga__items');
+  if(!list)return;
+  const query=String(state.gameAdmin?.query||'').trim().toLocaleLowerCase('ko-KR');
+  let count=0;
+  for(const item of list.querySelectorAll('.lac-ga__item[data-ga-search-text]')){
+    const matched=!query||String(item.dataset.gaSearchText||'').includes(query);
+    item.hidden=!matched;
+    if(matched)count+=1;
+  }
+  const counter=root.querySelector('.lac-ga__list-top small');
+  if(counter)counter.textContent=`${count}건`;
+}
+function gameAdminRefreshList(){
+  const current=root.querySelector('.lac-ga__items');
+  if(!current)return;
+  const temp=document.createElement('div');
+  temp.innerHTML=renderGameInfoAdmin(state);
+  const next=temp.querySelector('.lac-ga__items');
+  if(!next)return;
+  current.replaceWith(next);
+  gameAdminApplyListSearch();
+}
 async function gameAdminRefreshHistory(){
   if(!state.platformAdmin)return;
   try{state.gameAdmin.history=await getGameInfoAdminHistory();state.gameAdmin.historyError='';}
@@ -1855,6 +1883,12 @@ function gameAdminFormData(form,record){
   }
   return {table,payload,materials};
 }
+function gameAdminImageKey(table,row){
+  if(!row||!GAME_ADMIN_IMAGE_TABLES.includes(table))return '';
+  return table==='info_skill_ranks'
+    ? `skill:${String(row.skill||'').trim()}`
+    : String(row.item_name||'').trim();
+}
 function gameAdminReviewDialog({table,record,payload,materials,file}){
   return new Promise(resolve=>{
     const dialog=document.createElement('dialog');dialog.className='lac-hub-confirm lac-ga__review';
@@ -1895,12 +1929,27 @@ async function gameAdminSaveForm(form){
   const save=form.querySelector('[data-ga-save-button]');
   if(save){save.disabled=true;save.textContent='저장 중…';}
   try{
+    const oldImageKey=gameAdminImageKey(table,selected);
+    const newImageKey=gameAdminImageKey(table,payload);
+    const imageRows=state.info?.data?.info_images||[];
+    const previousImage=imageRows.find(row=>String(row.item_key||'')===oldImageKey)||null;
+    const previousPath=String(previousImage?.image_path||'').trim();
+    const previousPathShared=previousPath && imageRows.some(row=>String(row.item_key||'')!==oldImageKey&&String(row.image_path||'')===previousPath);
     // An upload gets a fresh immutable path; a failed DB transaction removes it.
     if(file)uploadedPath=await uploadGameInfoAdminImage(file);
+    // Renaming an item/skill without choosing a new file keeps the existing art
+    // attached to the new public name instead of making the image disappear.
+    const imagePath=uploadedPath||(!file&&oldImageKey&&newImageKey&&oldImageKey!==newImageKey?previousPath:null)||null;
     const saved=await saveGameInfoAdminRow({table,id:selected?.id==null?null:String(selected.id),payload,
       expectedAt:selected?.updated_at||null,companyId:table==='modbook_catalog'?state.companyId:null,
-      materials,imagePath:uploadedPath});
+      materials,imagePath});
+    const committedUpload=uploadedPath;
     uploadedPath=null; // The image was committed; do not delete it on a later refresh error.
+    // Replacing an image under the same key makes the old immutable object orphaned.
+    // Remove it only when no other image association still points at that path.
+    if(committedUpload&&previousPath&&oldImageKey===newImageKey&&!previousPathShared&&previousPath!==committedUpload){
+      try{await cleanupUnlinkedGameInfoAdminImage(previousPath);}catch{/* stale storage objects do not invalidate a successful catalogue save */}
+    }
     gameAdminResetForm();admin.selectedId=String(saved.id);admin.mode='edit';admin.showInactive ||= payload[table==='modbook_catalog'?'active':'is_active']===false;
     // Reload all read models so the viewer, list and search always agree.
     await loadGameInfo();
@@ -2658,11 +2707,8 @@ root.addEventListener('click', async event => {
 root.addEventListener('change', async event => {
   if(state.gameAdminOpen&&state.platformAdmin&&event.target.matches('[data-game-admin-inactive]')){
     state.gameAdmin.showInactive=event.target.checked;
-    // This filter controls only the list; the current draft is not discarded.
-    const list=root.querySelector('.lac-ga__items');
-    if(list){const rows=(state.info?.data?.[state.gameAdmin.table]||[]);const activeKey=state.gameAdmin.table==='modbook_catalog'?'active':'is_active';
-      const byId=new Map(rows.map(row=>[String(row.id),row]));
-      for(const button of list.querySelectorAll('[data-game-admin-id]')){const row=byId.get(button.dataset.gameAdminId);button.hidden=!state.gameAdmin.showInactive&&row?.[activeKey]===false;}}
+    // Rebuild only the result list. The editor DOM (and any unsaved draft) stays mounted.
+    gameAdminRefreshList();
     return;
   }
   if(state.gameAdminOpen&&event.target.matches('[data-ga-image]')){
@@ -2793,9 +2839,8 @@ function refreshMemberSearchResults(field) {
 
 root.addEventListener('input', event => {
   if(state.platformAdmin&&state.gameAdminOpen&&event.target.matches('[data-game-admin-search]')){
-    const query=String(event.target.value||'').trim().toLocaleLowerCase('ko-KR');
     state.gameAdmin.query=event.target.value;
-    root.querySelectorAll('.lac-ga__item[data-ga-search-text]').forEach(item=>{item.hidden=!item.dataset.gaSearchText.includes(query);});
+    gameAdminApplyListSearch();
     return;
   }
   if(state.platformAdmin&&state.gameAdminOpen&&event.target.closest('[data-ga-form]'))state.gameAdmin.dirty=true;
