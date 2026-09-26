@@ -157,3 +157,22 @@
 .hub-feature__tag--free{color:#c4f5ce;border-color:#4b9360;background:#183c2edc}
 /* Cards can be selectively unpublished without leaving an awkward empty grid. */
 .hub-features{grid-auto-flow:row}
+
+/* 2026-09-26 home hero compact pass:
+   reduce desktop vertical footprint without stretching the artwork or changing
+   the mobile composition. The source art keeps cover scaling and centered focus. */
+@media (min-width:1100px) and (min-height:981px){
+  .hub-hero{min-height:258px;background-position:center center}
+  .hub-hero__copy{padding-top:24px;padding-bottom:24px}
+}
+@media (min-width:1100px) and (min-height:781px) and (max-height:980px){
+  .hub-hero{min-height:clamp(204px,24dvh,220px);background-position:center center}
+  .hub-hero__copy{padding:14px 42px}
+  .hub-hero h1{font-size:clamp(30px,2.7vw,36px);line-height:1.22;margin:7px 0}
+  .hub-hero p{font-size:12px;line-height:1.5}
+  .hub-hero__actions{margin-top:12px}
+  .hub-cta{min-height:36px;padding:8px 15px}
+}
+@media (min-width:1100px) and (max-height:780px){
+  .hub-hero{min-height:195px;background-position:center center}
+}
