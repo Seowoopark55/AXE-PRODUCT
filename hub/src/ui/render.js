@@ -2,7 +2,7 @@ import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderGameInfoAdmin, renderPlatformModbookReview } from './gameInfoAdmin.js';
 import { renderHubHome } from './hubHome.js';
-import {canOpenWebContent,hasCompany,hasUnifiedPass} from '../platform/contentPolicy.js';
+import {canOpenWebContent,contentAccessPending,hasCompany,hasUnifiedPass} from '../platform/contentPolicy.js';
 import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
 import { hubReturnButton } from './hubReturnButton.js';
 import { companyPlanName, companyStatusName, companySubscriptionEnd, companySubscriptionPeriod } from './subscriptionPresentation.js';
@@ -83,10 +83,14 @@ function userDisplayName(state) {
 
 export function renderShell(root, state) {
   const user = state.session?.user;
+  const companyPages=['dashboard','fund','members','assets','accounts','questions','suggestions','settings','combat'];
+  const companyGatePending=companyPages.includes(state.page)&&contentAccessPending(state,'company_management');
+  const guideGatePending=state.page==='paid-content-guide'&&contentAccessPending(state,'company_management');
+  const gameInfoGatePending=state.page==='game-info'&&contentAccessPending(state,'game_info');
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : state.page === 'paid-content-guide' || !hasUnifiedPass(state) ? renderCompanyPassLanding(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : gameInfoGatePending ? renderHubLoading('이용권을 확인하고 있습니다.') : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : companyGatePending || guideGatePending ? renderHubLoading(companyGatePending?'회사 관리 정보를 확인하고 있습니다.':'이용권을 확인하고 있습니다.') : state.page === 'paid-content-guide' || !hasUnifiedPass(state) ? renderCompanyPassLanding(state) : renderAuthed(state)}
   `;
 }
 
@@ -94,8 +98,11 @@ function renderCompanyPassLanding(state){
   const target=state.page==='paid-content-guide'?state.requestedContent||'콘텐츠':'회사 관리';
   return `<div class="runtime-auth runtime-auth--first-run"><div class="runtime-first-run"><header class="lac-pass-landing__top"><button type="button" class="lac-pass-back" data-action="go-hub" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></button><span class="lac-pass-landing__context">${esc(target)} <span aria-hidden="true">·</span> 이용 안내</span></header>${renderCompanyPassNotice(state,target)}${target==='회사 관리'?renderCompanyLedgerPreview():''}</div></div>`;
 }
+function renderHubLoading(message='회사 정보를 불러오는 중입니다.') {
+  return `<section class="runtime-auth runtime-auth--startup runtime-auth--hub-loading"><div class="hub-loading-card" role="status" aria-live="polite"><div class="hub-loading-mark" aria-hidden="true"><span></span><img src="/hub/mark.png" alt="" width="48" height="48"></div><div class="hub-loading-copy"><strong>LAC HUB</strong><p>${esc(message)}</p></div><div class="hub-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div></div></section>`;
+}
 function renderStartupLoading() {
-  return `<section class="runtime-auth runtime-auth--startup"><div class="runtime-startup-card"><span class="runtime-startup-spinner" aria-hidden="true"></span><div><strong>LAC HUB</strong><p>회사 정보를 불러오는 중입니다.</p></div></div></section>`;
+  return renderHubLoading('회사 정보를 불러오는 중입니다.');
 }
 
 function renderOfflineLoading() {

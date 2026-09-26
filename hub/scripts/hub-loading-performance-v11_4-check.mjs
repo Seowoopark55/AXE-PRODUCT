@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
+const policy=fs.readFileSync(new URL('../src/platform/contentPolicy.js',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const checks=[];
+function check(name,ok){checks.push([name,Boolean(ok)]);console.log(`${ok?'PASS':'FAIL'} · ${name}`)}
+check('company access has explicit loading state',/companyAccessStatus:'idle'/.test(main)&&/companyAccessStatus='loading'/.test(main));
+check('company access decision timestamp tracked',/companyAccessCheckedAt/.test(main));
+check('base company membership, pass and access start in parallel',/Promise\.allSettled\(\[\s*getMemberships\(companyId\),\s*getMyCompanyAccess\(companyId\),\s*getCompanyPassRequest\(companyId\)/s.test(main));
+check('company data cache marker exists',/companyDataReadyForCurrentCompany/.test(main)&&/companyDataCompanyId/.test(main));
+const block=main.match(/if\(action==='open-company-console'\)\{[\s\S]*?\n  \}\n  if\(action==='switch-company'/)?.[0]||'';
+check('company console navigates before any reload',block.indexOf("navigatePrimaryScreen('dashboard')")>=0&&block.indexOf("navigatePrimaryScreen('dashboard')")<block.indexOf('await loadCompanyData()'));
+check('company console reuses loaded context',/companyDataReadyForCurrentCompany\(\)\)\{render\(\);return;\}/.test(block));
+check('pending access has a dedicated content policy state',/export function contentAccessPending/.test(policy)&&/companyAccessPending/.test(policy));
+check('render shell hides pass landing while access is pending',/companyGatePending/.test(render)&&/guideGatePending/.test(render)&&/renderHubLoading/.test(render));
+check('game info also uses pending access loader when required',/gameInfoGatePending/.test(render));
+check('branded loader uses HUB mark',/src=\"\/hub\/mark\.png\"/.test(render));
+check('shared loader has pulse and progress motion',/hub-loading-pulse/.test(css)&&/hub-loading-spin/.test(css)&&/hub-loading-dot/.test(css));
+check('company switch resets access decision before reload',/action==='switch-company'[\s\S]*?companyAccessStatus='loading'/.test(main));
+const failed=checks.filter(([,ok])=>!ok);
+console.log(`HUB loading/performance V11.4 ${failed.length?'FAIL':'PASS'} · ${checks.length-failed.length}/${checks.length}`);
+if(failed.length)process.exit(1);

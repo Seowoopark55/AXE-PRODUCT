@@ -998,3 +998,58 @@ body:has(.runtime-app--game-info.game-center)::before {
 
 /* Avoid upscaling the 1096px full-size ledger capture in the preview dialog. */
 .lac-company-shot .lac-cook-preview-dialog{width:min(96vw,1098px)}
+
+/* LAC HUB v11.4 · shared branded loading state.
+   Access checks never expose the pass application page until the decision is known. */
+.runtime-auth--hub-loading{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(220,171,76,.07),transparent 28%),
+    #070a0e;
+}
+.hub-loading-card{
+  min-width:220px;
+  display:grid;
+  justify-items:center;
+  gap:10px;
+  padding:28px 32px 25px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:rgba(12,16,21,.88);
+  box-shadow:0 18px 48px rgba(0,0,0,.28);
+  text-align:center;
+}
+.hub-loading-mark{
+  position:relative;
+  width:62px;
+  height:62px;
+  display:grid;
+  place-items:center;
+}
+.hub-loading-mark>span{
+  position:absolute;
+  inset:0;
+  border:1px solid rgba(220,171,76,.14);
+  border-top-color:rgba(233,194,116,.78);
+  border-radius:50%;
+  animation:hub-loading-spin 1.8s linear infinite;
+}
+.hub-loading-mark img{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+  filter:drop-shadow(0 0 13px rgba(220,171,76,.13));
+  animation:hub-loading-pulse 1.7s ease-in-out infinite;
+}
+.hub-loading-copy{display:grid;gap:4px}
+.hub-loading-copy strong{color:#ead2a4;font-size:15px;letter-spacing:.075em}
+.hub-loading-copy p{margin:0;color:#87929d;font-size:11px;line-height:1.55}
+.hub-loading-dots{height:8px;display:flex;align-items:center;gap:5px;margin-top:2px}
+.hub-loading-dots i{width:4px;height:4px;border-radius:50%;background:#9d7a3b;animation:hub-loading-dot 1.15s ease-in-out infinite}
+.hub-loading-dots i:nth-child(2){animation-delay:.15s}.hub-loading-dots i:nth-child(3){animation-delay:.3s}
+@keyframes hub-loading-spin{to{transform:rotate(360deg)}}
+@keyframes hub-loading-pulse{0%,100%{opacity:.72;transform:scale(.96)}50%{opacity:1;transform:scale(1)}}
+@keyframes hub-loading-dot{0%,100%{opacity:.32;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
+@media(max-width:540px){.hub-loading-card{min-width:200px;padding:24px 26px}.hub-loading-copy strong{font-size:14px}}

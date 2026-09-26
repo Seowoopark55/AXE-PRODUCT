@@ -9,6 +9,15 @@ export function hasCompany(state){return Boolean(state?.companyId&&(state.compan
 export function hasUnifiedPass(state){
   return hasCompany(state) && state.companyAccess?.company_id===state.companyId && state.companyAccess?.can_use===true;
 }
+export function companyAccessPending(state){
+  if(!hasCompany(state)||hasUnifiedPass(state))return false;
+  return ['idle','loading'].includes(String(state?.companyAccessStatus||'idle'));
+}
+export function contentAccessPending(state,key){
+  if(!state?.session?.user||!contentIsVisible(state,key))return false;
+  if(key!=='company_management'&&contentPolicy(state,key)?.is_free===true)return false;
+  return companyAccessPending(state);
+}
 export function canOpenWebContent(state,key){
   if(!state?.session?.user||!contentIsVisible(state,key))return false;
   if(key==='company_management')return hasUnifiedPass(state); // free flag NEVER exposes private company records.
