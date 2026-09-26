@@ -7,7 +7,7 @@ const CONFIG = Object.freeze({
   info_processes: ['가공·재련','item_name',[['job','직업'],['process_type','가공 종류'],['output_qty','생산 수량'],['quest_qty','퀘스트 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_quests: ['퀘스트','item_name',[['job','직업'],['required_qty','필요 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_skill_ranks: ['스킬','skill',[['rank','등급'],['required_point','필요 포인트'],['point_type','포인트 종류'],['note','비고']]],
-  modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['note','비고']]],
+  modbook_catalog: ['개조서','name',[['type','개조 위치'],['category','분류'],['parts','적용 가능 부위'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['note','비고']]],
 });
 const TOP_TABS=[['info_crafts','제작법'],['info_processes','가공·재련'],['info_quests','퀘스트'],['info_skill_ranks','스킬'],['modbook_catalog','개조서']];
 // Stage 10: lightweight, consistent line symbols for the five top-level categories.
@@ -361,30 +361,24 @@ const MODBOOK_GROUPS=Object.freeze({
 });
 const splitModbookLabels=value=>String(value||'').split(/[,，、]/u).map(label=>label.trim()).filter(Boolean);
 const MODBOOK_KNOWN_CATEGORIES=new Set(Object.values(MODBOOK_GROUPS).flat());
-// These two option-keywords are supported by verified legacy screenshots:
-// 돌판의 (채집 effects) and 냄비의 (요리 effects). Do not guess categories from
-// arbitrary materials/effects, or use the item's name as a category hint.
-// If a new legacy record cannot be classified safely, keep it in 분류 미확인.
-const MODBOOK_VERIFIED_OPTION_HINTS=Object.freeze(['채집','요리']);
+// category is the sole source of catalogue classification. `parts` is an
+// independent equipment applicability field and must never be used as a category
+// fallback. Bad/legacy category values remain visible under `분류 미확인` until an
+// operator corrects them.
 const modbookClassification=row=>{
  const stored=splitModbookLabels(row?.category);
  const recognized=stored.filter(label=>MODBOOK_KNOWN_CATEGORIES.has(label));
- if(recognized.length)return {categories:[...new Set(recognized)],source:'category'};
- if(stored.length===0||(stored.length===1&&stored[0]===row?.type)){
-  const partLabels=splitModbookLabels(row?.parts);
-  if(partLabels.length&&partLabels.every(label=>MODBOOK_KNOWN_CATEGORIES.has(label)))
-   return {categories:[...new Set(partLabels)],source:'parts'};
-  const effects=[row?.option1,row?.option2,row?.option3].filter(Boolean).join(' ');
-  const explicit=MODBOOK_VERIFIED_OPTION_HINTS.filter(label=>effects.includes(label));
-  if(explicit.length)return {categories:explicit,source:'options'};
- }
+ if(stored.length>0&&recognized.length===stored.length)return {categories:[...new Set(recognized)],source:'category'};
  return {categories:stored,source:'unclassified'};
 };
 const modbookCategories=row=>{
- return modbookClassification(row).categories;
+ const classification=modbookClassification(row);
+ return classification.source==='category'?classification.categories:[];
 };
 const modbookGroups=row=>{
- const values=modbookCategories(row);
+ const classification=modbookClassification(row);
+ if(classification.source!=='category')return ['분류 확인 필요'];
+ const values=classification.categories;
  const groups=Object.entries(MODBOOK_GROUPS).filter(([,types])=>values.some(value=>types.includes(value))).map(([group])=>group);
  return groups.length?groups:['분류 확인 필요'];
 };
@@ -556,10 +550,8 @@ const listDecor=(table,title,subtitle,search=false,imageRef=null)=>{
 const nonEmptyLines=value=>String(value??'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
 const modbookDisplayTitle=row=>`${String(row?.type||'개조서').trim()||'개조서'} 개조서: ${String(row?.name||'이름 없음').trim()||'이름 없음'}`;
 const modbookApplicableLabel=row=>{
- const classified=modbookCategories(row).filter(Boolean);
- if(classified.length)return [...new Set(classified)].join(' · ');
- const fallbacks=[row?.category,row?.parts].flatMap(splitModbookLabels).filter(Boolean);
- return fallbacks.length?[...new Set(fallbacks)].join(' · '):'미등록';
+ const parts=splitModbookLabels(row?.parts).filter(Boolean);
+ return parts.length?[...new Set(parts)].join(' · '):'미등록';
 };
 const modbookEffectEntries=row=>[row?.option1,row?.option2,row?.option3].flatMap(nonEmptyLines).filter(Boolean).map(line=>{
  const raw=String(line||'').trim();
@@ -584,12 +576,8 @@ const modbookDetailPanel=row=>{
 const detailFields=(table,row,data,info,owner,{includeCraftMaterials=true}={})=>{
  const fields=CONFIG[table][2].map(([key,label])=>[label,fieldValue(row,key)]);
  if(table==='modbook_catalog'){
-  const classification=modbookClassification(row);
-  if(['parts','options'].includes(classification.source)){
-   const field=fields.find(([label])=>label==='적용 분야');
-   const explanation=classification.source==='parts'?'필요 부품 표기 기준 · 분류 확인 필요':'옵션 효과 기준 · 원본 분류값은 변경되지 않음';
-   if(field)field[1]=`${classification.categories.join(', ')} (${explanation})`;
-  }
+  // Classification and applicability are independent source fields. Do not
+  // rewrite one from the other in detail views.
  }
  if(table==='info_material_recipes')for(let i=1;i<=8;i++){
   const name=row[`input${i}`]; if(name)fields.splice((i-1)*2+1,0,[`재료 ${i} 수량`,fieldValue(row,`input${i}_qty`)]);

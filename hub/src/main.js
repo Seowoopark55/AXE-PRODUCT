@@ -20,7 +20,7 @@ import {
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getGlobalModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
-  saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage, listPlatformModbookRequests, reviewPlatformModbookRequest,
+  saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage, listPlatformModbookRequests, reviewPlatformModbookRequest, deleteModbookMaster,
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
@@ -1931,11 +1931,35 @@ async function loadPlatformModbookReviewCenter(preferredId=''){
     if(!Array.isArray(admin.requests))admin.requests=[];
   }finally{admin.requestsLoading=false;}
 }
+function gameAdminChoiceSpec(type=''){
+  if(!String(type).startsWith('multi-choice:'))return null;
+  const [,maxRaw,choicesRaw]=String(type).split(':');
+  return {max:Math.max(1,Number(maxRaw)||2),choices:String(choicesRaw||'').split('|').filter(Boolean)};
+}
+function gameAdminFieldRaw(form,name,type='text'){
+  const spec=gameAdminChoiceSpec(type);
+  if(spec){
+    const values=new FormData(form).getAll(name).map(value=>String(value||'').trim()).filter(Boolean);
+    const unique=[...new Set(values)];
+    if(unique.length>spec.max)throw new Error(`${name==='category'?'분류':'적용 가능 부위'}는 최대 ${spec.max}개까지 선택할 수 있습니다.`);
+    if(unique.some(value=>!spec.choices.includes(value)))throw new Error(`${name==='category'?'분류':'적용 가능 부위'} 선택값을 다시 확인해 주세요.`);
+    return unique.join(', ');
+  }
+  return String(form.elements.namedItem(name)?.value??'').trim();
+}
+function gameAdminUpdateMultiChoice(control){
+  const details=control?.closest?.('[data-ga-multi]');if(!details)return;
+  const max=Math.max(1,Number(details.dataset.gaMultiMax)||2);
+  const checked=[...details.querySelectorAll('input[type="checkbox"]:checked')];
+  if(checked.length>max){control.checked=false;setNotice(`${details.dataset.gaMultiLabel||'항목'}은(는) 최대 ${max}개까지 선택할 수 있습니다.`);}
+  const selected=[...details.querySelectorAll('input[type="checkbox"]:checked')].map(input=>input.value);
+  const summary=details.querySelector('[data-ga-multi-summary]');if(summary)summary.textContent=selected.length?selected.join(' · '):'선택해 주세요';
+}
 function gameAdminRequestPayload(form){
   const schema=GAME_ADMIN_SCHEMAS.modbook_catalog;
   const payload={};
   for(const [name,label,type='text',required=false] of schema.fields){
-    const input=form.elements.namedItem(name);const raw=String(input?.value??'').trim();
+    const raw=gameAdminFieldRaw(form,name,type);
     if(required&&!raw)throw new Error(`${label}을(를) 입력해 주세요.`);
     if(raw.length>2000)throw new Error(`${label}의 내용이 너무 깁니다.`);
     if(type==='number'||type==='integer'){
@@ -2029,6 +2053,19 @@ async function gameAdminAction(button){
   if(action==='modbook-request-approve-edit'){await gameAdminReviewModbookRequest('approve_edit',button);return;}
   if(action==='modbook-request-merge'){await gameAdminReviewModbookRequest('merge',button);return;}
   if(action==='modbook-request-reject'){await gameAdminReviewModbookRequest('reject',button);return;}
+  if(action==='delete-modbook'){
+    if(admin.table!=='modbook_catalog'||admin.mode!=='edit'||!admin.selectedId)return;
+    const row=(state.info?.data?.modbook_catalog||[]).find(item=>String(item.id)===String(admin.selectedId));
+    if(!row)throw new Error('삭제할 개조서를 찾지 못했습니다. 목록을 새로고침해 주세요.');
+    if(!confirm(`개조서 “${String(row.name||'')}”을 삭제할까요?\n\n일반 사용자와 Discord 목록에서는 즉시 숨겨지며, 변경 기록과 회사별 가격 데이터는 보존됩니다.`))return;
+    mutationBusy=true;button.disabled=true;
+    try{
+      await deleteModbookMaster({id:String(row.id),expectedAt:row.updated_at||null});
+      admin.selectedId='';admin.mode='';admin.dirty=false;admin.showInactive=false;
+      await loadGameInfo();render();setNotice('개조서를 삭제했습니다. 비활성 정보 포함에서 기록을 확인하거나 다시 활성화할 수 있습니다.');
+    }finally{mutationBusy=false;if(button?.isConnected)button.disabled=false;}
+    return;
+  }
   if(action==='add-material'){
     const list=root.querySelector('[data-ga-material-list]');
     if(!list||list.children.length>=40)return;
@@ -2063,8 +2100,7 @@ function gameAdminFormData(form,record){
   if(!schema)throw new Error('관리 항목을 선택해 주세요.');
   const payload={};
   for(const [name,label,type='text',required=false] of schema.fields){
-    const input=form.elements.namedItem(name);
-    const raw=String(input?.value??'').trim();
+    const raw=gameAdminFieldRaw(form,name,type);
     if(required&&!raw)throw new Error(`${label}을(를) 입력해 주세요.`);
     if(raw.length>2000)throw new Error(`${label}의 내용이 너무 깁니다.`);
     if(type==='number'||type==='integer'){
@@ -2951,6 +2987,7 @@ root.addEventListener('click', async event => {
 });
 
 root.addEventListener('change', async event => {
+  if(state.platformAdmin&&event.target.matches('[data-ga-multi] input[type="checkbox"]')){gameAdminUpdateMultiChoice(event.target);if(state.gameAdminOpen)state.gameAdmin.dirty=true;return;}
   if(state.gameAdminOpen&&state.platformAdmin&&event.target.matches('[data-game-admin-inactive]')){
     state.gameAdmin.showInactive=event.target.checked;
     // Rebuild only the result list. The editor DOM (and any unsaved draft) stays mounted.

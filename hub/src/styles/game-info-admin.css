@@ -189,3 +189,21 @@
 .platform-center .lac-ga__layout--review .lac-ga__list{max-height:720px}
 .platform-center .lac-ga__layout--review .lac-ga__editor{max-height:720px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 @media(max-width:900px){.platform-center .lac-ga__layout--review{grid-template-columns:minmax(0,1fr)}.platform-center .lac-ga__request-compare{grid-template-columns:minmax(0,1fr)}.platform-center .lac-ga__request-photo{position:static}.platform-center .lac-ga__layout--review .lac-ga__list{min-height:180px;max-height:260px}.platform-center .lac-ga__layout--review .lac-ga__editor{max-height:none;overflow:visible}.platform-center .lac-ga__review-count{align-items:flex-start}}
+
+/* Modbook integrity controls: canonical dropdowns with multi-select support. */
+:is(.game-center,.platform-center) .lac-ga__field--multi{display:flex;flex-direction:column;gap:7px}
+:is(.game-center,.platform-center) .lac-ga__multi{position:relative;width:100%}
+:is(.game-center,.platform-center) .lac-ga__multi>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;box-sizing:border-box;padding:9px 11px;border:1px solid #394753;border-radius:7px;background:#101821;color:#f2eee8;cursor:pointer;list-style:none}
+:is(.game-center,.platform-center) .lac-ga__multi>summary::-webkit-details-marker{display:none}
+:is(.game-center,.platform-center) .lac-ga__multi>summary::after{content:'⌄';color:#b99560;font-size:13px}
+:is(.game-center,.platform-center) .lac-ga__multi>summary small{margin-left:auto;color:var(--ga-muted);font-size:9px;font-weight:500}
+:is(.game-center,.platform-center) .lac-ga__multi[open]>summary{border-color:#9e7a49;box-shadow:0 0 0 1px rgba(178,138,82,.12)}
+:is(.game-center,.platform-center) .lac-ga__multi-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:6px;padding:8px;border:1px solid #394753;border-radius:8px;background:#0d151c;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+:is(.game-center,.platform-center) .lac-ga__multi-menu label{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 8px;border:1px solid #283640;border-radius:6px;background:#111c24;color:#dce4e8;font-size:11px;cursor:pointer}
+:is(.game-center,.platform-center) .lac-ga__multi-menu label:has(input:checked){border-color:#8b6a40;background:#211d17;color:#f2d7ab}
+:is(.game-center,.platform-center) .lac-ga__multi-menu input{accent-color:#b58a53}
+:is(.game-center,.platform-center) .lac-ga__bottom-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+:is(.game-center,.platform-center) .lac-ga__request-warning{display:flex;flex-direction:column;gap:3px;margin-top:14px;padding:10px 12px;border:1px solid #73562f;border-radius:8px;background:#201a12;color:#d9c2a0;font-size:10px;line-height:1.5}
+:is(.game-center,.platform-center) .lac-ga__request-warning strong{color:#f0cd98;font-size:11px}
+:is(.game-center,.platform-center) .lac-ga__request-actions button:disabled{opacity:.4;cursor:not-allowed;filter:saturate(.5)}
+@media(max-width:640px){:is(.game-center,.platform-center) .lac-ga__multi-menu{grid-template-columns:minmax(0,1fr)}}

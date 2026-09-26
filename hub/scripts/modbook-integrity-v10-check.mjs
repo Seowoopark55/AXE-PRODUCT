@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+const admin=fs.readFileSync(new URL('../src/ui/gameInfoAdmin.js',import.meta.url),'utf8');
+const info=fs.readFileSync(new URL('../src/ui/infoPage.js',import.meta.url),'utf8');
+const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/styles/game-info-admin.css',import.meta.url),'utf8');
+const must=(text,tokens,label)=>{for(const token of tokens)if(!text.includes(token))throw new Error(`${label}: missing ${token}`)};
+must(admin,['MODBOOK_CATEGORY_CHOICES','MODBOOK_PART_CHOICES','multi-choice:','분류','적용 가능 부위','delete-modbook','분류 또는 적용 가능 부위를 확인'], 'admin');
+must(main,['gameAdminChoiceSpec','gameAdminFieldRaw','gameAdminUpdateMultiChoice','deleteModbookMaster','delete-modbook'], 'main');
+must(api,['lac_admin_delete_modbook_master_v2','deleteModbookMaster'], 'api');
+must(info,['category is the sole source of catalogue classification','const modbookApplicableLabel=row=>{','splitModbookLabels(row?.parts)'], 'info');
+must(css,['lac-ga__multi-menu','lac-ga__request-warning','lac-ga__bottom-actions'], 'css');
+if(admin.includes("['category','적용 분야'")||admin.includes("['parts','필요 부품'"))throw new Error('legacy admin labels remain');
+if(info.includes("['category','적용 분야'")||info.includes("['parts','필요 부품'"))throw new Error('legacy detail labels remain');
+if(info.includes("source:'parts'")||info.includes("source:'options'"))throw new Error('category fallback from parts/options remains');
+console.log('MODBOOK V10 web integrity check PASS');

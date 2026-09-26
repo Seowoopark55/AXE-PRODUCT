@@ -1798,6 +1798,13 @@ export async function reviewPlatformModbookRequest({requestId,action,payload=nul
   });
   return unwrap(result,'개조서 등록 신청을 처리하지 못했습니다.');
 }
+export async function deleteModbookMaster({id,expectedAt=null}){
+  assertClient();
+  const result=await supabase.rpc('lac_admin_delete_modbook_master_v2',{
+    p_id:id,p_expected_updated_at:expectedAt,
+  });
+  return unwrap(result,'개조서를 삭제하지 못했습니다. 최신 DB 패치를 확인해 주세요.');
+}
 export async function getGameInfoAdminHistory(){
   assertClient();
   const result=await supabase.from('info_admin_history')
