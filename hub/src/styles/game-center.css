@@ -2146,3 +2146,23 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .game-info-explorer .game-modbook-detail .game-modbook-detail__effect--debuff .game-modbook-detail__effect-text {
  color:#f08d80;
 }
+
+/* Game Info banner: one calm introduction line. Deliberately later than the
+   legacy hero h2/p rules; preserves the existing artwork, size and search. */
+.game-center .game-center__hero .game-center__hero-copy{
+  display:flex;justify-content:center;gap:0;max-width:100%;height:100%;padding:0;
+}
+.game-center .game-center__hero .game-center__hero-line{
+  margin:0;max-width:min(760px,100%);color:#d8d2c7;
+  font-size:clamp(17px,1.48vw,20px);font-weight:500;
+  letter-spacing:-.018em;line-height:1.55;
+  text-shadow:0 1px 8px rgba(0,0,0,.28);
+  overflow-wrap:keep-all;word-break:keep-all;
+}
+.game-center .game-center__hero .game-center__hero-line::after{
+  content:"";display:block;width:44px;height:1px;margin-top:11px;
+  background:linear-gradient(90deg,rgba(218,175,112,.68),rgba(218,175,112,0));
+}
+@media(max-width:620px){
+  .game-center .game-center__hero .game-center__hero-line{font-size:16px;line-height:1.5}
+}
