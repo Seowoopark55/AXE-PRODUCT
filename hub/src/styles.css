@@ -20,6 +20,7 @@
 @import './styles/game-info-admin.css';
 @import './styles/skill-scene.css';
 @import './styles/hub-return.css';
+@import './styles/combat.css';
 
 /* AXE ONE STAGING 3.14.3 + WEB OPERATIONS BRIDGE 1.7.37 */
 html,body,#app{min-height:100%;}
@@ -997,4 +998,3 @@ body:has(.runtime-app--game-info.game-center)::before {
 
 /* Avoid upscaling the 1096px full-size ledger capture in the preview dialog. */
 .lac-company-shot .lac-cook-preview-dialog{width:min(96vw,1098px)}
-@import './styles/combat.css';
