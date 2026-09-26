@@ -14,6 +14,7 @@ const admin=read('src/ui/gameInfoAdmin.js');
 const api=read('src/lib/productApi.js');
 const main=read('src/main.js');
 const styles=read('src/styles.css');
+const adminStyles=read('src/styles/game-info-admin.css');
 
 ok(/const TOP_TABS=\[\['info_crafts','제작법'\],\['info_processes','가공·재련'\],\['info_quests','퀘스트'\],\['info_skill_ranks','스킬'\],\['modbook_catalog','개조서'\]\]/.test(info),'현재 사용자용 게임정보 5개 탭 유지');
 ok(/export const GAME_ADMIN_TABLES = Object\.freeze\(Object\.keys\(GAME_ADMIN_SCHEMAS\)\)/.test(admin),'관리자 카테고리는 스키마 기준으로 단일 관리');
@@ -33,6 +34,10 @@ ok(main.includes('gameAdminRefreshList()') && main.includes('gameAdminApplyListS
 const gameCenterAt=styles.indexOf("@import './styles/game-center.css';");
 const gameAdminAt=styles.indexOf("@import './styles/game-info-admin.css';");
 ok(gameCenterAt>=0 && gameAdminAt>gameCenterAt,'관리자 CSS가 승인된 게임정보 CSS 뒤에서 분리 적용');
+ok(main.includes("'game-center--admin'") || read('src/ui/render.js').includes("'game-center--admin'"),'관리자 전용 셸 클래스 적용');
+ok(adminStyles.includes('.game-center--admin .game-center__body{'),'관리자 모드가 공개 화면 고정 그리드에서 분리됨');
+ok(adminStyles.includes('.game-center--admin .lac-ga__editor{\n    overflow-x:hidden;\n    overflow-y:auto;'),'긴 관리자 편집 폼에 독립 세로 스크롤 적용');
+ok(adminStyles.includes('.game-center--admin .lac-ga__bottom{\n    position:sticky;'),'관리자 저장 영역 하단 고정 적용');
 
 const skillMarker=info.indexOf("'낚시':'fishing.png'");
 ok(skillMarker>0,'스킬 PNG 영역 확인');

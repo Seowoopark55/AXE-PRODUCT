@@ -275,7 +275,7 @@ function renderStandaloneGameInfo(state) {
     info_skill_ranks:'skill', modbook_catalog:'modbook'
   };
   const scene = sceneMap[state.info?.table] || 'craft';
-  return `<div class="runtime-app runtime-app--game-info game-center" data-game-scene="${scene}">
+  return `<div class="runtime-app runtime-app--game-info game-center ${state.gameAdminOpen&&state.platformAdmin?'game-center--admin':''}" data-game-scene="${scene}">
     <header class="game-center__header">
       <div class="game-center__actions">${hubReturnButton('game-center__back')}</div>
       <h1 class="game-center__title" id="game-info-heading">게임 정보</h1>

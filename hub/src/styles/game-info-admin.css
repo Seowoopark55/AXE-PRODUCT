@@ -74,3 +74,70 @@
 .game-center .lac-ga__error{color:#ffb8a9!important}
 @media(max-width:760px){.game-center .game-center__admin-trigger{right:10px;padding:6px 9px;font-size:10px}.game-center .lac-ga__layout{grid-template-columns:minmax(0,1fr)}.game-center .lac-ga__list{max-height:240px;min-height:185px}.game-center .lac-ga__form{padding:14px}.game-center .lac-ga__top{padding:14px}.game-center .lac-ga__top h2{font-size:18px}}
 @media(max-width:450px){.game-center .lac-ga__fields{grid-template-columns:minmax(0,1fr)}.game-center .lac-ga__top{align-items:flex-start}.game-center .lac-ga__material{grid-template-columns:minmax(0,1fr) 85px}.game-center .lac-ga__material button{grid-column:1/-1}.game-center .lac-ga__bottom{flex-direction:column;align-items:stretch}.game-center .lac-ga__bottom button{width:100%}}
+
+/* Final admin workspace safety: the public catalogue intentionally uses a
+   fixed desktop viewport, but the admin editor contains much taller forms.
+   Admin mode keeps the shell fixed while the editor becomes the dedicated
+   scroll region, so image/status/save controls can never be clipped. */
+@media (min-width:1100px) and (min-height:755px){
+  .game-center--admin .game-center__body{
+    display:block;
+    height:100%;
+    min-height:0;
+    overflow:hidden;
+    padding:12px 13px 13px;
+  }
+  .game-center--admin .lac-ga{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    min-height:0;
+    overflow:hidden;
+  }
+  .game-center--admin .lac-ga__top,
+  .game-center--admin .lac-ga__tabs,
+  .game-center--admin .lac-ga__history{
+    flex:0 0 auto;
+  }
+  .game-center--admin .lac-ga__history{
+    max-height:min(24dvh,220px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  .game-center--admin .lac-ga__layout{
+    flex:1 1 auto;
+    height:auto;
+    min-height:0;
+    overflow:hidden;
+  }
+  .game-center--admin .lac-ga__list,
+  .game-center--admin .lac-ga__editor{
+    height:100%;
+    min-height:0;
+    max-height:none;
+  }
+  .game-center--admin .lac-ga__list{overflow:hidden}
+  .game-center--admin .lac-ga__editor{
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#65727d #111922;
+  }
+  .game-center--admin .lac-ga__form{min-height:100%}
+  .game-center--admin .lac-ga__bottom{
+    position:sticky;
+    z-index:5;
+    bottom:0;
+    margin:16px -20px -18px;
+    padding:13px 20px 18px;
+    background:linear-gradient(180deg,rgba(20,30,39,.90),#141e27 32%);
+    box-shadow:0 -12px 22px rgba(7,12,17,.22);
+  }
+}
+
+/* Narrow/low-height layouts already use natural page scrolling. */
+@media (max-width:1099px), (max-height:754px){
+  .game-center--admin .lac-ga__editor{overflow:visible}
+  .game-center--admin .lac-ga__bottom{position:static}
+}
