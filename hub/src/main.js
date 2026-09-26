@@ -2,7 +2,7 @@ import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';
-import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
+import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,updateHubNotice,deleteHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
   listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipDetails, updateCompanyName,
@@ -2120,7 +2120,25 @@ root.addEventListener('click', async event => {
     if(state.page!=='hub-board')navigatePrimaryScreen('hub-board');
     clearHubBoardFiles();state.hubBoard.tab='notices';state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
   }
-  if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;clearHubBoardFiles();state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
+  if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;clearHubBoardFiles();state.hubBoard.noticeId=null;state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
+  if(action==='hub-board-notice-edit'){
+    if(!state.platformAdmin)return;
+    const id=String(actionEl.dataset.noticeId||state.hubBoard.noticeId||'');
+    if(!id||!(state.hubBoard.notices||[]).some(item=>String(item.id)===id)){setError('수정할 공지를 찾을 수 없습니다.');return;}
+    clearHubBoardFiles();state.hubBoard.noticeId=id;state.hubBoard.mode='notice-edit';state.hubBoard.tab='notices';render();return;
+  }
+  if(action==='hub-board-notice-delete'){
+    if(!state.platformAdmin)return;
+    const id=String(actionEl.dataset.noticeId||state.hubBoard.noticeId||'');
+    if(!id){setError('삭제할 공지를 찾을 수 없습니다.');return;}
+    if(!await confirmHubDeletion({title:'공지 삭제',message:'이 공지사항을 삭제할까요? 삭제 후에는 복구할 수 없습니다.',confirmLabel:'공지 삭제'}))return;
+    await withMutation(async()=>{
+      await deleteHubNotice(id);
+      state.hubBoard.noticeId=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';
+      await loadHubBoard();setNotice('공지사항을 삭제했습니다.');
+    });
+    return;
+  }
   if(action==='platform-refresh-site-tickets'){
     if(!state.platformAdmin)return;
     await withMutation(loadHubBoard);return;
@@ -2963,7 +2981,14 @@ root.addEventListener('submit', async event => {
     if(type==='hub-board-notice'){
       if(!state.platformAdmin)throw new Error('운영자만 공지를 등록할 수 있습니다.');
       await publishHubNotice(String(data.get('title')||'').trim(),String(data.get('body')||'').trim());
-      state.hubBoard.mode='list';state.hubBoard.tab='notices';await loadHubBoard();setNotice('공지사항을 등록했습니다.');return;
+      state.hubBoard.noticeId=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';await loadHubBoard();setNotice('공지사항을 등록했습니다.');return;
+    }
+    if(type==='hub-board-notice-edit'){
+      if(!state.platformAdmin)throw new Error('운영자만 공지를 수정할 수 있습니다.');
+      const noticeId=String(state.hubBoard.noticeId||'');
+      if(!noticeId)throw new Error('수정할 공지를 찾을 수 없습니다.');
+      await updateHubNotice(noticeId,String(data.get('title')||'').trim(),String(data.get('body')||'').trim());
+      await loadHubBoard();state.hubBoard.noticeId=noticeId;state.hubBoard.mode='notice';state.hubBoard.tab='notices';setNotice('공지사항을 수정했습니다.');return;
     }
     if(type==='test-center-company'){
       if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');

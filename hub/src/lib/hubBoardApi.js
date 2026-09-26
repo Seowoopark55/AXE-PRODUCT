@@ -60,6 +60,15 @@ export async function publishHubNotice(title,body) {
   assertClient();
   return resultData(await supabase.rpc('hub_board_publish_notice',{p_title:title,p_body:body}),'공지 등록에 실패했습니다.');
 }
+export async function updateHubNotice(noticeId,title,body) {
+  assertClient();
+  return resultData(await supabase.rpc('hub_board_update_notice',{p_notice_id:noticeId,p_title:title,p_body:body}),'공지 수정에 실패했습니다.');
+}
+export async function deleteHubNotice(noticeId) {
+  assertClient();
+  const result=await supabase.rpc('hub_board_delete_notice',{p_notice_id:noticeId});
+  if(result.error)throw new Error(`공지 삭제에 실패했습니다. ${result.error.message||''}`.trim());
+}
 const MIME_EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 export function checkHubBoardFiles(files) {
   const selected=Array.from(files||[]);
