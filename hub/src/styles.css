@@ -997,3 +997,4 @@ body:has(.runtime-app--game-info.game-center)::before {
 
 /* Avoid upscaling the 1096px full-size ledger capture in the preview dialog. */
 .lac-company-shot .lac-cook-preview-dialog{width:min(96vw,1098px)}
+@import './styles/combat.css';

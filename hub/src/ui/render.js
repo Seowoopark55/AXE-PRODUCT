@@ -27,6 +27,7 @@ function icon(name) {
     members:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
     assets:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2M3 10h18"/>',
     accounts:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/>',
+    combat:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
     settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2v-4h.1A1.7 1.7 0 0 0 3.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8 3.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 15 3.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 20.4 8a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7 1.6z"/>',
     platform:'<path d="M12 3l8 4v5c0 4.8-3.1 7.9-8 9-4.9-1.1-8-4.2-8-9V7z"/><path d="M9 12l2 2 4-4"/>',
     feedback:'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/>',
@@ -244,7 +245,7 @@ function renderAuthed(state) {
         </section>
         <nav class="sidebar-nav"><span class="sidebar-nav__label">회사 운영</span>
           ${navItem(state,'dashboard','대시보드')}${navItem(state,'fund','공금 관리')}${navItem(state,'members','멤버 관리')}${navItem(state,'assets','자산 관리')}${navItem(state,'accounts','계좌 관리')}
-          <span class="sidebar-nav__label spaced">정보 · 설정</span>${navItem(state,'info','게임 정보')}${navItem(state,'settings','회사 설정')}
+          <span class="sidebar-nav__label spaced">정보 · 설정</span>${navItem(state,'combat','전투 기록')}${navItem(state,'settings','회사 설정')}
           
         </nav>
         <footer class="sidebar-footer">
@@ -370,8 +371,6 @@ function renderPage(state) {
   if (state.page === 'layout') return state.platformAdmin ? renderLayoutStudio(state) : renderPermission(state);
   if (state.page === 'questions') return supportTabNav(state) + renderQuestions(state);
   if (state.page === 'suggestions') return supportTabNav(state) + renderSuggestions(state);
-  // Public information is accessible to signed-in company members, not only operators.
-  if (state.page === 'info') return canOpenWebContent(state,'game_info') ? renderInfoPage(state) : renderPermission(state);
   const subscriptionState=String(state.currentSubscription?.effective_status||state.currentSubscription?.status||'active');
   if(['paused','expired'].includes(subscriptionState)) return renderSubscriptionBlocked(state,subscriptionState);
   if (!canAdmin(state)) return renderPermission(state);
@@ -379,6 +378,7 @@ function renderPage(state) {
   if (state.page === 'members') return renderMembers(state);
   if (state.page === 'assets') return renderAssets(state);
   if (state.page === 'accounts') return renderAccounts(state);
+  if (state.page === 'combat') return renderCombat(state);
   if (state.page === 'settings') return renderSettings(state);
   return renderFund(state);
 }
@@ -486,6 +486,102 @@ function renderDashboard(state){
   </div>`;
 }
 
+
+// ============================================================
+// COMBAT RECORD · company outlaw-stat analytics
+// ============================================================
+function combatNum(value){ const n=Number(value); return Number.isFinite(n)?n:0; }
+function combatKd(kills,deaths){ const k=combatNum(kills),d=combatNum(deaths); return d>0?k/d:k>0?k:0; }
+function combatKdText(value){ const n=Number(value); return Number.isFinite(n)?n.toFixed(2):'0.00'; }
+function combatPeriodMeta(period){ return period==='7d'?{label:'최근 7일',days:7}:period==='30d'?{label:'최근 30일',days:30}:{label:'전체',days:null}; }
+function combatFilterHistory(rows,period){
+  const list=(Array.isArray(rows)?rows:[]).filter(row=>String(row.status||'approved')==='approved');
+  const days=combatPeriodMeta(period).days;
+  if(!days)return list;
+  const cutoff=Date.now()-days*86400000;
+  return list.filter(row=>{const t=new Date(row.recorded_at||row.created_at||0).getTime();return Number.isFinite(t)&&t>=cutoff;});
+}
+function combatPeriodStats(detail,period){
+  const rows=combatFilterHistory(detail?.history,period);
+  if(period==='all'){
+    const kills=combatNum(detail?.current?.total_kills);
+    const deaths=combatNum(detail?.current?.total_deaths);
+    return {kills,deaths,kd:combatNum(detail?.current?.kd)||combatKd(kills,deaths),records:rows.length,rows};
+  }
+  const kills=rows.reduce((sum,row)=>sum+combatNum(row.kill_delta),0);
+  const deaths=rows.reduce((sum,row)=>sum+combatNum(row.death_delta),0);
+  return {kills,deaths,kd:combatKd(kills,deaths),records:rows.length,rows};
+}
+function combatRankValue(row,mode){
+  if(mode==='kills')return combatNum(row.total_kills);
+  if(mode==='activity')return combatNum(row.records_30d);
+  return combatNum(row.kd||combatKd(row.total_kills,row.total_deaths));
+}
+function combatChart(history,period){
+  const rows=combatFilterHistory(history,period).slice(-80);
+  if(rows.length<2)return `<div class="combat-chart-empty"><strong>그래프를 만들 기록이 아직 부족합니다.</strong><span>승인된 전적이 2회 이상 쌓이면 K/D 추이가 표시됩니다.</span></div>`;
+  const values=rows.map(row=>combatKd(row.total_kills,row.total_deaths));
+  let min=Math.min(...values),max=Math.max(...values);
+  if(Math.abs(max-min)<0.05){min=Math.max(0,min-0.2);max+=0.2;}
+  const w=700,h=190,padX=18,padY=18,span=Math.max(0.01,max-min);
+  const points=values.map((v,i)=>{
+    const x=padX+(w-padX*2)*(i/(values.length-1));
+    const y=h-padY-(h-padY*2)*((v-min)/span);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const last=values.at(-1)||0;
+  const first=values[0]||0;
+  const delta=last-first;
+  return `<div class="combat-chart-wrap"><div class="combat-chart-head"><div><strong>K/D 추이</strong><span>${esc(combatPeriodMeta(period).label)} · 승인된 전적 기준</span></div><em class="${delta>0?'is-up':delta<0?'is-down':''}">${delta>0?'+':''}${delta.toFixed(2)}</em></div><svg class="combat-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="K/D 추이 그래프"><line x1="${padX}" y1="${h-padY}" x2="${w-padX}" y2="${h-padY}" class="combat-chart-axis"/><line x1="${padX}" y1="${padY}" x2="${padX}" y2="${h-padY}" class="combat-chart-axis"/><polyline points="${points}" class="combat-chart-line" fill="none" vector-effect="non-scaling-stroke"/></svg><div class="combat-chart-scale"><span>${esc(fmtDate(rows[0]?.recorded_at||rows[0]?.created_at,true))}</span><strong>${combatKdText(last)}</strong><span>${esc(fmtDate(rows.at(-1)?.recorded_at||rows.at(-1)?.created_at,true))}</span></div></div>`;
+}
+function renderCombat(state){
+  const combat=state.combat||{};
+  const overview=combat.overview||{};
+  const summaryData=overview.summary||{};
+  const members=Array.isArray(overview.members)?overview.members:[];
+  const selectedId=String(combat.selectedMembershipId||'');
+  const selectedSummary=members.find(row=>String(row.membership_id)===selectedId)||null;
+  const detail=combat.detail||null;
+  const period=['7d','30d','all'].includes(combat.period)?combat.period:'30d';
+  const rankMode=['kd','kills','activity'].includes(combat.rankMode)?combat.rankMode:'kd';
+  const ranked=[...members].filter(row=>row.tracked).sort((a,b)=>combatRankValue(b,rankMode)-combatRankValue(a,rankMode)||combatNum(b.total_kills)-combatNum(a.total_kills));
+  const periodStats=combatPeriodStats(detail,period);
+  const summaryCards=[
+    ['기록 멤버',`${combatNum(summaryData.tracked_count)}명`],
+    ['누적 킬',combatNum(summaryData.total_kills).toLocaleString('ko-KR')],
+    ['누적 데스',combatNum(summaryData.total_deaths).toLocaleString('ko-KR')],
+    ['회사 K/D',combatKdText(summaryData.kd||combatKd(summaryData.total_kills,summaryData.total_deaths))],
+  ];
+  const rankingLabel=rankMode==='kills'?'누적 킬':rankMode==='activity'?'30일 갱신':'누적 K/D';
+  const rankingRows=ranked.length?ranked.map((row,index)=>{
+    const active=String(row.membership_id)===selectedId;
+    const metric=rankMode==='kills'?`${combatNum(row.total_kills).toLocaleString('ko-KR')} K`:rankMode==='activity'?`${combatNum(row.records_30d)}회`:`K/D ${combatKdText(row.kd||combatKd(row.total_kills,row.total_deaths))}`;
+    return `<button type="button" class="combat-member ${active?'is-active':''}" data-action="combat-select-member" data-membership-id="${esc(row.membership_id)}"><span class="combat-member-rank">${index+1}</span><span class="combat-member-copy"><strong>${esc(row.display_name||row.source_nickname||'이름 없음')}</strong><small>${esc(ROLE_KO[row.role]||row.role||'멤버')} · 전적 ${combatNum(row.record_count)}회</small></span><em>${esc(metric)}</em></button>`;
+  }).join(''):`<div class="combat-empty-list"><strong>아직 전투 기록이 없습니다.</strong><span>무법지대 전적 이미지가 승인되면 자동으로 표시됩니다.</span></div>`;
+  const memberName=detail?.member?.display_name||selectedSummary?.display_name||detail?.current?.source_nickname||'멤버 선택';
+  const current=detail?.current||{};
+  const currentKills=combatNum(current.total_kills ?? selectedSummary?.total_kills);
+  const currentDeaths=combatNum(current.total_deaths ?? selectedSummary?.total_deaths);
+  const currentKd=combatNum(current.kd)||combatKd(currentKills,currentDeaths);
+  const history=Array.isArray(detail?.history)?detail.history:[];
+  const historyRows=[...history].filter(row=>String(row.status||'approved')==='approved').sort((a,b)=>new Date(b.recorded_at||b.created_at||0)-new Date(a.recorded_at||a.created_at||0)).slice(0,12);
+  const detailBody=!selectedId?`<div class="combat-detail-empty"><strong>멤버를 선택해 주세요.</strong><span>왼쪽 전투 랭킹에서 멤버를 선택하면 상세 기록을 확인할 수 있습니다.</span></div>`:combat.detailLoading?`<div class="combat-detail-empty"><span class="runtime-startup-spinner" aria-hidden="true"></span><strong>전투 기록을 불러오는 중입니다.</strong></div>`:!detail?`<div class="combat-detail-empty"><strong>표시할 상세 기록이 없습니다.</strong><span>해당 멤버에게 승인된 무법지대 기록이 있는지 확인해 주세요.</span></div>`:`
+    <header class="combat-detail-head"><div><span>MEMBER RECORD</span><h2>${esc(memberName)}</h2><p>${esc(ROLE_KO[detail.member?.role]||detail.member?.role||'멤버')} · 최근 갱신 ${esc(fmtDate(current.updated_at||current.source_updated_at||selectedSummary?.updated_at,true))}</p></div><div class="combat-detail-state"><i></i><span>무법지대 전적 연동</span></div></header>
+    <section class="combat-member-metrics"><article><span>KILLS</span><strong>${currentKills.toLocaleString('ko-KR')}</strong></article><article><span>DEATHS</span><strong>${currentDeaths.toLocaleString('ko-KR')}</strong></article><article><span>K/D</span><strong>${combatKdText(currentKd)}</strong></article><article><span>전적 갱신</span><strong>${history.filter(row=>String(row.status||'approved')==='approved').length}회</strong></article></section>
+    <div class="combat-period-bar"><div><strong>기간별 기록</strong><span>어시스트 데이터가 없어 KDA가 아닌 K/D로 표시합니다.</span></div><div class="combat-period-tabs">${[['7d','7일'],['30d','30일'],['all','전체']].map(([key,label])=>`<button type="button" class="${period===key?'is-active':''}" data-action="combat-period" data-period="${key}">${label}</button>`).join('')}</div></div>
+    <section class="combat-period-summary"><article><span>${esc(combatPeriodMeta(period).label)} 킬</span><strong>${period==='all'?'':'+'}${periodStats.kills.toLocaleString('ko-KR')}</strong></article><article><span>${esc(combatPeriodMeta(period).label)} 데스</span><strong>${period==='all'?'':'+'}${periodStats.deaths.toLocaleString('ko-KR')}</strong></article><article><span>기간 K/D</span><strong>${combatKdText(periodStats.kd)}</strong></article><article><span>전적 갱신</span><strong>${periodStats.records}회</strong></article></section>
+    <section class="combat-chart-panel">${combatChart(history,period)}</section>
+    <section class="combat-history"><header><div><span>HISTORY</span><h3>최근 전적 갱신</h3></div><small>승인된 기록만 표시</small></header><div class="combat-history-head"><span>날짜</span><span>증가 K</span><span>증가 D</span><span>구간 K/D</span><span>누적 K/D</span><span>원본</span></div><div class="combat-history-list">${historyRows.length?historyRows.map(row=>{const dk=combatNum(row.kill_delta),dd=combatNum(row.death_delta),kd=combatKd(row.total_kills,row.total_deaths);const image=String(row.source_image_url||row.image_url||'').trim();return `<div class="combat-history-row"><time>${esc(fmtDate(row.recorded_at||row.created_at,true))}</time><strong>+${dk}</strong><strong>+${dd}</strong><span>${combatKdText(row.delta_kd||combatKd(dk,dd))}</span><span>${combatKdText(kd)}</span>${image?`<a href="${esc(image)}" target="_blank" rel="noopener noreferrer">이미지</a>`:'<em>—</em>'}</div>`;}).join(''):`<div class="combat-history-empty">표시할 승인 기록이 없습니다.</div>`}</div></section>`;
+  return `<div class="combat-page">
+    <header class="combat-page-head"><div><span class="page-eyebrow">COMBAT RECORD</span><h1>전투 기록</h1><p>회사 멤버의 무법지대 K/D와 기간별 전적 흐름을 확인합니다.</p></div><button type="button" class="combat-refresh" data-action="refresh-combat">${icon('refresh')}<span>새로고침</span></button></header>
+    ${combat.error?`<div class="combat-error"><strong>전투 기록을 불러오지 못했습니다.</strong><span>${esc(combat.error)}</span></div>`:''}
+    <section class="combat-company-summary">${summaryCards.map(([label,value])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`).join('')}</section>
+    <div class="combat-layout">
+      <aside class="combat-ranking"><header><div><span>MEMBER RANKING</span><h2>멤버 전투 현황</h2></div><em>${ranked.length}명</em></header><div class="combat-rank-tabs">${[['kd','K/D'],['kills','킬'],['activity','활동']].map(([key,label])=>`<button type="button" class="${rankMode===key?'is-active':''}" data-action="combat-rank-mode" data-rank-mode="${key}">${label}</button>`).join('')}</div><div class="combat-ranking-caption"><span>순위 · 멤버</span><span>${esc(rankingLabel)}</span></div><div class="combat-member-list">${combat.loading&&!overview.members?`<div class="combat-empty-list">전투 기록을 불러오는 중입니다.</div>`:rankingRows}</div></aside>
+      <section class="combat-detail">${detailBody}</section>
+    </div>
+  </div>`;
+}
 
 // ============================================================
 // DATA DENSITY · bounded operational lists

@@ -1388,6 +1388,24 @@ export async function getWebAccountsSnapshot(companyId) {
   return unwrap(result, '계좌 현황을 불러오지 못했습니다.') || {};
 }
 
+export async function getCombatOverview(companyId) {
+  assertClient();
+  const result = await supabase.rpc('web_combat_overview_v1', {
+    p_company_id: companyId,
+  });
+  return unwrap(result, '전투 기록을 불러오지 못했습니다. 전투 기록 DB 패치 적용 상태를 확인해 주세요.') || {};
+}
+
+export async function getCombatMember(companyId, membershipId, limit = 1000) {
+  assertClient();
+  const result = await supabase.rpc('web_combat_member_v1', {
+    p_company_id: companyId,
+    p_membership_id: membershipId,
+    p_limit: Math.max(1, Math.min(Number(limit) || 1000, 2000)),
+  });
+  return unwrap(result, '멤버 전투 기록을 불러오지 못했습니다.') || {};
+}
+
 export async function submitWebAccountRequest(companyId, account, note = '') {
   assertClient();
   const result = await supabase.rpc('web_accounts_submit_request', {
