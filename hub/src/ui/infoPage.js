@@ -7,7 +7,7 @@ const CONFIG = Object.freeze({
   info_processes: ['가공·재련','item_name',[['job','직업'],['process_type','가공 종류'],['output_qty','생산 수량'],['quest_qty','퀘스트 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_quests: ['퀘스트','item_name',[['job','직업'],['required_qty','필요 수량'],['reward_money','보상 금액'],['reward_xp','보상 경험치'],['rank','등급'],['note','비고']]],
   info_skill_ranks: ['스킬','skill',[['rank','등급'],['required_point','필요 포인트'],['point_type','포인트 종류'],['note','비고']]],
-  modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['recent_price','최근 거래가격'],['recent_date','최근 거래일'],['price_note','가격 비고'],['note','비고']]],
+  modbook_catalog: ['개조서','name',[['type','접두·접미'],['category','적용 분야'],['parts','필요 부품'],['option1','옵션 1'],['option2','옵션 2'],['option3','옵션 3'],['success_rate','성공률'],['note','비고']]],
 });
 const TOP_TABS=[['info_crafts','제작법'],['info_processes','가공·재련'],['info_quests','퀘스트'],['info_skill_ranks','스킬'],['modbook_catalog','개조서']];
 // Stage 10: lightweight, consistent line symbols for the five top-level categories.
@@ -495,7 +495,7 @@ const standaloneDetailSections=(htmlFields,table,record,questVariants=[record])=
   info_processes:[], // Output and quest rewards have separate, correctly labeled stages below.
   info_quests:['보상 금액','보상 경험치','등급'],
   info_skill_ranks:['등급','필요 포인트','포인트 종류'],
-  modbook_catalog:['성공률','최근 거래가격','최근 거래일']
+  modbook_catalog:['성공률','적용 분야','필요 부품']
  }[table]||[];
  // Source name/category remain unchanged in DB. Human-readable grouping is
  // used in the standalone UI instead of exposing a raw KNIFE/ETC code.
@@ -590,8 +590,6 @@ const detailFields=(table,row,data,info,owner,{includeCraftMaterials=true}={})=>
    const explanation=classification.source==='parts'?'필요 부품 표기 기준 · 분류 확인 필요':'옵션 효과 기준 · 원본 분류값은 변경되지 않음';
    if(field)field[1]=`${classification.categories.join(', ')} (${explanation})`;
   }
-  const price=fields.find(([label])=>label==='최근 거래가격');
-  if(price&&price[1]!=='—'&&Number.isFinite(Number(row.recent_price)))price[1]=`${Number(row.recent_price).toLocaleString('ko-KR')}원`;
  }
  if(table==='info_material_recipes')for(let i=1;i<=8;i++){
   const name=row[`input${i}`]; if(name)fields.splice((i-1)*2+1,0,[`재료 ${i} 수량`,fieldValue(row,`input${i}_qty`)]);
@@ -814,14 +812,14 @@ export function searchInformation(data,query,info={},owner=false){
 export function renderInfoPage(state,{standalone=false}={}){
  setGameInfoImageMap(state.info?.data?.info_images||[]);
  const info=state.info||{},owner=Boolean(state.platformAdmin);
- // Stale company-specific rows must never survive a company/account switch.
- const data=!state.companyId||(info.companyId&&String(info.companyId)!==String(state.companyId))?{...(info.data||{}),modbook_catalog:[]}:(info.data||{});
- const hasCompany=Boolean(state.companyId && (state.companies||[]).some(c=>c.id===state.companyId));
- const requestedTable=CONFIG[info.table] && (hasCompany || info.table!=='modbook_catalog')?info.table:'info_crafts';
+ // Approved modbooks are platform-wide. Company changes never clear or replace
+ // the common catalogue; only company-specific Discord price overlays are scoped.
+ const data=info.data||{};
+ const requestedTable=CONFIG[info.table]?info.table:'info_crafts';
  const tabTable=['info_craft_materials','info_material_recipes'].includes(requestedTable)?'info_crafts':requestedTable;
  const q=String(info.query||'').trim();
  const searching=Boolean(q);
- const categories=TOP_TABS.filter(([key])=>hasCompany || key!=='modbook_catalog').map(([key,label])=>{
+ const categories=TOP_TABS.map(([key,label])=>{
   return `<button type="button" data-info-table="${key}" class="${!searching&&tabTable===key?'is-active':''}" aria-current="${!searching&&tabTable===key?'true':'false'}">${infoTabIcon(key)}<span>${escapeText(label)}</span></button>`;
  }).join('');
  const filters=searching?null:categoryFilters(tabTable,info,data,owner,{standalone});
@@ -859,8 +857,8 @@ export function renderInfoPage(state,{standalone=false}={}){
  const ownerNote=owner?'<span class="axe-info-owner-note">독립 게임정보 화면의 정보 관리 버튼에서 항목을 추가·수정할 수 있습니다.</span>':'';
  const error=info.error?`<div class="axe-info-error">${escapeText(info.error)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
  const modbookError=info.modbookError&&(tabTable==='modbook_catalog'||searching)?`<div class="axe-info-error">개조서 조회 실패: ${escapeText(info.modbookError)} <button type="button" data-action="info-refresh">다시 불러오기</button></div>`:'';
- const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 가공·재련 · 퀘스트 · 스킬${hasCompany?' · 현재 회사 개조서':''} 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
- const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 가공·재련 · 퀘스트 · 스킬 정보 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
+ const header=`<header class="axe-info-header"><div><span class="page-eyebrow">LAC HUB / INFORMATION</span><h1>게임 정보</h1><p>제작법 · 가공·재련 · 퀘스트 · 스킬 · 개조서 정보를 찾아보세요.</p></div>${standalone?'':'<button type="button" class="ops-action-secondary" data-action="info-refresh">새로고침</button>'}</header>`;
+ const toolbar=`<div class="axe-info-toolbar"><input type="search" data-info-query placeholder="제작법 · 가공·재련 · 퀘스트 · 스킬 · 개조서 검색" value="${escapeText(info.query||'')}" aria-label="게임 정보 전체 검색">${searching?'<span class="axe-info-search-hint">전체 정보 검색 중</span>':''}${owner?`<label><input type="checkbox" data-info-inactive ${info.showInactive?'checked':''}> 비활성 포함</label>`:''}</div>`;
  const controls=!searching&&filters.controls?`<div class="axe-info-subfilters${tabTable==='info_crafts'?' axe-info-subfilters--craft':''}">${filters.controls}</div>`:'';
  const result=info.loading?'<div class="runtime-inline-loading">게임 정보를 불러오는 중…</div>':!info.loaded?`<div class="runtime-inline-loading">${standalone?'게임 정보를 불러오지 못했습니다. HUB 메인으로 돌아갔다가 다시 접속해 주세요.':'정보를 불러오려면 새로고침을 눌러 주세요.'}</div>`:`<div class="axe-info-content${standalone&&table==='info_skill_ranks'?' game-skill-content':''}"><div class="axe-info-list"><div class="axe-info-list__heading"><span>${searching?'전체 검색 결과':escapeText(filters.heading)}</span></div><div class="axe-info-list__items">${rowList}</div></div>${details}</div>`;
  if(standalone){

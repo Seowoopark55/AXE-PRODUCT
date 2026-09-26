@@ -63,27 +63,23 @@ export async function getGameInformation(includeInactive = false) {
   return data;
 }
 
-// Company-owned modbook data is intentionally NOT part of the shared info
-// catalogue. The explicit company filter complements (never replaces) the
-// existing modbook_catalog company-member RLS policy. No writes or new grants.
-export async function getCompanyModbooks(companyId, includeInactive = false) {
+// Approved modbooks are a platform-wide catalogue. Company-specific price/date
+// information remains outside this public read model and is used only by the
+// company Discord workflow.
+export async function getGlobalModbooks(includeInactive = false) {
   assertClient();
-  const id = String(companyId || '').trim();
-  if (!id) return [];
   const rows = [];
-  // Supabase/PostgREST can cap a single result page. Fetch all of the current
-  // company's rows so a growing catalog is not silently truncated.
-  for (let offset = 0; ; offset += 500) {
-    let query = supabase.from('modbook_catalog')
-      .select('id,company_id,type,category,name,parts,option1,option2,option3,success_rate,recent_price,recent_date,price_note,note,sort_order,active,updated_at')
-      .eq('company_id', id)
+  for (let offset = 0; ; offset += INFO_PAGE_SIZE) {
+    let query = supabase.from('modbook_master_catalog')
+      .select('id,type,category,name,parts,option1,option2,option3,success_rate,note,sort_order,active,updated_at')
       .order('sort_order').order('id')
-      .range(offset, offset + 499);
+      .range(offset, offset + INFO_PAGE_SIZE - 1);
     if (!includeInactive) query = query.eq('active', true);
     const result = await query;
     if (result.error) throw new Error(`개조서: ${result.error.message}`);
-    rows.push(...(result.data || []));
-    if ((result.data || []).length < 500) break;
+    const page = result.data || [];
+    rows.push(...page);
+    if (page.length < INFO_PAGE_SIZE) break;
   }
   return rows;
 }
@@ -1775,11 +1771,32 @@ export async function notifyPassRequestOwner(requestId){
 // atomic RPC. No service-role key or direct table write is present in the browser.
 export async function saveGameInfoAdminRow({table,id=null,payload,expectedAt=null,companyId=null,materials=null,imagePath=null}) {
   assertClient();
+  if(table==='modbook_catalog'){
+    const result=await supabase.rpc('lac_admin_save_modbook_master_v1',{
+      p_id:id||null,p_payload:payload,p_expected_updated_at:expectedAt,
+    });
+    return unwrap(result,'공통 개조서를 저장하지 못했습니다. 개조서 승인형 DB 마이그레이션 적용 상태를 확인하세요.');
+  }
   const result=await supabase.rpc('lac_admin_save_game_info',{
     p_table:table,p_id:id,p_payload:payload,p_expected_updated_at:expectedAt,
     p_company_id:companyId,p_materials:materials,p_image_path:imagePath
   });
   return unwrap(result,'게임정보를 저장하지 못했습니다. 관리자 DB 마이그레이션 적용 상태를 확인하세요.');
+}
+
+export async function listPlatformModbookRequests(status='pending'){
+  assertClient();
+  const result=await supabase.rpc('platform_modbook_request_list_v1',{p_status:status||'pending'});
+  return unwrap(result,'개조서 등록 신청을 불러오지 못했습니다.')||[];
+}
+
+export async function reviewPlatformModbookRequest({requestId,action,payload=null,mergeModbookId=null,reviewNote=null}){
+  assertClient();
+  const result=await supabase.rpc('platform_modbook_request_review_v1',{
+    p_request_id:requestId,p_action:action,p_payload:payload,
+    p_merge_modbook_id:mergeModbookId||null,p_review_note:reviewNote||null,
+  });
+  return unwrap(result,'개조서 등록 신청을 처리하지 못했습니다.');
 }
 export async function getGameInfoAdminHistory(){
   assertClient();

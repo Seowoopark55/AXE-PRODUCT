@@ -25,7 +25,11 @@ ok(api.includes("supabase.rpc('lac_admin_save_game_info'"),'게임정보 저장�
 ok(!/\.from\(['"]info_(?:crafts|craft_materials|material_recipes|processes|quests|skill_ranks)['"]\)\s*\.(?:insert|update|delete|upsert)/s.test(api),'브라우저에서 공통 게임정보 직접 쓰기 없음');
 ok(api.includes('const INFO_PAGE_SIZE = 500') && api.includes('.range(offset, offset + INFO_PAGE_SIZE - 1)'),'공통 게임정보 페이지네이션 적용');
 ok(api.includes("activeCraftIds") && api.includes("data.info_craft_materials = data.info_craft_materials.filter"),'비활성 제작법의 재료 노출 차단 유지');
-ok(api.includes(".from('modbook_catalog')") && api.includes('.range(offset, offset + 499)'),'회사별 개조서 페이지네이션 유지');
+ok(api.includes(".from('modbook_master_catalog')") && api.includes('.range(offset, offset + INFO_PAGE_SIZE - 1)'),'공통 개조서 페이지네이션 적용');
+ok(!api.includes(".eq('company_id', id)"),'게임정보 개조서는 회사 선택과 분리된 공통 카탈로그');
+ok(api.includes("supabase.rpc('lac_admin_save_modbook_master_v1'"),'공통 개조서 저장은 플랫폼 관리자 RPC 사용');
+ok(api.includes("platform_modbook_request_list_v1")&&api.includes("platform_modbook_request_review_v1"),'개조서 중앙 승인 RPC 연결');
+ok(admin.includes('승인 대기')&&admin.includes('수정 후 승인')&&admin.includes('선택 항목과 병합'),'플랫폼 관리자 개조서 승인 UI 렌더 경로 포함');
 ok(api.includes(".from('info_images')") && api.includes(".range(offset, offset + INFO_PAGE_SIZE - 1)"),'관리자 이미지 매핑 페이지네이션 적용');
 ok(api.includes("cacheControl:'31536000'"),'UUID 관리자 이미지 장기 캐시 적용');
 ok(main.includes('function gameAdminImageKey') && main.includes('Renaming an item/skill without choosing a new file keeps the existing art'),'이름 변경 시 기존 대표 이미지 연결 보존');
@@ -58,7 +62,7 @@ for(const stale of ['README_LAC_HUB_ADMIN_FULL_REPLACE.txt','hub/README_GAME_INF
 
 // Render smoke checks exercise the current public/admin templates without a browser.
 const {renderInfoPage}=await import(pathToFileURL(path.join(hubRoot,'src/ui/infoPage.js')).href);
-const {renderGameInfoAdmin}=await import(pathToFileURL(path.join(hubRoot,'src/ui/gameInfoAdmin.js')).href);
+const {renderGameInfoAdmin,renderPlatformModbookReview}=await import(pathToFileURL(path.join(hubRoot,'src/ui/gameInfoAdmin.js')).href);
 const fixture={
   platformAdmin:true,companyId:'company-test',companies:[{id:'company-test'}],
   info:{loaded:true,loading:false,error:'',modbookError:'',table:'info_crafts',craftGroup:'총기류',modbookCategory:'',query:'',selectedId:'craft-test',filterPrimary:'__all__',filterSecondary:'__all__',companyId:'company-test',data:{
@@ -66,12 +70,28 @@ const fixture={
     info_craft_materials:[{id:1,craft_id:'craft-test',material_name:'고철',quantity:2,sort_order:1,is_active:true}],
     info_material_recipes:[],info_processes:[],info_quests:[],info_skill_ranks:[],modbook_catalog:[],info_images:[]
   }},
-  gameAdminOpen:true,gameAdmin:{table:'info_crafts',selectedId:'craft-test',mode:'edit',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:''}
+  gameAdminOpen:true,gameAdmin:{table:'info_crafts',selectedId:'craft-test',mode:'edit',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:'',requestMode:false,requests:[],requestsLoading:false,requestsError:'',requestSelectedId:''}
 };
 const viewerHtml=renderInfoPage(fixture,{standalone:true});
 ok(viewerHtml.includes('제작법')&&viewerHtml.includes('가공·재련')&&viewerHtml.includes('퀘스트')&&viewerHtml.includes('스킬')&&viewerHtml.includes('개조서'),'현재 공개 게임정보 탭 렌더링');
 ok(viewerHtml.includes('/hub/game-info/items/pistol.webp'),'공개 상세 화면 WebP 대표 이미지 렌더링');
 const adminHtml=renderGameInfoAdmin(fixture);
 ok(adminHtml.includes('게임정보 관리')&&adminHtml.includes('비활성 정보 포함')&&adminHtml.includes('변경 내용 저장하기'),'관리자 편집 화면 렌더링');
+
+const modFixture={...fixture,companyId:null,companies:[],info:{...fixture.info,table:'modbook_catalog',selectedId:'mod-1',data:{...fixture.info.data,modbook_catalog:[{id:'mod-1',type:'접두',category:'SMG',name:'신속한',parts:'총기',option1:'이동속도 +5%',success_rate:20,sort_order:1,active:true,updated_at:new Date().toISOString()}]}},gameAdmin:{...fixture.gameAdmin,table:'modbook_catalog',selectedId:'mod-1',requests:[{id:'req-1',company_name:'테스트 회사',member_display_name:'신청자',type:'접두',category:'SMG',name:'신규 개조서',parts:'총기',option1:'효과',success_rate:10,status:'pending',created_at:new Date().toISOString()}]}};
+const modViewer=renderInfoPage(modFixture,{standalone:true});
+ok(modViewer.includes('신속한'),'회사 미선택 상태에서도 승인된 공통 개조서 렌더링');
+const modAdmin=renderGameInfoAdmin(modFixture);
+ok(modAdmin.includes('승인 대기 1'),'개조서 승인 대기 배지 렌더링');
+const requestFixture={...modFixture,gameAdmin:{...modFixture.gameAdmin,requestMode:true,requestSelectedId:'req-1'}};
+const requestAdmin=renderGameInfoAdmin(requestFixture);
+ok(requestAdmin.includes('원본 그대로 승인')&&requestAdmin.includes('수정 후 승인')&&requestAdmin.includes('선택 항목과 병합')&&requestAdmin.includes('반려'),'개조서 중앙 승인 검수 화면 렌더링');
+
+
+const platformReview=renderPlatformModbookReview(requestFixture);
+ok(platformReview.includes('개조서 검수')&&platformReview.includes('원본 사진')&&platformReview.includes('인식된 정보'),'관리 센터 개조서 전용 검수 화면 렌더링');
+ok(main.includes("state.page='platform';state.platformView='modbooks'")&&main.includes('pendingModbookReviewId()'),'DM 검수 링크가 게임정보 이용권 게이트가 아닌 플랫폼 검수 화면으로 연결');
+ok(main.includes('MODBOOK_REVIEW_STORAGE_KEY')&&main.includes('clearPendingModbookReviewId'),'Discord 재로그인 뒤에도 검수 신청 ID 보존');
+ok(read('src/ui/render.js').includes("'modbooks','개조서 검수'")&&read('src/ui/render.js').includes('data-platform-view="modbooks"'),'관리 센터 사이드바와 대시보드에 개조서 검수 진입점 포함');
 
 console.log(`\nGame Info final check PASS · static item refs ${uniqueRefs.length}개`);

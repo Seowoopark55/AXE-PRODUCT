@@ -19,8 +19,8 @@ import {
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
-  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getCompanyModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
-  saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage,
+  removeSuggestionAttachments, deleteSuggestion, getGameInformation, getGlobalModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
+  saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage, listPlatformModbookRequests, reviewPlatformModbookRequest,
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
@@ -31,6 +31,19 @@ import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
+const MODBOOK_REVIEW_STORAGE_KEY='lac_hub_pending_modbook_review_v1';
+const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function pendingModbookReviewId(){
+  const fromUrl=String(new URLSearchParams(window.location.search).get('modbook-review')||'').trim();
+  if(UUID_RE.test(fromUrl)){try{sessionStorage.setItem(MODBOOK_REVIEW_STORAGE_KEY,fromUrl);}catch{}return fromUrl;}
+  try{const stored=String(sessionStorage.getItem(MODBOOK_REVIEW_STORAGE_KEY)||'').trim();return UUID_RE.test(stored)?stored:'';}catch{return '';}
+}
+function clearPendingModbookReviewId(){
+  try{sessionStorage.removeItem(MODBOOK_REVIEW_STORAGE_KEY);}catch{}
+  try{const u=new URL(window.location.href);u.searchParams.delete('modbook-review');window.history.replaceState(window.history.state,'',u.pathname+u.search+u.hash);}catch{}
+}
+// Preserve a DM deep link across Discord OAuth, which intentionally returns to '/'.
+pendingModbookReviewId();
 const isBuildRoute = () => /^\/build(?:\/|$)/.test(window.location.pathname);
 const isCookRoute = () => /^\/cook(?:\/|$)/.test(window.location.pathname);
 let embeddedHost = null;
@@ -411,7 +424,7 @@ const state = {
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
   hubBoard:{notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,noticeMedia:[],noticeMediaSeq:0,noticeEditorBody:'',noticeUploading:false,noticeCaret:0,error:'',userId:null},
   info: { table:'info_crafts', craftGroup:'근접무기', modbookCategory:'', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', modbookError:'', companyId:null, data:{} },
-  gameAdminOpen:false,gameAdmin:{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:''},
+  gameAdminOpen:false,gameAdmin:{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:'',requestMode:false,requests:[],requestsLoading:false,requestsError:'',requestSelectedId:''},
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
   questionPendingFiles: [],
   suggestionPendingFiles: [],
@@ -458,7 +471,7 @@ function resetScopedGameInfo(){
   // Never carry a stale edit or object URL across a company/account reset.
   if(state.gameAdmin?.previewUrl){try{URL.revokeObjectURL(state.gameAdmin.previewUrl);}catch{}}
   state.gameAdminOpen=false;
-  if(state.gameAdmin)Object.assign(state.gameAdmin,{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:'',previewUrl:''});
+  if(state.gameAdmin)Object.assign(state.gameAdmin,{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:'',previewUrl:'',requestMode:false,requests:[],requestsLoading:false,requestsError:'',requestSelectedId:''});
 }
 
 function subscriptionEffectiveStatus(row){
@@ -1404,7 +1417,7 @@ async function loadGameInfo(){
     let modbooks=[];
     let modbookError='';
     try {
-      if(hasCompany(state))modbooks=await getCompanyModbooks(companyId, Boolean(state.platformAdmin));
+      modbooks=await getGlobalModbooks(Boolean(state.platformAdmin));
     }catch(error){
       modbookError=String(error?.message||error||'개조서를 불러오지 못했습니다.');
     }
@@ -1470,11 +1483,17 @@ async function refreshAll() {
     if(state.page==='company-start' && state.companies.length)state.page='hub';
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     state.platformCompanyAccess=state.platformAdmin?await listPlatformCompanyAccess().catch(()=>null):[];
-    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadAdminPassRequests()]);
+    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadAdminPassRequests(),...(state.platformAdmin?[gameAdminLoadModbookRequests()]:[])]);
     applyPlatformCompanyVisibility();
+    const modbookReviewId=pendingModbookReviewId();
+    if(state.platformAdmin&&modbookReviewId){state.page='platform';state.platformView='modbooks';}
     state.page = allowedHistoryPage(state.page);
     await loadCompanyData();
     if(['info','game-info'].includes(state.page) && (state.page!=='game-info'||canOpenWebContent(state,'game_info')))await loadGameInfo();
+    if(state.platformAdmin&&modbookReviewId){
+      await loadPlatformModbookReviewCenter(modbookReviewId);
+      clearPendingModbookReviewId();
+    }
     if(state.page==='platform' && state.platformView==='contents' && state.platformAdmin) await loadPlatformContentSettings();
     state.ready=true;
     if(isCookRoute())showCookPreview();
@@ -1879,30 +1898,133 @@ async function gameAdminRefreshHistory(){
   try{state.gameAdmin.history=await getGameInfoAdminHistory();state.gameAdmin.historyError='';}
   catch(error){state.gameAdmin.historyError=String(error?.message||error);}
 }
+
+async function gameAdminLoadModbookRequests(preferredId=''){
+  if(!state.platformAdmin)return;
+  const admin=state.gameAdmin;
+  admin.requestsLoading=true;admin.requestsError='';
+  try{
+    const rows=await listPlatformModbookRequests('pending');
+    admin.requests=Array.isArray(rows)?rows:[];
+    const wanted=String(preferredId||admin.requestSelectedId||'');
+    admin.requestSelectedId=admin.requests.some(row=>String(row.id)===wanted)?wanted:String(admin.requests[0]?.id||'');
+  }catch(error){admin.requestsError=String(error?.message||error);admin.requests=[];admin.requestSelectedId='';}
+  finally{admin.requestsLoading=false;}
+}
+async function loadPlatformModbookReviewCenter(preferredId=''){
+  if(!state.platformAdmin)return;
+  const admin=state.gameAdmin;
+  admin.table='modbook_catalog';admin.requestMode=true;admin.mode='';admin.selectedId='';admin.query='';admin.showInactive=false;
+  admin.requestsLoading=true;admin.requestsError='';
+  try{
+    const [requests,masters]=await Promise.all([
+      listPlatformModbookRequests('pending'),
+      getGlobalModbooks(true),
+    ]);
+    admin.requests=Array.isArray(requests)?requests:[];
+    const wanted=String(preferredId||admin.requestSelectedId||'');
+    admin.requestSelectedId=admin.requests.some(row=>String(row.id)===wanted)?wanted:String(admin.requests[0]?.id||'');
+    state.info.data={...(state.info.data||{}),modbook_catalog:Array.isArray(masters)?masters:[]};
+    state.info.loaded=true;state.info.modbookError='';
+  }catch(error){
+    admin.requestsError=String(error?.message||error||'개조서 검수 정보를 불러오지 못했습니다.');
+    if(!Array.isArray(admin.requests))admin.requests=[];
+  }finally{admin.requestsLoading=false;}
+}
+function gameAdminRequestPayload(form){
+  const schema=GAME_ADMIN_SCHEMAS.modbook_catalog;
+  const payload={};
+  for(const [name,label,type='text',required=false] of schema.fields){
+    const input=form.elements.namedItem(name);const raw=String(input?.value??'').trim();
+    if(required&&!raw)throw new Error(`${label}을(를) 입력해 주세요.`);
+    if(raw.length>2000)throw new Error(`${label}의 내용이 너무 깁니다.`);
+    if(type==='number'||type==='integer'){
+      if(!raw)payload[name]=name==='success_rate'?null:0;
+      else{const value=Number(raw);if(!Number.isFinite(value)||value<0||value>1e9||(type==='integer'&&!Number.isSafeInteger(value)))throw new Error(`${label}의 값을 확인해 주세요.`);if(name==='success_rate'&&value>100)throw new Error('성공률은 0~100% 사이로 입력해 주세요.');payload[name]=value;}
+    }else payload[name]=raw||null;
+  }
+  payload.active=true;
+  return payload;
+}
+async function gameAdminReviewModbookRequest(action,button){
+  if(mutationBusy)return;
+  const form=button.closest('[data-ga-request-form]');
+  const requestId=String(form?.dataset.requestId||state.gameAdmin.requestSelectedId||'');
+  if(!form||!requestId)throw new Error('검수할 신청을 다시 선택해 주세요.');
+  const reviewNote=String(form.elements.namedItem('review_note')?.value||'').trim();
+  let payload=null,mergeModbookId=null,message='';
+  if(action==='approve'){
+    if(!confirm('신청 내용을 그대로 승인해 공통 개조서에 등록할까요?'))return;
+    message='개조서 신청을 승인했습니다.';
+  }else if(action==='approve_edit'){
+    payload=gameAdminRequestPayload(form);
+    if(!confirm('현재 수정한 내용으로 승인해 공통 개조서에 등록할까요?'))return;
+    message='수정한 내용으로 개조서 신청을 승인했습니다.';
+  }else if(action==='merge'){
+    mergeModbookId=String(form.elements.namedItem('merge_modbook_id')?.value||'').trim();
+    if(!mergeModbookId)throw new Error('병합할 기존 공통 개조서를 선택해 주세요.');
+    if(!confirm('이 신청을 선택한 기존 개조서와 병합할까요? 새 개조서는 생성되지 않습니다.'))return;
+    message='기존 개조서와 병합했습니다.';
+  }else if(action==='reject'){
+    if(!reviewNote&&!confirm('반려 사유 없이 이 신청을 반려할까요?'))return;
+    if(reviewNote&&!confirm('이 신청을 반려할까요?'))return;
+    message='개조서 신청을 반려했습니다.';
+  }else return;
+  mutationBusy=true;button.disabled=true;
+  try{
+    await reviewPlatformModbookRequest({requestId,action,payload,mergeModbookId,reviewNote});
+    if(state.page==='platform'&&state.platformView==='modbooks')await loadPlatformModbookReviewCenter();
+    else await Promise.all([loadGameInfo(),gameAdminLoadModbookRequests()]);
+    state.gameAdmin.requestMode=true;
+    state.gameAdmin.requestSelectedId=String(state.gameAdmin.requests[0]?.id||'');
+    render();setNotice(message);
+  }finally{mutationBusy=false;if(button?.isConnected)button.disabled=false;}
+}
 async function gameAdminAction(button){
-  if(state.page!=='game-info'||!state.platformAdmin)return;
+  if(!state.platformAdmin||!(state.page==='game-info'||(state.page==='platform'&&state.platformView==='modbooks')))return;
   const admin=state.gameAdmin;
   const action=button.dataset.gameAdminAction;
   if(action==='open'){
     admin.table=GAME_ADMIN_SCHEMAS[state.info.table]?state.info.table:'info_crafts';
     admin.selectedId='';admin.mode='';admin.query='';admin.showInactive=false;
     state.gameAdminOpen=true;
-    render();return;
+    render();await gameAdminLoadModbookRequests();render();return;
   }
   if(action==='close'){
     if(!gameAdminConfirmDiscard())return;
-    gameAdminResetForm();state.gameAdminOpen=false;render();return;
+    gameAdminResetForm();admin.requestMode=false;state.gameAdminOpen=false;render();return;
   }
   if(!state.gameAdminOpen)return;
   if(action==='table'){
     const next=button.dataset.gameAdminTable;
     if(!GAME_ADMIN_TABLES.includes(next)||!gameAdminConfirmDiscard())return;
-    gameAdminResetForm();Object.assign(admin,{table:next,selectedId:'',mode:'',query:'',showInactive:false});render();return;
+    gameAdminResetForm();Object.assign(admin,{table:next,selectedId:'',mode:'',query:'',showInactive:false,requestMode:false});
+    if(next==='modbook_catalog')await gameAdminLoadModbookRequests();render();return;
   }
   if(action==='new'||action==='select'){
     if(!gameAdminConfirmDiscard())return;
     gameAdminResetForm();admin.mode=action==='new'?'new':'edit';admin.selectedId=action==='new'?'':String(button.dataset.gameAdminId||'');render();return;
   }
+  if(action==='requests-open'){
+    if(!gameAdminConfirmDiscard())return;
+    gameAdminResetForm();admin.requestMode=true;admin.mode='';admin.selectedId='';
+    await gameAdminLoadModbookRequests();render();return;
+  }
+  if(action==='requests-close'){
+    admin.requestMode=false;admin.requestSelectedId='';render();return;
+  }
+  if(action==='requests-refresh'){
+    if(state.page==='platform'&&state.platformView==='modbooks')await loadPlatformModbookReviewCenter(admin.requestSelectedId);
+    else await gameAdminLoadModbookRequests();
+    render();return;
+  }
+  if(action==='request-select'){
+    admin.requestSelectedId=String(button.dataset.requestId||'');render();return;
+  }
+  if(action==='modbook-request-approve-original'){await gameAdminReviewModbookRequest('approve',button);return;}
+  if(action==='modbook-request-approve-edit'){await gameAdminReviewModbookRequest('approve_edit',button);return;}
+  if(action==='modbook-request-merge'){await gameAdminReviewModbookRequest('merge',button);return;}
+  if(action==='modbook-request-reject'){await gameAdminReviewModbookRequest('reject',button);return;}
   if(action==='add-material'){
     const list=root.querySelector('[data-ga-material-list]');
     if(!list||list.children.length>=40)return;
@@ -2007,7 +2129,6 @@ async function gameAdminSaveForm(form){
   const table=admin.table;
   const selected=admin.mode==='new'?null:(state.info?.data?.[table]||[]).find(row=>String(row.id)===String(admin.selectedId));
   if(admin.mode!=='new'&&!selected)throw new Error('수정할 항목을 찾지 못했습니다. 목록을 새로고침해 주세요.');
-  if(table==='modbook_catalog'&&!state.companyId)throw new Error('먼저 회사를 선택해 주세요.');
   if(!form.reportValidity())return;
   const {payload,materials}=gameAdminFormData(form,selected);
   const file=form.querySelector('[data-ga-image]')?.files?.[0]||null;
@@ -2032,7 +2153,7 @@ async function gameAdminSaveForm(form){
     // attached to the new public name instead of making the image disappear.
     const imagePath=uploadedPath||(!file&&oldImageKey&&newImageKey&&oldImageKey!==newImageKey?previousPath:null)||null;
     const saved=await saveGameInfoAdminRow({table,id:selected?.id==null?null:String(selected.id),payload,
-      expectedAt:selected?.updated_at||null,companyId:table==='modbook_catalog'?state.companyId:null,
+      expectedAt:selected?.updated_at||null,companyId:null,
       materials,imagePath});
     const committedUpload=uploadedPath;
     uploadedPath=null; // The image was committed; do not delete it on a later refresh error.
@@ -2045,6 +2166,7 @@ async function gameAdminSaveForm(form){
     // Reload all read models so the viewer, list and search always agree.
     await loadGameInfo();
     await gameAdminRefreshHistory();
+    if(table==='modbook_catalog')await gameAdminLoadModbookRequests();
     setNotice('게임정보를 저장했습니다. 일반 사용자 화면에도 반영되었습니다.');
   }catch(error){
     if(uploadedPath){try{await cleanupUnlinkedGameInfoAdminImage(uploadedPath);}catch{/* dangling uploaded object is safe; no data reference was written */}}
@@ -2061,12 +2183,12 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){if(!canOpenWebContent(state,'game_info'))return;if(infoTab.dataset.infoTable==='modbook_catalog'&&!hasCompany(state))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  if(infoTab){if(!canOpenWebContent(state,'game_info'))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
   if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary','modbookCategory'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':field==='secondary'?'filterSecondary':'modbookCategory';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';if(field!=='modbookCategory')state.info.modbookCategory='';state.info.query='';state.info.selectedId='';render();return;}
   // A global result opens its source category; the search text is cleared only after navigation.
   const infoResult=event.target.closest('[data-info-result-table]');
-  if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(source==='modbook_catalog'&&!hasCompany(state))return;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
+  if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){
     // Render replaces the entire game-info list. Keep its current position when
@@ -2158,7 +2280,7 @@ root.addEventListener('click', async event => {
     await loadAdminPassRequests();
     render();return;
   }
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[]),...(state.platformView==='modbooks'?[loadPlatformModbookReviewCenter()]:[])]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -2685,13 +2807,14 @@ root.addEventListener('click', async event => {
   if(action==='platform-view'){
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
     const view=String(actionEl.dataset.platformView||'companies');
-    if(!['overview','companies','pass-requests','support','suggestions','contents'].includes(view))return;
+    if(!['overview','companies','pass-requests','modbooks','support','suggestions','contents'].includes(view))return;
     if(state.page!=='platform'){navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');}
     state.platformView=view;
     if(view==='support')await withMutation(async()=>{await Promise.all([loadPlatformSupport(),loadHubBoard()]);});
     else if(view==='suggestions')await withMutation(loadPlatformSuggestions);
     else if(view==='contents')await withMutation(loadPlatformContentSettings);
     else if(view==='pass-requests')await withMutation(loadAdminPassRequests);
+    else if(view==='modbooks')await withMutation(()=>loadPlatformModbookReviewCenter());
     else render();
     return;
   }

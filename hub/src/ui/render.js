@@ -1,6 +1,6 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
-import { renderGameInfoAdmin } from './gameInfoAdmin.js';
+import { renderGameInfoAdmin, renderPlatformModbookReview } from './gameInfoAdmin.js';
 import { renderHubHome } from './hubHome.js';
 import {canOpenWebContent,hasCompany,hasUnifiedPass} from '../platform/contentPolicy.js';
 import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
@@ -158,7 +158,7 @@ function firstRunContent(discord,{testMode=false,focus='',memberCheck='',canCrea
   const waiting=testMode&&memberCheck==='waiting'?`<div class="runtime-first-run__test-result is-waiting"><strong>아직 멤버 등록이 확인되지 않았습니다.</strong><span>대표 또는 관리자에게 현재 Discord 계정 등록을 요청한 뒤 다시 확인합니다.</span></div>`:'';
   const game=contentKind==='game';
   const title=game?'게임 정보':'회사 관리';
-  const summary=game?'제작법·생산·퀘스트·스킬을 찾아보고 회사 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
+  const summary=game?'제작법·생산·퀘스트·스킬과 승인된 공통 개조서 정보를 확인하는 공간이에요.':'멤버·공금·계좌·자산을 한곳에서 확인하고 회사 운영을 관리하는 공간이에요.';
   // Illustrative rows only. Never fetch another company's data for a preview.
   const demo=game?`<div class="runtime-sample-window"><div class="runtime-sample-top"><span>게임 정보 · 화면 구성 예시</span><span>가상 자료</span></div><div class="runtime-sample-list"><div class="runtime-sample-list__head"><span>구분</span><span>자료명</span><span>확인할 내용</span></div><div><span>제작법</span><strong>예시 제작법</strong><span>재료 · 제작 결과</span></div></div></div>`:renderCompanyLedgerPreview();
   const registrationMarkup=`
@@ -262,8 +262,8 @@ function renderAuthed(state) {
 
 
 // HUB game information is a standalone CONTENT screen. The shared read-only
-// catalogue remains renderInfoPage; company-owned modbooks still use the
-// selected company's ID and its existing RLS in the product API.
+// catalogue remains renderInfoPage; approved modbooks are shared platform-wide
+// while company prices and operational notes stay in the Discord company overlay.
 function renderStandaloneGameInfo(state) {
   const company=currentCompany(state);
   if (!canOpenWebContent(state,'game_info')) return renderHubHome(state);
@@ -288,7 +288,7 @@ function renderStandaloneGameInfo(state) {
         </div>
       </section>
       ${renderInfoPage(state,{standalone:true})}
-      <p class="game-center__context">${company?'회사별 개조서 자료는 현재 선택한 회사 범위에서만 표시됩니다.':'회사별 개조서는 회사 등록 후 소속 회사의 자료만 볼 수 있습니다.'}</p>`}
+      <p class="game-center__context">개조서는 LAC HUB 운영자 검수를 거쳐 승인된 공통 정보만 표시됩니다.</p>`}
     </main>
     ${renderModal(state)}
   </div>`;
@@ -312,6 +312,7 @@ function renderManagementCenter(state) {
   const username = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || 'Discord 사용자';
   const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
   const passQueue=(state.adminPassRequests||[]).filter(item=>item.status==='pending').length;
+  const modbookQueue=Array.isArray(state.gameAdmin?.requests)?state.gameAdmin.requests.length:0;
   const queue=siteOpen+Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
     +Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
@@ -327,6 +328,7 @@ function renderManagementCenter(state) {
           ${renderPlatformRailItem(state,'overview','대시보드','dashboard')}
           ${renderPlatformRailItem(state,'companies','이용권 관리','platform')}
           ${renderPlatformRailItem(state,'pass-requests','이용권 신청','feedback',passQueue)}
+          ${renderPlatformRailItem(state,'modbooks','개조서 검수','info',modbookQueue)}
           ${renderPlatformRailItem(state,'contents','콘텐츠 관리','assets')}
           ${renderPlatformRailItem(state,'inbox','고객 문의','feedback',queue)}
           <span class="platform-center__nav-divider" role="presentation"></span>
@@ -805,7 +807,7 @@ function renderPlatformContentSettings(state) {
     company_management:'멤버 · 계좌 · 공금 · 자산을 관리하는 회사 운영 공간',
     lac_build:'회사 등록 없이 이용하도록 계획한 개조서 조합 서비스',
     lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 서비스',
-    game_info:'공통 게임 정보는 무료로 열람 가능 · 회사별 개조서는 소속 회사 전용',
+    game_info:'공통 게임 정보와 운영자 승인 개조서 카탈로그를 한곳에서 열람',
   };
   const items = rows.map(row => `<article class="lac-content-admin-row">
     <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 메인 진입 정책 연결</small></div>
@@ -834,7 +836,7 @@ function renderPlatform(state){
   const all=state.platformSnapshot||[];
   const q=String(state.platformQuery||'').trim().toLowerCase();
   const filter=String(state.platformStatus||'all');
-  const view=['overview','companies','pass-requests','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
+  const view=['overview','companies','pass-requests','modbooks','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
   let rows=all.filter(r=>filter==='all'||String(r.effective_status||r.subscription_status)===filter);
   if(q)rows=rows.filter(r=>`${r.company_name||''} ${r.owner_name||''} ${r.guild_name||''} ${r.plan||''} ${platformPlanLabel(r.plan)}`.toLowerCase().includes(q));
   const active=all.filter(r=>!['expired','paused'].includes(String(r.effective_status||r.subscription_status))).length;
@@ -848,13 +850,14 @@ function renderPlatform(state){
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
   const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>사이트 문의 · 기존 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>기존 회사 건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
-  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):view==='pass-requests'?renderPlatformPassRequests(state):companyBoard;
+  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):view==='pass-requests'?renderPlatformPassRequests(state):view==='modbooks'?renderPlatformModbookReview(state):companyBoard;
   const overview=`<section class="platform-overview" aria-label="운영 대시보드">
     ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}
     <div class="platform-overview__columns">
       <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>QUICK ACTION</span><h2>바로 관리</h2><p>필요한 운영 화면으로 바로 이동합니다.</p></div>
         <div class="platform-overview__actions">
           <button type="button" data-action="platform-view" data-platform-view="companies">${icon('platform')}<span><strong>이용권 관리</strong><small>회사 구독 확인 · 연장 · 상태 관리</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-action="platform-view" data-platform-view="modbooks">${icon('info')}<span><strong>개조서 검수</strong><small>승인 대기 ${Array.isArray(state.gameAdmin?.requests)?state.gameAdmin.requests.length:0}건 · 원본 사진 확인</small></span><b aria-hidden="true">→</b></button>
           <button type="button" data-action="platform-view" data-platform-view="contents">${icon('assets')}<span><strong>콘텐츠 관리</strong><small>공개 및 무료 개방 정책 조회</small></span><b aria-hidden="true">→</b></button>
           <button type="button" data-action="platform-view" data-platform-view="support">${icon('feedback')}<span><strong>고객 문의</strong><small>질문 ${questionOpen}건 · 건의·제보 ${suggestionOpen}건 처리 대기</small></span><b aria-hidden="true">→</b></button>
         </div>
@@ -866,8 +869,8 @@ function renderPlatform(state){
       </section>
     </div>
   </section>`;
-  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='pass-requests'?'이용권 신청':view==='contents'?'콘텐츠 관리':'고객 문의';
-  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='pass-requests'?'회사별 신청을 확인하고 이용권을 발급합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
+  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='pass-requests'?'이용권 신청':view==='modbooks'?'개조서 검수':view==='contents'?'콘텐츠 관리':'고객 문의';
+  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='pass-requests'?'회사별 신청을 확인하고 이용권을 발급합니다.':view==='modbooks'?'Discord에서 접수된 개조서 신청을 원본 사진과 비교해 검수하고 공통 정보로 승인합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
   const actions=view==='overview'||view==='companies'?`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`:'';
   return `<div class="platform-page platform-page--${view}">${pageHeader('PLATFORM OWNER',heading,description,actions)}${view==='overview'?overview:`${['support','suggestions'].includes(view)?supportTabs:''}<div class="platform-service-view">${content}</div>`}</div>`;
 }
