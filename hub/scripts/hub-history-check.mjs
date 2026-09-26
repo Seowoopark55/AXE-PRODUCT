@@ -44,5 +44,11 @@ recordPrimaryScreen(history, 'company-start');
 assert.equal(readPrimaryScreen(history.back()), 'hub');
 assert.equal(readPrimaryScreen(history.forward()), 'company-start');
 assert.equal(readPrimaryScreen(null), null);
+const combatHistory = mockBrowserHistory();
+initializePrimaryScreenHistory(combatHistory);
+recordPrimaryScreen(combatHistory, 'combat');
+assert.equal(readPrimaryScreen(combatHistory.state), 'combat'); // Combat must be accepted by the primary-screen router.
+assert.equal(readPrimaryScreen(combatHistory.back()), 'hub');
+assert.equal(readPrimaryScreen(combatHistory.forward()), 'combat');
 assert.throws(() => recordPrimaryScreen(history, 'logout'), /Invalid HUB screen/);
 console.log('HUB history: PASS (category-by-category Back/Forward, company entry, reload, state preservation).');

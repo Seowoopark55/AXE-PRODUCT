@@ -7,6 +7,7 @@ const render=read('src/ui/render.js');
 const api=read('src/lib/productApi.js');
 const styles=read('src/styles.css');
 const combat=read('src/styles/combat.css');
+const screenHistory=read('src/platform/screenHistory.js');
 const checks=[
   ['company sidebar uses combat record', render.includes("navItem(state,'combat','전투 기록')")],
   ['company sidebar no longer links info page', !render.includes("navItem(state,'info','게임 정보')")],
@@ -15,6 +16,7 @@ const checks=[
   ['combat overview RPC wired', api.includes("supabase.rpc('web_combat_overview_v1'")],
   ['combat member RPC wired', api.includes("supabase.rpc('web_combat_member_v1'")],
   ['combat state wired', main.includes("combat:{overview:null,detail:null")],
+  ['combat route allowed in browser history', /SCREENS\s*=\s*new Set\(\[[^\]]*['\"]combat['\"]/.test(screenHistory)],
   ['combat loaders wired', main.includes('async function loadCombatOverview') && main.includes('async function loadCombatMember')],
   ['combat interactions wired', ['combat-select-member','combat-period','combat-rank-mode','refresh-combat'].every(x=>main.includes(`action==='${x}'`))],
   ['legacy company info route maps to combat', main.includes("if (target === 'info') return companyAvailable ? 'combat' : 'hub'")],
