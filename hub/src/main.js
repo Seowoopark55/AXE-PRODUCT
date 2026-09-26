@@ -1981,7 +1981,8 @@ async function gameAdminReviewModbookRequest(action,button){
   }finally{mutationBusy=false;if(button?.isConnected)button.disabled=false;}
 }
 async function gameAdminAction(button){
-  if(!state.platformAdmin||!(state.page==='game-info'||(state.page==='platform'&&state.platformView==='modbooks')))return;
+  const platformModbookReview=state.page==='platform'&&state.platformView==='modbooks';
+  if(!state.platformAdmin||!(state.page==='game-info'||platformModbookReview))return;
   const admin=state.gameAdmin;
   const action=button.dataset.gameAdminAction;
   if(action==='open'){
@@ -1994,7 +1995,10 @@ async function gameAdminAction(button){
     if(!gameAdminConfirmDiscard())return;
     gameAdminResetForm();admin.requestMode=false;state.gameAdminOpen=false;render();return;
   }
-  if(!state.gameAdminOpen)return;
+  // The standalone Platform Admin review center is intentionally independent
+  // from the Game Info content-manager open/close state. Requiring
+  // gameAdminOpen here made review buttons silently no-op in the review center.
+  if(!state.gameAdminOpen&&!platformModbookReview)return;
   if(action==='table'){
     const next=button.dataset.gameAdminTable;
     if(!GAME_ADMIN_TABLES.includes(next)||!gameAdminConfirmDiscard())return;
