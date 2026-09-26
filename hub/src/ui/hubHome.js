@@ -95,7 +95,14 @@ export function renderHubHome(state) {
           ${contentIsVisible(state,'lac_cook')?contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:contentCardStatus(state,'lac_cook'),tagType:contentCardStatus(state,'lac_cook')==='자유 이용'?'free':contentCardStatus(state,'lac_cook')==='이용 가능'?'available':contentCardStatus(state,'lac_cook')==='이용 신청'?'request':contentCardStatus(state,'lac_cook')==='이용 제한'?'restricted':'company',href:'/cook/'}):''}
         </div>
       </section>
-      <footer class="hub-footer"><span>LAC HUB · PLAY TOGETHER</span><span>회사 관리 · 게임 정보 · LAC BUILD · LAC COOK</span></footer>
+      <footer class="hub-footer" aria-label="저작권 및 콘텐츠 안내">
+        <div class="hub-footer__brand"><strong>© 2026 LAC HUB</strong><span>PLAY TOGETHER</span></div>
+        <div class="hub-footer__legal">
+          <p>LAC와 관련하여 사용된 게임 내 이미지, 로고 및 원본 콘텐츠의 저작권은 클러치게이밍에 있습니다.</p>
+          <p>일부 시각 자료는 원본 게임 자료를 바탕으로 AI 기술을 활용해 새롭게 구성되었습니다.</p>
+          <small>LAC HUB의 자체 제작 UI 및 편집 디자인의 무단 복제·재배포를 금합니다.</small>
+        </div>
+      </footer>
     </main>
   </div>`;
 }
