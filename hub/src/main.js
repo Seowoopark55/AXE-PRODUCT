@@ -2,7 +2,8 @@ import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';
-import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,updateHubNotice,deleteHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl} from './lib/hubBoardApi.js';
+import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,updateHubNotice,deleteHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl,checkHubNoticeImages,uploadHubNoticeImage,hubNoticeImageUrl,removeHubNoticeImages} from './lib/hubBoardApi.js';
+import {noticeBodyForEditor,serializeNoticeEditorBody,noticeImagePaths,markerForNoticeImage} from './lib/hubNoticeMedia.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
   listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipDetails, updateCompanyName,
@@ -408,7 +409,7 @@ const state = {
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
   suggestionBoard: { configured:true, private:true, counts:{ pending:0, checking:0, complete:0, unread:0, total:0 }, items:[], error:'' }, suggestionStatus:'all', suggestionCategory:'all', suggestionPage:1,
-  hubBoard:{notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,error:'',userId:null},
+  hubBoard:{notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,noticeMedia:[],noticeMediaSeq:0,noticeEditorBody:'',noticeUploading:false,noticeCaret:0,error:'',userId:null},
   info: { table:'info_crafts', craftGroup:'근접무기', modbookCategory:'', query:'', selectedId:'', filterPrimary:'__all__', filterSecondary:'__all__', showInactive:false, loading:false, loaded:false, error:'', modbookError:'', companyId:null, data:{} },
   gameAdminOpen:false,gameAdmin:{table:'info_crafts',selectedId:'',mode:'',query:'',showInactive:false,dirty:false,showHistory:false,history:[],historyError:''},
   cookingQuery:'', cookingStatus:'all', cookingPage:1,
@@ -1259,10 +1260,100 @@ function addHubBoardFiles(files){
   for(const file of selected.slice(previous))state.hubBoard.files.push({id:crypto.randomUUID(),file,url:URL.createObjectURL(file)});
   syncHubBoardPreviews();
 }
+
+function resetHubNoticeEditorState(){
+  state.hubBoard.noticeMedia=[];
+  state.hubBoard.noticeMediaSeq=0;
+  state.hubBoard.noticeEditorBody='';
+  state.hubBoard.noticeUploading=false;
+  state.hubBoard.noticeCaret=0;
+}
+function initHubNoticeEditor(notice=null){
+  resetHubNoticeEditorState();
+  if(!notice)return;
+  const parsed=noticeBodyForEditor(notice.body,hubNoticeImageUrl);
+  state.hubBoard.noticeMedia=parsed.media;
+  state.hubBoard.noticeMediaSeq=parsed.nextSeq;
+  state.hubBoard.noticeEditorBody=parsed.editorBody;
+}
+function syncHubNoticePreviews(){
+  const container=root.querySelector('.hub-board__notice-previews');
+  if(!container)return;
+  container.replaceChildren();
+  for(const item of (state.hubBoard.noticeMedia||[]).filter(entry=>!entry.removed)){
+    const frame=document.createElement('div');frame.className='hub-board__notice-preview';
+    const img=document.createElement('img');img.src=item.url||hubNoticeImageUrl(item.path);img.alt='공지 이미지 미리보기';
+    const copy=document.createElement('div');
+    const strong=document.createElement('strong');strong.textContent=markerForNoticeImage(item.key);
+    const small=document.createElement('small');small.textContent='본문의 이 표기 위치에 이미지가 표시됩니다.';
+    copy.append(strong,small);
+    const button=document.createElement('button');button.type='button';button.dataset.action='hub-board-notice-image-remove';button.dataset.noticeImageKey=item.key;button.textContent='제거';
+    frame.append(img,copy,button);container.append(frame);
+  }
+}
+function insertHubNoticeMarker(textarea,marker){
+  if(!textarea)return;
+  const value=String(textarea.value||'');
+  const fallback=Math.max(0,Math.min(value.length,Number(state.hubBoard.noticeCaret||value.length)));
+  const start=Number.isInteger(textarea.selectionStart)?textarea.selectionStart:fallback;
+  const end=Number.isInteger(textarea.selectionEnd)?textarea.selectionEnd:start;
+  const prefix=start>0&&!value.slice(0,start).endsWith('\n')?'\n':'';
+  const suffix=end<value.length&&!value.slice(end).startsWith('\n')?'\n':'';
+  const chunk=`${prefix}${marker}${suffix}`;
+  textarea.setRangeText(chunk,start,end,'end');
+  state.hubBoard.noticeCaret=textarea.selectionStart||textarea.value.length;
+  textarea.dispatchEvent(new Event('input',{bubbles:true}));
+  textarea.focus();
+}
+async function addHubNoticeImages(files,textarea=root.querySelector('[data-hub-notice-body]')){
+  if(!state.platformAdmin)throw new Error('운영자만 공지 이미지를 추가할 수 있습니다.');
+  const selected=checkHubNoticeImages(files);
+  const current=(state.hubBoard.noticeMedia||[]).filter(item=>!item.removed).length;
+  if(current+selected.length>8)throw new Error('공지 이미지는 최대 8장까지 사용할 수 있습니다.');
+  state.hubBoard.noticeUploading=true;
+  const submit=textarea?.closest('form')?.querySelector('button[type="submit"]');
+  if(submit){submit.disabled=true;submit.dataset.originalText=submit.textContent;submit.textContent='이미지 업로드 중…';}
+  try{
+    for(const file of selected){
+      const uploaded=await uploadHubNoticeImage(file);
+      state.hubBoard.noticeMediaSeq=Number(state.hubBoard.noticeMediaSeq||0)+1;
+      const key=String(state.hubBoard.noticeMediaSeq);
+      state.hubBoard.noticeMedia.push({key,path:uploaded.path,url:uploaded.url,isNew:true,removed:false});
+      insertHubNoticeMarker(textarea,markerForNoticeImage(key));
+      syncHubNoticePreviews();
+    }
+  }finally{
+    state.hubBoard.noticeUploading=false;
+    if(submit?.isConnected){submit.disabled=false;submit.textContent=submit.dataset.originalText||'저장하기 →';delete submit.dataset.originalText;}
+  }
+}
+async function cleanupHubNoticeDraft({keepReferenced=false}={}){
+  const media=state.hubBoard.noticeMedia||[];
+  const textarea=root.querySelector('[data-hub-notice-body]');
+  const currentText=textarea?.value??state.hubBoard.noticeEditorBody??'';
+  const serialized=serializeNoticeEditorBody(currentText,media);
+  const referenced=new Set(noticeImagePaths(serialized));
+  const paths=media.filter(item=>item.isNew&&item.path&&(!keepReferenced||!referenced.has(item.path))).map(item=>item.path);
+  if(paths.length)await removeHubNoticeImages(paths).catch(()=>{});
+  resetHubNoticeEditorState();
+}
+async function removeHubNoticeMediaByKey(key){
+  const item=(state.hubBoard.noticeMedia||[]).find(entry=>String(entry.key)===String(key));
+  if(!item)return;
+  const textarea=root.querySelector('[data-hub-notice-body]');
+  if(textarea){
+    const marker=markerForNoticeImage(item.key);
+    textarea.value=String(textarea.value||'').split(marker).join('').replace(/\n{3,}/g,'\n\n');
+    textarea.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  item.removed=true;
+  if(item.isNew&&item.path){await removeHubNoticeImages([item.path]).catch(()=>{});item.path='';}
+  syncHubNoticePreviews();
+}
 async function loadHubBoard(){
   if(!state.session?.user)return;
   const userId=state.session.user.id;
-  if(state.hubBoard.userId!==userId){clearHubBoardFiles();state.hubBoard={notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,error:'',userId};}
+  if(state.hubBoard.userId!==userId){clearHubBoardFiles();state.hubBoard={notices:[],tickets:[],ticket:null,files:[],mode:'list',tab:'support',filterContent:'all',filterCategory:'all',noticeId:null,noticeMedia:[],noticeMediaSeq:0,noticeEditorBody:'',noticeUploading:false,noticeCaret:0,error:'',userId};}
   try{
     const board=await loadHubBoardList(state.platformAdmin);
     if(state.session?.user?.id!==userId)return;
@@ -1968,7 +2059,7 @@ root.addEventListener('click', async event => {
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
   if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
+  if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='info'&&!state.info.loaded) await loadGameInfo(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){if(!canOpenWebContent(state,'game_info'))return;if(infoTab.dataset.infoTable==='modbook_catalog'&&!hasCompany(state))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -2106,26 +2197,33 @@ root.addEventListener('click', async event => {
     state.modal={type:'setup-demo',returnToTestCenter:true};
     render();return;
   }
-  if(action==='go-hub'){state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
-  if(action==='hub-board-notices'){clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';navigatePrimaryScreen('hub-board');await loadHubBoard();state.hubBoard.tab='notices';render();return;}
+  if(action==='go-hub'){if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
+  if(action==='hub-board-notices'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';navigatePrimaryScreen('hub-board');await loadHubBoard();state.hubBoard.tab='notices';render();return;}
   if(action==='hub-board-open'||action==='hub-board-compose'){
+    if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();
     clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode=action==='hub-board-compose'?'compose':'list';state.hubBoard.tab='support';
     navigatePrimaryScreen('hub-board');render();if(action==='hub-board-open')await loadHubBoard();return;
   }
   if(action==='hub-board-quick'){const category=String(actionEl.dataset.boardCategory||'all');state.hubBoard.filterCategory=state.hubBoard.filterCategory===category?'all':category;state.hubBoard.mode='list';state.hubBoard.tab='support';render();return;}
-  if(action==='hub-board-tab'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';render();return;}
-  if(action==='hub-board-cancel'){clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.ticket=null;render();return;}
+  if(action==='hub-board-tab'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';render();return;}
+  if(action==='hub-board-cancel'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.ticket=null;render();return;}
   if(action==='hub-board-notice'){
     const id=String(actionEl.dataset.noticeId||'');
+    if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();
     if(state.page!=='hub-board')navigatePrimaryScreen('hub-board');
     clearHubBoardFiles();state.hubBoard.tab='notices';state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
   }
-  if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;clearHubBoardFiles();state.hubBoard.noticeId=null;state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
+  if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;await cleanupHubNoticeDraft();clearHubBoardFiles();initHubNoticeEditor(null);state.hubBoard.noticeId=null;state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
   if(action==='hub-board-notice-edit'){
     if(!state.platformAdmin)return;
     const id=String(actionEl.dataset.noticeId||state.hubBoard.noticeId||'');
-    if(!id||!(state.hubBoard.notices||[]).some(item=>String(item.id)===id)){setError('수정할 공지를 찾을 수 없습니다.');return;}
-    clearHubBoardFiles();state.hubBoard.noticeId=id;state.hubBoard.mode='notice-edit';state.hubBoard.tab='notices';render();return;
+    const notice=(state.hubBoard.notices||[]).find(item=>String(item.id)===id);
+    if(!id||!notice){setError('수정할 공지를 찾을 수 없습니다.');return;}
+    await cleanupHubNoticeDraft();clearHubBoardFiles();initHubNoticeEditor(notice);state.hubBoard.noticeId=id;state.hubBoard.mode='notice-edit';state.hubBoard.tab='notices';render();return;
+  }
+  if(action==='hub-board-notice-image-remove'){
+    if(!state.platformAdmin)return;
+    await removeHubNoticeMediaByKey(actionEl.dataset.noticeImageKey);return;
   }
   if(action==='hub-board-notice-delete'){
     if(!state.platformAdmin)return;
@@ -2133,8 +2231,11 @@ root.addEventListener('click', async event => {
     if(!id){setError('삭제할 공지를 찾을 수 없습니다.');return;}
     if(!await confirmHubDeletion({title:'공지 삭제',message:'이 공지사항을 삭제할까요? 삭제 후에는 복구할 수 없습니다.',confirmLabel:'공지 삭제'}))return;
     await withMutation(async()=>{
+      const notice=(state.hubBoard.notices||[]).find(item=>String(item.id)===id);
+      const imagePaths=noticeImagePaths(notice?.body||'');
       await deleteHubNotice(id);
-      state.hubBoard.noticeId=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';
+      if(imagePaths.length)await removeHubNoticeImages(imagePaths).catch(()=>{});
+      resetHubNoticeEditorState();state.hubBoard.noticeId=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';
       await loadHubBoard();setNotice('공지사항을 삭제했습니다.');
     });
     return;
@@ -2739,6 +2840,7 @@ root.addEventListener('change', async event => {
   }
   try{
     if(event.target.matches('[data-hub-board-images]')){addHubBoardFiles(event.target.files);event.target.value='';return;}
+    if(event.target.matches('[data-hub-notice-images]')){const input=event.target;await addHubNoticeImages(input.files,root.querySelector('[data-hub-notice-body]'));input.value='';return;}
     if(event.target.matches('[data-hub-board-filter]')){const key=event.target.dataset.hubBoardFilter;if(key==='content')state.hubBoard.filterContent=event.target.value;else if(key==='category')state.hubBoard.filterCategory=event.target.value;else if(key==='status')state.hubBoard.filterStatus=event.target.value;render();return;}
     if(event.target.matches('[data-hub-board-status]')){if(!state.platformAdmin)return;const ticketId=String(event.target.dataset.ticketId||'');await withMutation(async()=>{await setHubTicketStatus(ticketId,event.target.value);await openHubBoardTicket(ticketId);await loadHubBoard();});return;}
     if(event.target.matches('[data-info-filter-select]')){const field=event.target.dataset.infoFilterSelect;if(!['primary','secondary'].includes(field))return;state.info[field==='primary'?'filterPrimary':'filterSecondary']=event.target.value;if(field==='primary')state.info.filterSecondary='__all__';state.info.selectedId='';render();return;}
@@ -2869,6 +2971,7 @@ root.addEventListener('input', event => {
   }
   if(event.target?.matches?.(liveSearchSelector) && (event.isComposing || composingSearchInputs.has(event.target))) return;
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
+  if(event.target.matches('[data-hub-notice-body]')){state.hubBoard.noticeEditorBody=String(event.target.value||'');state.hubBoard.noticeCaret=event.target.selectionStart??event.target.value.length;return;}
   if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
   if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';refreshGameInfoSearchResults(event.target);return;}
@@ -2901,14 +3004,18 @@ document.addEventListener('keydown', event=>{
   }
 });
 
-root.addEventListener('paste', event=>{
-  const files=Array.from(event.clipboardData?.files||[]).filter(f=>f.type?.startsWith('image/'));
+root.addEventListener('paste', async event=>{
+  const clipboard=event.clipboardData;const files=[...Array.from(clipboard?.files||[]),...Array.from(clipboard?.items||[]).filter(item=>item.kind==='file'&&item.type?.startsWith('image/')).map(item=>item.getAsFile()).filter(Boolean)].filter((file,index,all)=>file?.type?.startsWith('image/')&&all.indexOf(file)===index);
   if(!files.length)return;
+  const noticeForm=event.target.closest('form[data-form="hub-board-notice"],form[data-form="hub-board-notice-edit"]');
+  if(state.page==='hub-board'&&noticeForm){event.preventDefault();try{await addHubNoticeImages(files,noticeForm.querySelector('[data-hub-notice-body]'));}catch(error){setError(error);}return;}
   if(state.page==='hub-board' && event.target.closest('.hub-board__form')){event.preventDefault();try{addHubBoardFiles(files);}catch(error){setError(error);}return;}
   if(event.target.closest('[data-ledger-evidence-drop]')){event.preventDefault();addLedgerPendingFiles(files);return;}
   if(['support-question-create','support-question'].includes(state.modal?.type)){event.preventDefault();addQuestionPendingFiles(files);return;}
   if(['suggestion-create','suggestion-thread'].includes(state.modal?.type)){event.preventDefault();addSuggestionPendingFiles(files);}
 });
+root.addEventListener('keyup',event=>{if(event.target?.matches?.('[data-hub-notice-body]'))state.hubBoard.noticeCaret=event.target.selectionStart??event.target.value.length;});
+root.addEventListener('mouseup',event=>{if(event.target?.matches?.('[data-hub-notice-body]'))state.hubBoard.noticeCaret=event.target.selectionStart??event.target.value.length;});
 root.addEventListener('dragover', event=>{if(event.target.closest('[data-hub-board-drop],[data-ledger-evidence-drop],[data-support-attachment-drop],[data-suggestion-attachment-drop]'))event.preventDefault();});
 root.addEventListener('drop', event=>{
   const supportDrop=event.target.closest('[data-support-attachment-drop]');
@@ -2980,15 +3087,31 @@ root.addEventListener('submit', async event => {
     }
     if(type==='hub-board-notice'){
       if(!state.platformAdmin)throw new Error('운영자만 공지를 등록할 수 있습니다.');
-      await publishHubNotice(String(data.get('title')||'').trim(),String(data.get('body')||'').trim());
-      state.hubBoard.noticeId=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';await loadHubBoard();setNotice('공지사항을 등록했습니다.');return;
+      if(state.hubBoard.noticeUploading)throw new Error('이미지 업로드가 끝난 뒤 저장해 주세요.');
+      const title=String(data.get('title')||'').trim();
+      const editorBody=String(data.get('body')||'');
+      const body=serializeNoticeEditorBody(editorBody,state.hubBoard.noticeMedia);
+      const referenced=new Set(noticeImagePaths(body));
+      const unused=(state.hubBoard.noticeMedia||[]).filter(item=>item.isNew&&item.path&&!referenced.has(item.path)).map(item=>item.path);
+      const noticeId=await publishHubNotice(title,body);
+      if(unused.length)await removeHubNoticeImages(unused).catch(()=>{});
+      resetHubNoticeEditorState();state.hubBoard.noticeId=noticeId||null;state.hubBoard.mode='list';state.hubBoard.tab='notices';await loadHubBoard();setNotice('공지사항을 등록했습니다.');return;
     }
     if(type==='hub-board-notice-edit'){
       if(!state.platformAdmin)throw new Error('운영자만 공지를 수정할 수 있습니다.');
+      if(state.hubBoard.noticeUploading)throw new Error('이미지 업로드가 끝난 뒤 저장해 주세요.');
       const noticeId=String(state.hubBoard.noticeId||'');
       if(!noticeId)throw new Error('수정할 공지를 찾을 수 없습니다.');
-      await updateHubNotice(noticeId,String(data.get('title')||'').trim(),String(data.get('body')||'').trim());
-      await loadHubBoard();state.hubBoard.noticeId=noticeId;state.hubBoard.mode='notice';state.hubBoard.tab='notices';setNotice('공지사항을 수정했습니다.');return;
+      const existing=(state.hubBoard.notices||[]).find(item=>String(item.id)===noticeId);
+      const oldPaths=new Set(noticeImagePaths(existing?.body||''));
+      const title=String(data.get('title')||'').trim();
+      const editorBody=String(data.get('body')||'');
+      const body=serializeNoticeEditorBody(editorBody,state.hubBoard.noticeMedia);
+      const newPaths=new Set(noticeImagePaths(body));
+      await updateHubNotice(noticeId,title,body);
+      const unused=[...(state.hubBoard.noticeMedia||[]).filter(item=>item.isNew&&item.path&&!newPaths.has(item.path)).map(item=>item.path),...([...oldPaths].filter(path=>!newPaths.has(path)))];
+      if(unused.length)await removeHubNoticeImages(unused).catch(()=>{});
+      resetHubNoticeEditorState();await loadHubBoard();state.hubBoard.noticeId=noticeId;state.hubBoard.mode='notice';state.hubBoard.tab='notices';setNotice('공지사항을 수정했습니다.');return;
     }
     if(type==='test-center-company'){
       if(!state.platformAdmin||!state.testCenter)throw new Error('PLATFORM OWNER 테스트 모드가 아닙니다.');

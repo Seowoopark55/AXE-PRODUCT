@@ -1886,11 +1886,9 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .game-info-explorer .game-modbook-detail__panel > header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .game-center .game-info-explorer .game-modbook-detail__panel > header::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(205,164,100,.60),transparent)}
 .game-center .game-info-explorer .game-modbook-detail__panel h3{margin:0;color:#efe2ca;font-size:12px;letter-spacing:.05em}
-.game-center .game-info-explorer .game-modbook-detail__effects,
-.game-center .game-info-explorer .game-modbook-detail__support{min-height:0}
+.game-center .game-info-explorer .game-modbook-detail__effects{min-height:0}
 .game-center .game-info-explorer .game-modbook-detail__effects ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 .game-center .game-info-explorer .game-modbook-detail__effects li,
-.game-center .game-info-explorer .game-modbook-detail__support p,
 .game-center .game-info-explorer .game-modbook-detail__empty{
  margin:0;padding:0;color:#e7ebef;font-size:13px;line-height:1.58;word-break:keep-all;
 }
@@ -1900,7 +1898,6 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
 .game-center .game-info-explorer .game-modbook-detail__effects li::before{
  content:"";position:absolute;left:0;top:.58em;width:7px;height:7px;border-radius:50%;background:var(--mod-accent);box-shadow:0 0 0 2px rgba(255,255,255,.06);
 }
-.game-center .game-info-explorer .game-modbook-detail__support{display:flex;flex-direction:column;gap:6px}
 .game-center .game-info-explorer .game-modbook-detail__empty{color:#9fb0bf}
 .game-center .game-info-explorer .game-modbook-detail__panel--effects{
  min-height:164px;
@@ -1908,7 +1905,6 @@ body:has(.runtime-app--game-info.game-center) #app{position:relative;isolation:i
   radial-gradient(circle at 92% 76%,rgba(255,213,151,.06),transparent 18%),
   linear-gradient(180deg,rgba(14,24,35,.92),rgba(11,20,31,.96));
 }
-.game-center .game-info-explorer .game-modbook-detail__panel--support{min-height:76px}
 @media (max-width: 1100px){
  .game-center .game-info-explorer .game-modbook-detail__hero-main{grid-template-columns:minmax(0,1fr) 128px;gap:10px}
  .game-center .game-info-explorer .game-modbook-detail__title-wrap h2{font-size:22px}

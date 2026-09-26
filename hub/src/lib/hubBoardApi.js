@@ -100,3 +100,40 @@ export async function hubBoardImageUrl(storagePath){
   if(!data?.signedUrl)throw new Error('사진 임시 주소를 만들지 못했습니다.');
   return data.signedUrl;
 }
+
+const NOTICE_IMAGE_BUCKET='lac-hub-notice-images';
+const NOTICE_IMAGE_EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+const NOTICE_IMAGE_PATH=/^notices\/[0-9a-f-]{36}\.(?:png|jpg|webp)$/i;
+export function checkHubNoticeImages(files){
+  const selected=Array.from(files||[]);
+  if(selected.length>8)throw new Error('공지 이미지는 한 번에 최대 8장까지 추가할 수 있습니다.');
+  for(const file of selected){
+    if(!NOTICE_IMAGE_EXT[file.type])throw new Error('공지 이미지는 JPG, PNG, WEBP 형식만 사용할 수 있습니다.');
+    if(!file.size||file.size>10485760)throw new Error('공지 이미지 한 장은 10MB 이하로 사용해 주세요.');
+  }
+  return selected;
+}
+export async function uploadHubNoticeImage(file){
+  assertClient();
+  checkHubNoticeImages([file]);
+  const path=`notices/${crypto.randomUUID()}.${NOTICE_IMAGE_EXT[file.type]}`;
+  const result=await supabase.storage.from(NOTICE_IMAGE_BUCKET).upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});
+  if(result.error)throw new Error(`공지 이미지 업로드에 실패했습니다. ${result.error.message||''}`.trim());
+  return {path,url:hubNoticeImageUrl(path)};
+}
+export function hubNoticeImageUrl(storagePath){
+  assertClient();
+  const path=String(storagePath||'');
+  if(!NOTICE_IMAGE_PATH.test(path))return '';
+  const result=supabase.storage.from(NOTICE_IMAGE_BUCKET).getPublicUrl(path);
+  return result?.data?.publicUrl||'';
+}
+export async function removeHubNoticeImages(paths){
+  assertClient();
+  const selected=[...new Set((paths||[]).map(String).filter(path=>NOTICE_IMAGE_PATH.test(path)))];
+  if(!selected.length)return;
+  for(let i=0;i<selected.length;i+=50){
+    const result=await supabase.storage.from(NOTICE_IMAGE_BUCKET).remove(selected.slice(i,i+50));
+    if(result.error)throw new Error(`공지 이미지 정리에 실패했습니다. ${result.error.message||''}`.trim());
+  }
+}
